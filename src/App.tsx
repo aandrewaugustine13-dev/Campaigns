@@ -1,4 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
+import DoomHUD from "./DoomHUD";
+import VisualNovelEngine from "./VisualNovelEngine";
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -1367,15 +1369,12 @@ export default function App(){
             </div>
           )}
           {state.phase==="event"&&state.currentEvent&&(
-            <div className="space-y-2.5">
-              <div className="bg-stone-800 border border-amber-800/60 rounded p-3">
-                <h2 className="text-amber-400 font-bold mb-1.5">{state.currentEvent.title}</h2>
-                <p className="text-stone-300 text-sm leading-relaxed">{state.currentEvent.text}</p>
-              </div>
-              {state.currentEvent.choices.map((c,i)=>(
-                <button key={i} onClick={()=>handleChoice(i)} className="w-full text-left p-2.5 bg-stone-800 border border-stone-600 rounded hover:border-amber-500 transition-colors text-sm text-stone-200">{c.text}</button>
-              ))}
-            </div>
+            <VisualNovelEngine
+              currentEvent={state.currentEvent}
+              handleChoice={handleChoice}
+              bossHealth={avg}
+              scoutHealth={r.morale}
+            />
           )}
           {state.phase==="result"&&(
             <div className="space-y-2.5">
@@ -1389,26 +1388,15 @@ export default function App(){
         </div>
       </div>
 
-      {/* Crew Faces HUD — anchored bottom */}
-      <div className="flex-shrink-0 bg-stone-800 border-t border-stone-700 p-1.5">
-        <div className="max-w-lg mx-auto grid grid-cols-6 gap-1">
-          {([
-            {set:"boss",label:"Boss",val:avg},
-            {set:"scout",label:"Scout",val:r.morale},
-            {set:"cook",label:"Cookie",val:r.supplies},
-            {set:"wrangler",label:"Wrangler",val:(r.horses/state.outfit.horses)*100},
-            {set:"point",label:"Point",val:r.herdCondition},
-            {set:"hand",label:"Crew",val:(r.crew/state.outfit.crew)*100},
-          ]as{set:string;label:string;val:number}[]).map(({set,label,val})=>{
-            const fs=gf(FACES[set],val);
-            return(<div key={set} className="flex flex-col items-center gap-0.5">
-              <PixelFace spriteData={fs.sprite} size={44}/>
-              <span className="text-stone-400" style={{fontSize:8}}>{label}</span>
-              <span className="text-stone-500" style={{fontSize:7}}>{fs.label}</span>
-            </div>);
-          })}
-        </div>
-      </div>
+      {/* Crew Faces HUD — DoomHUD */}
+      <DoomHUD members={[
+        { id: "boss", role: "Boss", label: "Trail Boss", health: avg },
+        { id: "scout", role: "Scout", label: "Scout", health: r.morale },
+        { id: "cook", role: "Cookie", label: "Cook", health: r.supplies },
+        { id: "wrangler", role: "Wrangler", label: "Wrangler", health: (r.horses / state.outfit.horses) * 100 },
+        { id: "point", role: "Point", label: "Point Rider", health: r.herdCondition },
+        { id: "hand", role: "Crew", label: "Crew", health: (r.crew / state.outfit.crew) * 100 },
+      ]} />
     </div>
   );
 }
