@@ -12,56 +12,57 @@ export default function VisualNovelEngine({ currentEvent, handleChoice, bossHeal
   if (!currentEvent) return null;
 
   return (
-    <div className="relative w-full overflow-hidden border-4 border-[#1a0f0a]" style={{ height: 320 }}>
-      {/* SF2-style scrolling background — tiles and pans */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: `url(/faces/bg_default.png)`,
-          backgroundSize: "auto 100%",
-          backgroundRepeat: "repeat-x",
-          animation: "bgScroll 30s linear infinite",
-          imageRendering: "pixelated",
-        }}
-      />
+    <div className="border-4 border-[#1a0f0a]">
+      {/* Scene — scrolling BG + portraits, no dialogue overlay */}
+      <div className="relative w-full overflow-hidden" style={{ height: 200 }}>
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url(/faces/bg_default.png)`,
+            backgroundSize: "auto 100%",
+            backgroundRepeat: "repeat-x",
+            animation: "bgScroll 30s linear infinite",
+            imageRendering: "pixelated",
+          }}
+        />
+        <div className="absolute inset-0" style={{
+          background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.5) 100%)",
+        }} />
 
-      {/* Slight vignette overlay for depth */}
-      <div className="absolute inset-0" style={{
-        background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.5) 100%)",
-      }} />
-
-      {/* Character portraits — SF2 style flanking */}
-      <div className="absolute bottom-16 left-2 z-10">
-        <div className="bg-[#1a0f0a]/80 border-2 border-[#3d2516] p-0.5 rounded">
-          <img
-            src={getDoomFace("boss", bossHealth)}
-            className="w-16 h-16"
-            style={{ imageRendering: "pixelated" }}
-            alt="Trail Boss"
-          />
+        {/* Boss portrait — left */}
+        <div className="absolute bottom-2 left-3 z-10">
+          <div className="bg-[#1a0f0a]/80 border-2 border-[#3d2516] p-0.5 rounded">
+            <img
+              src={getDoomFace("boss", bossHealth)}
+              className="w-16 h-16"
+              style={{ imageRendering: "pixelated" }}
+              alt="Trail Boss"
+            />
+          </div>
+          <div className="text-center">
+            <span className="text-[#e6c280] font-bold drop-shadow-md" style={{ fontSize: '9px' }}>Trail Boss</span>
+          </div>
         </div>
-        <div className="text-center">
-          <span className="text-[#e6c280] font-bold drop-shadow-md" style={{ fontSize: '9px' }}>Trail Boss</span>
+
+        {/* Scout portrait — right */}
+        <div className="absolute bottom-2 right-3 z-10">
+          <div className="bg-[#1a0f0a]/80 border-2 border-[#3d2516] p-0.5 rounded">
+            <img
+              src={getDoomFace("scout", scoutHealth)}
+              className="w-16 h-16"
+              style={{ imageRendering: "pixelated" }}
+              alt="Scout"
+            />
+          </div>
+          <div className="text-center">
+            <span className="text-[#e6c280] font-bold drop-shadow-md" style={{ fontSize: '9px' }}>Scout</span>
+          </div>
         </div>
       </div>
 
-      <div className="absolute bottom-16 right-2 z-10">
-        <div className="bg-[#1a0f0a]/80 border-2 border-[#3d2516] p-0.5 rounded">
-          <img
-            src={getDoomFace("scout", scoutHealth)}
-            className="w-16 h-16"
-            style={{ imageRendering: "pixelated" }}
-            alt="Scout"
-          />
-        </div>
-        <div className="text-center">
-          <span className="text-[#e6c280] font-bold drop-shadow-md" style={{ fontSize: '9px' }}>Scout</span>
-        </div>
-      </div>
-
-      {/* Stardew Valley dialogue box — overlaid at bottom */}
-      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-10/12 z-20">
-        <div className="bg-[#e6c280] border-4 border-[#8b5a2b] rounded shadow-[4px_4px_0px_rgba(0,0,0,0.5)] p-2.5">
+      {/* Dialogue box — below the scene, not overlaying it */}
+      <div className="bg-[#1a0f0a] p-2">
+        <div className="bg-[#e6c280] border-4 border-[#8b5a2b] rounded shadow-[4px_4px_0px_rgba(0,0,0,0.5)] p-3">
           <p className="text-[#5c3a21] font-bold text-sm mb-2 drop-shadow-sm leading-snug">
             {currentEvent.text}
           </p>
