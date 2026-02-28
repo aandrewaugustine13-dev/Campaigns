@@ -4,1510 +4,1408 @@ import { useState, useCallback, useEffect, useRef } from "react";
 // TYPES
 // ═══════════════════════════════════════════════════════════════
 
-interface Resources {
-  [key: string]: number;
-}
-
-interface Outcome {
-  weight: number;
-  effects: Resources;
-  result: string;
-  earlyEnd?: boolean;
-}
-
-interface Choice {
-  text: string;
-  effects?: Resources;
-  result?: string;
-  outcomes?: Outcome[];
-  earlyEnd?: boolean;
-}
-
-interface GameEvent {
-  id: string;
-  phase_min: number;
-  phase_max: number;
-  weight: number;
-  title: string;
-  text: string;
-  choices: Choice[];
-}
-
-interface Decision {
-  event: string;
-  choice: string;
-  day: number;
+interface Resources { [key: string]: number; }
+interface Outcome { weight: number; effects: Resources; result: string; earlyEnd?: boolean; }
+interface Choice { text: string; effects?: Resources; result?: string; outcomes?: Outcome[]; earlyEnd?: boolean; }
+interface GameEvent { id: string; phase_min: number; phase_max: number; weight: number; title: string; text: string; choices: Choice[]; }
+interface Decision { event: string; choice: string; day: number; }
+interface OutfitConfig {
+  herd: number;
+  crew: number;
+  horses: number;
+  supplies: number;
+  guns: number;
+  spareParts: number;
+  wages: "low" | "standard" | "good";
+  budgetSpent: number;
+  startingCash: number;
 }
 
 interface GameState {
-  day: number;
-  turn: number;
-  resources: Resources;
-  phase: "intro" | "sailing" | "event" | "result" | "end";
-  pace: string;
-  distance: number;
-  currentEvent: GameEvent | null;
-  resultText: string;
-  decisions: Decision[];
-  gameOver: boolean;
-  survived: boolean;
-  earlySale: boolean;
+  day: number; turn: number; resources: Resources;
+  phase: "intro" | "outfit" | "sailing" | "event" | "result" | "end";
+  pace: string; distance: number; currentEvent: GameEvent | null;
+  resultText: string; decisions: Decision[];
+  gameOver: boolean; survived: boolean; earlySale: boolean;
+  outfit: OutfitConfig;
 }
 
 // ═══════════════════════════════════════════════════════════════
-// PIXEL ART FACE SYSTEM — 16x16 character grids → canvas
+// PIXEL FACE SYSTEM (same as before)
 // ═══════════════════════════════════════════════════════════════
 
-const FACE_CHARS: Record<string, string> = {
-  ".": "transparent",
-  s: "#e8b796", d: "#c4896b", w: "#a0654d",
-  H: "#5c3a1e", h: "#7a5230", B: "#d4a843",
-  e: "#1a1a2e", W: "#f0e8dc", r: "#3d2512",
-  m: "#8b3a3a", M: "#5c1e1e",
-  g: "#4a6741", G: "#364d30",
-  b: "#8b2020", n: "#6b1515",
-  c: "#c9a84c", C: "#a08530",
-  f: "#5c3a1e", F: "#3d2512",
-  x: "#7a5570", k: "#8b3a3a",
-  D: "#c4a882", t: "#b8d4e8",
+const FC: Record<string, string> = {
+  ".":"transparent",s:"#e8b796",d:"#c4896b",w:"#a0654d",
+  H:"#5c3a1e",h:"#7a5230",B:"#d4a843",e:"#1a1a2e",W:"#f0e8dc",r:"#3d2512",
+  m:"#8b3a3a",M:"#5c1e1e",g:"#4a6741",G:"#364d30",b:"#8b2020",n:"#6b1515",
+  c:"#c9a84c",C:"#a08530",f:"#5c3a1e",F:"#3d2512",x:"#7a5570",k:"#8b3a3a",
+  D:"#c4a882",t:"#b8d4e8",
 };
 
-const BOSS_HEALTHY =
-  "....HHHHHH....." +
-  "...HhHHHHhH...." +
-  "..HhHHHHHHhH..." +
-  "..BBBBBBBBBB..." +
-  "...sssssssss..." +
-  "..sssssssssss.." +
-  "..sWesssseWs..." +
-  "..ssesssssess.." +
-  "..ssssddsssss.." +
-  "..ssssddsssss.." +
-  "..sfssmmssfs..." +
-  "..sffssmssff..." +
-  "...sssssssss..." +
-  "...dsssssssd..." +
-  "....ggggggg...." +
-  "...gGgggggGg...";
+const B_H="....HHHHHH....."+
+"...HhHHHHhH...."+
+"..HhHHHHHHhH..."+
+"..BBBBBBBBBB..."+
+"...sssssssss..."+
+"..sssssssssss.."+
+"..sWesssseWs..."+
+"..ssesssssess.."+
+"..ssssddsssss.."+
+"..ssssddsssss.."+
+"..sfssmmssfs..."+
+"..sffssmssff..."+
+"...sssssssss..."+
+"...dsssssssd..."+
+"....ggggggg...."+
+"...gGgggggGg...";
 
-const BOSS_TIRED =
-  "....HHHHHH....." +
-  "...HhHHHHhH...." +
-  "..HhHHHHHHhH..." +
-  "..BBBBBBBBBB..." +
-  "...ddsssssdd..." +
-  "..sssssssssss.." +
-  "..dWesssseWd..." +
-  "..ssesssssess.." +
-  "..ssssddsssss.." +
-  "..ssssddsssss.." +
-  "..sfssmmssfs..." +
-  "..sffsssssff..." +
-  "...sssssssss..." +
-  "...dsssssssd..." +
-  "....ggggggg...." +
-  "...gGgggggGg...";
+const B_T="....HHHHHH....."+
+"...HhHHHHhH...."+
+"..HhHHHHHHhH..."+
+"..BBBBBBBBBB..."+
+"...ddsssssdd..."+
+"..sssssssssss.."+
+"..dWesssseWd..."+
+"..ssesssssess.."+
+"..ssssddsssss.."+
+"..ssssddsssss.."+
+"..sfssmmssfs..."+
+"..sffsssssff..."+
+"...sssssssss..."+
+"...dsssssssd..."+
+"....ggggggg...."+
+"...gGgggggGg...";
 
-const BOSS_WORRIED =
-  "....HHHHHH....." +
-  "...HhHHHHhH...." +
-  "..HhHHHHHHhH..." +
-  "..BBBBBBBBBB..." +
-  "...ddsssssdd..." +
-  "..ddsssssssdd.." +
-  "..dWesssseWd..." +
-  "..ssesssssess.." +
-  "..xsssddsssxs.." +
-  "..ssssddsssss.." +
-  "..sfsMMMssfs..." +
-  "..sffsssssff..." +
-  "...sssssssss..." +
-  "...wssssssswt.." +
-  "....ggggggg...." +
-  "...gGgggggGg...";
+const B_W="....HHHHHH....."+
+"...HhHHHHhH...."+
+"..HhHHHHHHhH..."+
+"..BBBBBBBBBB..."+
+"...ddsssssdd..."+
+"..ddsssssssdd.."+
+"..dWesssseWd..."+
+"..ssesssssess.."+
+"..xsssddsssxs.."+
+"..ssssddsssss.."+
+"..sfsMMMssfs..."+
+"..sffsssssff..."+
+"...sssssssss..."+
+"...wssssssswt.."+
+"....ggggggg...."+
+"...gGgggggGg...";
 
-const BOSS_DESPERATE =
-  "....HHHHHH....." +
-  "...HhHHHHhH...." +
-  "..HhHHHHHHhH..." +
-  "..BBBBBBBBBB..." +
-  "...xxsssssxx..." +
-  "..xxsssssssxx.." +
-  "..xWesssseWx..." +
-  "..ssesssssess.." +
-  "..xkssddssskx.." +
-  "..ssssddsssss.." +
-  "..sfMMMMMsfs..." +
-  "..sFfsssssFs..." +
-  "...wswswswsw..." +
-  "...wssssssswt.." +
-  "....ggggggg...." +
-  "...gGgggggGg...";
+const B_D="....HHHHHH....."+
+"...HhHHHHhH...."+
+"..HhHHHHHHhH..."+
+"..BBBBBBBBBB..."+
+"...xxsssssxx..."+
+"..xxsssssssxx.."+
+"..xWesssseWx..."+
+"..ssesssssess.."+
+"..xkssddssskx.."+
+"..ssssddsssss.."+
+"..sfMMMMMsfs..."+
+"..sFfsssssFs..."+
+"...wswswswsw..."+
+"...wssssssswt.."+
+"....ggggggg...."+
+"...gGgggggGg...";
 
-const SCOUT_HEALTHY =
-  "................" +
-  "....rrrrrrr....." +
-  "...rrrrrrrrr...." +
-  "..rrrsssssrrr..." +
-  "..rrsssssssrr..." +
-  "..ssssssssssss.." +
-  "..sWesssseWs..." +
-  "..ssesssssess.." +
-  "..sssssssssss.." +
-  "..ssssddsssss.." +
-  "..ssssmmsssss.." +
-  "..ssssssssss..." +
-  "...bbbbbbbbb..." +
-  "...bnbbbbbbn..." +
-  "....ggggggg...." +
-  "...gGgggggGg...";
+const S_H="................"+
+"....rrrrrrr....."+
+"...rrrrrrrrr...."+
+"..rrrsssssrrr..."+
+"..rrsssssssrr..."+
+"..ssssssssssss.."+
+"..sWesssseWs..."+
+"..ssesssssess.."+
+"..sssssssssss.."+
+"..ssssddsssss.."+
+"..ssssmmsssss.."+
+"..ssssssssss..."+
+"...bbbbbbbbb..."+
+"...bnbbbbbbn..."+
+"....ggggggg...."+
+"...gGgggggGg...";
 
-const SCOUT_TIRED =
-  "................" +
-  "....rrrrrrr....." +
-  "...rrrrrrrrr...." +
-  "..rrrsssssrrr..." +
-  "..rrsssssssrr..." +
-  "..ddsssssssdd.." +
-  "..dWesssseWd..." +
-  "..ssesssssess.." +
-  "..sssssssssss.." +
-  "..ssssddsssss.." +
-  "..ssssmmsssss.." +
-  "..ssssssssss..." +
-  "...bbbbbbbbb..." +
-  "...bnbbbbbbn..." +
-  "....ggggggg...." +
-  "...gGgggggGg...";
+const S_T="................"+
+"....rrrrrrr....."+
+"...rrrrrrrrr...."+
+"..rrrsssssrrr..."+
+"..rrsssssssrr..."+
+"..ddsssssssdd.."+
+"..dWesssseWd..."+
+"..ssesssssess.."+
+"..sssssssssss.."+
+"..ssssddsssss.."+
+"..ssssmmsssss.."+
+"..ssssssssss..."+
+"...bbbbbbbbb..."+
+"...bnbbbbbbn..."+
+"....ggggggg...."+
+"...gGgggggGg...";
 
-const SCOUT_WORRIED =
-  "................" +
-  "....rrrrrrr....." +
-  "...rrrrrrrrr...." +
-  "..rrrsssssrrr..." +
-  "..rrdsssssdrrr.." +
-  "..ddsssssssdd.." +
-  "..dWesssseWd..." +
-  "..ssesssssess.." +
-  "..xssssssssxs.." +
-  "..ssssddsssss.." +
-  "..sssMMMsssss.." +
-  "..ssssssssss..." +
-  "...bbbbbbbbb..." +
-  "...bnbbbbbbn..." +
-  "....ggggggg...." +
-  "...gGgggggGg...";
+const S_W="................"+
+"....rrrrrrr....."+
+"...rrrrrrrrr...."+
+"..rrrsssssrrr..."+
+"..rrdsssssdrrr.."+
+"..ddsssssssdd.."+
+"..dWesssseWd..."+
+"..ssesssssess.."+
+"..xssssssssxs.."+
+"..ssssddsssss.."+
+"..sssMMMsssss.."+
+"..ssssssssss..."+
+"...bbbbbbbbb..."+
+"...bnbbbbbbn..."+
+"....ggggggg...."+
+"...gGgggggGg...";
 
-const SCOUT_DESPERATE =
-  "................" +
-  "....rrrrrrr....." +
-  "...rrrrrrrrr...." +
-  "..rrrxsssxrrr..." +
-  "..rrxsssssxrr..." +
-  "..xxsssssssxx.." +
-  "..xWesssseWx..." +
-  "..ssesssssess.." +
-  "..xkssssssskx.." +
-  "..ssssddsssss.." +
-  "..ssMMMMMssss.." +
-  "..wsswssswss..." +
-  "...bbbbbbbbb..." +
-  "...bnbbbbbbn..." +
-  "....ggggggg...." +
-  "...gGgggggGg...";
+const S_D="................"+
+"....rrrrrrr....."+
+"...rrrrrrrrr...."+
+"..rrrxsssxrrr..."+
+"..rrxsssssxrr..."+
+"..xxsssssssxx.."+
+"..xWesssseWx..."+
+"..ssesssssess.."+
+"..xkssssssskx.."+
+"..ssssddsssss.."+
+"..ssMMMMMssss.."+
+"..wsswssswss..."+
+"...bbbbbbbbb..."+
+"...bnbbbbbbn..."+
+"....ggggggg...."+
+"...gGgggggGg...";
 
-const COOK_HEALTHY =
-  "................" +
-  "....HHHHHH....." +
-  "...HHHHHHHH...." +
-  "..HHHHHHHHHH..." +
-  "...sssssssss..." +
-  "..sssssssssss.." +
-  "..sWesssseWs..." +
-  "..ssesssssess.." +
-  "..ssssddsssss.." +
-  "..sssssssssss.." +
-  "..ssssmmsssss.." +
-  "..sssssssssss.." +
-  "...ccccccccc..." +
-  "...cCcccccCc..." +
-  "....ccccccc...." +
-  "...cCcccccCc...";
+const CK_H="................"+
+"....HHHHHH....."+
+"...HHHHHHHH...."+
+"..HHHHHHHHHH..."+
+"...sssssssss..."+
+"..sssssssssss.."+
+"..sWesssseWs..."+
+"..ssesssssess.."+
+"..ssssddsssss.."+
+"..sssssssssss.."+
+"..ssssmmsssss.."+
+"..sssssssssss.."+
+"...ccccccccc..."+
+"...cCcccccCc..."+
+"....ccccccc...."+
+"...cCcccccCc...";
 
-const COOK_TIRED =
-  "................" +
-  "....HHHHHH....." +
-  "...HHHHHHHH...." +
-  "..HHHHHHHHHH..." +
-  "...ddsssssdd..." +
-  "..sssssssssss.." +
-  "..dWesssseWd..." +
-  "..ssesssssess.." +
-  "..ssssddsssss.." +
-  "..sssssssssss.." +
-  "..ssssmmsssss.." +
-  "..sssssssssss.." +
-  "...ccccccccc..." +
-  "...cCcccccCc..." +
-  "....ccccccc...." +
-  "...cCcccccCc...";
+const CK_T="................"+
+"....HHHHHH....."+
+"...HHHHHHHH...."+
+"..HHHHHHHHHH..."+
+"...ddsssssdd..."+
+"..sssssssssss.."+
+"..dWesssseWd..."+
+"..ssesssssess.."+
+"..ssssddsssss.."+
+"..sssssssssss.."+
+"..ssssmmsssss.."+
+"..sssssssssss.."+
+"...ccccccccc..."+
+"...cCcccccCc..."+
+"....ccccccc...."+
+"...cCcccccCc...";
 
-const COOK_WORRIED =
-  "................" +
-  "....HHHHHH....." +
-  "...HHHHHHHH...." +
-  "..HHHHHHHHHH..." +
-  "...ddsssssdd..." +
-  "..ddsssssssdd.." +
-  "..dWesssseWd..." +
-  "..ssesssssess.." +
-  "..xsssddsssxs.." +
-  "..sssssssssss.." +
-  "..ssMMMMMssss.." +
-  "..sssssssssss.." +
-  "...ccccccccc..." +
-  "...cCcccccCc..." +
-  "....ccccccc...." +
-  "...cCcccccCc...";
+const CK_W="................"+
+"....HHHHHH....."+
+"...HHHHHHHH...."+
+"..HHHHHHHHHH..."+
+"...ddsssssdd..."+
+"..ddsssssssdd.."+
+"..dWesssseWd..."+
+"..ssesssssess.."+
+"..xsssddsssxs.."+
+"..sssssssssss.."+
+"..ssMMMMMssss.."+
+"..sssssssssss.."+
+"...ccccccccc..."+
+"...cCcccccCc..."+
+"....ccccccc...."+
+"...cCcccccCc...";
 
-const COOK_DESPERATE =
-  "................" +
-  "....HHHHHH....." +
-  "...HHHHHHHH...." +
-  "..HHHHHHHHHH..." +
-  "...xxsssssxx..." +
-  "..xxsssssssxx.." +
-  "..xWesssseWx..." +
-  "..ssesssssess.." +
-  "..xkssddssskx.." +
-  "..sssssssssss.." +
-  "..sMMMMMMMsss.." +
-  "..wswswswsww..." +
-  "...ccccccccc..." +
-  "...cCcccccCc..." +
-  "....ccccccc...." +
-  "...cCcccccCc...";
+const CK_D="................"+
+"....HHHHHH....."+
+"...HHHHHHHH...."+
+"..HHHHHHHHHH..."+
+"...xxsssssxx..."+
+"..xxsssssssxx.."+
+"..xWesssseWx..."+
+"..ssesssssess.."+
+"..xkssddssskx.."+
+"..sssssssssss.."+
+"..sMMMMMMMsss.."+
+"..wswswswsww..."+
+"...ccccccccc..."+
+"...cCcccccCc..."+
+"....ccccccc...."+
+"...cCcccccCc...";
 
-const WRANGLER_HEALTHY =
-  "...HHHHHHHHH..." +
-  "..HhHHHHHHhH..." +
-  "..HhHHHHHHhH..." +
-  "..BBBBBBBBBB..." +
-  "...sssssssss..." +
-  "..sssssssssss.." +
-  "..sWesssseWs..." +
-  "..ssesssssess.." +
-  "..ssssddsssss.." +
-  "..sssssssssss.." +
-  "..ssssmmsssss.." +
-  "..sssssssssss.." +
-  "...sssssssss..." +
-  "...dsssssssd..." +
-  "....ggggggg...." +
-  "...gGgggggGg...";
+const WR_H="...HHHHHHHHH..."+
+"..HhHHHHHHhH..."+
+"..HhHHHHHHhH..."+
+"..BBBBBBBBBB..."+
+"...sssssssss..."+
+"..sssssssssss.."+
+"..sWesssseWs..."+
+"..ssesssssess.."+
+"..ssssddsssss.."+
+"..sssssssssss.."+
+"..ssssmmsssss.."+
+"..sssssssssss.."+
+"...sssssssss..."+
+"...dsssssssd..."+
+"....ggggggg...."+
+"...gGgggggGg...";
 
-const WRANGLER_TIRED =
-  "...HHHHHHHHH..." +
-  "..HhHHHHHHhH..." +
-  "..HhHHHHHHhH..." +
-  "..BBBBBBBBBB..." +
-  "...ddsssssdd..." +
-  "..sssssssssss.." +
-  "..dWesssseWd..." +
-  "..ssesssssess.." +
-  "..ssssddsssss.." +
-  "..sssssssssss.." +
-  "..ssssmmsssss.." +
-  "..sssssssssss.." +
-  "...sssssssss..." +
-  "...dsssssssd..." +
-  "....ggggggg...." +
-  "...gGgggggGg...";
+const WR_T="...HHHHHHHHH..."+
+"..HhHHHHHHhH..."+
+"..HhHHHHHHhH..."+
+"..BBBBBBBBBB..."+
+"...ddsssssdd..."+
+"..sssssssssss.."+
+"..dWesssseWd..."+
+"..ssesssssess.."+
+"..ssssddsssss.."+
+"..sssssssssss.."+
+"..ssssmmsssss.."+
+"..sssssssssss.."+
+"...sssssssss..."+
+"...dsssssssd..."+
+"....ggggggg...."+
+"...gGgggggGg...";
 
-const WRANGLER_WORRIED =
-  "...HHHHHHHHH..." +
-  "..HhHHHHHHhH..." +
-  "..HhHHHHHHhH..." +
-  "..BBBBBBBBBB..." +
-  "...ddsssssdd..." +
-  "..ddsssssssdd.." +
-  "..dWesssseWd..." +
-  "..ssesssssess.." +
-  "..xsssddsssxs.." +
-  "..sssssssssss.." +
-  "..sssMMMsssss.." +
-  "..sssssssssss.." +
-  "...sssssssss..." +
-  "...wssssssswt.." +
-  "....ggggggg...." +
-  "...gGgggggGg...";
+const WR_W="...HHHHHHHHH..."+
+"..HhHHHHHHhH..."+
+"..HhHHHHHHhH..."+
+"..BBBBBBBBBB..."+
+"...ddsssssdd..."+
+"..ddsssssssdd.."+
+"..dWesssseWd..."+
+"..ssesssssess.."+
+"..xsssddsssxs.."+
+"..sssssssssss.."+
+"..sssMMMsssss.."+
+"..sssssssssss.."+
+"...sssssssss..."+
+"...wssssssswt.."+
+"....ggggggg...."+
+"...gGgggggGg...";
 
-const WRANGLER_DESPERATE =
-  "...HHHHHHHHH..." +
-  "..HhHHHHHHhH..." +
-  "..HhHHHHHHhH..." +
-  "..BBBBBBBBBB..." +
-  "...xxsssssxx..." +
-  "..xxsssssssxx.." +
-  "..xWesssseWx..." +
-  "..ssesssssess.." +
-  "..xkssddssskx.." +
-  "..sssssssssss.." +
-  "..sMMMMMMMsss.." +
-  "..wswswswsww..." +
-  "...wswswswsw..." +
-  "...wssssssswt.." +
-  "....ggggggg...." +
-  "...gGgggggGg...";
+const WR_D="...HHHHHHHHH..."+
+"..HhHHHHHHhH..."+
+"..HhHHHHHHhH..."+
+"..BBBBBBBBBB..."+
+"...xxsssssxx..."+
+"..xxsssssssxx.."+
+"..xWesssseWx..."+
+"..ssesssssess.."+
+"..xkssddssskx.."+
+"..sssssssssss.."+
+"..sMMMMMMMsss.."+
+"..wswswswsww..."+
+"...wswswswsw..."+
+"...wssssssswt.."+
+"....ggggggg...."+
+"...gGgggggGg...";
 
-const POINT_HEALTHY =
-  "....HHHHHH....." +
-  "...HhHHHHhH...." +
-  "..HHHHHHHHHH..." +
-  "..BBBBBBBBBB..." +
-  "...sssssssss..." +
-  "..sssssssssss.." +
-  "..sWesssseWs..." +
-  "..ssesssssess.." +
-  "..ssssddsssss.." +
-  "..sssssssssss.." +
-  "..ssssmmsssss.." +
-  "...sssssssss..." +
-  "...bbbbbbbbb..." +
-  "...bnbbbbbbn..." +
-  "....ggggggg...." +
-  "...gGgggggGg...";
+const PT_H="....HHHHHH....."+
+"...HhHHHHhH...."+
+"..HHHHHHHHHH..."+
+"..BBBBBBBBBB..."+
+"...sssssssss..."+
+"..sssssssssss.."+
+"..sWesssseWs..."+
+"..ssesssssess.."+
+"..ssssddsssss.."+
+"..sssssssssss.."+
+"..ssssmmsssss.."+
+"...sssssssss..."+
+"...bbbbbbbbb..."+
+"...bnbbbbbbn..."+
+"....ggggggg...."+
+"...gGgggggGg...";
 
-const POINT_TIRED =
-  "....HHHHHH....." +
-  "...HhHHHHhH...." +
-  "..HHHHHHHHHH..." +
-  "..BBBBBBBBBB..." +
-  "...DDsssssDD..." +
-  "..DDsssssssDD.." +
-  "..DWesssseWD..." +
-  "..ssesssssess.." +
-  "..ssssddsssss.." +
-  "..sssssssssss.." +
-  "..ssssmmsssss.." +
-  "...sssssssss..." +
-  "...bbbbbbbbb..." +
-  "...bnbbbbbbn..." +
-  "....ggggggg...." +
-  "...gGgggggGg...";
+const PT_T="....HHHHHH....."+
+"...HhHHHHhH...."+
+"..HHHHHHHHHH..."+
+"..BBBBBBBBBB..."+
+"...DDsssssDD..."+
+"..DDsssssssDD.."+
+"..DWesssseWD..."+
+"..ssesssssess.."+
+"..ssssddsssss.."+
+"..sssssssssss.."+
+"..ssssmmsssss.."+
+"...sssssssss..."+
+"...bbbbbbbbb..."+
+"...bnbbbbbbn..."+
+"....ggggggg...."+
+"...gGgggggGg...";
 
-const POINT_WORRIED =
-  "....HHHHHH....." +
-  "...HhHHHHhH...." +
-  "..HHHHHHHHHH..." +
-  "..BBBBBBBBBB..." +
-  "...DDdsssdDD..." +
-  "..DDdsssssdDD.." +
-  "..DWesssseWD..." +
-  "..ssesssssess.." +
-  "..bbbbbbbbbbb.." +
-  "..bnbbbbbbbbn.." +
-  "..bbbbbbbbbbb.." +
-  "...bbbbbbbbb..." +
-  "...bbbbbbbbb..." +
-  "...bnbbbbbbn..." +
-  "....ggggggg...." +
-  "...gGgggggGg...";
+const PT_W="....HHHHHH....."+
+"...HhHHHHhH...."+
+"..HHHHHHHHHH..."+
+"..BBBBBBBBBB..."+
+"...DDdsssdDD..."+
+"..DDdsssssdDD.."+
+"..DWesssseWD..."+
+"..ssesssssess.."+
+"..bbbbbbbbbbb.."+
+"..bnbbbbbbbbn.."+
+"..bbbbbbbbbbb.."+
+"...bbbbbbbbb..."+
+"...bbbbbbbbb..."+
+"...bnbbbbbbn..."+
+"....ggggggg...."+
+"...gGgggggGg...";
 
-const POINT_DESPERATE =
-  "....HHHHHH....." +
-  "...HhHHHHhH...." +
-  "..HHHHHHHHHH..." +
-  "..BBBBBBBBBB..." +
-  "...xxdsssdxx..." +
-  "..xxdsssssdxx.." +
-  "..xWesssseWx..." +
-  "..ssesssssess.." +
-  "..bbbbbbbbbbb.." +
-  "..bnbbbbbbbbn.." +
-  "..bbbbbbbbbbb.." +
-  "...bbbbbbbbb..." +
-  "...bbbbbbbbb..." +
-  "...bnbbbbbbn..." +
-  "....ggggggg...." +
-  "...gGgggggGg...";
+const PT_D="....HHHHHH....."+
+"...HhHHHHhH...."+
+"..HHHHHHHHHH..."+
+"..BBBBBBBBBB..."+
+"...xxdsssdxx..."+
+"..xxdsssssdxx.."+
+"..xWesssseWx..."+
+"..ssesssssess.."+
+"..bbbbbbbbbbb.."+
+"..bnbbbbbbbbn.."+
+"..bbbbbbbbbbb.."+
+"...bbbbbbbbb..."+
+"...bbbbbbbbb..."+
+"...bnbbbbbbn..."+
+"....ggggggg...."+
+"...gGgggggGg...";
 
-const HAND_HEALTHY =
-  "................" +
-  "....HHHHHH....." +
-  "...HHHHHHHH...." +
-  "..BBBBBBBBBB..." +
-  "...sssssssss..." +
-  "..sssssssssss.." +
-  "..sWesssseWs..." +
-  "..ssesssssess.." +
-  "..ssssddsssss.." +
-  "..sssssssssss.." +
-  "..ssssmmsssss.." +
-  "...sssssssss..." +
-  "...sssssssss..." +
-  "...dsssssssd..." +
-  "....ggggggg...." +
-  "...gGgggggGg...";
+const HD_H="................"+
+"....HHHHHH....."+
+"...HHHHHHHH...."+
+"..BBBBBBBBBB..."+
+"...sssssssss..."+
+"..sssssssssss.."+
+"..sWesssseWs..."+
+"..ssesssssess.."+
+"..ssssddsssss.."+
+"..sssssssssss.."+
+"..ssssmmsssss.."+
+"...sssssssss..."+
+"...sssssssss..."+
+"...dsssssssd..."+
+"....ggggggg...."+
+"...gGgggggGg...";
 
-const HAND_SHORT =
-  "................" +
-  "....HHHHHH....." +
-  "...HHHHHHHH...." +
-  "..BBBBBBBBBB..." +
-  "...ddsssssdd..." +
-  "..sssssssssss.." +
-  "..dWesssseWd..." +
-  "..ssesssssess.." +
-  "..ssssddsssss.." +
-  "..sssssssssss.." +
-  "..ssssmmsssss.." +
-  "...sssssssss..." +
-  "...sssssssss..." +
-  "...dsssssssd..." +
-  "....ggggggg...." +
-  "...gGgggggGg...";
+const HD_S="................"+
+"....HHHHHH....."+
+"...HHHHHHHH...."+
+"..BBBBBBBBBB..."+
+"...ddsssssdd..."+
+"..sssssssssss.."+
+"..dWesssseWd..."+
+"..ssesssssess.."+
+"..ssssddsssss.."+
+"..sssssssssss.."+
+"..ssssmmsssss.."+
+"...sssssssss..."+
+"...sssssssss..."+
+"...dsssssssd..."+
+"....ggggggg...."+
+"...gGgggggGg...";
 
-const HAND_SKELETON =
-  "................" +
-  "....HHHHHH....." +
-  "...HHHHHHHH...." +
-  "..BBBBBBBBBB..." +
-  "...ddsssssdd..." +
-  "..ddsssssssdd.." +
-  "..dWesssseWd..." +
-  "..ssesssssess.." +
-  "..xsssddsssxs.." +
-  "..sssssssssss.." +
-  "..sssMMMsssss.." +
-  "...wsswsswss..." +
-  "...sssssssss..." +
-  "...wssssssswt.." +
-  "....ggggggg...." +
-  "...gGgggggGg...";
+const HD_K="................"+
+"....HHHHHH....."+
+"...HHHHHHHH...."+
+"..BBBBBBBBBB..."+
+"...ddsssssdd..."+
+"..ddsssssssdd.."+
+"..dWesssseWd..."+
+"..ssesssssess.."+
+"..xsssddsssxs.."+
+"..sssssssssss.."+
+"..sssMMMsssss.."+
+"...wsswsswss..."+
+"...sssssssss..."+
+"...wssssssswt.."+
+"....ggggggg...."+
+"...gGgggggGg...";
 
-const HAND_GONE =
-  "................" +
-  "....HHHHHH....." +
-  "...HHHHHHHH...." +
-  "..BBBBBBBBBB..." +
-  "...xxsssssxx..." +
-  "..xxwssssswxx.." +
-  "..xWesssseWx..." +
-  "..ssesssssess.." +
-  "..xkwsddsxkxs.." +
-  "..wsssssssssw.." +
-  "..wMMMMMMMwww.." +
-  "...wswswswsw..." +
-  "...wswswswsw..." +
-  "...wssssssswt.." +
-  "....ggggggg...." +
-  "...gGgggggGg...";
+const HD_G="................"+
+"....HHHHHH....."+
+"...HHHHHHHH...."+
+"..BBBBBBBBBB..."+
+"...xxsssssxx..."+
+"..xxwssssswxx.."+
+"..xWesssseWx..."+
+"..ssesssssess.."+
+"..xkwsddsxkxs.."+
+"..wsssssssssw.."+
+"..wMMMMMMMwww.."+
+"...wswswswsw..."+
+"...wswswswsw..."+
+"...wssssssswt.."+
+"....ggggggg...."+
+"...gGgggggGg...";
 
-interface FaceLevel {
-  threshold: number;
-  sprite: string;
-  label: string;
-}
-
-const FACE_SETS: Record<string, FaceLevel[]> = {
-  boss: [
-    { threshold: 70, sprite: BOSS_HEALTHY, label: "Confident" },
-    { threshold: 45, sprite: BOSS_TIRED, label: "Wary" },
-    { threshold: 20, sprite: BOSS_WORRIED, label: "Worried" },
-    { threshold: 0, sprite: BOSS_DESPERATE, label: "Desperate" },
-  ],
-  scout: [
-    { threshold: 70, sprite: SCOUT_HEALTHY, label: "Sharp" },
-    { threshold: 45, sprite: SCOUT_TIRED, label: "Cautious" },
-    { threshold: 20, sprite: SCOUT_WORRIED, label: "Rattled" },
-    { threshold: 0, sprite: SCOUT_DESPERATE, label: "Gone" },
-  ],
-  cook: [
-    { threshold: 60, sprite: COOK_HEALTHY, label: "Fed" },
-    { threshold: 35, sprite: COOK_TIRED, label: "Scraping" },
-    { threshold: 15, sprite: COOK_WORRIED, label: "Empty" },
-    { threshold: 0, sprite: COOK_DESPERATE, label: "Nothing" },
-  ],
-  wrangler: [
-    { threshold: 70, sprite: WRANGLER_HEALTHY, label: "Strong" },
-    { threshold: 45, sprite: WRANGLER_TIRED, label: "Thin" },
-    { threshold: 20, sprite: WRANGLER_WORRIED, label: "Lame" },
-    { threshold: 0, sprite: WRANGLER_DESPERATE, label: "Afoot" },
-  ],
-  point: [
-    { threshold: 70, sprite: POINT_HEALTHY, label: "Steady" },
-    { threshold: 45, sprite: POINT_TIRED, label: "Dusty" },
-    { threshold: 20, sprite: POINT_WORRIED, label: "Masked" },
-    { threshold: 0, sprite: POINT_DESPERATE, label: "Losing" },
-  ],
-  hand: [
-    { threshold: 80, sprite: HAND_HEALTHY, label: "Full crew" },
-    { threshold: 55, sprite: HAND_SHORT, label: "Short" },
-    { threshold: 30, sprite: HAND_SKELETON, label: "Skeleton" },
-    { threshold: 0, sprite: HAND_GONE, label: "Bones" },
-  ],
+interface FL { threshold: number; sprite: string; label: string; }
+const FACES: Record<string, FL[]> = {
+  boss:[{threshold:70,sprite:B_H,label:"Confident"},{threshold:45,sprite:B_T,label:"Wary"},{threshold:20,sprite:B_W,label:"Worried"},{threshold:0,sprite:B_D,label:"Desperate"}],
+  scout:[{threshold:70,sprite:S_H,label:"Sharp"},{threshold:45,sprite:S_T,label:"Cautious"},{threshold:20,sprite:S_W,label:"Rattled"},{threshold:0,sprite:S_D,label:"Gone"}],
+  cook:[{threshold:60,sprite:CK_H,label:"Fed"},{threshold:35,sprite:CK_T,label:"Scraping"},{threshold:15,sprite:CK_W,label:"Empty"},{threshold:0,sprite:CK_D,label:"Nothing"}],
+  wrangler:[{threshold:70,sprite:WR_H,label:"Strong"},{threshold:45,sprite:WR_T,label:"Thin"},{threshold:20,sprite:WR_W,label:"Lame"},{threshold:0,sprite:WR_D,label:"Afoot"}],
+  point:[{threshold:70,sprite:PT_H,label:"Steady"},{threshold:45,sprite:PT_T,label:"Dusty"},{threshold:20,sprite:PT_W,label:"Masked"},{threshold:0,sprite:PT_D,label:"Losing"}],
+  hand:[{threshold:80,sprite:HD_H,label:"Full crew"},{threshold:55,sprite:HD_S,label:"Short"},{threshold:30,sprite:HD_K,label:"Skeleton"},{threshold:0,sprite:HD_G,label:"Bones"}],
 };
+function gf(set:FL[],v:number):FL{for(const f of set){if(v>=f.threshold)return f;}return set[set.length-1];}
 
-function getFaceState(set: FaceLevel[], val: number): FaceLevel {
-  for (const f of set) {
-    if (val >= f.threshold) return f;
-  }
-  return set[set.length - 1];
+function PixelFace({spriteData,size=48}:{spriteData:string;size?:number}){
+  const ref=useRef<HTMLCanvasElement>(null);
+  useEffect(()=>{
+    const c=ref.current;if(!c)return;const ctx=c.getContext("2d")!;const px=size/16;
+    ctx.clearRect(0,0,size,size);
+    for(let i=0;i<spriteData.length;i++){
+      const ch=spriteData[i];if(ch==="."||ch===" ")continue;
+      const color=FC[ch];if(!color||color==="transparent")continue;
+      ctx.fillStyle=color;ctx.fillRect((i%16)*px,Math.floor(i/16)*px,px,px);
+    }
+  },[spriteData,size]);
+  return <canvas ref={ref} width={size} height={size} style={{imageRendering:"pixelated",width:size,height:size}}/>;
 }
 
 // ═══════════════════════════════════════════════════════════════
-// CANVAS COMPONENTS
+// ANIMATED PRAIRIE SCENE — the hero visual
 // ═══════════════════════════════════════════════════════════════
 
-function PixelFace({ spriteData, size = 48 }: { spriteData: string; size?: number }) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const c = ref.current;
-    if (!c) return;
-    const ctx = c.getContext("2d")!;
-    const px = size / 16;
-    ctx.clearRect(0, 0, size, size);
-    for (let i = 0; i < spriteData.length; i++) {
-      const ch = spriteData[i];
-      if (ch === "." || ch === " ") continue;
-      const color = FACE_CHARS[ch];
-      if (!color || color === "transparent") continue;
-      ctx.fillStyle = color;
-      ctx.fillRect((i % 16) * px, Math.floor(i / 16) * px, px, px);
-    }
-  }, [spriteData, size]);
-  return (
-    <canvas
-      ref={ref}
-      width={size}
-      height={size}
-      style={{ imageRendering: "pixelated", width: size, height: size }}
-    />
-  );
+// Sky color palettes for time-of-day cycling
+const SKY_PHASES = [
+  // Dawn
+  { top: "#1a1a3e", mid: "#4a2a5c", low: "#c4604a", horizon: "#e8a060", sun: "#ffcc44", sunY: 0.85 },
+  // Morning
+  { top: "#1e3a6e", mid: "#3a6a9e", low: "#7ab4d4", horizon: "#c4d4a0", sun: "#ffe866", sunY: 0.5 },
+  // Noon
+  { top: "#1848a0", mid: "#3080c8", low: "#60b0e0", horizon: "#a0d0a0", sun: "#fff4cc", sunY: 0.15 },
+  // Afternoon
+  { top: "#1e4488", mid: "#4488bb", low: "#88bbdd", horizon: "#bbcc88", sun: "#ffe066", sunY: 0.35 },
+  // Sunset
+  { top: "#1a1a44", mid: "#6a2848", low: "#cc5533", horizon: "#ffaa44", sun: "#ff6622", sunY: 0.78 },
+  // Dusk
+  { top: "#0e0e28", mid: "#2a1838", low: "#5a2840", horizon: "#884455", sun: "#cc4444", sunY: 0.92 },
+];
+
+function lerpColor(a: string, b: string, t: number): string {
+  const pa = [parseInt(a.slice(1,3),16),parseInt(a.slice(3,5),16),parseInt(a.slice(5,7),16)];
+  const pb = [parseInt(b.slice(1,3),16),parseInt(b.slice(3,5),16),parseInt(b.slice(5,7),16)];
+  const r = Math.round(pa[0]+(pb[0]-pa[0])*t);
+  const g = Math.round(pa[1]+(pb[1]-pa[1])*t);
+  const bl = Math.round(pa[2]+(pb[2]-pa[2])*t);
+  return `rgb(${r},${g},${bl})`;
 }
 
-function TrailMap({ progress }: { progress: number }) {
+function PrairieScene({ progress, pace, turn }: { progress: number; pace: string; turn: number }) {
   const ref = useRef<HTMLCanvasElement>(null);
+  const frameRef = useRef(0);
+  const scrollRef = useRef(0);
+  const animRef = useRef<number>(0);
+
   useEffect(() => {
-    const c = ref.current;
-    if (!c) return;
+    const c = ref.current; if (!c) return;
     const ctx = c.getContext("2d")!;
-    const w = c.width;
-    const h = c.height;
+    const W = c.width;
+    const H = c.height;
+    const groundY = Math.floor(H * 0.62);
+    const trailY = groundY + 10;
 
-    // Sky
-    const sky = ctx.createLinearGradient(0, 0, 0, h * 0.55);
-    sky.addColorStop(0, "#1e3a5f");
-    sky.addColorStop(1, "#c4a060");
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, w, h);
+    // Sky phase from turn count (cycles through day)
+    const phaseIdx = turn % SKY_PHASES.length;
+    const sky = SKY_PHASES[phaseIdx];
+    const nextSky = SKY_PHASES[(phaseIdx + 1) % SKY_PHASES.length];
 
-    // Ground
-    const gY = h * 0.55;
-    const gr = ctx.createLinearGradient(0, gY, 0, h);
-    gr.addColorStop(0, "#8b7d3c");
-    gr.addColorStop(0.3, "#6b5e2a");
-    gr.addColorStop(1, "#4a4220");
-    ctx.fillStyle = gr;
-    ctx.fillRect(0, gY, w, h - gY);
+    // Scroll speed based on pace
+    const speed = pace === "push" ? 2.2 : pace === "normal" ? 1.3 : 0.7;
 
-    // Trail
-    const tY = gY + 20;
-    ctx.strokeStyle = "#5c4e28";
-    ctx.lineWidth = 3;
-    ctx.setLineDash([8, 6]);
-    ctx.beginPath();
-    ctx.moveTo(30, tY);
-    ctx.lineTo(w - 30, tY);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Labels
-    ctx.fillStyle = "#d4a843";
-    ctx.font = "bold 10px monospace";
-    ctx.textAlign = "center";
-    ctx.fillText("SAN ANTONIO", 60, tY + 16);
-    ctx.fillText("ABILENE", w - 50, tY + 16);
-
-    // Landmarks
-    const lm = [
-      { p: 0.15, l: "Austin" },
-      { p: 0.3, l: "Waco" },
-      { p: 0.45, l: "Red River" },
-      { p: 0.55, l: "Indian Terr." },
-      { p: 0.75, l: "Wichita" },
-    ];
-    ctx.fillStyle = "#8b7d5c";
-    ctx.font = "8px monospace";
-    for (const m of lm) {
-      const x = 30 + (w - 60) * m.p;
-      ctx.fillRect(x - 1, tY - 4, 2, 8);
-      ctx.fillText(m.l, x, tY - 8);
+    // Landmark positions (seeded by progress so they're consistent)
+    const landmarks: { x: number; type: string }[] = [];
+    for (let i = 0; i < 12; i++) {
+      const seed = (i * 137 + 42) % 500;
+      landmarks.push({
+        x: seed + i * 180,
+        type: ["tree", "rock", "cactus", "bush", "deadtree", "post"][i % 6],
+      });
     }
 
-    // Herd position
-    const hX = 30 + (w - 60) * Math.min(progress / 100, 1);
+    const draw = () => {
+      frameRef.current++;
+      scrollRef.current += speed;
+      const frame = frameRef.current;
+      const scroll = scrollRef.current;
 
-    // Dust
-    ctx.globalAlpha = 0.3;
-    ctx.fillStyle = "#c4a882";
-    for (let i = 0; i < 5; i++) {
+      // ── SKY ──
+      const grad = ctx.createLinearGradient(0, 0, 0, groundY);
+      grad.addColorStop(0, sky.top);
+      grad.addColorStop(0.4, sky.mid);
+      grad.addColorStop(0.75, sky.low);
+      grad.addColorStop(1, sky.horizon);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, groundY);
+
+      // ── SUN ──
+      const sunX = W * 0.75;
+      const sunY = groundY * sky.sunY;
+      const sunR = 14;
+      // Glow
+      ctx.globalAlpha = 0.3;
+      const glow = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, sunR * 4);
+      glow.addColorStop(0, sky.sun);
+      glow.addColorStop(1, "transparent");
+      ctx.fillStyle = glow;
+      ctx.fillRect(sunX - sunR * 4, sunY - sunR * 4, sunR * 8, sunR * 8);
+      ctx.globalAlpha = 1;
+      // Disc
+      ctx.fillStyle = sky.sun;
       ctx.beginPath();
-      ctx.arc(
-        hX - 8 - Math.random() * 20,
-        tY - 2 + (Math.random() - 0.5) * 8,
-        3 + Math.random() * 4,
-        0,
-        Math.PI * 2
-      );
+      ctx.arc(sunX, sunY, sunR, 0, Math.PI * 2);
       ctx.fill();
-    }
-    ctx.globalAlpha = 1;
 
-    // Cattle cluster
-    ctx.fillStyle = "#8b4513";
-    const cowPos: [number, number][] = [
-      [0, 0], [-3, -3], [3, -3], [-5, 1], [5, 1], [-2, 3], [2, 3], [0, -5],
-    ];
-    for (const [dx, dy] of cowPos) {
-      ctx.fillRect(hX + dx - 1, tY + dy - 1, 3, 2);
-    }
-    // Lead steer
-    ctx.fillStyle = "#a0522d";
-    ctx.fillRect(hX + 7, tY - 2, 4, 3);
-    ctx.fillStyle = "#d4c8a0";
-    ctx.fillRect(hX + 6, tY - 4, 1, 2);
-    ctx.fillRect(hX + 12, tY - 4, 1, 2);
+      // ── STARS (dawn/dusk/night only) ──
+      if (phaseIdx === 0 || phaseIdx >= 4) {
+        ctx.fillStyle = "#ffffff";
+        ctx.globalAlpha = phaseIdx === 5 ? 0.6 : 0.3;
+        for (let i = 0; i < 30; i++) {
+          const sx = (i * 97 + 13) % W;
+          const sy = (i * 53 + 7) % (groundY * 0.5);
+          const twinkle = Math.sin(frame * 0.05 + i) > 0.3 ? 1 : 0;
+          if (twinkle) ctx.fillRect(sx, sy, 1, 1);
+        }
+        ctx.globalAlpha = 1;
+      }
 
-    // Stars
-    ctx.fillStyle = "#fff";
-    ctx.globalAlpha = 0.4;
-    for (let i = 0; i < 20; i++) {
-      ctx.fillRect((42 * (i + 1) * 7) % w, (42 * (i + 1) * 3) % (gY - 10), 1, 1);
-    }
-    ctx.globalAlpha = 1;
-  }, [progress]);
+      // ── CLOUDS (slow parallax) ──
+      ctx.globalAlpha = 0.25;
+      ctx.fillStyle = "#ffffff";
+      for (let i = 0; i < 4; i++) {
+        const cx = ((i * 200 + 50) - scroll * 0.15) % (W + 100) - 50;
+        const cy = 15 + i * 18 + Math.sin(i) * 8;
+        const cw = 40 + (i % 3) * 20;
+        // Chunky pixel clouds
+        ctx.fillRect(cx, cy, cw, 4);
+        ctx.fillRect(cx + 4, cy - 3, cw - 8, 3);
+        ctx.fillRect(cx + 8, cy + 4, cw - 16, 3);
+      }
+      ctx.globalAlpha = 1;
+
+      // ── FAR HILLS (slow parallax) ──
+      ctx.fillStyle = lerpColor("#4a5568", sky.low, 0.4);
+      for (let x = -20; x < W + 40; x += 3) {
+        const bx = x - (scroll * 0.1) % 400;
+        const by = groundY - 12 - Math.sin(bx * 0.015) * 14 - Math.sin(bx * 0.008) * 8;
+        ctx.fillRect(((bx % (W + 40)) + W + 40) % (W + 40) - 20, by, 3, groundY - by);
+      }
+
+      // ── NEAR HILLS (medium parallax) ──
+      ctx.fillStyle = lerpColor("#5a6640", sky.horizon, 0.3);
+      for (let x = -10; x < W + 20; x += 3) {
+        const bx = x - (scroll * 0.25) % 500;
+        const by = groundY - 4 - Math.sin(bx * 0.02) * 8 - Math.cos(bx * 0.012) * 5;
+        ctx.fillRect(((bx % (W + 20)) + W + 20) % (W + 20) - 10, by, 3, groundY - by);
+      }
+
+      // ── GROUND ──
+      const gGrad = ctx.createLinearGradient(0, groundY, 0, H);
+      gGrad.addColorStop(0, "#8b7d3c");
+      gGrad.addColorStop(0.15, "#7a6e30");
+      gGrad.addColorStop(0.5, "#6b5e2a");
+      gGrad.addColorStop(1, "#4a4220");
+      ctx.fillStyle = gGrad;
+      ctx.fillRect(0, groundY, W, H - groundY);
+
+      // Trail dust line
+      ctx.fillStyle = "#a09060";
+      ctx.fillRect(0, trailY, W, 2);
+      ctx.fillStyle = "#8a7a50";
+      ctx.fillRect(0, trailY + 2, W, 1);
+
+      // ── LANDMARKS (scroll with ground) ──
+      for (const lm of landmarks) {
+        const lx = ((lm.x - scroll * 0.6) % (W + 200) + W + 200) % (W + 200) - 100;
+        if (lx < -30 || lx > W + 30) continue;
+
+        switch (lm.type) {
+          case "tree":
+            ctx.fillStyle = "#3d5a28";
+            ctx.fillRect(lx, groundY - 20, 3, 20);
+            ctx.fillStyle = "#4a7030";
+            ctx.fillRect(lx - 6, groundY - 28, 15, 10);
+            ctx.fillRect(lx - 4, groundY - 34, 11, 8);
+            ctx.fillRect(lx - 2, groundY - 38, 7, 5);
+            break;
+          case "rock":
+            ctx.fillStyle = "#7a7268";
+            ctx.fillRect(lx, groundY - 6, 12, 6);
+            ctx.fillStyle = "#8a8278";
+            ctx.fillRect(lx + 2, groundY - 10, 8, 5);
+            ctx.fillStyle = "#9a9288";
+            ctx.fillRect(lx + 3, groundY - 12, 5, 3);
+            break;
+          case "cactus":
+            ctx.fillStyle = "#4a7a3a";
+            ctx.fillRect(lx + 2, groundY - 16, 3, 16);
+            ctx.fillRect(lx - 2, groundY - 12, 3, 6);
+            ctx.fillRect(lx + 5, groundY - 10, 3, 5);
+            break;
+          case "bush":
+            ctx.fillStyle = "#5a7a38";
+            ctx.fillRect(lx, groundY - 5, 10, 5);
+            ctx.fillStyle = "#6a8a48";
+            ctx.fillRect(lx + 1, groundY - 8, 8, 4);
+            break;
+          case "deadtree":
+            ctx.fillStyle = "#6a5a40";
+            ctx.fillRect(lx + 1, groundY - 18, 2, 18);
+            ctx.fillRect(lx - 2, groundY - 14, 3, 2);
+            ctx.fillRect(lx + 3, groundY - 16, 4, 2);
+            ctx.fillRect(lx + 5, groundY - 18, 2, 2);
+            break;
+          case "post":
+            ctx.fillStyle = "#7a6a4a";
+            ctx.fillRect(lx, groundY - 10, 2, 10);
+            ctx.fillRect(lx - 3, groundY - 10, 8, 2);
+            break;
+        }
+      }
+
+      // ── GRASS TUFTS (foreground, fast parallax) ──
+      ctx.fillStyle = "#6a7a30";
+      for (let i = 0; i < 20; i++) {
+        const gx = ((i * 67 + 23) - scroll * 0.8) % (W + 40) - 20;
+        const gy = groundY + 10 + (i % 5) * 6;
+        ctx.fillRect(gx, gy, 1, -3);
+        ctx.fillRect(gx + 2, gy, 1, -4);
+        ctx.fillRect(gx + 4, gy, 1, -2);
+      }
+
+      // ── THE HERD — profile longhorns ──
+      const herdBaseX = W * 0.35;
+      const herdY = trailY - 2;
+      const legFrame = Math.floor(frame / 8) % 2;
+
+      // Draw several cattle at slightly different positions
+      const cattle = [
+        { dx: 0, dy: 0, size: 1 },      // lead steer
+        { dx: -18, dy: 1, size: 0.9 },
+        { dx: -12, dy: -1, size: 0.95 },
+        { dx: -30, dy: 0, size: 0.85 },
+        { dx: -25, dy: 2, size: 0.9 },
+        { dx: -40, dy: 1, size: 0.8 },
+        { dx: -36, dy: -1, size: 0.85 },
+        { dx: -52, dy: 0, size: 0.75 },
+        { dx: -48, dy: 2, size: 0.8 },
+        { dx: -60, dy: 1, size: 0.7 },
+        { dx: -58, dy: -1, size: 0.75 },
+        { dx: -70, dy: 0, size: 0.65 },
+      ];
+
+      for (const cow of cattle) {
+        const cx = herdBaseX + cow.dx;
+        const cy = herdY + cow.dy;
+        const s = cow.size;
+        const bobY = Math.sin(frame * 0.15 + cow.dx * 0.1) * 0.5;
+
+        // Body
+        ctx.fillStyle = "#6b3a1a";
+        ctx.fillRect(cx - 6*s, cy - 5*s + bobY, 12*s, 5*s);
+        // Darker belly
+        ctx.fillStyle = "#5a2e15";
+        ctx.fillRect(cx - 5*s, cy - 2*s + bobY, 10*s, 2*s);
+        // Head
+        ctx.fillStyle = "#7a4a2a";
+        ctx.fillRect(cx + 5*s, cy - 6*s + bobY, 4*s, 4*s);
+        // Horns
+        ctx.fillStyle = "#d4c8a0";
+        ctx.fillRect(cx + 6*s, cy - 8*s + bobY, 1, 2*s);
+        ctx.fillRect(cx + 8*s, cy - 8*s + bobY, 1, 2*s);
+        // Eye
+        ctx.fillStyle = "#1a1a1a";
+        ctx.fillRect(cx + 8*s, cy - 5*s + bobY, 1, 1);
+        // Legs (animated)
+        ctx.fillStyle = "#5a2e15";
+        if (legFrame === 0) {
+          ctx.fillRect(cx - 4*s, cy + bobY, 2*s, 4*s);
+          ctx.fillRect(cx + 2*s, cy + bobY, 2*s, 3*s);
+        } else {
+          ctx.fillRect(cx - 3*s, cy + bobY, 2*s, 3*s);
+          ctx.fillRect(cx + 1*s, cy + bobY, 2*s, 4*s);
+        }
+        // Tail (gentle sway)
+        ctx.fillStyle = "#4a2010";
+        const tailSway = Math.sin(frame * 0.1 + cow.dx) * 2;
+        ctx.fillRect(cx - 7*s + tailSway, cy - 4*s + bobY, 1, 3*s);
+      }
+
+      // ── DUST BEHIND HERD ──
+      ctx.globalAlpha = pace === "push" ? 0.4 : pace === "normal" ? 0.25 : 0.12;
+      ctx.fillStyle = "#c4a882";
+      for (let i = 0; i < 12; i++) {
+        const dx = herdBaseX - 75 - Math.sin(frame * 0.08 + i * 1.5) * 15 - i * 6;
+        const dy = herdY - 4 + Math.sin(frame * 0.06 + i) * 4;
+        const r = 3 + Math.sin(frame * 0.04 + i * 2) * 2;
+        ctx.beginPath();
+        ctx.arc(dx, dy, Math.abs(r), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+
+      // ── COWBOY ON HORSE (point rider, ahead of herd) ──
+      const riderX = herdBaseX + 25;
+      const riderY = trailY - 2;
+      const rBob = Math.sin(frame * 0.18) * 0.8;
+      // Horse body
+      ctx.fillStyle = "#5a3820";
+      ctx.fillRect(riderX - 4, riderY - 4 + rBob, 10, 5);
+      // Horse head
+      ctx.fillStyle = "#6a4830";
+      ctx.fillRect(riderX + 5, riderY - 6 + rBob, 3, 4);
+      // Horse legs
+      ctx.fillStyle = "#4a2810";
+      if (legFrame === 0) {
+        ctx.fillRect(riderX - 2, riderY + 1 + rBob, 2, 4);
+        ctx.fillRect(riderX + 4, riderY + 1 + rBob, 2, 3);
+      } else {
+        ctx.fillRect(riderX - 1, riderY + 1 + rBob, 2, 3);
+        ctx.fillRect(riderX + 3, riderY + 1 + rBob, 2, 4);
+      }
+      // Rider torso
+      ctx.fillStyle = "#4a6741";
+      ctx.fillRect(riderX, riderY - 8 + rBob, 4, 5);
+      // Rider hat
+      ctx.fillStyle = "#5c3a1e";
+      ctx.fillRect(riderX - 1, riderY - 12 + rBob, 6, 3);
+      ctx.fillRect(riderX, riderY - 13 + rBob, 4, 2);
+      // Rider face
+      ctx.fillStyle = "#e8b796";
+      ctx.fillRect(riderX + 1, riderY - 9 + rBob, 3, 2);
+
+      // ── DISTANCE MARKER (subtle) ──
+      ctx.fillStyle = "#d4a843";
+      ctx.globalAlpha = 0.7;
+      ctx.font = "bold 9px monospace";
+      ctx.textAlign = "left";
+      ctx.fillText(`${Math.round(progress)}%`, 6, H - 4);
+      ctx.textAlign = "right";
+      const miLabel = progress < 10 ? "San Antonio" : progress > 90 ? "Abilene" : `${Math.round(progress * 8)} mi`;
+      ctx.fillText(miLabel, W - 6, H - 4);
+      ctx.globalAlpha = 1;
+
+      animRef.current = requestAnimationFrame(draw);
+    };
+
+    animRef.current = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(animRef.current);
+  }, [progress, pace, turn]);
 
   return (
     <canvas
       ref={ref}
-      width={400}
-      height={100}
-      className="w-full rounded border border-stone-700"
+      width={480}
+      height={180}
+      className="w-full rounded-b border-b border-stone-700"
       style={{ imageRendering: "pixelated" }}
     />
   );
 }
 
 // ═══════════════════════════════════════════════════════════════
-// ENGINE HELPERS
+// OUTFIT SCREEN — the Oregon Trail store
 // ═══════════════════════════════════════════════════════════════
 
-function clamp(v: number, min = 0, max = 100) {
-  return Math.max(min, Math.min(max, v));
+const OUTFIT_BUDGET = 2000;
+const BASE_CREW = 8;
+const BASE_HORSES = 30;
+const BASE_SUPPLIES = 35;
+const COST_COWBOY = 80;
+const COST_HORSE = 25;
+const COST_SUPPLY = 3;
+const COST_GUN = 20;
+const COST_SPAREPARTS = 15;
+const WAGE_COST: Record<string, number> = { low: 0, standard: 120, good: 280 };
+const WAGE_MORALE: Record<string, number> = { low: 35, standard: 50, good: 68 };
+const HERD_OPTIONS = [1500, 2000, 2500, 3000, 3500];
+
+function getCrewRating(herd: number, crew: number): { label: string; color: string; condition: number } {
+  const ratio = herd / crew;
+  if (ratio > 300) return { label: "Suicide run", color: "text-red-500", condition: 30 };
+  if (ratio > 250) return { label: "Understaffed", color: "text-orange-400", condition: 40 };
+  if (ratio > 200) return { label: "Tight", color: "text-yellow-400", condition: 52 };
+  if (ratio > 150) return { label: "Solid", color: "text-emerald-400", condition: 62 };
+  return { label: "Well-staffed", color: "text-blue-400", condition: 70 };
 }
 
-function weightedPick<T extends { weight?: number }>(items: T[]): T {
-  const total = items.reduce((s, i) => s + (i.weight || 1), 0);
-  let r = Math.random() * total;
-  for (const item of items) {
-    r -= item.weight || 1;
-    if (r <= 0) return item;
-  }
-  return items[0];
-}
+function OutfitScreen({ onDone }: { onDone: (config: OutfitConfig) => void }) {
+  const [herdIdx, setHerdIdx] = useState(2); // default 2500
+  const [extraCrew, setExtraCrew] = useState(4); // default 12 total
+  const [extraHorses, setExtraHorses] = useState(12); // default 42 total
+  const [extraSupplies, setExtraSupplies] = useState(10); // default 45
+  const [guns, setGuns] = useState(4);
+  const [spareParts, setSpareParts] = useState(3);
+  const [wages, setWages] = useState<"low" | "standard" | "good">("standard");
 
-function resolveChoice(
-  choice: Choice
-): { effects?: Resources; result?: string; earlyEnd?: boolean } {
-  if (choice.outcomes) return weightedPick(choice.outcomes);
-  return { effects: choice.effects, result: choice.result, earlyEnd: choice.earlyEnd };
-}
+  const herd = HERD_OPTIONS[herdIdx];
+  const crew = BASE_CREW + extraCrew;
+  const horses = BASE_HORSES + extraHorses;
+  const supplies = BASE_SUPPLIES + extraSupplies;
+  const spent = extraCrew * COST_COWBOY + extraHorses * COST_HORSE + extraSupplies * COST_SUPPLY + guns * COST_GUN + spareParts * COST_SPAREPARTS + WAGE_COST[wages];
+  const remaining = OUTFIT_BUDGET - spent;
+  const rating = getCrewRating(herd, crew);
+  const horsesPerCowboy = (horses / crew).toFixed(1);
+  const potentialValue = herd * 40;
 
-function pickEvent(
-  day: number,
-  totalDays: number,
-  usedIds: Set<string>,
-  events: GameEvent[]
-): GameEvent | null {
-  const pct = day / totalDays;
-  const eligible = events.filter(
-    (e) => pct >= e.phase_min && pct <= e.phase_max && !usedIds.has(e.id)
+  return (
+    <div className="h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="flex-shrink-0 bg-stone-800">
+        <div className="max-w-lg mx-auto">
+          <PrairieScene progress={0} pace="easy" turn={0} />
+        </div>
+      </div>
+      <div className="flex-1 min-h-0 overflow-y-auto p-3">
+        <div className="max-w-lg mx-auto space-y-3">
+          <div className="text-center">
+            <h1 className="text-xl font-bold text-amber-400">SAN ANTONIO &mdash; SPRING 1867</h1>
+            <p className="text-stone-400 text-xs mt-0.5">Outfit your drive. Budget: <span className={remaining >= 0 ? "text-emerald-400" : "text-red-500"}>${remaining.toLocaleString()}</span> of ${OUTFIT_BUDGET.toLocaleString()}</p>
+          </div>
+
+          {/* Herd Size */}
+          <div className="bg-stone-800 border border-stone-700 rounded p-2.5">
+            <div className="flex justify-between items-center text-xs mb-1">
+              <span className="text-stone-300 font-bold">{"\uD83D\uDC02"} Herd Size</span>
+              <span className="text-amber-400 font-mono">{herd.toLocaleString()} head</span>
+            </div>
+            <input type="range" min={0} max={4} value={herdIdx} onChange={e => setHerdIdx(+e.target.value)} className="w-full accent-amber-500 h-2" />
+            <div className="flex justify-between text-xs mt-1">
+              <span className="text-stone-500">Fewer head, easier drive</span>
+              <span className="text-stone-500">More head = ${potentialValue.toLocaleString()} potential</span>
+            </div>
+          </div>
+
+          {/* Cowboys */}
+          <div className="bg-stone-800 border border-stone-700 rounded p-2.5">
+            <div className="flex justify-between items-center text-xs mb-1">
+              <span className="text-stone-300 font-bold">{"\uD83E\uDD20"} Cowboys</span>
+              <span className="font-mono">{crew} <span className="text-stone-500">({BASE_CREW} + {extraCrew} extra at ${COST_COWBOY} ea)</span></span>
+            </div>
+            <input type="range" min={0} max={10} value={extraCrew} onChange={e => setExtraCrew(+e.target.value)} className="w-full accent-amber-500 h-2" />
+            <div className="flex justify-between text-xs mt-1">
+              <span className="text-stone-500">Ratio: {Math.round(herd / crew)}:1</span>
+              <span className={rating.color}>{rating.label}</span>
+            </div>
+          </div>
+
+          {/* Horses */}
+          <div className="bg-stone-800 border border-stone-700 rounded p-2.5">
+            <div className="flex justify-between items-center text-xs mb-1">
+              <span className="text-stone-300 font-bold">{"\uD83D\uDC0E"} Horses</span>
+              <span className="font-mono">{horses} <span className="text-stone-500">({BASE_HORSES} + {extraHorses} at ${COST_HORSE})</span></span>
+            </div>
+            <input type="range" min={0} max={30} value={extraHorses} onChange={e => setExtraHorses(+e.target.value)} className="w-full accent-amber-500 h-2" />
+            <div className="flex justify-between text-xs mt-1">
+              <span className="text-stone-500">{horsesPerCowboy} per cowboy</span>
+              <span className={parseFloat(horsesPerCowboy) >= 5 ? "text-emerald-400" : parseFloat(horsesPerCowboy) >= 3.5 ? "text-yellow-400" : "text-red-400"}>
+                {parseFloat(horsesPerCowboy) >= 5 ? "Good rotation" : parseFloat(horsesPerCowboy) >= 3.5 ? "Tight" : "Riding them dead"}
+              </span>
+            </div>
+          </div>
+
+          {/* Supplies */}
+          <div className="bg-stone-800 border border-stone-700 rounded p-2.5">
+            <div className="flex justify-between items-center text-xs mb-1">
+              <span className="text-stone-300 font-bold">{"\uD83C\uDF56"} Supplies</span>
+              <span className="font-mono">{supplies} <span className="text-stone-500">(+{extraSupplies} at ${COST_SUPPLY})</span></span>
+            </div>
+            <input type="range" min={0} max={30} value={extraSupplies} onChange={e => setExtraSupplies(+e.target.value)} className="w-full accent-amber-500 h-2" />
+            <div className="flex justify-between text-xs mt-1">
+              <span className="text-stone-500">{Math.round(supplies / crew * 10) / 10} per man</span>
+              <span className={supplies / crew >= 4.5 ? "text-emerald-400" : supplies / crew >= 3 ? "text-yellow-400" : "text-red-400"}>
+                {supplies / crew >= 4.5 ? "Well-fed" : supplies / crew >= 3 ? "Rationing" : "Hungry from day one"}
+              </span>
+            </div>
+          </div>
+
+          {/* Guns & Ammo */}
+          <div className="bg-stone-800 border border-stone-700 rounded p-2.5">
+            <div className="flex justify-between items-center text-xs mb-1">
+              <span className="text-stone-300 font-bold">{"\uD83D\uDD2B"} Rifles & Ammo</span>
+              <span className="font-mono">{guns} <span className="text-stone-500">(at ${COST_GUN} ea)</span></span>
+            </div>
+            <input type="range" min={0} max={12} value={guns} onChange={e => setGuns(+e.target.value)} className="w-full accent-amber-500 h-2" />
+            <div className="flex justify-between text-xs mt-1">
+              <span className="text-stone-500">{crew > 0 ? Math.round(guns / crew * 100) : 0}% armed</span>
+              <span className={guns >= crew * 0.5 ? "text-emerald-400" : guns >= 3 ? "text-yellow-400" : "text-red-400"}>
+                {guns === 0 ? "Defenseless" : guns < 3 ? "Can't hunt or fight" : guns < crew * 0.5 ? "Light arms" : "Well-armed"}
+              </span>
+            </div>
+          </div>
+
+          {/* Spare Parts */}
+          <div className="bg-stone-800 border border-stone-700 rounded p-2.5">
+            <div className="flex justify-between items-center text-xs mb-1">
+              <span className="text-stone-300 font-bold">{"\uD83D\uDD27"} Spare Parts</span>
+              <span className="font-mono">{spareParts} sets <span className="text-stone-500">(at ${COST_SPAREPARTS})</span></span>
+            </div>
+            <input type="range" min={0} max={8} value={spareParts} onChange={e => setSpareParts(+e.target.value)} className="w-full accent-amber-500 h-2" />
+            <div className="flex justify-between text-xs mt-1">
+              <span className="text-stone-500">Axles, wheels, tongue</span>
+              <span className={spareParts >= 4 ? "text-emerald-400" : spareParts >= 2 ? "text-yellow-400" : "text-red-400"}>
+                {spareParts === 0 ? "Pray nothing breaks" : spareParts < 2 ? "One repair" : spareParts < 4 ? "A few fixes" : "Well-prepared"}
+              </span>
+            </div>
+          </div>
+
+          {/* Wages */}
+          <div className="bg-stone-800 border border-stone-700 rounded p-2.5">
+            <div className="flex justify-between items-center text-xs mb-1.5">
+              <span className="text-stone-300 font-bold">{"\uD83D\uDD25"} Cowboy Wages</span>
+              <span className="text-stone-500">(affects starting morale)</span>
+            </div>
+            <div className="flex gap-1.5">
+              {([
+                { id: "low" as const, label: "$25/mo", desc: "They'll grumble", morale: 35, cost: 0 },
+                { id: "standard" as const, label: "$35/mo", desc: "Fair pay", morale: 50, cost: 120 },
+                { id: "good" as const, label: "$45/mo", desc: "Loyal crew", morale: 68, cost: 280 },
+              ]).map(w => (
+                <button key={w.id} onClick={() => setWages(w.id)}
+                  className={`flex-1 p-1.5 rounded text-xs border transition-colors ${wages === w.id ? "bg-amber-700 border-amber-600 text-white" : "bg-stone-700 border-stone-600 text-stone-300 hover:bg-stone-600"}`}>
+                  <div className="font-bold">{w.label}</div>
+                  <div className="opacity-60" style={{ fontSize: 9 }}>{w.desc}</div>
+                  <div className="opacity-60" style={{ fontSize: 9 }}>Morale: {w.morale}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Budget Summary */}
+          <div className={`rounded p-2.5 border text-center ${remaining >= 0 ? "bg-stone-800 border-stone-700" : "bg-red-900/30 border-red-800"}`}>
+            <div className="text-xs text-stone-400 space-y-0.5">
+              <div className="flex justify-between"><span>Extra cowboys ({extraCrew})</span><span>${(extraCrew * COST_COWBOY).toLocaleString()}</span></div>
+              <div className="flex justify-between"><span>Extra horses ({extraHorses})</span><span>${(extraHorses * COST_HORSE).toLocaleString()}</span></div>
+              <div className="flex justify-between"><span>Extra supplies ({extraSupplies})</span><span>${(extraSupplies * COST_SUPPLY).toLocaleString()}</span></div>
+              <div className="flex justify-between"><span>Rifles & ammo ({guns})</span><span>${(guns * COST_GUN).toLocaleString()}</span></div>
+              <div className="flex justify-between"><span>Spare parts ({spareParts})</span><span>${(spareParts * COST_SPAREPARTS).toLocaleString()}</span></div>
+              <div className="flex justify-between"><span>Wage premium</span><span>${WAGE_COST[wages]}</span></div>
+              <div className="border-t border-stone-600 mt-1 pt-1 flex justify-between font-bold text-stone-200">
+                <span>Remaining</span>
+                <span className={remaining >= 0 ? "text-emerald-400" : "text-red-500"}>${remaining.toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => onDone({
+              herd, crew, horses, supplies,
+              guns, spareParts,
+              wages,
+              budgetSpent: spent,
+              startingCash: Math.max(0, remaining),
+            })}
+            disabled={remaining < 0}
+            className={`w-full py-2.5 font-bold rounded transition-colors ${remaining >= 0 ? "bg-amber-700 hover:bg-amber-600 text-white" : "bg-stone-700 text-stone-500 cursor-not-allowed"}`}
+          >
+            {remaining < 0 ? "OVER BUDGET" : "HIT THE TRAIL"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
-  const pool =
-    eligible.length > 0
-      ? eligible
-      : events.filter((e) => pct >= e.phase_min && pct <= e.phase_max);
-  if (pool.length === 0) return null;
-  return weightedPick(pool);
 }
 
-function clampResource(key: string, val: number): number {
-  const maxes: Record<string, number> = { herd: 2500, crew: 12, horses: 60 };
-  return clamp(val, 0, maxes[key] || 100);
+// ═══════════════════════════════════════════════════════════════
+// ENGINE
+// ═══════════════════════════════════════════════════════════════
+
+function clamp(v:number,min=0,max=100){return Math.max(min,Math.min(max,v));}
+function weightedPick<T extends{weight?:number}>(items:T[]):T{
+  const total=items.reduce((s,i)=>s+(i.weight||1),0);let r=Math.random()*total;
+  for(const item of items){r-=item.weight||1;if(r<=0)return item;}return items[0];
 }
+function resolveChoice(ch:Choice):{effects?:Resources;result?:string;earlyEnd?:boolean}{
+  if(ch.outcomes)return weightedPick(ch.outcomes);return{effects:ch.effects,result:ch.result,earlyEnd:ch.earlyEnd};
+}
+function pickEvent(day:number,td:number,used:Set<string>,evts:GameEvent[]):GameEvent|null{
+  const p=day/td;const el=evts.filter(e=>p>=e.phase_min&&p<=e.phase_max&&!used.has(e.id));
+  const pool=el.length>0?el:evts.filter(e=>p>=e.phase_min&&p<=e.phase_max);
+  if(!pool.length)return null;return weightedPick(pool);
+}
+function clampR(k:string,v:number):number{const m:Record<string,number>={herd:3500,crew:18,horses:60,ammo:200,spareParts:10};return clamp(v,0,m[k]||100);}
 
 // ═══════════════════════════════════════════════════════════════
 // ALL 16 EVENTS
 // ═══════════════════════════════════════════════════════════════
 
-const EVENTS: GameEvent[] = [
-  {
-    id: "river_crossing_early", phase_min: 0, phase_max: 0.3, weight: 5,
-    title: "River Crossing \u2014 The Brazos",
-    text: "The Brazos is running high from spring rains. Brown water churning fast with debris. Your scout found two options: a wide shallow ford half a day east, or the narrow deep crossing right here.",
-    choices: [
-      { text: "Take the wide ford. Half a day lost but safer.", outcomes: [
-        { weight: 6, effects: { herdCondition: -2 }, result: "The wide ford works. Water up to the cattle\u2019s bellies but they cross steady. Boring success \u2014 the best kind." },
-        { weight: 4, effects: { herd: -30, herdCondition: -4, horses: -2 }, result: "The \u2018safe\u2019 ford has a sinkhole. Lead cattle drop into chest-deep water and panic. Thirty head drown. Two horses go down. The safe option wasn\u2019t." },
-      ]},
-      { text: "Cross here. Deep but narrow \u2014 fast.", outcomes: [
-        { weight: 5, effects: { herd: -60, morale: -6, horses: -3 }, result: "Too deep. Current catches the middle of the herd. Sixty head gone. Three horses broke legs on the rocky bottom." },
-        { weight: 5, effects: { herd: -8, morale: 4 }, result: "Your lead steer walks straight in and the herd follows like Moses parted it. Eight head swept away, rest safe." },
-      ]},
-      { text: "Wait a day. Let the river drop.", outcomes: [
-        { weight: 5, effects: { supplies: -4, herdCondition: 3, herd: -5 }, result: "River drops overnight. Easy crossing. The herd grazed on good grass while you waited. Patience pays." },
-        { weight: 5, effects: { supplies: -4, herd: -80, morale: -8 }, result: "It rains again. River rises. You wait another day. Cross in the worst conditions yet. Eighty head gone." },
-      ]},
-    ],
-  },
-  {
-    id: "stampede_night", phase_min: 0, phase_max: 0.8, weight: 5,
-    title: "Stampede \u2014 Lightning",
-    text: "Thunder at 2 AM. A bolt hits close and 2,500 longhorns explode in every direction. Your night riders are already in the saddle.",
-    choices: [
-      { text: "Ride to the front. Turn the leaders.", outcomes: [
-        { weight: 5, effects: { herd: -40, horses: -2, morale: -3 }, result: "You turn them into a wide circle by dawn. Forty head over a bluff. Two horses done. But the main herd holds." },
-        { weight: 3, effects: { herd: -15, morale: 5, herdCondition: -3 }, result: "Your best rider turns the lead steer hard. The herd wheels like a school of fish. Fifteen head scattered. That kid just earned a bonus." },
-        { weight: 2, effects: { herd: -20, crew: -1, morale: -10, horses: -1 }, result: "A horse hits a prairie dog hole at full gallop in the dark. Horse and rider go down in the path of the stampede. Nobody says his name yet." },
-      ]},
-      { text: "Hold position. Protect the camp and remuda.", effects: { herd: -150, morale: -5 }, result: "You let them run. Camp safe, horses safe. Two days gathering cattle across fifteen miles. A hundred fifty head just gone." },
-      { text: "Get every rider out singing to calm them.", outcomes: [
-        { weight: 4, effects: { herd: -20, morale: 3, herdCondition: -2 }, result: "Cowboys singing \u2018Lorena\u2019 in a thunderstorm. The lead cattle slow. Twenty head gone, but the herd settles fast." },
-        { weight: 6, effects: { herd: -100, morale: -6, herdCondition: -5 }, result: "Too far gone. Singing doesn\u2019t stop a full stampede. Herd splits three ways. A hundred head scattered." },
-      ]},
-    ],
-  },
-  {
-    id: "water_scarce", phase_min: 0.2, phase_max: 0.7, weight: 5,
-    title: "Dry Country",
-    text: "Last water was two days ago. Scout says dry creek beds for another day, maybe two. The cattle are bawling. Thirsty cattle are stupid cattle.",
-    choices: [
-      { text: "Push through fast.", outcomes: [
-        { weight: 5, effects: { herd: -50, herdCondition: -8, morale: -4, horses: -3 }, result: "Cattle stagger. Calves drop. Three horses go lame. Hit a spring-fed pool late next day. Fifty head didn\u2019t make it." },
-        { weight: 5, effects: { herd: -20, herdCondition: -4, morale: 3 }, result: "Longhorns find a gear you didn\u2019t know they had. Scout signals river ahead by evening. Twenty lost to heat. The rest drink." },
-      ]},
-      { text: "Slow down. Conserve strength, look for water.", outcomes: [
-        { weight: 4, effects: { supplies: -6, herd: -30, herdCondition: -3, morale: -5 }, result: "Extra day in dry country means extra day of suffering. Thirty dead. Cook\u2019s furious about water rations." },
-        { weight: 6, effects: { herdCondition: -2, supplies: -3, herd: -8, morale: 4 }, result: "Scout finds an underground seep. Not much, but enough. Eight head lost. The herd arrives at water in decent shape." },
-      ]},
-      { text: "Night drive. Move in the cool, rest in the heat.", outcomes: [
-        { weight: 5, effects: { herd: -25, morale: -5, herdCondition: -3 }, result: "Driving at night through unknown country. Twenty-five walk off a cutbank in the dark. But cool air saves the rest." },
-        { weight: 5, effects: { herd: -10, morale: 2, herdCondition: 1, horses: -1 }, result: "It works. Cool air calms the herd. One horse lame. By dawn you see trees \u2014 water. Cowboys grin through dust." },
-      ]},
-    ],
-  },
-  {
-    id: "rustlers", phase_min: 0.3, phase_max: 0.8, weight: 4,
-    title: "Riders on the Ridge",
-    text: "Eight, maybe ten riders pacing your herd from a mile out. Could be another outfit. Could be Comancheros. They haven\u2019t approached but they haven\u2019t left.",
-    choices: [
-      { text: "Arm up and ride out. Show strength.", outcomes: [
-        { weight: 5, effects: { morale: 5, herdCondition: -2 }, result: "Lost outfit, not rustlers. They tip their hats and move on. Show of strength unnecessary, but your crew feels ten feet tall." },
-        { weight: 5, effects: { morale: -3, crew: -1, supplies: -2 }, result: "They scatter but one puts a rifle shot through your flank rider\u2019s shoulder. He\u2019ll live but he can\u2019t ride." },
-      ]},
-      { text: "Circle tight and post extra guards.", effects: { herdCondition: -4, morale: -3, supplies: -2 }, result: "They watch until sundown, then disappear. You\u2019ll never know what they were. Lost a day holding position." },
-      { text: "Ignore them. Keep driving.", outcomes: [
-        { weight: 4, effects: { herd: -200, morale: -12, horses: -4 }, result: "They hit at dawn. Six riders cut 200 head off the back. Your boys chase but they\u2019re outgunned. Gone." },
-        { weight: 6, effects: { morale: 2 }, result: "They drift away by evening. Just ghosts of the prairie. The thing you feared just... didn\u2019t happen." },
-      ]},
-    ],
-  },
-  {
-    id: "crew_quit", phase_min: 0.3, phase_max: 0.7, weight: 4,
-    title: "Two Hands Give Notice",
-    text: "Two cowboys say they\u2019re done. Not hostile \u2014 just honest. They heard there\u2019s ranch work in Wichita that doesn\u2019t involve sleeping in mud.",
-    choices: [
-      { text: "Let them go.", effects: { crew: -2, morale: -3 }, result: "They ride out at dawn. Everyone left is thinking: should I have gone too? But the men who stayed chose to stay." },
-      { text: "Offer double wages.", outcomes: [
-        { weight: 6, effects: { supplies: -5, morale: 3 }, result: "They shrug. Double pay keeps them. Supply budget takes a hit, but twelve hands is twelve hands." },
-        { weight: 4, effects: { crew: -2, morale: -6 }, result: "\u2018It ain\u2019t about money, boss.\u2019 They ride out. The rest heard the offer AND the refusal." },
-      ]},
-      { text: "Remind them they signed a contract.", effects: { morale: -8 }, result: "They stay. They do the minimum. A man kept against his will works like one. Twelve bodies, ten cowboys." },
-    ],
-  },
-  {
-    id: "indian_territory", phase_min: 0.4, phase_max: 0.7, weight: 5,
-    title: "Indian Territory",
-    text: "A rider approaches. You\u2019re crossing Nations land. They charge ten cents a head \u2014 their legal right. Your crew doesn\u2019t see it that way.",
-    choices: [
-      { text: "Pay the toll. It\u2019s their land.", effects: { morale: -3, herdCondition: 2, herd: -250 }, result: "250 head equivalent. Nations riders escort you to the border with pro courtesy, good water crossings pointed out. The toll bought intelligence." },
-      { text: "Negotiate. Offer five cents.", outcomes: [
-        { weight: 5, effects: { morale: 1, herdCondition: 1, herd: -175 }, result: "Seven cents. 175 head. Fair. You saved 75 head and showed respect." },
-        { weight: 5, effects: { morale: -5, herdCondition: -3, herd: -50, supplies: -4 }, result: "\u2018The price is the price.\u2019 No escort. Bad river crossing two days later. Fifty head lost. The toll was cheaper than ignorance." },
-      ]},
-      { text: "Refuse. Push through.", outcomes: [
-        { weight: 3, effects: { morale: 4, herdCondition: -4 }, result: "Nothing happens. Maybe they\u2019re reporting you to territorial authorities. Your crew cheers like they won something. They didn\u2019t." },
-        { weight: 7, effects: { herd: -300, morale: -8, horses: -5, crew: -1, herdCondition: -6 }, result: "Ambush at a river crossing. 300 head driven south. A cowboy takes an arrow. You lost more than the toll ten times over." },
-      ]},
-    ],
-  },
-  {
-    id: "cook_wagon", phase_min: 0.1, phase_max: 0.6, weight: 4,
-    title: "Busted Axle",
-    text: "Chuck wagon\u2019s rear axle snaps. Supplies scatter. Without that wagon: no coffee, no beans, no hot food.",
-    choices: [
-      { text: "Full stop. Repair. Whole day.", effects: { supplies: -3, herdCondition: -3, morale: 1 }, result: "Cottonwood replacement axle. Rough but holds. Lost fifteen miles but the cook makes coffee and the crew forgives." },
-      { text: "Rig a temporary fix. Keep moving.", outcomes: [
-        { weight: 5, effects: { morale: -2, supplies: -2 }, result: "Holds for three days then fails in a creek. Half your flour ruined. Every temp fix is weaker." },
-        { weight: 5, effects: { morale: 2 }, result: "Holds all the way to the next trading post. Sometimes the quick fix is the right fix." },
-      ]},
-      { text: "Abandon the wagon. Pack what you can on horses.", effects: { supplies: -15, morale: -10, horses: -3 }, result: "No hot food. No coffee. Cold jerky and creek water for every meal. Morale drops like a stone. This is survival now." },
-    ],
-  },
-  {
-    id: "good_grass", phase_min: 0.1, phase_max: 0.8, weight: 3,
-    title: "Paradise Valley",
-    text: "Scout found belly-high bluestem and a clean creek. Perfect grazing. Rest here and the herd fattens \u2014 but another outfit might beat you to Abilene.",
-    choices: [
-      { text: "Two days\u2019 rest.", effects: { herdCondition: 10, morale: 6, supplies: -5, horses: 2 }, result: "The closest thing to heaven. Herd grazes round. Cowboys wash clothes. Cook finds wild onions. Nobody\u2019s miserable." },
-      { text: "One day. Split the difference.", effects: { herdCondition: 5, morale: 3, supplies: -3 }, result: "Not enough to fully recover, but enough to take the edge off. Everything looks a little better." },
-      { text: "Keep moving.", outcomes: [
-        { weight: 5, effects: { morale: -6, herdCondition: -2 }, result: "Crew watches it slide past. Some weep. Some curse you. You\u2019ll never know if stopping was the right call." },
-        { weight: 5, effects: { morale: -3, herdCondition: -1 }, result: "An hour later there\u2019s a crossing to manage and they forget. The next problem erases the last complaint." },
-      ]},
-    ],
-  },
-  {
-    id: "river_red", phase_min: 0.35, phase_max: 0.55, weight: 5,
-    title: "The Red River",
-    text: "The big one. Quarter mile wide and deep. This is where drives die. Every outfit has a story. Most are bad.",
-    choices: [
-      { text: "Scout downstream for better crossing.", outcomes: [
-        { weight: 5, effects: { supplies: -4, herd: -15, herdCondition: -1 }, result: "Wider, shallower crossing found. Sandbars break the current. Fifteen lost. Patience paid." },
-        { weight: 5, effects: { supplies: -6, morale: -3, herd: -40 }, result: "Nothing better downstream. River\u2019s now rising. Cross in worse conditions. Forty head gone." },
-      ]},
-      { text: "Cross here and now.", outcomes: [
-        { weight: 4, effects: { herd: -80, morale: -6, horses: -4, crew: -1 }, result: "Chaos. Bodies in the current. One cowboy doesn\u2019t get free. Eighty head gone. The Red earned its name." },
-        { weight: 6, effects: { herd: -25, morale: 4 }, result: "Lead steer swims straight. Herd follows. Twenty-five lost to current. Crew whoops on the far bank." },
-      ]},
-      { text: "Wait for another outfit to cross first. Watch and learn.", outcomes: [
-        { weight: 5, effects: { supplies: -5, herd: -10, morale: 2 }, result: "Watch every mistake they make. Cross clean. Ten head lost \u2014 practically a miracle for the Red." },
-        { weight: 5, effects: { supplies: -8, morale: -5, herdCondition: -3 }, result: "No other outfit comes. Two days wasted. Cross in the same conditions. Self-reliance is the first law." },
-      ]},
-    ],
-  },
-  {
-    id: "snakebite", phase_min: 0, phase_max: 0.8, weight: 3,
-    title: "Rattler",
-    text: "Best roper is down \u2014 diamondback got his ankle. Leg swelling fast, turning purple. Cookie has whiskey and a knife. That\u2019s frontier medicine.",
-    choices: [
-      { text: "Cut and suck. All you\u2019ve got.", outcomes: [
-        { weight: 5, effects: { morale: -3, crew: -1 }, result: "Not enough. Poison\u2019s in the blood. He dies quiet that night. One less hand. One less friend." },
-        { weight: 5, effects: { morale: 2, herdCondition: -2 }, result: "Three days in the wagon with fever. Day four he sits up and asks for coffee. Cook pretends it was skill." },
-      ]},
-      { text: "Send a rider east for real medicine.", effects: { crew: -1, morale: -2, herdCondition: -3, supplies: -4 }, result: "Down two hands \u2014 one dying, one riding. Medicine arrives too late to matter either way. Right instinct, wrong math." },
-      { text: "Tourniquet, whiskey, chuck wagon. Keep driving.", effects: { morale: -1, herdCondition: -2 }, result: "Practical. Cold. He rides in the wagon and either makes it or doesn\u2019t. He makes it. Barely. He\u2019ll tell this story for fifty years." },
-    ],
-  },
-  {
-    id: "tornado", phase_min: 0.2, phase_max: 0.7, weight: 3,
-    title: "Green Sky",
-    text: "Sky turns yellow-green. Your Kansas scout goes white. \u2018Twister weather.\u2019 You can see rotation in the clouds. Maybe fifteen minutes.",
-    choices: [
-      { text: "Scatter the herd. Spread the target.", outcomes: [
-        { weight: 5, effects: { herd: -60, morale: -4, herdCondition: -5 }, result: "Twister hits where the herd was. Sixty head gone but the bulk survived because they weren\u2019t bunched." },
-        { weight: 5, effects: { herd: -30, morale: 4 }, result: "Twister misses by a mile. Thirty head bolt. Rest stand confused. Close. Too close." },
-      ]},
-      { text: "Hold tight. Get to low ground together.", outcomes: [
-        { weight: 4, effects: { herd: -200, crew: -1, horses: -6, morale: -12 }, result: "Direct hit on the bunched herd. 200 gone. A cowboy thrown. Six horses killed. You made them an easy target." },
-        { weight: 6, effects: { herd: -20, morale: 2, herdCondition: -3 }, result: "Low ground saves you. Twister passes over. Twenty on the fringe caught. Core survives. Lucky everything." },
-      ]},
-      { text: "Ride south. Get out of its path.", effects: { herd: -40, herdCondition: -6, morale: -5, supplies: -3 }, result: "Cattle fight you every step. Forty scatter. But the twister passes north and you\u2019re alive." },
-    ],
-  },
-  {
-    id: "competition", phase_min: 0.3, phase_max: 0.8, weight: 3,
-    title: "Competition",
-    text: "Dust to the south. Bigger outfit \u2014 3,000 head \u2014 moving fast. They beat you to Abilene, price drops for everyone.",
-    choices: [
-      { text: "Push hard. Outpace them.", effects: { herdCondition: -8, morale: -3, supplies: -5, horses: -3 }, result: "Twenty-plus miles a day for a week. Cattle drop weight. Cowboys fall asleep in the saddle. But you pull ahead." },
-      { text: "Hold pace. Your herd in good shape sells higher.", outcomes: [
-        { weight: 6, effects: { morale: -2 }, result: "They pass you. Smug wave. But your cattle are fat. Condition matters as much as timing." },
-        { weight: 4, effects: { morale: 3 }, result: "They push too hard. Three days later you pass them \u2014 stopped, gathering after a stampede. Tortoise and the hare." },
-      ]},
-      { text: "Send a rider ahead to lock in a price early.", effects: { crew: -1, morale: 2 }, result: "Sharpest man, fastest horse, letter of intent. Down a hand but if the advance sale works, you outsmarted a bigger outfit with pen and paper." },
-    ],
-  },
-  {
-    id: "prairie_fire", phase_min: 0.1, phase_max: 0.6, weight: 3,
-    title: "Smoke on the Horizon",
-    text: "Prairie fire \u2014 line of orange to the west, wind pushing it toward you. Miles out but fire on dry grass moves faster than cattle.",
-    choices: [
-      { text: "Set a backfire. Burn a firebreak.", outcomes: [
-        { weight: 6, effects: { herd: -20, herdCondition: -3, morale: 2 }, result: "Scout burns a strip. Main fire dies at the edge. Twenty panic and bolt. Professional work." },
-        { weight: 4, effects: { herd: -80, morale: -6, herdCondition: -5 }, result: "Backfire gets away from you. Fire on TWO sides. Eighty head gone. Your own fire almost as bad." },
-      ]},
-      { text: "Drive east. Outflank it.", effects: { herdCondition: -5, morale: -3, supplies: -3, herd: -15 }, result: "Fire slides past. Fifteen scatter in smoke. Two days lost. But alive and unburned." },
-      { text: "Find water. Put the herd in a creek bed.", outcomes: [
-        { weight: 4, effects: { herd: -5, morale: 5, herdCondition: 2 }, result: "Wide creek found. Herd stands belly-deep while the world burns. Five lost. Perfect." },
-        { weight: 6, effects: { herd: -40, morale: -4, herdCondition: -4 }, result: "No creek. Twenty minutes wasted looking. Forty head lost in the smoke. The obvious play beats the clever play." },
-      ]},
-    ],
-  },
-  {
-    id: "buyer", phase_min: 0.7, phase_max: 0.95, weight: 4,
-    title: "A Buyer on the Trail",
-    text: "Man in a clean coat from Abilene. $30 a head right now. Market is $40 but that\u2019s two weeks away. Markets fluctuate.",
-    choices: [
-      { text: "Take the deal. Done today.", effects: { morale: 8 }, result: "$30 a head. Crew cheers \u2014 they\u2019re done. You left $25,000 on the table. But you also left behind everything that could go wrong.", earlyEnd: true },
-      { text: "Counter at $35.", outcomes: [
-        { weight: 5, effects: { morale: 6 }, result: "\u2018$33.\u2019 You shake. Done today. Smart money is money in your pocket.", earlyEnd: true },
-        { weight: 5, effects: { morale: -2 }, result: "He shakes his head. \u2018$30 is the offer. Three herds arrived last week.\u2019 He rides on. Was he bluffing?" },
-      ]},
-      { text: "Refuse. We didn\u2019t drive 600 miles to settle.", outcomes: [
-        { weight: 5, effects: { morale: 4 }, result: "He nods. \u2018Your herd, your call.\u2019 Two weeks will tell." },
-        { weight: 5, effects: { morale: -3 }, result: "That night a hand says Abilene prices dropped to $28. Rumor? If you\u2019d taken $30 you\u2019d be done." },
-      ]},
-    ],
-  },
-  {
-    id: "horse_thief", phase_min: 0.2, phase_max: 0.6, weight: 3,
-    title: "Missing Horses",
-    text: "Morning count: eight horses gone. Tracks lead northeast. Six-hour head start.",
-    choices: [
-      { text: "Send riders after them.", outcomes: [
-        { weight: 5, effects: { morale: 4, herdCondition: -3 }, result: "They find the horses and the thieves. Gunfire. Horses back. One cowboy shot in the arm \u2014 done riding." },
-        { weight: 5, effects: { horses: -8, morale: -2, herdCondition: -4 }, result: "Lost the trail at a creek. Eight horses gone and you burned a day. Fifty-two for the rest of the drive." },
-      ]},
-      { text: "Let them go.", effects: { horses: -8, morale: -6 }, result: "A trail boss who won\u2019t fight for his remuda. They\u2019re right to question it. But sending men after armed thieves short-handed is a gamble." },
-      { text: "Double the watch going forward.", effects: { horses: -8, morale: -4, herdCondition: -2 }, result: "Horses safer but cowboys wrecked from double watches. Traded one problem for another." },
-    ],
-  },
-  {
-    id: "fever", phase_min: 0.25, phase_max: 0.7, weight: 3,
-    title: "Tick Fever",
-    text: "Three dozen head stumbling, eyes glazed. Tick fever. It\u2019ll spread through the whole herd if you don\u2019t act. Healthy cattle and sick cattle can\u2019t share ground.",
-    choices: [
-      { text: "Cut the sick ones. Leave them behind.", effects: { herd: -36, morale: -2, herdCondition: 4 }, result: "Thirty-six head left standing in the grass. It\u2019s the right call. The fever stops spreading. Doesn\u2019t make it easier." },
-      { text: "Slow the drive. Treat them on the move.", outcomes: [
-        { weight: 5, effects: { herd: -100, herdCondition: -8, morale: -6, supplies: -4 }, result: "Fever spreads. A hundred head sick or dead. Should have cut them when you had the chance." },
-        { weight: 5, effects: { herd: -15, herdCondition: -2, supplies: -4 }, result: "Cook mixes something foul from creek mud and whiskey. Half recover. Fifteen don\u2019t. Cook won\u2019t share the recipe." },
-      ]},
-      { text: "Push hard through it. Outrun the ticks.", effects: { herdCondition: -6, herd: -50, morale: -4, horses: -2 }, result: "You can\u2019t outrun ticks. Fifty head drop over three days. The healthy cattle are exhausted too." },
-    ],
-  },
+const EVENTS:GameEvent[]=[
+{id:"river_crossing_early",phase_min:0,phase_max:0.3,weight:5,title:"River Crossing \u2014 The Brazos",text:"The Brazos is running high from spring rains. Brown water churning fast with debris. Your scout found two options: a wide shallow ford half a day east, or the narrow deep crossing right here.",choices:[{text:"Take the wide ford. Half a day lost but safer.",outcomes:[{weight:6,effects:{herdCondition:-2},result:"The wide ford works. Water up to the cattle\u2019s bellies but they cross steady. Boring success \u2014 the best kind."},{weight:4,effects:{herd:-30,herdCondition:-4,horses:-2},result:"The \u2018safe\u2019 ford has a sinkhole. Thirty head drown. Two horses go down."}]},{text:"Cross here. Deep but narrow \u2014 fast.",outcomes:[{weight:5,effects:{herd:-60,morale:-6,horses:-3},result:"Too deep. Current catches the middle of the herd. Sixty head gone."},{weight:5,effects:{herd:-8,morale:4},result:"Your lead steer walks straight in and the herd follows. Eight head swept away."}]},{text:"Wait a day. Let the river drop.",outcomes:[{weight:5,effects:{supplies:-4,herdCondition:3,herd:-5},result:"River drops overnight. Easy crossing. Patience pays."},{weight:5,effects:{supplies:-4,herd:-80,morale:-8},result:"It rains again. River rises. Eighty head gone."}]}]},
+{id:"stampede_night",phase_min:0,phase_max:0.8,weight:5,title:"Stampede \u2014 Lightning",text:"Thunder at 2 AM. A bolt hits close and 2,500 longhorns explode in every direction.",choices:[{text:"Ride to the front. Turn the leaders.",outcomes:[{weight:5,effects:{herd:-40,horses:-2,morale:-3},result:"You turn them into a wide circle by dawn. Forty head over a bluff."},{weight:3,effects:{herd:-15,morale:5,herdCondition:-3},result:"Your best rider turns the lead steer hard. Fifteen scattered. That kid just earned a bonus."},{weight:2,effects:{herd:-20,crew:-1,morale:-10,horses:-1},result:"A horse hits a prairie dog hole at full gallop in the dark. Horse and rider go down."}]},{text:"Hold position. Protect the camp.",effects:{herd:-150,morale:-5},result:"You let them run. A hundred fifty head just gone."},{text:"Get every rider out singing.",outcomes:[{weight:4,effects:{herd:-20,morale:3,herdCondition:-2},result:"Cowboys singing \u2018Lorena\u2019 in a thunderstorm. Twenty head gone but the herd settles."},{weight:6,effects:{herd:-100,morale:-6,herdCondition:-5},result:"Too far gone. Herd splits three ways. A hundred head scattered."}]}]},
+{id:"water_scarce",phase_min:0.2,phase_max:0.7,weight:5,title:"Dry Country",text:"Last water was two days ago. The cattle are bawling. Thirsty cattle are stupid cattle.",choices:[{text:"Push through fast.",outcomes:[{weight:5,effects:{herd:-50,herdCondition:-8,morale:-4,horses:-3},result:"Cattle stagger. Calves drop. Fifty head didn\u2019t make it."},{weight:5,effects:{herd:-20,herdCondition:-4,morale:3},result:"Scout signals river ahead by evening. Twenty lost to heat. The rest drink."}]},{text:"Slow down. Look for water.",outcomes:[{weight:4,effects:{supplies:-6,herd:-30,herdCondition:-3,morale:-5},result:"Extra day of suffering. Thirty dead."},{weight:6,effects:{herdCondition:-2,supplies:-3,herd:-8,morale:4},result:"Scout finds an underground seep. Eight head lost."}]},{text:"Night drive. Move in the cool.",outcomes:[{weight:5,effects:{herd:-25,morale:-5,herdCondition:-3},result:"Twenty-five walk off a cutbank in the dark."},{weight:5,effects:{herd:-10,morale:2,herdCondition:1,horses:-1},result:"It works. By dawn you see trees \u2014 water."}]}]},
+{id:"rustlers",phase_min:0.3,phase_max:0.8,weight:4,title:"Riders on the Ridge",text:"Eight, maybe ten riders pacing your herd from a mile out.",choices:[{text:"Arm up and ride out.",outcomes:[{weight:5,effects:{morale:5,herdCondition:-2},result:"Lost outfit, not rustlers. Your crew feels ten feet tall."},{weight:5,effects:{morale:-3,crew:-1,supplies:-2},result:"They scatter but one puts a rifle shot through your flank rider\u2019s shoulder."}]},{text:"Circle tight and post guards.",effects:{herdCondition:-4,morale:-3,supplies:-2},result:"They disappear at sundown. You\u2019ll never know what they were."},{text:"Ignore them. Keep driving.",outcomes:[{weight:4,effects:{herd:-200,morale:-12,horses:-4},result:"They hit at dawn. 200 head gone."},{weight:6,effects:{morale:2},result:"They drift away by evening. Just ghosts of the prairie."}]}]},
+{id:"crew_quit",phase_min:0.3,phase_max:0.7,weight:4,title:"Two Hands Give Notice",text:"Two cowboys say they\u2019re done. Ranch work in Wichita that doesn\u2019t involve sleeping in mud.",choices:[{text:"Let them go.",effects:{crew:-2,morale:-3},result:"They ride out at dawn."},{text:"Offer double wages.",outcomes:[{weight:6,effects:{supplies:-5,morale:3},result:"Double pay keeps them."},{weight:4,effects:{crew:-2,morale:-6},result:"\u2018It ain\u2019t about money, boss.\u2019"}]},{text:"Remind them they signed a contract.",effects:{morale:-8},result:"They stay. They do the minimum. A man kept against his will works like one."}]},
+{id:"indian_territory",phase_min:0.4,phase_max:0.7,weight:5,title:"Indian Territory",text:"You\u2019re crossing Nations land. They charge ten cents a head \u2014 their legal right.",choices:[{text:"Pay the toll. It\u2019s their land.",effects:{morale:-3,herdCondition:2,herd:-250},result:"250 head equivalent. The toll bought intelligence and escort."},{text:"Negotiate. Offer five cents.",outcomes:[{weight:5,effects:{morale:1,herdCondition:1,herd:-175},result:"Seven cents. 175 head. Fair."},{weight:5,effects:{morale:-5,herdCondition:-3,herd:-50,supplies:-4},result:"No escort. Bad crossing. The toll was cheaper than ignorance."}]},{text:"Refuse. Push through.",outcomes:[{weight:3,effects:{morale:4,herdCondition:-4},result:"Nothing happens. Your crew cheers like they won something. They didn\u2019t."},{weight:7,effects:{herd:-300,morale:-8,horses:-5,crew:-1,herdCondition:-6},result:"Ambush at a river crossing. 300 head gone. A cowboy takes an arrow."}]}]},
+{id:"cook_wagon",phase_min:0.1,phase_max:0.6,weight:4,title:"Busted Axle",text:"Chuck wagon\u2019s rear axle snaps. No coffee, no beans, no hot food.",choices:[{text:"Full stop. Repair. Whole day.",effects:{supplies:-3,herdCondition:-3,morale:1},result:"Cottonwood replacement axle. The cook makes coffee and the crew forgives."},{text:"Rig a temporary fix.",outcomes:[{weight:5,effects:{morale:-2,supplies:-2},result:"Holds three days then fails in a creek. Half your flour ruined."},{weight:5,effects:{morale:2},result:"Holds all the way. Sometimes the quick fix is the right fix."}]},{text:"Abandon the wagon.",effects:{supplies:-15,morale:-10,horses:-3},result:"Cold jerky and creek water for every meal. This is survival now."}]},
+{id:"good_grass",phase_min:0.1,phase_max:0.8,weight:3,title:"Paradise Valley",text:"Scout found belly-high bluestem and a clean creek. Perfect grazing.",choices:[{text:"Two days\u2019 rest.",effects:{herdCondition:10,morale:6,supplies:-5,horses:2},result:"The closest thing to heaven. Nobody\u2019s miserable."},{text:"One day.",effects:{herdCondition:5,morale:3,supplies:-3},result:"Enough to take the edge off."},{text:"Keep moving.",outcomes:[{weight:5,effects:{morale:-6,herdCondition:-2},result:"Crew watches it slide past. Some weep."},{weight:5,effects:{morale:-3,herdCondition:-1},result:"An hour later there\u2019s a crossing and they forget."}]}]},
+{id:"river_red",phase_min:0.35,phase_max:0.55,weight:5,title:"The Red River",text:"The big one. Quarter mile wide and deep. This is where drives die.",choices:[{text:"Scout downstream.",outcomes:[{weight:5,effects:{supplies:-4,herd:-15,herdCondition:-1},result:"Better crossing found. Fifteen lost. Patience paid."},{weight:5,effects:{supplies:-6,morale:-3,herd:-40},result:"Nothing better. Forty head gone."}]},{text:"Cross here and now.",outcomes:[{weight:4,effects:{herd:-80,morale:-6,horses:-4,crew:-1},result:"Chaos. One cowboy doesn\u2019t get free. Eighty head gone. The Red earned its name."},{weight:6,effects:{herd:-25,morale:4},result:"Lead steer swims straight. Twenty-five lost. Crew whoops on the far bank."}]},{text:"Wait for another outfit. Watch and learn.",outcomes:[{weight:5,effects:{supplies:-5,herd:-10,morale:2},result:"Watch their mistakes. Cross clean. Ten head \u2014 a miracle for the Red."},{weight:5,effects:{supplies:-8,morale:-5,herdCondition:-3},result:"Nobody comes. Two days wasted."}]}]},
+{id:"snakebite",phase_min:0,phase_max:0.8,weight:3,title:"Rattler",text:"Best roper is down \u2014 diamondback got his ankle. Leg swelling fast.",choices:[{text:"Cut and suck.",outcomes:[{weight:5,effects:{morale:-3,crew:-1},result:"Not enough. He dies quiet that night."},{weight:5,effects:{morale:2,herdCondition:-2},result:"Day four he sits up and asks for coffee."}]},{text:"Send a rider for medicine.",effects:{crew:-1,morale:-2,herdCondition:-3,supplies:-4},result:"Down two hands. Medicine arrives too late."},{text:"Tourniquet, whiskey, chuck wagon.",effects:{morale:-1,herdCondition:-2},result:"He makes it. Barely. He\u2019ll tell this story for fifty years."}]},
+{id:"tornado",phase_min:0.2,phase_max:0.7,weight:3,title:"Green Sky",text:"Sky turns yellow-green. \u2018Twister weather.\u2019 Maybe fifteen minutes.",choices:[{text:"Scatter the herd.",outcomes:[{weight:5,effects:{herd:-60,morale:-4,herdCondition:-5},result:"Twister hits where the herd was. Sixty gone but the bulk survived."},{weight:5,effects:{herd:-30,morale:4},result:"Misses by a mile. Too close."}]},{text:"Hold tight. Low ground.",outcomes:[{weight:4,effects:{herd:-200,crew:-1,horses:-6,morale:-12},result:"Direct hit. 200 gone. A cowboy thrown."},{weight:6,effects:{herd:-20,morale:2,herdCondition:-3},result:"Low ground saves you. Twenty caught. Lucky everything."}]},{text:"Ride south.",effects:{herd:-40,herdCondition:-6,morale:-5,supplies:-3},result:"Cattle fight you every step. Forty scatter. But you\u2019re alive."}]},
+{id:"competition",phase_min:0.3,phase_max:0.8,weight:3,title:"Competition",text:"Bigger outfit \u2014 3,000 head \u2014 moving fast. They beat you to Abilene, price drops.",choices:[{text:"Push hard. Outpace them.",effects:{herdCondition:-8,morale:-3,supplies:-5,horses:-3},result:"Cattle drop weight. But you pull ahead."},{text:"Hold pace. Fat cattle sell higher.",outcomes:[{weight:6,effects:{morale:-2},result:"They pass you. But your cattle are fat."},{weight:4,effects:{morale:3},result:"They push too hard. Stampede. Tortoise and the hare."}]},{text:"Send a rider to lock in a price.",effects:{crew:-1,morale:2},result:"Sharpest man, fastest horse, letter of intent."}]},
+{id:"prairie_fire",phase_min:0.1,phase_max:0.6,weight:3,title:"Smoke on the Horizon",text:"Prairie fire \u2014 line of orange to the west, wind pushing it toward you.",choices:[{text:"Set a backfire.",outcomes:[{weight:6,effects:{herd:-20,herdCondition:-3,morale:2},result:"Scout burns a strip. Twenty bolt. Professional work."},{weight:4,effects:{herd:-80,morale:-6,herdCondition:-5},result:"Backfire gets away. Fire on TWO sides. Eighty gone."}]},{text:"Drive east. Outflank it.",effects:{herdCondition:-5,morale:-3,supplies:-3,herd:-15},result:"Fire slides past. Fifteen scatter."},{text:"Find water.",outcomes:[{weight:4,effects:{herd:-5,morale:5,herdCondition:2},result:"Wide creek. Herd stands belly-deep while the world burns."},{weight:6,effects:{herd:-40,morale:-4,herdCondition:-4},result:"No creek. Forty head lost in the smoke."}]}]},
+{id:"buyer",phase_min:0.7,phase_max:0.95,weight:4,title:"A Buyer on the Trail",text:"Man in a clean coat. $30 a head right now. Market is $40 but that\u2019s two weeks away.",choices:[{text:"Take the deal.",effects:{morale:8},result:"$30 a head. You left $25,000 on the table. But you\u2019re done.",earlyEnd:true},{text:"Counter at $35.",outcomes:[{weight:5,effects:{morale:6},result:"\u2018$33.\u2019 Done today.",earlyEnd:true},{weight:5,effects:{morale:-2},result:"\u2018$30 is the offer.\u2019 He rides on."}]},{text:"Refuse.",outcomes:[{weight:5,effects:{morale:4},result:"\u2018Your herd, your call.\u2019"},{weight:5,effects:{morale:-3},result:"That night a hand says Abilene prices dropped to $28."}]}]},
+{id:"horse_thief",phase_min:0.2,phase_max:0.6,weight:3,title:"Missing Horses",text:"Morning count: eight horses gone. Tracks lead northeast.",choices:[{text:"Send riders after them.",outcomes:[{weight:5,effects:{morale:4,herdCondition:-3},result:"Horses back. One cowboy shot in the arm."},{weight:5,effects:{horses:-8,morale:-2,herdCondition:-4},result:"Lost the trail. Eight horses gone."}]},{text:"Let them go.",effects:{horses:-8,morale:-6},result:"A trail boss who won\u2019t fight for his remuda."},{text:"Double the watch.",effects:{horses:-8,morale:-4,herdCondition:-2},result:"Horses safer but cowboys wrecked from double watches."}]},
+{id:"fever",phase_min:0.25,phase_max:0.7,weight:3,title:"Tick Fever",text:"Three dozen head stumbling, eyes glazed. It\u2019ll spread if you don\u2019t act.",choices:[{text:"Cut the sick ones.",effects:{herd:-36,morale:-2,herdCondition:4},result:"Thirty-six left standing. The fever stops."},{text:"Treat on the move.",outcomes:[{weight:5,effects:{herd:-100,herdCondition:-8,morale:-6,supplies:-4},result:"Fever spreads. A hundred dead."},{weight:5,effects:{herd:-15,herdCondition:-2,supplies:-4},result:"Cook\u2019s foul mixture saves half. Fifteen don\u2019t make it."}]},{text:"Push hard. Outrun the ticks.",effects:{herdCondition:-6,herd:-50,morale:-4,horses:-2},result:"You can\u2019t outrun ticks. Fifty drop."}]},
 ];
 
 // ═══════════════════════════════════════════════════════════════
-// CONSTANTS
+// CONSTANTS & HELPERS
 // ═══════════════════════════════════════════════════════════════
 
-const TOTAL_DAYS = 70;
-const DAYS_PER_TURN = 5;
-const TOTAL_DISTANCE = 800;
-const INIT_RESOURCES: Resources = {
-  herd: 2500, crew: 12, horses: 60, supplies: 65, morale: 55, herdCondition: 60,
-};
-
-const PACE_OPTIONS = [
-  { id: "easy", label: "Easy", desc: "10 mi/day \u00b7 Herd fattens", mpd: 10, fx: { herdCondition: 2, morale: 1, supplies: -3 } as Resources },
-  { id: "normal", label: "Normal", desc: "15 mi/day \u00b7 Standard", mpd: 15, fx: { herdCondition: -1, morale: -1, supplies: -4 } as Resources },
-  { id: "push", label: "Push", desc: "22 mi/day \u00b7 Brutal", mpd: 22, fx: { herdCondition: -5, morale: -4, supplies: -5 } as Resources },
+const TOTAL_DAYS=70,DAYS_PER_TURN=5,TOTAL_DISTANCE=800;
+const INIT_R:Resources={herd:2500,crew:12,horses:60,supplies:65,morale:55,herdCondition:60};
+const PACES=[
+  {id:"easy",label:"Easy",desc:"10 mi/day \u00b7 Herd fattens",mpd:10,fx:{herdCondition:2,morale:1,supplies:-1}as Resources},
+  {id:"normal",label:"Normal",desc:"15 mi/day \u00b7 Standard",mpd:15,fx:{herdCondition:-1,morale:-1,supplies:-2}as Resources},
+  {id:"push",label:"Push",desc:"22 mi/day \u00b7 Brutal",mpd:22,fx:{herdCondition:-5,morale:-4,supplies:-3}as Resources},
 ];
-
-function getPhrase(pct: number): string {
-  if (pct < 0.15) return "Eight hundred miles of dust and trouble ahead.";
-  if (pct < 0.3) return "Days blur. Dust, cattle, sky. Repeat.";
-  if (pct < 0.5) return "Indian Territory looms. Crew gets quiet at night.";
-  if (pct < 0.7) return "Past halfway. Kansas might be real.";
-  if (pct < 0.85) return "Grass is changing. Shorter. Cooler nights.";
-  if (pct < 0.95) return "Scout says he can smell Abilene. He\u2019s lying. Not by much.";
-  return "The railhead is close. You can almost hear the train.";
+function getPhrase(p:number):string{
+  if(p<0.15)return"Eight hundred miles of dust and trouble ahead.";
+  if(p<0.3)return"Days blur. Dust, cattle, sky. Repeat.";
+  if(p<0.5)return"Indian Territory looms. Crew gets quiet.";
+  if(p<0.7)return"Past halfway. Kansas might be real.";
+  if(p<0.85)return"Grass is changing. Cooler nights.";
+  if(p<0.95)return"Scout says he can smell Abilene.";
+  return"The railhead is close.";
 }
+function getGrade(h:number,s:boolean):string{if(!s)return"F";const p=h/2500;if(p>=0.95)return"A";if(p>=0.88)return"B";if(p>=0.80)return"C";if(p>=0.70)return"D";return"F";}
+function getGrade2(h:number,started:number,s:boolean):string{if(!s)return"F";const p=h/started;if(p>=0.95)return"A";if(p>=0.88)return"B";if(p>=0.80)return"C";if(p>=0.70)return"D";return"F";}
+const GC:Record<string,string>={A:"text-emerald-400",B:"text-blue-400",C:"text-yellow-400",D:"text-orange-400",F:"text-red-500"};
 
-function getGrade(herd: number, survived: boolean): string {
-  if (!survived) return "F";
-  const pct = herd / 2500;
-  if (pct >= 0.95) return "A";
-  if (pct >= 0.88) return "B";
-  if (pct >= 0.80) return "C";
-  if (pct >= 0.70) return "D";
-  return "F";
-}
-
-const GRADE_COLORS: Record<string, string> = {
-  A: "text-emerald-400", B: "text-blue-400", C: "text-yellow-400",
-  D: "text-orange-400", F: "text-red-500",
-};
+const DEFAULT_OUTFIT: OutfitConfig = { herd: 2500, crew: 12, horses: 60, supplies: 65, guns: 4, spareParts: 3, wages: "standard", budgetSpent: 0, startingCash: 0 };
+const makeInit=():GameState=>({day:1,turn:0,resources:{...INIT_R},phase:"intro",pace:"normal",distance:0,currentEvent:null,resultText:"",decisions:[],gameOver:false,survived:false,earlySale:false,outfit:{...DEFAULT_OUTFIT}});
 
 // ═══════════════════════════════════════════════════════════════
-// MAIN COMPONENT
+// APP
 // ═══════════════════════════════════════════════════════════════
 
-const makeInit = (): GameState => ({
-  day: 1, turn: 0, resources: { ...INIT_RESOURCES },
-  phase: "intro", pace: "normal", distance: 0,
-  currentEvent: null, resultText: "", decisions: [],
-  gameOver: false, survived: false, earlySale: false,
-});
+export default function App(){
+  const[state,setState]=useState<GameState>(makeInit());
+  const[usedEvents,setUsedEvents]=useState<Set<string>>(new Set());
 
-export default function App() {
-  const [state, setState] = useState<GameState>(makeInit());
-  const [usedEvents, setUsedEvents] = useState<Set<string>>(new Set());
+  const start=useCallback(()=>{setState({...makeInit(),phase:"outfit"});setUsedEvents(new Set());},[]);
 
-  const start = useCallback(() => {
-    setState({ ...makeInit(), phase: "sailing" });
-    setUsedEvents(new Set());
-  }, []);
-
-  const advanceTurn = useCallback(() => {
-    setState((prev) => {
-      const s: GameState = { ...prev, resources: { ...prev.resources } };
-      s.turn += 1;
-      const pace = PACE_OPTIONS.find((p) => p.id === s.pace)!;
-      s.distance = Math.min(s.distance + pace.mpd * DAYS_PER_TURN, TOTAL_DISTANCE);
-      s.day = Math.min(s.day + DAYS_PER_TURN, TOTAL_DAYS + 1);
-
-      for (const [k, v] of Object.entries(pace.fx)) {
-        s.resources[k] = clampResource(k, s.resources[k] + v);
-      }
-      s.resources.supplies = clamp(
-        s.resources.supplies - (s.pace === "push" ? 2 : 1), 0, 100
-      );
-
-      // Attrition
-      if (s.resources.herdCondition < 20) {
-        s.resources.herd = Math.max(
-          0, s.resources.herd - Math.ceil(Math.random() * 40) - 20
-        );
-      } else if (s.resources.herdCondition < 35 && Math.random() < 0.4) {
-        s.resources.herd = Math.max(
-          0, s.resources.herd - Math.ceil(Math.random() * 15)
-        );
-      }
-      if (s.resources.morale < 15 && Math.random() < 0.3) {
-        s.resources.crew = Math.max(0, s.resources.crew - 1);
-      }
-
-      // End checks
-      if (s.resources.crew <= 2 || s.resources.herd <= 100 || s.resources.horses <= 5) {
-        return { ...s, phase: "end" as const, gameOver: true, survived: false };
-      }
-      if (s.distance >= TOTAL_DISTANCE) {
-        return { ...s, phase: "end" as const, gameOver: true, survived: true };
-      }
-
-      // Event
-      const event = pickEvent(s.day, TOTAL_DAYS, usedEvents, EVENTS);
-      if (event) {
-        setUsedEvents((prev) => new Set(prev).add(event.id));
-        s.currentEvent = event;
-        s.phase = "event";
-      }
-      return s;
-    });
-  }, [usedEvents]);
-
-  const handleChoice = useCallback((ci: number) => {
-    setState((prev) => {
-      if (!prev.currentEvent) return prev;
-      const s: GameState = {
-        ...prev,
-        resources: { ...prev.resources },
-        decisions: [...prev.decisions],
+  const onOutfitDone=useCallback((config:OutfitConfig)=>{
+    setState(prev=>{
+      const rating=getCrewRating(config.herd,config.crew);
+      const morale=WAGE_MORALE[config.wages];
+      return{...prev,
+        phase:"sailing"as const,
+        outfit:config,
+        resources:{
+          herd:config.herd,
+          crew:config.crew,
+          horses:config.horses,
+          supplies:config.supplies,
+          morale,
+          herdCondition:rating.condition,
+          ammo:config.guns*10,
+          spareParts:config.spareParts,
+        },
       };
-      const choice = s.currentEvent!.choices[ci];
-      const outcome = resolveChoice(choice);
-      s.decisions.push({
-        event: s.currentEvent!.title,
-        choice: choice.text,
-        day: s.day,
-      });
-      if (outcome.effects) {
-        for (const [k, v] of Object.entries(outcome.effects)) {
-          if (s.resources[k] !== undefined) {
-            s.resources[k] = clampResource(k, s.resources[k] + v);
-          }
-        }
-      }
-      if (choice.earlyEnd || outcome.earlyEnd) s.earlySale = true;
-      s.resultText = outcome.result || "";
-      s.phase = "result";
+    });
+  },[]);
+
+  const advanceTurn=useCallback(()=>{
+    setState(prev=>{
+      const s:GameState={...prev,resources:{...prev.resources}};
+      s.turn+=1;const pace=PACES.find(p=>p.id===s.pace)!;
+      s.distance=Math.min(s.distance+pace.mpd*DAYS_PER_TURN,TOTAL_DISTANCE);
+      s.day=Math.min(s.day+DAYS_PER_TURN,TOTAL_DAYS+1);
+      for(const[k,v]of Object.entries(pace.fx))s.resources[k]=clampR(k,s.resources[k]+v);
+      // Crew eats — bigger crew drains faster
+      const crewDrain = Math.ceil(s.resources.crew / 10);
+      s.resources.supplies=clamp(s.resources.supplies-crewDrain,0,100);
+      if(s.resources.herdCondition<20)s.resources.herd=Math.max(0,s.resources.herd-Math.ceil(Math.random()*40)-20);
+      else if(s.resources.herdCondition<35&&Math.random()<0.4)s.resources.herd=Math.max(0,s.resources.herd-Math.ceil(Math.random()*15));
+      if(s.resources.morale<15&&Math.random()<0.3)s.resources.crew=Math.max(0,s.resources.crew-1);
+      if(s.resources.crew<=2||s.resources.herd<=100||s.resources.horses<=5)return{...s,phase:"end"as const,gameOver:true,survived:false};
+      if(s.distance>=TOTAL_DISTANCE)return{...s,phase:"end"as const,gameOver:true,survived:true};
+      const event=pickEvent(s.day,TOTAL_DAYS,usedEvents,EVENTS);
+      if(event){setUsedEvents(p=>new Set(p).add(event.id));s.currentEvent=event;s.phase="event";}
       return s;
     });
-  }, []);
+  },[usedEvents]);
 
-  const continueGame = useCallback(() => {
-    setState((prev) => {
-      const s: GameState = { ...prev, currentEvent: null, resultText: "" };
-      if (s.resources.crew <= 2 || s.resources.herd <= 100 || s.resources.horses <= 5) {
-        return { ...s, phase: "end" as const, gameOver: true, survived: false };
+  const handleChoice=useCallback((ci:number)=>{
+    setState(prev=>{
+      if(!prev.currentEvent)return prev;
+      const s:GameState={...prev,resources:{...prev.resources},decisions:[...prev.decisions]};
+      const choice=s.currentEvent!.choices[ci];const outcome=resolveChoice(choice);
+      s.decisions.push({event:s.currentEvent!.title,choice:choice.text,day:s.day});
+      if(outcome.effects)for(const[k,v]of Object.entries(outcome.effects))if(s.resources[k]!==undefined)s.resources[k]=clampR(k,s.resources[k]+v);
+      if(choice.earlyEnd||outcome.earlyEnd)s.earlySale=true;
+      s.resultText=outcome.result||"";s.phase="result";return s;
+    });
+  },[]);
+
+  const continueGame=useCallback(()=>{
+    setState(prev=>{
+      const s:GameState={...prev,currentEvent:null,resultText:""};
+      if(s.resources.crew<=2||s.resources.herd<=100||s.resources.horses<=5)return{...s,phase:"end"as const,gameOver:true,survived:false};
+      if(s.distance>=TOTAL_DISTANCE||s.earlySale)return{...s,phase:"end"as const,gameOver:true,survived:true};
+      s.phase="sailing";return s;
+    });
+  },[]);
+
+  const handleHunt=useCallback(()=>{
+    setState(prev=>{
+      const s:GameState={...prev,resources:{...prev.resources},decisions:[...prev.decisions]};
+      const ammo=s.resources.ammo||0;
+      if(ammo<5)return s; // shouldn't happen, button is hidden
+      s.resources.ammo=ammo-5;
+      // Hunting is HARD. More guns slightly help.
+      const gunBonus=Math.min(s.outfit.guns,8);// max bonus from 8 rifles
+      const roll=Math.random()*100;
+      // Thresholds: base odds are bad. Guns shift them slightly.
+      // 0-35: nothing. 35-55: scraps. 55-75: decent haul. 75-90: great. 90-95: accident. 95-100: disaster.
+      const nothingCeil=35-gunBonus;
+      const scrapsCeil=55-gunBonus*0.5;
+      const decentCeil=75;
+      const greatCeil=90;
+      const accidentCeil=97;
+
+      let result:string;
+      if(roll<nothingCeil){
+        result="Riders out for half a day. Saw a few jackrabbits. Shot at a pronghorn from too far. Nothing. Five rounds wasted, half a day gone.";
+        s.resources.herdCondition=clamp(s.resources.herdCondition-1,0,100);
+      }else if(roll<scrapsCeil){
+        result="Couple of jackrabbits and a prairie chicken. Cookie makes a thin stew. It's something. Barely.";
+        s.resources.supplies=clamp(s.resources.supplies+3,0,100);
+        s.resources.herdCondition=clamp(s.resources.herdCondition-1,0,100);
+      }else if(roll<decentCeil){
+        result="Pronghorn buck. Clean shot. Good meat for three days. The crew eats something that isn't jerky for the first time in a week.";
+        s.resources.supplies=clamp(s.resources.supplies+7,0,100);
+        s.resources.morale=clamp(s.resources.morale+2,0,100);
+      }else if(roll<greatCeil){
+        result="Buffalo. Three of them grazing by a creek. Two clean kills. More meat than you can carry — jerky for a week, fresh steaks tonight. The cook is grinning.";
+        s.resources.supplies=clamp(s.resources.supplies+14,0,100);
+        s.resources.morale=clamp(s.resources.morale+4,0,100);
+      }else if(roll<accidentCeil){
+        result="Horse steps in a hole at full gallop. Rider thrown. Horse done. No game. One man limping back to the wagon with a broken arm. He'll ride, but he won't rope.";
+        s.resources.horses=Math.max(0,s.resources.horses-1);
+        s.resources.morale=clamp(s.resources.morale-3,0,100);
+      }else{
+        result="Spooked a rattlesnake den. Horse throws its rider, bolts into the herd. Mini stampede. Twenty head scatter. Rider's leg is broken — chuck wagon for the rest of the drive. And you still don't have food.";
+        s.resources.horses=Math.max(0,s.resources.horses-1);
+        s.resources.herd=Math.max(0,s.resources.herd-20);
+        s.resources.morale=clamp(s.resources.morale-5,0,100);
       }
-      if (s.distance >= TOTAL_DISTANCE || s.earlySale) {
-        return { ...s, phase: "end" as const, gameOver: true, survived: true };
-      }
-      s.phase = "sailing";
+      s.decisions.push({event:"Hunting",choice:"Sent riders out",day:s.day});
+      s.resultText=result;
+      s.currentEvent={id:"hunt",phase_min:0,phase_max:1,weight:0,title:"Hunting Party",text:"",choices:[]};
+      s.phase="result";
       return s;
     });
-  }, []);
+  },[]);
 
-  const r = state.resources;
-  const progress = Math.min((state.distance / TOTAL_DISTANCE) * 100, 100);
-  const avgStatus = Math.round((r.morale + r.herdCondition) / 2);
+  const r=state.resources;
+  const progress=Math.min((state.distance/TOTAL_DISTANCE)*100,100);
+  const avg=Math.round((r.morale+r.herdCondition)/2);
 
   // ── INTRO ──
-  if (state.phase === "intro") {
-    return (
-      <div
-        className="min-h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center p-4"
-        style={{ fontFamily: "'Georgia', serif" }}
-      >
-        <div className="max-w-md w-full text-center space-y-5">
+  if(state.phase==="intro"){
+    return(
+      <div className="h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center p-4 overflow-hidden" style={{fontFamily:"'Georgia',serif"}}>
+        <div className="max-w-md w-full text-center space-y-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-wider text-amber-400">
-              CAMPAIGNS
-            </h1>
-            <p className="text-stone-500 text-xs tracking-[0.3em] uppercase mt-1">
-              The Chisholm Trail &middot; 1867
-            </p>
+            <h1 className="text-3xl font-bold tracking-wider text-amber-400">CAMPAIGNS</h1>
+            <p className="text-stone-500 text-xs tracking-[0.3em] uppercase mt-1">The Chisholm Trail &middot; 1867</p>
           </div>
-          <TrailMap progress={0} />
-          <div className="border border-stone-700 rounded p-4 bg-stone-800/80 text-left space-y-2.5 text-sm text-stone-300 leading-relaxed">
-            <p>
-              Spring 1867. You&rsquo;re trail boss for a drive from San Antonio
-              to Abilene, Kansas &mdash; 800 miles of open prairie, river
-              crossings, and Indian Territory.
-            </p>
-            <p>
-              2,500 head of Texas longhorn. Twelve cowboys, a cook, a wrangler,
-              and sixty horses. The cattle are worth $4 here. In Abilene, $40.
-            </p>
-            <p className="text-amber-300 font-bold">
-              That&rsquo;s $100,000 at the end of the trail. If you get them
-              there.
-            </p>
+          <PrairieScene progress={0} pace="easy" turn={0}/>
+          <div className="border border-stone-700 rounded p-3 bg-stone-800/80 text-left space-y-2 text-sm text-stone-300 leading-relaxed">
+            <p>Spring 1867. You&rsquo;re trail boss for a drive from San Antonio to Abilene, Kansas &mdash; 800 miles of open prairie, river crossings, and Indian Territory.</p>
+            <p>2,500 head of Texas longhorn. Twelve cowboys, sixty horses. The cattle are worth $4 here. In Abilene, $40.</p>
+            <p className="text-amber-300 font-bold">That&rsquo;s $100,000 at the end of the trail. If you get them there.</p>
           </div>
-          <p className="text-xs text-stone-500 italic">
-            Real drives lost 10-15% on average. Can you beat the average?
-          </p>
-          <button
-            onClick={start}
-            className="px-6 py-2.5 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded transition-colors tracking-wide"
-          >
-            HIT THE TRAIL
-          </button>
+          <p className="text-xs text-stone-500 italic">Real drives lost 10-15% on average. Can you beat it?</p>
+          <button onClick={start} className="px-6 py-2.5 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded transition-colors tracking-wide">HIT THE TRAIL</button>
         </div>
       </div>
     );
   }
 
+  // ── OUTFIT ──
+  if(state.phase==="outfit"){
+    return <OutfitScreen onDone={onOutfitDone}/>;
+  }
+
   // ── END ──
-  if (state.phase === "end") {
-    const grade = getGrade(r.herd, state.survived);
-    const pct = Math.round((r.herd / 2500) * 100);
-    return (
-      <div
-        className="min-h-screen bg-stone-900 text-stone-100 p-4 overflow-auto"
-        style={{ fontFamily: "'Georgia', serif" }}
-      >
-        <div className="max-w-lg mx-auto space-y-5">
-          <h1
-            className={`text-2xl font-bold text-center ${
-              state.survived ? "text-amber-400" : "text-red-500"
-            }`}
-          >
-            {state.survived
-              ? state.earlySale
-                ? "SOLD ON THE TRAIL"
-                : "ABILENE"
-              : "THE TRAIL WINS"}
+  if(state.phase==="end"){
+    const o=state.outfit;
+    const pct=Math.round((r.herd/o.herd)*100);
+    const grade=getGrade2(r.herd,o.herd,state.survived);
+    const salePrice=state.earlySale?30:40;
+    const revenue=state.survived?r.herd*salePrice:0;
+    const cattleCost=o.herd*4;
+    const outfitCost=o.budgetSpent;
+    const totalCost=cattleCost+outfitCost;
+    const profit=revenue-totalCost;
+    return(
+      <div className="h-screen bg-stone-900 text-stone-100 p-4 overflow-y-auto" style={{fontFamily:"'Georgia',serif"}}>
+        <div className="max-w-lg mx-auto space-y-4">
+          <h1 className={`text-2xl font-bold text-center ${state.survived?"text-amber-400":"text-red-500"}`}>
+            {state.survived?(state.earlySale?"SOLD ON THE TRAIL":"ABILENE"):"THE TRAIL WINS"}
           </h1>
-          <TrailMap progress={progress} />
+          <PrairieScene progress={progress} pace={state.pace} turn={state.turn}/>
           <p className="text-center text-stone-300 text-sm">
             {state.survived
-              ? state.earlySale
-                ? `Sold ${r.herd.toLocaleString()} head at $30. Total: $${(
-                    r.herd * 30
-                  ).toLocaleString()}.`
-                : `Delivered ${r.herd.toLocaleString()} head (${pct}%) to Abilene. At $40/head: $${(
-                    r.herd * 40
-                  ).toLocaleString()}.`
-              : "The herd scattered. The trail won."}
+              ?state.earlySale?`Sold ${r.herd.toLocaleString()} head at $${salePrice}. Revenue: $${revenue.toLocaleString()}.`
+              :`Delivered ${r.herd.toLocaleString()} of ${o.herd.toLocaleString()} head (${pct}%) to Abilene.`
+              :"The herd scattered. The trail won."}
           </p>
+
+          {/* Ledger */}
+          <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1 text-xs">
+            <h2 className="text-amber-300 font-bold uppercase tracking-wide text-center mb-1">The Ledger</h2>
+            <div className="flex justify-between text-stone-400"><span>Cattle purchased ({o.herd.toLocaleString()} @ $4)</span><span className="text-red-400">-${cattleCost.toLocaleString()}</span></div>
+            <div className="flex justify-between text-stone-400"><span>Outfit costs</span><span className="text-red-400">-${outfitCost.toLocaleString()}</span></div>
+            {state.survived&&<div className="flex justify-between text-stone-400"><span>Sale ({r.herd.toLocaleString()} @ ${salePrice})</span><span className="text-emerald-400">+${revenue.toLocaleString()}</span></div>}
+            <div className="border-t border-stone-600 mt-1 pt-1 flex justify-between font-bold">
+              <span className="text-stone-200">Net profit</span>
+              <span className={profit>=0?"text-emerald-400":"text-red-500"}>{profit>=0?"+":""}${profit.toLocaleString()}</span>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1.5">
-              <h2 className="text-amber-300 font-bold text-xs uppercase tracking-wide text-center">
-                Your Drive
-              </h2>
-              {(
-                [
-                  ["Started", "2,500"],
-                  ["Delivered", r.herd.toLocaleString()],
-                  ["Lost", (2500 - r.herd).toLocaleString()],
-                  ["Cowboys lost", String(12 - r.crew)],
-                ] as [string, string][]
-              ).map(([l, v]) => (
-                <div key={l} className="flex justify-between text-stone-400">
-                  <span>{l}</span>
-                  <span className="text-stone-200">{v}</span>
-                </div>
-              ))}
-            </div>
-            <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1.5">
-              <h2 className="text-blue-300 font-bold text-xs uppercase tracking-wide text-center">
-                Real Average
-              </h2>
-              {(
-                [
-                  ["Herd", "2,000-3,000"],
-                  ["Avg loss", "10-15%"],
-                  ["Duration", "2-3 months"],
-                  ["Price", "$30-40/hd"],
-                ] as [string, string][]
-              ).map(([l, v]) => (
-                <div key={l} className="flex justify-between text-stone-400">
-                  <span>{l}</span>
-                  <span className="text-stone-200">{v}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="text-center">
-            <span className="text-stone-500 text-xs">GRADE </span>
-            <span className={`text-4xl font-bold ${GRADE_COLORS[grade]}`}>
-              {grade}
-            </span>
-          </div>
-          <div className="bg-stone-800 border border-stone-700 rounded p-3">
-            <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wide mb-1">
-              The Real Chisholm Trail
-            </h3>
-            <p className="text-xs text-stone-500 leading-relaxed">
-              Between 1867 and 1871, an estimated 1.5 million head were driven
-              up the Chisholm Trail. The trail was roughly 800 miles, taking 2-3
-              months. River crossings were the deadliest hazard. Cowboys earned
-              $25-40/month for work that could kill them any Tuesday. The best
-              trail bosses delivered over 90%. Jesse Chisholm himself never drove
-              cattle &mdash; he was a trader who wore the path into the grass.
-            </p>
-          </div>
-          {state.decisions.length > 0 && (
             <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1">
-              <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wide">
-                Your Decisions
-              </h3>
-              {state.decisions.map((d, i) => (
-                <p key={i} className="text-xs text-stone-500">
-                  <span className="text-stone-600">Day {d.day}:</span>{" "}
-                  <span className="text-stone-400">{d.event}</span> &mdash;{" "}
-                  {d.choice}
-                </p>
-              ))}
+              <h2 className="text-amber-300 font-bold text-xs uppercase tracking-wide text-center">Your Drive</h2>
+              {([["Started",o.herd.toLocaleString()],["Delivered",r.herd.toLocaleString()],["Lost",(o.herd-r.herd).toLocaleString()],["Crew lost",String(o.crew-r.crew)]]as[string,string][]).map(([l,v])=>(<div key={l} className="flex justify-between text-stone-400"><span>{l}</span><span className="text-stone-200">{v}</span></div>))}
+            </div>
+            <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1">
+              <h2 className="text-blue-300 font-bold text-xs uppercase tracking-wide text-center">Real Average</h2>
+              {([["Herd","2,000-3,000"],["Avg loss","10-15%"],["Duration","2-3 months"],["Price","$30-40/hd"]]as[string,string][]).map(([l,v])=>(<div key={l} className="flex justify-between text-stone-400"><span>{l}</span><span className="text-stone-200">{v}</span></div>))}
+            </div>
+          </div>
+          <div className="text-center"><span className="text-stone-500 text-xs">GRADE </span><span className={`text-4xl font-bold ${GC[grade]}`}>{grade}</span></div>
+          <div className="bg-stone-800 border border-stone-700 rounded p-3">
+            <p className="text-xs text-stone-500 leading-relaxed">Between 1867 and 1871, 1.5 million head were driven up the Chisholm Trail. Cowboys earned $25-40/month for work that could kill them any Tuesday. Jesse Chisholm himself never drove cattle &mdash; he was a trader who wore the path into the grass.</p>
+          </div>
+          {state.decisions.length>0&&(
+            <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1">
+              <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wide">Decisions</h3>
+              {state.decisions.map((d,i)=>(<p key={i} className="text-xs text-stone-500"><span className="text-stone-600">Day {d.day}:</span> <span className="text-stone-400">{d.event}</span> &mdash; {d.choice}</p>))}
             </div>
           )}
-          <div className="text-center">
-            <button
-              onClick={() => {
-                setState(makeInit());
-                setUsedEvents(new Set());
-              }}
-              className="px-5 py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded transition-colors"
-            >
-              Ride Again
-            </button>
-          </div>
+          <div className="text-center pb-4"><button onClick={()=>{setState(makeInit());setUsedEvents(new Set());}} className="px-5 py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded transition-colors">Ride Again</button></div>
         </div>
       </div>
     );
   }
 
   // ── MAIN GAME ──
-  return (
-    <div
-      className="min-h-screen bg-stone-900 text-stone-100 flex flex-col"
-      style={{ fontFamily: "'Georgia', serif" }}
-    >
-      {/* Trail Map */}
-      <div className="bg-stone-800 border-b border-stone-700 p-2">
+  return(
+    <div className="h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden" style={{fontFamily:"'Georgia',serif"}}>
+      {/* Prairie Scene — hero visual */}
+      <div className="flex-shrink-0 bg-stone-800">
         <div className="max-w-lg mx-auto">
-          <TrailMap progress={progress} />
+          <PrairieScene progress={progress} pace={state.pace} turn={state.turn}/>
         </div>
       </div>
 
-      {/* Resources */}
-      <div className="bg-stone-800/90 border-b border-stone-700 px-3 py-2">
+      {/* Resources — compact */}
+      <div className="flex-shrink-0 bg-stone-800/90 border-b border-stone-700 px-3 py-1.5">
         <div className="max-w-lg mx-auto">
-          <div className="grid grid-cols-3 gap-x-4 gap-y-1 text-xs">
-            {(
-              [
-                { icon: "\uD83D\uDC02", l: "Herd", v: r.herd, t: [2000, 1500] },
-                { icon: "\uD83E\uDD20", l: "Crew", v: r.crew, t: [9, 6] },
-                { icon: "\uD83D\uDC0E", l: "Horses", v: r.horses, t: [40, 20] },
-              ] as { icon: string; l: string; v: number; t: number[] }[]
-            ).map(({ icon, l, v, t }) => (
-              <div key={l} className="flex items-center justify-between">
-                <span className="text-stone-400">
-                  {icon} {l}
-                </span>
-                <span
-                  className={`font-mono ${
-                    v > t[0]
-                      ? "text-emerald-400"
-                      : v > t[1]
-                      ? "text-yellow-400"
-                      : "text-red-400"
-                  }`}
-                >
-                  {v > 99 ? v.toLocaleString() : v}
-                </span>
-              </div>
+          <div className="grid grid-cols-3 gap-x-4 text-xs">
+            {([{i:"\uD83D\uDC02",l:"Herd",v:r.herd,t:[Math.round(state.outfit.herd*0.8),Math.round(state.outfit.herd*0.6)]},{i:"\uD83E\uDD20",l:"Crew",v:r.crew,t:[Math.round(state.outfit.crew*0.75),Math.round(state.outfit.crew*0.5)]},{i:"\uD83D\uDC0E",l:"Horses",v:r.horses,t:[Math.round(state.outfit.horses*0.67),Math.round(state.outfit.horses*0.33)]}]as{i:string;l:string;v:number;t:number[]}[]).map(({i,l,v,t})=>(
+              <div key={l} className="flex items-center justify-between"><span className="text-stone-400">{i} {l}</span><span className={`font-mono ${v>t[0]?"text-emerald-400":v>t[1]?"text-yellow-400":"text-red-400"}`}>{v>99?v.toLocaleString():v}</span></div>
             ))}
           </div>
-          <div className="mt-1.5 space-y-1">
-            {(
-              [
-                { l: "Supplies", v: r.supplies, i: "\uD83C\uDF56" },
-                { l: "Morale", v: r.morale, i: "\uD83D\uDD25" },
-                { l: "Herd Shape", v: r.herdCondition, i: "\uD83D\uDCAA" },
-              ] as { l: string; v: number; i: string }[]
-            ).map(({ l, v, i }) => (
+          <div className="grid grid-cols-2 gap-x-4 mt-0.5 text-xs">
+            <div className="flex items-center justify-between"><span className="text-stone-400">{"\uD83D\uDD2B"} Ammo</span><span className={`font-mono ${(r.ammo||0)>20?"text-stone-300":(r.ammo||0)>5?"text-yellow-400":"text-red-400"}`}>{r.ammo||0} rds</span></div>
+            <div className="flex items-center justify-between"><span className="text-stone-400">{"\uD83D\uDD27"} Parts</span><span className={`font-mono ${(r.spareParts||0)>2?"text-stone-300":(r.spareParts||0)>0?"text-yellow-400":"text-red-400"}`}>{r.spareParts||0} sets</span></div>
+          </div>
+          <div className="mt-1 space-y-0.5">
+            {([{l:"Supplies",v:r.supplies,i:"\uD83C\uDF56"},{l:"Morale",v:r.morale,i:"\uD83D\uDD25"},{l:"Herd Shape",v:r.herdCondition,i:"\uD83D\uDCAA"}]as{l:string;v:number;i:string}[]).map(({l,v,i})=>(
               <div key={l} className="flex items-center gap-2 text-xs">
-                <span className="w-4 text-center">{i}</span>
+                <span className="w-4 text-center" style={{fontSize:10}}>{i}</span>
                 <span className="w-16 text-stone-400">{l}</span>
-                <div className="flex-1 bg-stone-700 rounded-full h-2 overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      v >= 60
-                        ? "bg-emerald-500"
-                        : v >= 40
-                        ? "bg-yellow-500"
-                        : v >= 20
-                        ? "bg-orange-500"
-                        : "bg-red-600"
-                    }`}
-                    style={{ width: `${v}%` }}
-                  />
+                <div className="flex-1 bg-stone-700 rounded-full h-1.5 overflow-hidden">
+                  <div className={`h-full rounded-full transition-all duration-500 ${v>=60?"bg-emerald-500":v>=40?"bg-yellow-500":v>=20?"bg-orange-500":"bg-red-600"}`} style={{width:`${v}%`}}/>
                 </div>
-                <span className="w-6 text-right text-stone-500 font-mono">
-                  {v}
-                </span>
+                <span className="w-5 text-right text-stone-500 font-mono" style={{fontSize:10}}>{v}</span>
               </div>
             ))}
           </div>
-          <div className="flex justify-between text-xs text-stone-500 mt-1">
-            <span>Day {Math.min(state.day, TOTAL_DAYS)}</span>
-            <span>
-              {Math.round(state.distance)}/{TOTAL_DISTANCE} mi
-            </span>
-          </div>
+          <div className="flex justify-between text-xs text-stone-500 mt-0.5"><span>Day {Math.min(state.day,TOTAL_DAYS)}</span><span>{Math.round(state.distance)}/{TOTAL_DISTANCE} mi</span></div>
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="flex-1 p-3 overflow-auto">
+      {/* Main content — scrollable */}
+      <div className="flex-1 min-h-0 p-3 overflow-y-auto">
         <div className="max-w-lg mx-auto">
-          {state.phase === "sailing" && (
-            <div className="space-y-3">
-              <p className="text-center text-amber-200/80 italic text-sm py-2">
-                {getPhrase(state.day / TOTAL_DAYS)}
-              </p>
+          {state.phase==="sailing"&&(
+            <div className="space-y-2.5">
+              <p className="text-center text-amber-200/80 italic text-sm py-1">{getPhrase(state.day/TOTAL_DAYS)}</p>
               <div className="flex gap-1.5">
-                {PACE_OPTIONS.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => setState((s) => ({ ...s, pace: p.id }))}
-                    className={`flex-1 p-2 rounded text-xs border transition-colors ${
-                      state.pace === p.id
-                        ? "bg-amber-700 border-amber-600 text-white"
-                        : "bg-stone-800 border-stone-600 text-stone-300 hover:bg-stone-700"
-                    }`}
-                  >
+                {PACES.map(p=>(
+                  <button key={p.id} onClick={()=>setState(s=>({...s,pace:p.id}))}
+                    className={`flex-1 p-2 rounded text-xs border transition-colors ${state.pace===p.id?"bg-amber-700 border-amber-600 text-white":"bg-stone-800 border-stone-600 text-stone-300 hover:bg-stone-700"}`}>
                     <div className="font-bold">{p.label}</div>
-                    <div className="opacity-60 mt-0.5" style={{ fontSize: 10 }}>
-                      {p.desc}
-                    </div>
+                    <div className="opacity-60 mt-0.5" style={{fontSize:10}}>{p.desc}</div>
                   </button>
                 ))}
               </div>
-              <button
-                onClick={advanceTurn}
-                className="w-full py-2.5 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded transition-colors"
-              >
-                Drive On &mdash; {DAYS_PER_TURN} days
-              </button>
+              <button onClick={advanceTurn} className="w-full py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded transition-colors">Drive On &mdash; {DAYS_PER_TURN} days</button>
+              {(r.ammo||0)>=5&&r.supplies<45&&(
+                <button onClick={handleHunt} className="w-full py-2 bg-stone-700 hover:bg-stone-600 text-stone-200 border border-stone-500 rounded transition-colors text-sm">
+                  {"\uD83D\uDD2B"} Send Hunters &mdash; costs 5 ammo, half a day ({r.ammo||0} rds left)
+                </button>
+              )}
             </div>
           )}
-
-          {state.phase === "event" && state.currentEvent && (
-            <div className="space-y-3">
+          {state.phase==="event"&&state.currentEvent&&(
+            <div className="space-y-2.5">
               <div className="bg-stone-800 border border-amber-800/60 rounded p-3">
-                <h2 className="text-amber-400 font-bold mb-2">
-                  {state.currentEvent.title}
-                </h2>
-                <p className="text-stone-300 text-sm leading-relaxed">
-                  {state.currentEvent.text}
-                </p>
+                <h2 className="text-amber-400 font-bold mb-1.5">{state.currentEvent.title}</h2>
+                <p className="text-stone-300 text-sm leading-relaxed">{state.currentEvent.text}</p>
               </div>
-              {state.currentEvent.choices.map((c, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleChoice(i)}
-                  className="w-full text-left p-2.5 bg-stone-800 border border-stone-600 rounded hover:border-amber-500 transition-colors text-sm text-stone-200"
-                >
-                  {c.text}
-                </button>
+              {state.currentEvent.choices.map((c,i)=>(
+                <button key={i} onClick={()=>handleChoice(i)} className="w-full text-left p-2.5 bg-stone-800 border border-stone-600 rounded hover:border-amber-500 transition-colors text-sm text-stone-200">{c.text}</button>
               ))}
             </div>
           )}
-
-          {state.phase === "result" && (
-            <div className="space-y-3">
+          {state.phase==="result"&&(
+            <div className="space-y-2.5">
               <div className="bg-stone-800 border border-stone-700 rounded p-3">
-                <h2 className="text-amber-400 font-bold mb-2">
-                  {state.currentEvent?.title}
-                </h2>
-                <p className="text-stone-300 text-sm leading-relaxed">
-                  {state.resultText}
-                </p>
+                <h2 className="text-amber-400 font-bold mb-1.5">{state.currentEvent?.title}</h2>
+                <p className="text-stone-300 text-sm leading-relaxed">{state.resultText}</p>
               </div>
-              <button
-                onClick={continueGame}
-                className="w-full py-2.5 bg-stone-700 hover:bg-stone-600 text-white font-bold rounded transition-colors"
-              >
-                Continue
-              </button>
+              <button onClick={continueGame} className="w-full py-2 bg-stone-700 hover:bg-stone-600 text-white font-bold rounded transition-colors">Continue</button>
             </div>
           )}
         </div>
       </div>
 
-      {/* Crew Faces HUD */}
-      <div className="bg-stone-800 border-t border-stone-700 p-2">
+      {/* Crew Faces HUD — anchored bottom */}
+      <div className="flex-shrink-0 bg-stone-800 border-t border-stone-700 p-1.5">
         <div className="max-w-lg mx-auto grid grid-cols-6 gap-1">
-          {(
-            [
-              { set: "boss", label: "Boss", val: avgStatus },
-              { set: "scout", label: "Scout", val: r.morale },
-              { set: "cook", label: "Cookie", val: r.supplies },
-              { set: "wrangler", label: "Wrangler", val: (r.horses / 60) * 100 },
-              { set: "point", label: "Point", val: r.herdCondition },
-              { set: "hand", label: "Crew", val: (r.crew / 12) * 100 },
-            ] as { set: string; label: string; val: number }[]
-          ).map(({ set, label, val }) => {
-            const fs = getFaceState(FACE_SETS[set], val);
-            return (
-              <div key={set} className="flex flex-col items-center gap-0.5">
-                <PixelFace spriteData={fs.sprite} size={48} />
-                <span className="text-stone-400" style={{ fontSize: 9 }}>
-                  {label}
-                </span>
-                <span className="text-stone-500" style={{ fontSize: 8 }}>
-                  {fs.label}
-                </span>
-              </div>
-            );
+          {([
+            {set:"boss",label:"Boss",val:avg},
+            {set:"scout",label:"Scout",val:r.morale},
+            {set:"cook",label:"Cookie",val:r.supplies},
+            {set:"wrangler",label:"Wrangler",val:(r.horses/state.outfit.horses)*100},
+            {set:"point",label:"Point",val:r.herdCondition},
+            {set:"hand",label:"Crew",val:(r.crew/state.outfit.crew)*100},
+          ]as{set:string;label:string;val:number}[]).map(({set,label,val})=>{
+            const fs=gf(FACES[set],val);
+            return(<div key={set} className="flex flex-col items-center gap-0.5">
+              <PixelFace spriteData={fs.sprite} size={44}/>
+              <span className="text-stone-400" style={{fontSize:8}}>{label}</span>
+              <span className="text-stone-500" style={{fontSize:7}}>{fs.label}</span>
+            </div>);
           })}
         </div>
       </div>
