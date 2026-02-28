@@ -1,0 +1,15 @@
+/public
+  /assets
+    /backgrounds
+      prairie_sunset.png
+      river_crossing.png
+    /portraits
+      boss_confident.png
+      boss_wary.png
+      scout_cautious.png
+      // ... etc
+    /doom_faces
+      boss_100.png
+      boss_50.png
+      hand_20.png
+      hand_dead.png
