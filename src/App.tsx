@@ -481,340 +481,36 @@ function PixelFace({spriteData,size=48}:{spriteData:string;size?:number}){
 // ANIMATED PRAIRIE SCENE — the hero visual
 // ═══════════════════════════════════════════════════════════════
 
-// Sky color palettes for time-of-day cycling
-const SKY_PHASES = [
-  // Dawn
-  { top: "#1a1a3e", mid: "#4a2a5c", low: "#c4604a", horizon: "#e8a060", sun: "#ffcc44", sunY: 0.85 },
-  // Morning
-  { top: "#1e3a6e", mid: "#3a6a9e", low: "#7ab4d4", horizon: "#c4d4a0", sun: "#ffe866", sunY: 0.5 },
-  // Noon
-  { top: "#1848a0", mid: "#3080c8", low: "#60b0e0", horizon: "#a0d0a0", sun: "#fff4cc", sunY: 0.15 },
-  // Afternoon
-  { top: "#1e4488", mid: "#4488bb", low: "#88bbdd", horizon: "#bbcc88", sun: "#ffe066", sunY: 0.35 },
-  // Sunset
-  { top: "#1a1a44", mid: "#6a2848", low: "#cc5533", horizon: "#ffaa44", sun: "#ff6622", sunY: 0.78 },
-  // Dusk
-  { top: "#0e0e28", mid: "#2a1838", low: "#5a2840", horizon: "#884455", sun: "#cc4444", sunY: 0.92 },
-];
+// PrairieScene — image-based scrolling with Grok pixel art
+// (SKY_PHASES and lerpColor removed — no longer needed)
+// Noon placeholder to mark where old code was
 
-function lerpColor(a: string, b: string, t: number): string {
-  const pa = [parseInt(a.slice(1,3),16),parseInt(a.slice(3,5),16),parseInt(a.slice(5,7),16)];
-  const pb = [parseInt(b.slice(1,3),16),parseInt(b.slice(3,5),16),parseInt(b.slice(5,7),16)];
-  const r = Math.round(pa[0]+(pb[0]-pa[0])*t);
-  const g = Math.round(pa[1]+(pb[1]-pa[1])*t);
-  const bl = Math.round(pa[2]+(pb[2]-pa[2])*t);
-  return `rgb(${r},${g},${bl})`;
-}
-
-function PrairieScene({ progress, pace, turn }: { progress: number; pace: string; turn: number }) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  const frameRef = useRef(0);
-  const scrollRef = useRef(0);
-  const animRef = useRef<number>(0);
-
-  useEffect(() => {
-    const c = ref.current; if (!c) return;
-    const ctx = c.getContext("2d")!;
-    const W = c.width;
-    const H = c.height;
-    const groundY = Math.floor(H * 0.62);
-    const trailY = groundY + 10;
-
-    // Sky phase from turn count (cycles through day)
-    const phaseIdx = turn % SKY_PHASES.length;
-    const sky = SKY_PHASES[phaseIdx];
-    const nextSky = SKY_PHASES[(phaseIdx + 1) % SKY_PHASES.length];
-
-    // Scroll speed based on pace
-    const speed = pace === "push" ? 2.2 : pace === "normal" ? 1.3 : 0.7;
-
-    // Landmark positions (seeded by progress so they're consistent)
-    const landmarks: { x: number; type: string }[] = [];
-    for (let i = 0; i < 12; i++) {
-      const seed = (i * 137 + 42) % 500;
-      landmarks.push({
-        x: seed + i * 180,
-        type: ["tree", "rock", "cactus", "bush", "deadtree", "post"][i % 6],
-      });
-    }
-
-    const draw = () => {
-      frameRef.current++;
-      scrollRef.current += speed;
-      const frame = frameRef.current;
-      const scroll = scrollRef.current;
-
-      // ── SKY ──
-      const grad = ctx.createLinearGradient(0, 0, 0, groundY);
-      grad.addColorStop(0, sky.top);
-      grad.addColorStop(0.4, sky.mid);
-      grad.addColorStop(0.75, sky.low);
-      grad.addColorStop(1, sky.horizon);
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, W, groundY);
-
-      // ── SUN ──
-      const sunX = W * 0.75;
-      const sunY = groundY * sky.sunY;
-      const sunR = 14;
-      // Glow
-      ctx.globalAlpha = 0.3;
-      const glow = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, sunR * 4);
-      glow.addColorStop(0, sky.sun);
-      glow.addColorStop(1, "transparent");
-      ctx.fillStyle = glow;
-      ctx.fillRect(sunX - sunR * 4, sunY - sunR * 4, sunR * 8, sunR * 8);
-      ctx.globalAlpha = 1;
-      // Disc
-      ctx.fillStyle = sky.sun;
-      ctx.beginPath();
-      ctx.arc(sunX, sunY, sunR, 0, Math.PI * 2);
-      ctx.fill();
-
-      // ── STARS (dawn/dusk/night only) ──
-      if (phaseIdx === 0 || phaseIdx >= 4) {
-        ctx.fillStyle = "#ffffff";
-        ctx.globalAlpha = phaseIdx === 5 ? 0.6 : 0.3;
-        for (let i = 0; i < 30; i++) {
-          const sx = (i * 97 + 13) % W;
-          const sy = (i * 53 + 7) % (groundY * 0.5);
-          const twinkle = Math.sin(frame * 0.05 + i) > 0.3 ? 1 : 0;
-          if (twinkle) ctx.fillRect(sx, sy, 1, 1);
-        }
-        ctx.globalAlpha = 1;
-      }
-
-      // ── CLOUDS (slow parallax) ──
-      ctx.globalAlpha = 0.25;
-      ctx.fillStyle = "#ffffff";
-      for (let i = 0; i < 4; i++) {
-        const cx = ((i * 200 + 50) - scroll * 0.15) % (W + 100) - 50;
-        const cy = 15 + i * 18 + Math.sin(i) * 8;
-        const cw = 40 + (i % 3) * 20;
-        // Chunky pixel clouds
-        ctx.fillRect(cx, cy, cw, 4);
-        ctx.fillRect(cx + 4, cy - 3, cw - 8, 3);
-        ctx.fillRect(cx + 8, cy + 4, cw - 16, 3);
-      }
-      ctx.globalAlpha = 1;
-
-      // ── FAR HILLS (slow parallax) ──
-      ctx.fillStyle = lerpColor("#4a5568", sky.low, 0.4);
-      for (let x = -20; x < W + 40; x += 3) {
-        const bx = x - (scroll * 0.1) % 400;
-        const by = groundY - 12 - Math.sin(bx * 0.015) * 14 - Math.sin(bx * 0.008) * 8;
-        ctx.fillRect(((bx % (W + 40)) + W + 40) % (W + 40) - 20, by, 3, groundY - by);
-      }
-
-      // ── NEAR HILLS (medium parallax) ──
-      ctx.fillStyle = lerpColor("#5a6640", sky.horizon, 0.3);
-      for (let x = -10; x < W + 20; x += 3) {
-        const bx = x - (scroll * 0.25) % 500;
-        const by = groundY - 4 - Math.sin(bx * 0.02) * 8 - Math.cos(bx * 0.012) * 5;
-        ctx.fillRect(((bx % (W + 20)) + W + 20) % (W + 20) - 10, by, 3, groundY - by);
-      }
-
-      // ── GROUND ──
-      const gGrad = ctx.createLinearGradient(0, groundY, 0, H);
-      gGrad.addColorStop(0, "#8b7d3c");
-      gGrad.addColorStop(0.15, "#7a6e30");
-      gGrad.addColorStop(0.5, "#6b5e2a");
-      gGrad.addColorStop(1, "#4a4220");
-      ctx.fillStyle = gGrad;
-      ctx.fillRect(0, groundY, W, H - groundY);
-
-      // Trail dust line
-      ctx.fillStyle = "#a09060";
-      ctx.fillRect(0, trailY, W, 2);
-      ctx.fillStyle = "#8a7a50";
-      ctx.fillRect(0, trailY + 2, W, 1);
-
-      // ── LANDMARKS (scroll with ground) ──
-      for (const lm of landmarks) {
-        const lx = ((lm.x - scroll * 0.6) % (W + 200) + W + 200) % (W + 200) - 100;
-        if (lx < -30 || lx > W + 30) continue;
-
-        switch (lm.type) {
-          case "tree":
-            ctx.fillStyle = "#3d5a28";
-            ctx.fillRect(lx, groundY - 20, 3, 20);
-            ctx.fillStyle = "#4a7030";
-            ctx.fillRect(lx - 6, groundY - 28, 15, 10);
-            ctx.fillRect(lx - 4, groundY - 34, 11, 8);
-            ctx.fillRect(lx - 2, groundY - 38, 7, 5);
-            break;
-          case "rock":
-            ctx.fillStyle = "#7a7268";
-            ctx.fillRect(lx, groundY - 6, 12, 6);
-            ctx.fillStyle = "#8a8278";
-            ctx.fillRect(lx + 2, groundY - 10, 8, 5);
-            ctx.fillStyle = "#9a9288";
-            ctx.fillRect(lx + 3, groundY - 12, 5, 3);
-            break;
-          case "cactus":
-            ctx.fillStyle = "#4a7a3a";
-            ctx.fillRect(lx + 2, groundY - 16, 3, 16);
-            ctx.fillRect(lx - 2, groundY - 12, 3, 6);
-            ctx.fillRect(lx + 5, groundY - 10, 3, 5);
-            break;
-          case "bush":
-            ctx.fillStyle = "#5a7a38";
-            ctx.fillRect(lx, groundY - 5, 10, 5);
-            ctx.fillStyle = "#6a8a48";
-            ctx.fillRect(lx + 1, groundY - 8, 8, 4);
-            break;
-          case "deadtree":
-            ctx.fillStyle = "#6a5a40";
-            ctx.fillRect(lx + 1, groundY - 18, 2, 18);
-            ctx.fillRect(lx - 2, groundY - 14, 3, 2);
-            ctx.fillRect(lx + 3, groundY - 16, 4, 2);
-            ctx.fillRect(lx + 5, groundY - 18, 2, 2);
-            break;
-          case "post":
-            ctx.fillStyle = "#7a6a4a";
-            ctx.fillRect(lx, groundY - 10, 2, 10);
-            ctx.fillRect(lx - 3, groundY - 10, 8, 2);
-            break;
-        }
-      }
-
-      // ── GRASS TUFTS (foreground, fast parallax) ──
-      ctx.fillStyle = "#6a7a30";
-      for (let i = 0; i < 20; i++) {
-        const gx = ((i * 67 + 23) - scroll * 0.8) % (W + 40) - 20;
-        const gy = groundY + 10 + (i % 5) * 6;
-        ctx.fillRect(gx, gy, 1, -3);
-        ctx.fillRect(gx + 2, gy, 1, -4);
-        ctx.fillRect(gx + 4, gy, 1, -2);
-      }
-
-      // ── THE HERD — profile longhorns ──
-      const herdBaseX = W * 0.35;
-      const herdY = trailY - 2;
-      const legFrame = Math.floor(frame / 8) % 2;
-
-      // Draw several cattle at slightly different positions
-      const cattle = [
-        { dx: 0, dy: 0, size: 1 },      // lead steer
-        { dx: -18, dy: 1, size: 0.9 },
-        { dx: -12, dy: -1, size: 0.95 },
-        { dx: -30, dy: 0, size: 0.85 },
-        { dx: -25, dy: 2, size: 0.9 },
-        { dx: -40, dy: 1, size: 0.8 },
-        { dx: -36, dy: -1, size: 0.85 },
-        { dx: -52, dy: 0, size: 0.75 },
-        { dx: -48, dy: 2, size: 0.8 },
-        { dx: -60, dy: 1, size: 0.7 },
-        { dx: -58, dy: -1, size: 0.75 },
-        { dx: -70, dy: 0, size: 0.65 },
-      ];
-
-      for (const cow of cattle) {
-        const cx = herdBaseX + cow.dx;
-        const cy = herdY + cow.dy;
-        const s = cow.size;
-        const bobY = Math.sin(frame * 0.15 + cow.dx * 0.1) * 0.5;
-
-        // Body
-        ctx.fillStyle = "#6b3a1a";
-        ctx.fillRect(cx - 6*s, cy - 5*s + bobY, 12*s, 5*s);
-        // Darker belly
-        ctx.fillStyle = "#5a2e15";
-        ctx.fillRect(cx - 5*s, cy - 2*s + bobY, 10*s, 2*s);
-        // Head
-        ctx.fillStyle = "#7a4a2a";
-        ctx.fillRect(cx + 5*s, cy - 6*s + bobY, 4*s, 4*s);
-        // Horns
-        ctx.fillStyle = "#d4c8a0";
-        ctx.fillRect(cx + 6*s, cy - 8*s + bobY, 1, 2*s);
-        ctx.fillRect(cx + 8*s, cy - 8*s + bobY, 1, 2*s);
-        // Eye
-        ctx.fillStyle = "#1a1a1a";
-        ctx.fillRect(cx + 8*s, cy - 5*s + bobY, 1, 1);
-        // Legs (animated)
-        ctx.fillStyle = "#5a2e15";
-        if (legFrame === 0) {
-          ctx.fillRect(cx - 4*s, cy + bobY, 2*s, 4*s);
-          ctx.fillRect(cx + 2*s, cy + bobY, 2*s, 3*s);
-        } else {
-          ctx.fillRect(cx - 3*s, cy + bobY, 2*s, 3*s);
-          ctx.fillRect(cx + 1*s, cy + bobY, 2*s, 4*s);
-        }
-        // Tail (gentle sway)
-        ctx.fillStyle = "#4a2010";
-        const tailSway = Math.sin(frame * 0.1 + cow.dx) * 2;
-        ctx.fillRect(cx - 7*s + tailSway, cy - 4*s + bobY, 1, 3*s);
-      }
-
-      // ── DUST BEHIND HERD ──
-      ctx.globalAlpha = pace === "push" ? 0.4 : pace === "normal" ? 0.25 : 0.12;
-      ctx.fillStyle = "#c4a882";
-      for (let i = 0; i < 12; i++) {
-        const dx = herdBaseX - 75 - Math.sin(frame * 0.08 + i * 1.5) * 15 - i * 6;
-        const dy = herdY - 4 + Math.sin(frame * 0.06 + i) * 4;
-        const r = 3 + Math.sin(frame * 0.04 + i * 2) * 2;
-        ctx.beginPath();
-        ctx.arc(dx, dy, Math.abs(r), 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.globalAlpha = 1;
-
-      // ── COWBOY ON HORSE (point rider, ahead of herd) ──
-      const riderX = herdBaseX + 25;
-      const riderY = trailY - 2;
-      const rBob = Math.sin(frame * 0.18) * 0.8;
-      // Horse body
-      ctx.fillStyle = "#5a3820";
-      ctx.fillRect(riderX - 4, riderY - 4 + rBob, 10, 5);
-      // Horse head
-      ctx.fillStyle = "#6a4830";
-      ctx.fillRect(riderX + 5, riderY - 6 + rBob, 3, 4);
-      // Horse legs
-      ctx.fillStyle = "#4a2810";
-      if (legFrame === 0) {
-        ctx.fillRect(riderX - 2, riderY + 1 + rBob, 2, 4);
-        ctx.fillRect(riderX + 4, riderY + 1 + rBob, 2, 3);
-      } else {
-        ctx.fillRect(riderX - 1, riderY + 1 + rBob, 2, 3);
-        ctx.fillRect(riderX + 3, riderY + 1 + rBob, 2, 4);
-      }
-      // Rider torso
-      ctx.fillStyle = "#4a6741";
-      ctx.fillRect(riderX, riderY - 8 + rBob, 4, 5);
-      // Rider hat
-      ctx.fillStyle = "#5c3a1e";
-      ctx.fillRect(riderX - 1, riderY - 12 + rBob, 6, 3);
-      ctx.fillRect(riderX, riderY - 13 + rBob, 4, 2);
-      // Rider face
-      ctx.fillStyle = "#e8b796";
-      ctx.fillRect(riderX + 1, riderY - 9 + rBob, 3, 2);
-
-      // ── DISTANCE MARKER (subtle) ──
-      ctx.fillStyle = "#d4a843";
-      ctx.globalAlpha = 0.7;
-      ctx.font = "bold 9px monospace";
-      ctx.textAlign = "left";
-      ctx.fillText(`${Math.round(progress)}%`, 6, H - 4);
-      ctx.textAlign = "right";
-      const miLabel = progress < 10 ? "San Antonio" : progress > 90 ? "Abilene" : `${Math.round(progress * 8)} mi`;
-      ctx.fillText(miLabel, W - 6, H - 4);
-      ctx.globalAlpha = 1;
-
-      animRef.current = requestAnimationFrame(draw);
-    };
-
-    animRef.current = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(animRef.current);
-  }, [progress, pace, turn]);
+function PrairieScene({ progress, pace }: { progress: number; pace: string; turn: number }) {
+  const speed = pace === "push" ? "15s" : pace === "normal" ? "25s" : "40s";
+  const miLabel = progress < 10 ? "San Antonio" : progress > 90 ? "Abilene" : `${Math.round(progress * 8)} mi`;
 
   return (
-    <canvas
-      ref={ref}
-      width={480}
-      height={180}
-      className="w-full rounded-b border-b border-stone-700"
-      style={{ imageRendering: "pixelated" }}
-    />
+    <div className="relative w-full overflow-hidden rounded-b border-b border-stone-700" style={{ height: 180 }}>
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `url(/faces/bg_travel.png)`,
+          backgroundSize: "auto 100%",
+          backgroundRepeat: "repeat-x",
+          animation: `bgScroll ${speed} linear infinite`,
+          imageRendering: "pixelated",
+        }}
+      />
+      <div className="absolute inset-0" style={{
+        background: "linear-gradient(transparent 70%, rgba(0,0,0,0.4) 100%)",
+      }} />
+      <div className="absolute bottom-1 left-2 text-xs font-bold" style={{ color: "#d4a843", opacity: 0.85, fontFamily: "monospace" }}>
+        {Math.round(progress)}%
+      </div>
+      <div className="absolute bottom-1 right-2 text-xs font-bold" style={{ color: "#d4a843", opacity: 0.85, fontFamily: "monospace" }}>
+        {miLabel}
+      </div>
+    </div>
   );
 }
 
