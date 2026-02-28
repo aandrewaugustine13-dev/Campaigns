@@ -13,18 +13,32 @@ export default function VisualNovelEngine({ currentEvent, handleChoice, bossHeal
 
   return (
     <div className="border-4 border-[#1a0f0a]">
-      {/* Scene — scrolling BG + portraits, no dialogue overlay */}
+      {/* Scene — parallax layers + portraits */}
       <div className="relative w-full overflow-hidden" style={{ height: 200 }}>
+        {/* Layer 1: Static sky */}
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: `url(/faces/bg_event.png)`,
-            backgroundSize: "auto 100%",
-            backgroundRepeat: "repeat-x",
-            animation: "bgScroll 30s linear infinite",
+            backgroundImage: `url(/faces/bg_sky.png)`,
+            backgroundSize: "cover",
+            backgroundPosition: "center bottom",
             imageRendering: "pixelated",
           }}
         />
+        {/* Layer 2: Scrolling cattle strip */}
+        <div
+          className="absolute bottom-0 left-0 right-0"
+          style={{
+            height: 65,
+            backgroundImage: `url(/faces/fg_cattle.png)`,
+            backgroundSize: "auto 100%",
+            backgroundRepeat: "repeat-x",
+            backgroundPosition: "bottom",
+            animation: "bgScroll 25s linear infinite",
+            imageRendering: "pixelated",
+          }}
+        />
+        {/* Vignette */}
         <div className="absolute inset-0" style={{
           background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.5) 100%)",
         }} />
@@ -60,7 +74,7 @@ export default function VisualNovelEngine({ currentEvent, handleChoice, bossHeal
         </div>
       </div>
 
-      {/* Dialogue box — below the scene, not overlaying it */}
+      {/* Dialogue box — below the scene */}
       <div className="bg-[#1a0f0a] p-2">
         <div className="bg-[#e6c280] border-4 border-[#8b5a2b] rounded shadow-[4px_4px_0px_rgba(0,0,0,0.5)] p-3">
           <p className="text-[#5c3a21] font-bold text-sm mb-2 drop-shadow-sm leading-snug">
