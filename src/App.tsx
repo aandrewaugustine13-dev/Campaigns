@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import DoomHUD from "./DoomHUD";
 import VisualNovelEngine from "./VisualNovelEngine";
+import SilkRoad from "./SilkRoad";
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -976,24 +977,9 @@ export default function App(){
     );
   }
 
-  // ── SILK ROAD STUB ──
+  // ── SILK ROAD ──
   if(campaign==="silkroad"){
-    return(
-      <div className="min-h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center p-4" style={{fontFamily:"'Georgia',serif"}}>
-        <div className="max-w-md w-full text-center space-y-4">
-          <span className="text-7xl">🐫</span>
-          <h1 className="text-3xl font-bold tracking-wider text-indigo-400">THE SILK ROAD</h1>
-          <p className="text-stone-500 text-xs tracking-[0.3em] uppercase">Chang&apos;an to Constantinople &middot; 130 BCE</p>
-          <div className="border border-stone-700 rounded p-3 bg-stone-800/80 text-left space-y-2 text-sm text-stone-300 leading-relaxed">
-            <p>You are a merchant in the Han Dynasty. Your caravan carries silk, jade, and bronze mirrors west through the Taklamakan Desert, over the Pamir Mountains, across Persia, to the markets of Rome.</p>
-            <p>4,000 miles. Bandits, sandstorms, mountain passes, and empires that may or may not let you through.</p>
-            <p className="text-indigo-300 font-bold">The goods are worth 100x what you paid &mdash; if you survive the road.</p>
-          </div>
-          <p className="text-amber-400 font-bold text-sm">Under construction &mdash; check back soon</p>
-          <button onClick={backToMenu} className="px-6 py-2.5 bg-stone-700 hover:bg-stone-600 text-white font-bold rounded transition-colors tracking-wide">← BACK TO CAMPAIGNS</button>
-        </div>
-      </div>
-    );
+    return <SilkRoad onBack={backToMenu}/>;
   }
 
   // ── INTRO ──
