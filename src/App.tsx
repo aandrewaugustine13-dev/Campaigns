@@ -501,7 +501,7 @@ function PrairieScene({ progress, pace }: { progress: number; pace: string; turn
           imageRendering: "pixelated",
         }}
       />
-      {/* Layer 2: Cattle drive strip — scrolls across bottom */}
+      {/* Layer 2: Cattle drive strip — scrolls across bottom with walking bob */}
       <div
         className="absolute bottom-0 left-0 right-0"
         style={{
@@ -510,7 +510,7 @@ function PrairieScene({ progress, pace }: { progress: number; pace: string; turn
           backgroundSize: "auto 100%",
           backgroundRepeat: "repeat-x",
           backgroundPosition: "bottom",
-          animation: `bgScroll ${speed} linear infinite`,
+          animation: `bgScroll ${speed} linear infinite, cattleBob 0.6s ease-in-out infinite`,
           imageRendering: "pixelated",
         }}
       />
