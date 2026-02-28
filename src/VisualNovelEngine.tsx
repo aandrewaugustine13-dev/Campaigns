@@ -34,7 +34,7 @@ export default function VisualNovelEngine({ currentEvent, handleChoice, bossHeal
             backgroundSize: "auto 100%",
             backgroundRepeat: "repeat-x",
             backgroundPosition: "bottom",
-            animation: "bgScroll 25s linear infinite",
+            animation: "bgScroll 25s linear infinite, cattleBob 0.6s ease-in-out infinite",
             imageRendering: "pixelated",
           }}
         />
