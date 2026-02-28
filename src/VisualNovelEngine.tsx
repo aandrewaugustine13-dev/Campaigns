@@ -18,7 +18,7 @@ export default function VisualNovelEngine({ currentEvent, handleChoice, bossHeal
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: `url(/faces/bg_default.png)`,
+            backgroundImage: `url(/faces/bg_event.png)`,
             backgroundSize: "auto 100%",
             backgroundRepeat: "repeat-x",
             animation: "bgScroll 30s linear infinite",
