@@ -805,10 +805,12 @@ const makeInit=():GameState=>({day:1,turn:0,resources:{...INIT_R},phase:"intro",
 // ═══════════════════════════════════════════════════════════════
 
 export default function App(){
+  const[campaign,setCampaign]=useState<string|null>(null);
   const[state,setState]=useState<GameState>(makeInit());
   const[usedEvents,setUsedEvents]=useState<Set<string>>(new Set());
 
   const start=useCallback(()=>{setState({...makeInit(),phase:"outfit"});setUsedEvents(new Set());},[]);
+  const backToMenu=useCallback(()=>{setCampaign(null);setState(makeInit());},[]);
 
   const onOutfitDone=useCallback((config:OutfitConfig)=>{
     setState(prev=>{
@@ -928,6 +930,72 @@ export default function App(){
   const progress=Math.min((state.distance/TOTAL_DISTANCE)*100,100);
   const avg=Math.round((r.morale+r.herdCondition)/2);
 
+  // ── CAMPAIGN SELECTOR ──
+  if(!campaign){
+    return(
+      <div className="min-h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center p-4" style={{fontFamily:"'Georgia',serif"}}>
+        <div className="max-w-2xl w-full text-center space-y-6">
+          <div>
+            <h1 className="text-4xl font-bold tracking-wider text-amber-400">CAMPAIGNS</h1>
+            <p className="text-stone-500 text-sm tracking-[0.2em] uppercase mt-1">World Studies Adventures</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Chisholm Trail */}
+            <button onClick={()=>setCampaign("chisholm")} className="group relative overflow-hidden rounded-lg border-2 border-amber-800 hover:border-amber-500 transition-all text-left">
+              <div className="relative h-36 overflow-hidden">
+                <div className="absolute inset-0" style={{backgroundImage:"url(/faces/bg_sky.png)",backgroundSize:"cover",backgroundPosition:"center bottom",imageRendering:"pixelated"}}/>
+                <div className="absolute bottom-0 left-0 right-0" style={{height:40,backgroundImage:"url(/faces/fg_cattle.png)",backgroundSize:"auto 100%",backgroundRepeat:"repeat-x",animation:"bgScroll 25s linear infinite",imageRendering:"pixelated"}}/>
+                <div className="absolute inset-0 bg-gradient-to-t from-stone-900 via-transparent to-transparent"/>
+              </div>
+              <div className="p-3 bg-stone-800">
+                <h2 className="text-lg font-bold text-amber-400 group-hover:text-amber-300">The Chisholm Trail</h2>
+                <p className="text-xs text-stone-400 mt-1">Texas to Kansas &middot; 1867 &middot; 800 miles</p>
+                <p className="text-xs text-stone-500 mt-2 leading-relaxed">Drive 2,500 longhorns from San Antonio to Abilene through river crossings, stampedes, and Indian Territory.</p>
+                <span className="inline-block mt-2 text-xs font-bold text-emerald-400 bg-emerald-900/40 px-2 py-0.5 rounded">PLAYABLE</span>
+              </div>
+            </button>
+            {/* Silk Road */}
+            <button onClick={()=>setCampaign("silkroad")} className="group relative overflow-hidden rounded-lg border-2 border-indigo-800 hover:border-indigo-500 transition-all text-left">
+              <div className="relative h-36 overflow-hidden bg-gradient-to-b from-indigo-900 via-amber-900/40 to-stone-900">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-6xl" style={{imageRendering:"pixelated"}}>🐫</span>
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-stone-900 via-transparent to-transparent"/>
+              </div>
+              <div className="p-3 bg-stone-800">
+                <h2 className="text-lg font-bold text-indigo-400 group-hover:text-indigo-300">The Silk Road</h2>
+                <p className="text-xs text-stone-400 mt-1">Chang&apos;an to Constantinople &middot; 130 BCE &middot; 4,000 miles</p>
+                <p className="text-xs text-stone-500 mt-2 leading-relaxed">Lead a merchant caravan across deserts, mountains, and empires. Silk, spices, and survival.</p>
+                <span className="inline-block mt-2 text-xs font-bold text-amber-400 bg-amber-900/40 px-2 py-0.5 rounded">COMING SOON</span>
+              </div>
+            </button>
+          </div>
+          <p className="text-xs text-stone-600 italic">More campaigns coming: Age of Exploration, Oregon Trail, Underground Railroad</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── SILK ROAD STUB ──
+  if(campaign==="silkroad"){
+    return(
+      <div className="min-h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center p-4" style={{fontFamily:"'Georgia',serif"}}>
+        <div className="max-w-md w-full text-center space-y-4">
+          <span className="text-7xl">🐫</span>
+          <h1 className="text-3xl font-bold tracking-wider text-indigo-400">THE SILK ROAD</h1>
+          <p className="text-stone-500 text-xs tracking-[0.3em] uppercase">Chang&apos;an to Constantinople &middot; 130 BCE</p>
+          <div className="border border-stone-700 rounded p-3 bg-stone-800/80 text-left space-y-2 text-sm text-stone-300 leading-relaxed">
+            <p>You are a merchant in the Han Dynasty. Your caravan carries silk, jade, and bronze mirrors west through the Taklamakan Desert, over the Pamir Mountains, across Persia, to the markets of Rome.</p>
+            <p>4,000 miles. Bandits, sandstorms, mountain passes, and empires that may or may not let you through.</p>
+            <p className="text-indigo-300 font-bold">The goods are worth 100x what you paid &mdash; if you survive the road.</p>
+          </div>
+          <p className="text-amber-400 font-bold text-sm">Under construction &mdash; check back soon</p>
+          <button onClick={backToMenu} className="px-6 py-2.5 bg-stone-700 hover:bg-stone-600 text-white font-bold rounded transition-colors tracking-wide">← BACK TO CAMPAIGNS</button>
+        </div>
+      </div>
+    );
+  }
+
   // ── INTRO ──
   if(state.phase==="intro"){
     return(
@@ -945,6 +1013,7 @@ export default function App(){
           </div>
           <p className="text-xs text-stone-500 italic">Real drives lost 10-15% on average. Can you beat it?</p>
           <button onClick={start} className="px-6 py-2.5 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded transition-colors tracking-wide">HIT THE TRAIL</button>
+          <button onClick={backToMenu} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors">← Back to Campaigns</button>
         </div>
       </div>
     );
@@ -1012,7 +1081,7 @@ export default function App(){
               {state.decisions.map((d,i)=>(<p key={i} className="text-xs text-stone-500"><span className="text-stone-600">Day {d.day}:</span> <span className="text-stone-400">{d.event}</span> &mdash; {d.choice}</p>))}
             </div>
           )}
-          <div className="text-center pb-4"><button onClick={()=>{setState(makeInit());setUsedEvents(new Set());}} className="px-5 py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded transition-colors">Ride Again</button></div>
+          <div className="text-center pb-4 space-y-2"><button onClick={()=>{setState(makeInit());setUsedEvents(new Set());}} className="px-5 py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded transition-colors">Ride Again</button><br/><button onClick={backToMenu} className="text-xs text-stone-500 hover:text-stone-300 transition-colors">← Back to Campaigns</button></div>
         </div>
       </div>
     );
