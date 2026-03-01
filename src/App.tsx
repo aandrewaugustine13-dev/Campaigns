@@ -14,10 +14,10 @@ interface Choice { text: string; effects?: Resources; result?: string; outcomes?
 interface PushAttempt { id: string; buttonText: string; successText: string; failureText: string; riskChance: number; rewards: Resources; penalties: Resources; }
 interface GameEvent { 
   id: string; phase_min: number; phase_max: number; weight: number; title: string; text: string; 
-  type?: "standard" | "push_luck"; // Defines the engine to use
-  choices?: Choice[];              // Optional now, for standard events
-  attempts?: PushAttempt[];        // Optional, for push_luck events
-  leaveText?: string;              // Optional, for push_luck events
+  type?: "standard" | "push_luck"; 
+  choices?: Choice[];              
+  attempts?: PushAttempt[];        
+  leaveText?: string;              
 }
 interface Decision { event: string; choice: string; day: number; }
 interface OutfitConfig {
@@ -283,12 +283,26 @@ function pickEvent(day:number,td:number,used:Set<string>,evts:GameEvent[]):GameE
 function clampR(k:string,v:number):number{const m:Record<string,number>={herd:3500,crew:18,horses:60,ammo:200,spareParts:10};return clamp(v,0,m[k]||100);}
 
 // ═══════════════════════════════════════════════════════════════
-// ALL EVENTS
+// ALL 17 EVENTS
 // ═══════════════════════════════════════════════════════════════
 
 const EVENTS:GameEvent[]=[
 {id:"river_crossing_early",phase_min:0,phase_max:0.3,weight:5,title:"River Crossing \u2014 The Brazos",text:"The Brazos is running high from spring rains. Brown water churning fast with debris. Your scout found two options: a wide shallow ford half a day east, or the narrow deep crossing right here.",choices:[{text:"Take the wide ford. Half a day lost but safer.",outcomes:[{weight:6,effects:{herdCondition:-2},result:"The wide ford works. Water up to the cattle\u2019s bellies but they cross steady. Boring success \u2014 the best kind."},{weight:4,effects:{herd:-30,herdCondition:-4,horses:-2},result:"The \u2018safe\u2019 ford has a sinkhole. Thirty head drown. Two horses go down."}]},{text:"Cross here. Deep but narrow \u2014 fast.",outcomes:[{weight:5,effects:{herd:-60,morale:-6,horses:-3},result:"Too deep. Current catches the middle of the herd. Sixty head gone."},{weight:5,effects:{herd:-8,morale:4},result:"Your lead steer walks straight in and the herd follows. Eight head swept away."}]},{text:"Wait a day. Let the river drop.",outcomes:[{weight:5,effects:{supplies:-4,herdCondition:3,herd:-5},result:"River drops overnight. Easy crossing. Patience pays."},{weight:5,effects:{supplies:-4,herd:-80,morale:-8},result:"It rains again. River rises. Eighty head gone."}]}]},
 {id:"stampede_night",phase_min:0,phase_max:0.8,weight:5,title:"Stampede \u2014 Lightning",text:"Thunder at 2 AM. A bolt hits close and 2,500 longhorns explode in every direction.",choices:[{text:"Ride to the front. Turn the leaders.",outcomes:[{weight:5,effects:{herd:-40,horses:-2,morale:-3},result:"You turn them into a wide circle by dawn. Forty head over a bluff."},{weight:3,effects:{herd:-15,morale:5,herdCondition:-3},result:"Your best rider turns the lead steer hard. Fifteen scattered. That kid just earned a bonus."},{weight:2,effects:{herd:-20,crew:-1,morale:-10,horses:-1},result:"A horse hits a prairie dog hole at full gallop in the dark. Horse and rider go down."}]},{text:"Hold position. Protect the camp.",effects:{herd:-150,morale:-5},result:"You let them run. A hundred fifty head just gone."},{text:"Get every rider out singing.",outcomes:[{weight:4,effects:{herd:-20,morale:3,herdCondition:-2},result:"Cowboys singing \u2018Lorena\u2019 in a thunderstorm. Twenty head gone but the herd settles."},{weight:6,effects:{herd:-100,morale:-6,herdCondition:-5},result:"Too far gone. Herd splits three ways. A hundred head scattered."}]}]},
+{id:"water_scarce",phase_min:0.2,phase_max:0.7,weight:5,title:"Dry Country",text:"Last water was two days ago. The cattle are bawling. Thirsty cattle are stupid cattle.",choices:[{text:"Push through fast.",outcomes:[{weight:5,effects:{herd:-50,herdCondition:-8,morale:-4,horses:-3},result:"Cattle stagger. Calves drop. Fifty head didn\u2019t make it."},{weight:5,effects:{herd:-20,herdCondition:-4,morale:3},result:"Scout signals river ahead by evening. Twenty lost to heat. The rest drink."}]},{text:"Slow down. Look for water.",outcomes:[{weight:4,effects:{supplies:-6,herd:-30,herdCondition:-3,morale:-5},result:"Extra day of suffering. Thirty dead."},{weight:6,effects:{herdCondition:-2,supplies:-3,herd:-8,morale:4},result:"Scout finds an underground seep. Eight head lost."}]},{text:"Night drive. Move in the cool.",outcomes:[{weight:5,effects:{herd:-25,morale:-5,herdCondition:-3},result:"Twenty-five walk off a cutbank in the dark."},{weight:5,effects:{herd:-10,morale:2,herdCondition:1,horses:-1},result:"It works. By dawn you see trees \u2014 water."}]}]},
+{id:"rustlers",phase_min:0.3,phase_max:0.8,weight:4,title:"Riders on the Ridge",text:"Eight, maybe ten riders pacing your herd from a mile out.",choices:[{text:"Arm up and ride out.",outcomes:[{weight:5,effects:{morale:5,herdCondition:-2},result:"Lost outfit, not rustlers. Your crew feels ten feet tall."},{weight:5,effects:{morale:-3,crew:-1,supplies:-2},result:"They scatter but one puts a rifle shot through your flank rider\u2019s shoulder."}]},{text:"Circle tight and post guards.",effects:{herdCondition:-4,morale:-3,supplies:-2},result:"They disappear at sundown. You\u2019ll never know what they were."},{text:"Ignore them. Keep driving.",outcomes:[{weight:4,effects:{herd:-200,morale:-12,horses:-4},result:"They hit at dawn. 200 head gone."},{weight:6,effects:{morale:2},result:"They drift away by evening. Just ghosts of the prairie."}]}]},
+{id:"crew_quit",phase_min:0.3,phase_max:0.7,weight:4,title:"Two Hands Give Notice",text:"Two cowboys say they\u2019re done. Ranch work in Wichita that doesn\u2019t involve sleeping in mud.",choices:[{text:"Let them go.",effects:{crew:-2,morale:-3},result:"They ride out at dawn."},{text:"Offer double wages.",outcomes:[{weight:6,effects:{supplies:-5,morale:3},result:"Double pay keeps them."},{weight:4,effects:{crew:-2,morale:-6},result:"\u2018It ain\u2019t about money, boss.\u2019"}]},{text:"Remind them they signed a contract.",effects:{morale:-8},result:"They stay. They do the minimum. A man kept against his will works like one."}]},
+{id:"indian_territory",phase_min:0.4,phase_max:0.7,weight:5,title:"Indian Territory",text:"You\u2019re crossing Nations land. They charge ten cents a head \u2014 their legal right.",choices:[{text:"Pay the toll. It\u2019s their land.",effects:{morale:-3,herdCondition:2,herd:-250},result:"250 head equivalent. The toll bought intelligence and escort."},{text:"Negotiate. Offer five cents.",outcomes:[{weight:5,effects:{morale:1,herdCondition:1,herd:-175},result:"Seven cents. 175 head. Fair."},{weight:5,effects:{morale:-5,herdCondition:-3,herd:-50,supplies:-4},result:"No escort. Bad crossing. The toll was cheaper than ignorance."}]},{text:"Refuse. Push through.",outcomes:[{weight:3,effects:{morale:4,herdCondition:-4},result:"Nothing happens. Your crew cheers like they won something. They didn\u2019t."},{weight:7,effects:{herd:-300,morale:-8,horses:-5,crew:-1,herdCondition:-6},result:"Ambush at a river crossing. 300 head gone. A cowboy takes an arrow."}]}]},
+{id:"cook_wagon",phase_min:0.1,phase_max:0.6,weight:4,title:"Busted Axle",text:"Chuck wagon\u2019s rear axle snaps. No coffee, no beans, no hot food.",choices:[{text:"Full stop. Repair. Whole day.",effects:{supplies:-3,herdCondition:-3,morale:1},result:"Cottonwood replacement axle. The cook makes coffee and the crew forgives."},{text:"Rig a temporary fix.",outcomes:[{weight:5,effects:{morale:-2,supplies:-2},result:"Holds three days then fails in a creek. Half your flour ruined."},{weight:5,effects:{morale:2},result:"Holds all the way. Sometimes the quick fix is the right fix."}]},{text:"Abandon the wagon.",effects:{supplies:-15,morale:-10,horses:-3},result:"Cold jerky and creek water for every meal. This is survival now."}]},
+{id:"good_grass",phase_min:0.1,phase_max:0.8,weight:3,title:"Paradise Valley",text:"Scout found belly-high bluestem and a clean creek. Perfect grazing.",choices:[{text:"Two days\u2019 rest.",effects:{herdCondition:10,morale:6,supplies:-5,horses:2},result:"The closest thing to heaven. Nobody\u2019s miserable."},{text:"One day.",effects:{herdCondition:5,morale:3,supplies:-3},result:"Enough to take the edge off."},{text:"Keep moving.",outcomes:[{weight:5,effects:{morale:-6,herdCondition:-2},result:"Crew watches it slide past. Some weep."},{weight:5,effects:{morale:-3,herdCondition:-1},result:"An hour later there\u2019s a crossing and they forget."}]}]},
+{id:"river_red",phase_min:0.35,phase_max:0.55,weight:5,title:"The Red River",text:"The big one. Quarter mile wide and deep. This is where drives die.",choices:[{text:"Scout downstream.",outcomes:[{weight:5,effects:{supplies:-4,herd:-15,herdCondition:-1},result:"Better crossing found. Fifteen lost. Patience paid."},{weight:5,effects:{supplies:-6,morale:-3,herd:-40},result:"Nothing better. Forty head gone."}]},{text:"Cross here and now.",outcomes:[{weight:4,effects:{herd:-80,morale:-6,horses:-4,crew:-1},result:"Chaos. One cowboy doesn\u2019t get free. Eighty head gone. The Red earned its name."},{weight:6,effects:{herd:-25,morale:4},result:"Lead steer swims straight. Twenty-five lost. Crew whoops on the far bank."}]},{text:"Wait for another outfit. Watch and learn.",outcomes:[{weight:5,effects:{supplies:-5,herd:-10,morale:2},result:"Watch their mistakes. Cross clean. Ten head \u2014 a miracle for the Red."},{weight:5,effects:{supplies:-8,morale:-5,herdCondition:-3},result:"Nobody comes. Two days wasted."}]}]},
+{id:"snakebite",phase_min:0,phase_max:0.8,weight:3,title:"Rattler",text:"Best roper is down \u2014 diamondback got his ankle. Leg swelling fast.",choices:[{text:"Cut and suck.",outcomes:[{weight:5,effects:{morale:-3,crew:-1},result:"Not enough. He dies quiet that night."},{weight:5,effects:{morale:2,herdCondition:-2},result:"Day four he sits up and asks for coffee."}]},{text:"Send a rider for medicine.",effects:{crew:-1,morale:-2,herdCondition:-3,supplies:-4},result:"Down two hands. Medicine arrives too late."},{text:"Tourniquet, whiskey, chuck wagon.",effects:{morale:-1,herdCondition:-2},result:"He makes it. Barely. He\u2019ll tell this story for fifty years."}]},
+{id:"tornado",phase_min:0.2,phase_max:0.7,weight:3,title:"Green Sky",text:"Sky turns yellow-green. \u2018Twister weather.\u2019 Maybe fifteen minutes.",choices:[{text:"Scatter the herd.",outcomes:[{weight:5,effects:{herd:-60,morale:-4,herdCondition:-5},result:"Twister hits where the herd was. Sixty gone but the bulk survived."},{weight:5,effects:{herd:-30,morale:4},result:"Misses by a mile. Too close."}]},{text:"Hold tight. Low ground.",outcomes:[{weight:4,effects:{herd:-200,crew:-1,horses:-6,morale:-12},result:"Direct hit. 200 gone. A cowboy thrown."},{weight:6,effects:{herd:-20,morale:2,herdCondition:-3},result:"Low ground saves you. Twenty caught. Lucky everything."}]},{text:"Ride south.",effects:{herd:-40,herdCondition:-6,morale:-5,supplies:-3},result:"Cattle fight you every step. Forty scatter. But you\u2019re alive."}]},
+{id:"competition",phase_min:0.3,phase_max:0.8,weight:3,title:"Competition",text:"Bigger outfit \u2014 3,000 head \u2014 moving fast. They beat you to Abilene, price drops.",choices:[{text:"Push hard. Outpace them.",effects:{herdCondition:-8,morale:-3,supplies:-5,horses:-3},result:"Cattle drop weight. But you pull ahead."},{text:"Hold pace. Fat cattle sell higher.",outcomes:[{weight:6,effects:{morale:-2},result:"They pass you. But your cattle are fat."},{weight:4,effects:{morale:3},result:"They push too hard. Stampede. Tortoise and the hare."}]},{text:"Send a rider to lock in a price.",effects:{crew:-1,morale:2},result:"Sharpest man, fastest horse, letter of intent."}]},
+{id:"prairie_fire",phase_min:0.1,phase_max:0.6,weight:3,title:"Smoke on the Horizon",text:"Prairie fire \u2014 line of orange to the west, wind pushing it toward you.",choices:[{text:"Set a backfire.",outcomes:[{weight:6,effects:{herd:-20,herdCondition:-3,morale:2},result:"Scout burns a strip. Twenty bolt. Professional work."},{weight:4,effects:{herd:-80,morale:-6,herdCondition:-5},result:"Backfire gets away. Fire on TWO sides. Eighty gone."}]},{text:"Drive east. Outflank it.",effects:{herdCondition:-5,morale:-3,supplies:-3,herd:-15},result:"Fire slides past. Fifteen scatter."},{text:"Find water.",outcomes:[{weight:4,effects:{herd:-5,morale:5,herdCondition:2},result:"Wide creek. Herd stands belly-deep while the world burns."},{weight:6,effects:{herd:-40,morale:-4,herdCondition:-4},result:"No creek. Forty head lost in the smoke."}]}]},
+{id:"buyer",phase_min:0.7,phase_max:0.95,weight:4,title:"A Buyer on the Trail",text:"Man in a clean coat. $30 a head right now. Market is $40 but that\u2019s two weeks away.",choices:[{text:"Take the deal.",effects:{morale:8},result:"$30 a head. You left $25,000 on the table. But you\u2019re done.",earlyEnd:true},{text:"Counter at $35.",outcomes:[{weight:5,effects:{morale:6},result:"\u2018$33.\u2019 Done today.",earlyEnd:true},{weight:5,effects:{morale:-2},result:"\u2018$30 is the offer.\u2019 He rides on."}]},{text:"Refuse.",outcomes:[{weight:5,effects:{morale:4},result:"\u2018Your herd, your call.\u2019"},{weight:5,effects:{morale:-3},result:"That night a hand says Abilene prices dropped to $28."}]}]},
+{id:"horse_thief",phase_min:0.2,phase_max:0.6,weight:3,title:"Missing Horses",text:"Morning count: eight horses gone. Tracks lead northeast.",choices:[{text:"Send riders after them.",outcomes:[{weight:5,effects:{morale:4,herdCondition:-3},result:"Horses back. One cowboy shot in the arm."},{weight:5,effects:{horses:-8,morale:-2,herdCondition:-4},result:"Lost the trail. Eight horses gone."}]},{text:"Let them go.",effects:{horses:-8,morale:-6},result:"A trail boss who won\u2019t fight for his remuda."},{text:"Double the watch.",effects:{horses:-8,morale:-4,herdCondition:-2},result:"Horses safer but cowboys wrecked from double watches."}]},
+{id:"fever",phase_min:0.25,phase_max:0.7,weight:3,title:"Tick Fever",text:"Three dozen head stumbling, eyes glazed. It\u2019ll spread if you don\u2019t act.",choices:[{text:"Cut the sick ones.",effects:{herd:-36,morale:-2,herdCondition:4},result:"Thirty-six left standing. The fever stops."},{text:"Treat on the move.",outcomes:[{weight:5,effects:{herd:-100,herdCondition:-8,morale:-6,supplies:-4},result:"Fever spreads. A hundred dead."},{weight:5,effects:{herd:-15,herdCondition:-2,supplies:-4},result:"Cook\u2019s foul mixture saves half. Fifteen don\u2019t make it."}]},{text:"Push hard. Outrun the ticks.",effects:{herdCondition:-6,herd:-50,morale:-4,horses:-2},result:"You can\u2019t outrun ticks. Fifty drop."}]},
 // 🔴 NEW PUSH YOUR LUCK EVENT ADDED HERE 🔴
 {
   id: "stray_longhorns",
@@ -456,186 +470,18 @@ export default function App(){
     });
   },[]);
 
-  const r=state.resources;
-  const progress=Math.min((state.distance/TOTAL_DISTANCE)*100,100);
-  const avg=Math.round((r.morale+r.herdCondition)/2);
+  const handleHunt=useCallback(()=>{
+    setState(prev=>{
+      const s:GameState={...prev,resources:{...prev.resources},decisions:[...prev.decisions]};
+      const ammo=s.resources.ammo||0;
+      if(ammo<5)return s; // shouldn't happen, button is hidden
+      s.resources.ammo=ammo-5;
+      const gunBonus=Math.min(s.outfit.guns,8);
+      const roll=Math.random()*100;
+      const nothingCeil=35-gunBonus;
+      const scrapsCeil=55-gunBonus*0.5;
+      const decentCeil=75;
+      const greatCeil=90;
+      const accidentCeil=97;
 
-  // ── CAMPAIGN SELECTOR ──
-  if(!campaign){
-    return(
-      <div className="min-h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center p-4" style={{fontFamily:"'Georgia',serif"}}>
-        <div className="max-w-2xl w-full text-center space-y-6">
-          <div>
-            <h1 className="text-4xl font-bold tracking-wider text-amber-400">CAMPAIGNS</h1>
-            <p className="text-stone-500 text-sm tracking-[0.2em] uppercase mt-1">World Studies Adventures</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Chisholm Trail */}
-            <button onClick={()=>setCampaign("chisholm")} className="group relative overflow-hidden rounded-lg border-2 border-amber-800 hover:border-amber-500 transition-all text-left">
-              <div className="relative h-36 overflow-hidden">
-                <div className="absolute inset-0" style={{backgroundImage:"url(/faces/bg_sky.png)",backgroundSize:"cover",backgroundPosition:"center bottom",imageRendering:"pixelated"}}/>
-                <div className="absolute bottom-0 left-0 right-0" style={{height:40,backgroundImage:"url(/faces/fg_cattle.png)",backgroundSize:"auto 100%",backgroundRepeat:"repeat-x",animation:"bgScroll 25s linear infinite",imageRendering:"pixelated"}}/>
-                <div className="absolute inset-0 bg-gradient-to-t from-stone-900 via-transparent to-transparent"/>
-              </div>
-              <div className="p-3 bg-stone-800">
-                <h2 className="text-lg font-bold text-amber-400 group-hover:text-amber-300">The Chisholm Trail</h2>
-                <p className="text-xs text-stone-400 mt-1">Texas to Kansas &middot; 1867 &middot; 800 miles</p>
-                <p className="text-xs text-stone-500 mt-2 leading-relaxed">Drive 2,500 longhorns from San Antonio to Abilene through river crossings, stampedes, and Indian Territory.</p>
-                <span className="inline-block mt-2 text-xs font-bold text-emerald-400 bg-emerald-900/40 px-2 py-0.5 rounded">PLAYABLE</span>
-              </div>
-            </button>
-            {/* Silk Road */}
-            <button onClick={()=>setCampaign("silkroad")} className="group relative overflow-hidden rounded-lg border-2 border-indigo-800 hover:border-indigo-500 transition-all text-left">
-              <div className="relative h-36 overflow-hidden bg-gradient-to-b from-indigo-900 via-amber-900/40 to-stone-900">
-                <div className="absolute inset-0 flex items-center justify-center"><span className="text-6xl" style={{imageRendering:"pixelated"}}>🐫</span></div>
-                <div className="absolute inset-0 bg-gradient-to-t from-stone-900 via-transparent to-transparent"/>
-              </div>
-              <div className="p-3 bg-stone-800">
-                <h2 className="text-lg font-bold text-indigo-400 group-hover:text-indigo-300">The Silk Road</h2>
-                <p className="text-xs text-stone-400 mt-1">Chang&apos;an to Constantinople &middot; 130 BCE &middot; 4,000 miles</p>
-                <p className="text-xs text-stone-500 mt-2 leading-relaxed">Lead a merchant caravan across deserts, mountains, and empires. Silk, spices, and survival.</p>
-                <span className="inline-block mt-2 text-xs font-bold text-amber-400 bg-amber-900/40 px-2 py-0.5 rounded">COMING SOON</span>
-              </div>
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ── SILK ROAD ──
-  if(campaign==="silkroad") return <SilkRoad onBack={backToMenu}/>;
-
-  // ── INTRO ──
-  if(state.phase==="intro"){
-    return(
-      <div className="h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center p-4 overflow-hidden" style={{fontFamily:"'Georgia',serif"}}>
-        <div className="max-w-md w-full text-center space-y-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-wider text-amber-400">CAMPAIGNS</h1>
-            <p className="text-stone-500 text-xs tracking-[0.3em] uppercase mt-1">The Chisholm Trail &middot; 1867</p>
-          </div>
-          <PrairieScene progress={0} pace="easy" turn={0}/>
-          <div className="border border-stone-700 rounded p-3 bg-stone-800/80 text-left space-y-2 text-sm text-stone-300 leading-relaxed">
-            <p>Spring 1867. You&rsquo;re trail boss for a drive from San Antonio to Abilene, Kansas &mdash; 800 miles of open prairie, river crossings, and Indian Territory.</p>
-            <p>2,500 head of Texas longhorn. Twelve cowboys, sixty horses. The cattle are worth $4 here. In Abilene, $40.</p>
-            <p className="text-amber-300 font-bold">That&rsquo;s $100,000 at the end of the trail. If you get them there.</p>
-          </div>
-          <button onClick={start} className="px-6 py-2.5 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded transition-colors tracking-wide">HIT THE TRAIL</button>
-          <button onClick={backToMenu} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors">← Back to Campaigns</button>
-        </div>
-      </div>
-    );
-  }
-
-  // ── OUTFIT ──
-  if(state.phase==="outfit") return <OutfitScreen onDone={onOutfitDone}/>;
-
-  // ── END ──
-  if(state.phase==="end"){
-    const o=state.outfit;
-    const grade=getGrade2(r.herd,o.herd,state.survived);
-    const salePrice=state.earlySale?30:40;
-    const revenue=state.survived?r.herd*salePrice:0;
-    const profit=revenue-(o.herd*4+o.budgetSpent);
-    return(
-      <div className="h-screen bg-stone-900 text-stone-100 p-4 overflow-y-auto" style={{fontFamily:"'Georgia',serif"}}>
-        <div className="max-w-lg mx-auto space-y-4">
-          <h1 className={`text-2xl font-bold text-center ${state.survived?"text-amber-400":"text-red-500"}`}>{state.survived?(state.earlySale?"SOLD ON THE TRAIL":"ABILENE"):"THE TRAIL WINS"}</h1>
-          <PrairieScene progress={progress} pace={state.pace} turn={state.turn}/>
-          <div className="text-center pb-4 space-y-2">
-            <button onClick={()=>{setState(makeInit());setUsedEvents(new Set());}} className="px-5 py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded transition-colors">Ride Again</button>
-            <br/><button onClick={backToMenu} className="text-xs text-stone-500 hover:text-stone-300 transition-colors">← Back to Campaigns</button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ── MAIN GAME ──
-  return(
-    <div className="h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden" style={{fontFamily:"'Georgia',serif"}}>
-      <div className="flex-shrink-0 bg-stone-800">
-        <div className="max-w-lg mx-auto"><PrairieScene progress={progress} pace={state.pace} turn={state.turn}/></div>
-      </div>
-
-      <div className="flex-shrink-0 bg-stone-800/90 border-b border-stone-700 px-3 py-1.5">
-        <div className="max-w-lg mx-auto">
-          <div className="grid grid-cols-3 gap-x-4 text-xs">
-            {([{i:"\uD83D\uDC02",l:"Herd",v:r.herd,t:[Math.round(state.outfit.herd*0.8),Math.round(state.outfit.herd*0.6)]},{i:"\uD83E\uDD20",l:"Crew",v:r.crew,t:[Math.round(state.outfit.crew*0.75),Math.round(state.outfit.crew*0.5)]},{i:"\uD83D\uDC0E",l:"Horses",v:r.horses,t:[Math.round(state.outfit.horses*0.67),Math.round(state.outfit.horses*0.33)]}]as{i:string;l:string;v:number;t:number[]}[]).map(({i,l,v,t})=>(
-              <div key={l} className="flex items-center justify-between"><span className="text-stone-400">{i} {l}</span><span className={`font-mono ${v>t[0]?"text-emerald-400":v>t[1]?"text-yellow-400":"text-red-400"}`}>{v>99?v.toLocaleString():v}</span></div>
-            ))}
-          </div>
-          <div className="mt-1 space-y-0.5">
-            {([{l:"Supplies",v:r.supplies,i:"\uD83C\uDF56"},{l:"Morale",v:r.morale,i:"\uD83D\uDD25"},{l:"Herd Shape",v:r.herdCondition,i:"\uD83D\uDCAA"}]as{l:string;v:number;i:string}[]).map(({l,v,i})=>(
-              <div key={l} className="flex items-center gap-2 text-xs">
-                <span className="w-4 text-center" style={{fontSize:10}}>{i}</span>
-                <span className="w-16 text-stone-400">{l}</span>
-                <div className="flex-1 bg-stone-700 rounded-full h-1.5 overflow-hidden">
-                  <div className={`h-full rounded-full transition-all duration-500 ${v>=60?"bg-emerald-500":v>=40?"bg-yellow-500":v>=20?"bg-orange-500":"bg-red-600"}`} style={{width:`${v}%`}}/>
-                </div>
-                <span className="w-5 text-right text-stone-500 font-mono" style={{fontSize:10}}>{v}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="flex-1 min-h-0 p-3 overflow-y-auto">
-        <div className="max-w-lg mx-auto">
-          {state.phase==="sailing"&&(
-            <div className="space-y-2.5">
-              <p className="text-center text-amber-200/80 italic text-sm py-1">{getPhrase(state.day/TOTAL_DAYS)}</p>
-              <div className="flex gap-1.5">
-                {PACES.map(p=>(
-                  <button key={p.id} onClick={()=>setState(s=>({...s,pace:p.id}))}
-                    className={`flex-1 p-2 rounded text-xs border transition-colors ${state.pace===p.id?"bg-amber-700 border-amber-600 text-white":"bg-stone-800 border-stone-600 text-stone-300 hover:bg-stone-700"}`}>
-                    <div className="font-bold">{p.label}</div>
-                  </button>
-                ))}
-              </div>
-              <button onClick={advanceTurn} className="w-full py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded transition-colors">Drive On &mdash; {DAYS_PER_TURN} days</button>
-            </div>
-          )}
-          
-          {/* 🔴 CONDITIONAL ENGINE RENDERING */}
-          {state.phase === "event" && state.currentEvent && (
-            state.currentEvent.type === "push_luck" ? (
-              <PushYourLuckEngine
-                event={state.currentEvent}
-                onUpdate={handlePushUpdate}
-                onLeave={handlePushLeave}
-              />
-            ) : (
-              <VisualNovelEngine
-                currentEvent={state.currentEvent}
-                handleChoice={handleChoice}
-                bossHealth={avg}
-                scoutHealth={r.morale}
-              />
-            )
-          )}
-          
-          {state.phase==="result"&&(
-            <div className="space-y-2.5">
-              <div className="bg-stone-800 border border-stone-700 rounded p-3">
-                <h2 className="text-amber-400 font-bold mb-1.5">{state.currentEvent?.title}</h2>
-                <p className="text-stone-300 text-sm leading-relaxed">{state.resultText}</p>
-              </div>
-              <button onClick={continueGame} className="w-full py-2 bg-stone-700 hover:bg-stone-600 text-white font-bold rounded transition-colors">Continue</button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <DoomHUD members={[
-        { id: "boss", role: "Boss", label: "Trail Boss", health: avg },
-        { id: "scout", role: "Scout", label: "Scout", health: r.morale },
-        { id: "cook", role: "Cookie", label: "Cook", health: r.supplies },
-        { id: "wrangler", role: "Wrangler", label: "Wrangler", health: (r.horses / state.outfit.horses) * 100 },
-        { id: "point", role: "Point", label: "Point Rider", health: r.herdCondition },
-        { id: "hand", role: "Crew", label: "Crew", health: (r.crew / state.outfit.crew) * 100 },
-      ]} />
-    </div>
-  );
-}
+      let result:string;
