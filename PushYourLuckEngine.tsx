@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 
-// Matches the types we'll add to App.tsx
 interface Resources { [key: string]: number; }
 interface PushAttempt {
   id: string;
