@@ -14,7 +14,8 @@ interface GameEvent {
   type?: "standard" | "push_luck"; 
   choices?: Choice[];              
   attempts?: PushAttempt[];        
-  leaveText?: string;              
+  leaveText?: string;
+  image?: string; // 🔴 NEW: Image support             
 }
 interface Decision { event: string; choice: string; day: number; }
 
@@ -65,7 +66,7 @@ function pickEvent(day: number, td: number, evts: GameEvent[], used: Set<string>
 }
 
 // ═══════════════════════════════════════════════════════════════
-// EVENTS - INJECTED WITH ANCIENT CORPORATE BUREAUCRACY
+// EVENTS - INJECTED WITH ANCIENT CORPORATE BUREAUCRACY & IMAGES
 // ═══════════════════════════════════════════════════════════════
 
 const EVENTS: GameEvent[] = [
@@ -85,7 +86,7 @@ const EVENTS: GameEvent[] = [
     ]}
   ]},
   
-  {id:"imperial_audit",phase_min:0.05,phase_max:0.35,weight:4,title:"The Mid-Desert Performance Review",text:"A low-level Han bureaucrat catches up to your caravan on a remarkably fast horse. He ignores the starving camels, pulls out a bamboo scroll, and informs you that your 'silver burn rate is unacceptable' and you are behind on your Q3 silk projections.",choices:[
+  {id:"imperial_audit",image:"evt_audit.png",phase_min:0.05,phase_max:0.35,weight:4,title:"The Mid-Desert Performance Review",text:"A low-level Han bureaucrat catches up to your caravan on a remarkably fast horse. He ignores the starving camels, pulls out a bamboo scroll, and informs you that your 'silver burn rate is unacceptable' and you are behind on your Q3 silk projections.",choices:[
     {text:"Bribe him to falsify the report.",effects:{silver:-25,morale:2},result:"25 silver changes hands. He notes that your 'operational efficiency is exceeding expectations' and rides back east. Middle management is universal."},
     {text:"Argue about the physical reality of the desert.",outcomes:[
       {weight:5,effects:{morale:-4},result:"He writes down 'belligerent attitude toward leadership' and officially fines you for insubordination. He leaves without offering you water."},
@@ -97,6 +98,7 @@ const EVENTS: GameEvent[] = [
   // 🔴 PUSH YOUR LUCK: ABANDONED OUTPOST 
   {
     id: "ruined_outpost",
+    image: "evt_outpost.png",
     phase_min: 0.15,
     phase_max: 0.45,
     weight: 6,
@@ -169,6 +171,7 @@ const EVENTS: GameEvent[] = [
   // 🔴 PUSH YOUR LUCK: SOGDIAN BAZAAR
   {
     id: "sogdian_bazaar",
+    image: "evt_bazaar.png",
     phase_min: 0.4,
     phase_max: 0.6,
     weight: 6,
@@ -431,7 +434,7 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
     setState(prev => {
       if (!prev.currentEvent || !prev.currentEvent.choices) return prev;
       const s = { ...prev, resources: { ...prev.resources }, culturalLog: [...prev.culturalLog] };
-      const choice = s.currentEvent!.choices![idx];
+      const choice = s.currentEvent!.choices[idx];
       s.decisions.push({ event: s.currentEvent!.title, choice: choice.text, day: s.day });
 
       let outcome: { effects?: Resources; result?: string; earlyEnd?: boolean };
@@ -502,7 +505,7 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
     setState(prev => {
       if (!prev.currentEvent) return prev;
       const s = { ...prev, decisions: [...prev.decisions] };
-      s.decisions.push({ event: s.currentEvent!.title, choice: `Pushed luck ${log.length - 1} times.`, day: s.day });
+      s.decisions.push({ event: s.currentEvent.title, choice: `Pushed luck ${log.length - 1} times.`, day: s.day });
       s.currentEvent = null;
       s.phase = "traveling";
       return s;
@@ -516,6 +519,15 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
   const r = state.resources;
   const progress = Math.min((state.distance / TOTAL_DISTANCE) * 100, 100);
 
+  // 🔴 NEW: DYNAMIC BACKGROUND LOGIC
+  const getBackgroundImage = (p: number) => {
+    if (p < 30) return "bg_desert.png";
+    if (p < 60) return "bg_mountains.png";
+    return "bg_samarkand.png";
+  };
+  const currentBgImage = getBackgroundImage(progress);
+  const progressLabel = progress < 15 ? "Gansu Corridor" : progress < 30 ? "Taklamakan Desert" : progress < 45 ? "Ferghana Valley" : progress < 55 ? "Samarkand" : progress < 70 ? "Persia" : progress < 85 ? "Anatolia" : "Roman Empire";
+
   // ── INTRO ──
   if (state.phase === "intro") {
     return (
@@ -525,8 +537,16 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
             <h1 className="text-3xl font-bold tracking-wider text-indigo-400">THE SILK ROAD</h1>
             <p className="text-stone-500 text-xs tracking-[0.3em] uppercase mt-1">Chang'an to Constantinople · 130 BCE</p>
           </div>
-          <div className="relative h-32 overflow-hidden rounded bg-gradient-to-b from-indigo-900 via-amber-900/40 to-stone-900 flex items-center justify-center">
-            <span className="text-7xl">🐫</span>
+          <div className="relative h-32 overflow-hidden rounded bg-stone-800 border border-stone-700">
+             <img 
+              src={`/campaigns/silkroad/bg_samarkand.png`} 
+              alt="Silk Road"
+              className="w-full h-full object-cover"
+              style={{ imageRendering: "pixelated" }}
+             />
+             <div className="absolute inset-0 bg-stone-900/40 flex items-center justify-center">
+                <span className="text-6xl drop-shadow-lg">🐫</span>
+             </div>
           </div>
           <div className="border border-stone-700 rounded p-3 bg-stone-800/80 text-left space-y-2 text-sm text-stone-300 leading-relaxed">
             <p>You are a lead account executive for the Han Dynasty. Your territory is "The West." Your quota is to move silk, jade, and bronze 4,000 miles through the deadliest deserts and mountains on earth.</p>
@@ -639,18 +659,22 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
   }
 
   // ── MAIN GAME ──
-  const progressLabel = progress < 15 ? "Gansu Corridor" : progress < 30 ? "Taklamakan Desert" : progress < 45 ? "Ferghana Valley" : progress < 55 ? "Samarkand" : progress < 70 ? "Persia" : progress < 85 ? "Anatolia" : "Roman Empire";
-
   return (
     <div className="h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden" style={{ fontFamily: "'Georgia',serif" }}>
-      {/* Scene */}
-      <div className="flex-shrink-0 bg-stone-800">
+      {/* 🔴 NEW: DYNAMIC SCENE BANNER */}
+      <div className="flex-shrink-0 bg-stone-800 border-b border-stone-700">
         <div className="max-w-lg mx-auto">
-          <div className="relative w-full overflow-hidden rounded-b border-b border-stone-700" style={{ height: 100 }}>
-            <div className="absolute inset-0 bg-gradient-to-b from-indigo-900 via-amber-900/30 to-stone-800" />
+          <div className="relative w-full overflow-hidden" style={{ height: 120 }}>
+            <img 
+              src={`/campaigns/silkroad/${currentBgImage}`} 
+              alt="Silk Road Environment"
+              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
+              style={{ imageRendering: "pixelated" }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-stone-900 via-stone-900/40 to-transparent" />
             <div className="absolute bottom-1 left-2 text-xs font-bold" style={{ color: "#a0a0d4", opacity: 0.85, fontFamily: "monospace" }}>{Math.round(progress)}%</div>
             <div className="absolute bottom-1 right-2 text-xs font-bold" style={{ color: "#a0a0d4", opacity: 0.85, fontFamily: "monospace" }}>{Math.round(state.distance)} mi</div>
-            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-xs font-bold" style={{ color: "#a0a0d4", opacity: 0.65, fontFamily: "monospace" }}>{progressLabel}</div>
+            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-xs font-bold" style={{ color: "#a0a0d4", opacity: 0.85, fontFamily: "monospace" }}>{progressLabel}</div>
           </div>
         </div>
       </div>
@@ -683,7 +707,7 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
             </div>
             <span className="text-stone-500 w-6 text-right">{state.culturalExchange}</span>
           </div>
-          <div className="flex justify-between text-stone-500">
+          <div className="flex justify-between text-stone-500 mt-1">
             <span>Day {state.day}</span>
             <span>{Math.round(state.distance)}/{TOTAL_DISTANCE} mi</span>
           </div>
@@ -732,15 +756,29 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
                 onLeave={handlePushLeave}
               />
             ) : (
-              <div className="border-2 border-indigo-800 rounded p-3 bg-stone-800">
-                <h2 className="text-indigo-300 font-bold text-sm mb-1">{state.currentEvent.title}</h2>
-                <p className="text-stone-300 text-sm leading-relaxed mb-3">{state.currentEvent.text}</p>
-                <div className="space-y-1.5">
-                  {state.currentEvent.choices?.map((c, i) => (
-                    <button key={i} onClick={() => handleChoice(i)} className="w-full text-left p-2 bg-stone-700 hover:bg-stone-600 rounded text-xs text-stone-200 font-bold transition-colors border border-stone-600">
-                      ▶ {c.text}
-                    </button>
-                  ))}
+              <div className="border-2 border-indigo-800 rounded bg-stone-800 overflow-hidden shadow-lg">
+                {/* 🔴 NEW: STANDARD EVENT IMAGE INJECTION */}
+                {state.currentEvent.image && (
+                  <div className="w-full h-32 relative border-b border-indigo-900/50">
+                    <img 
+                      src={`/campaigns/silkroad/${state.currentEvent.image}`} 
+                      alt={state.currentEvent.title}
+                      className="w-full h-full object-cover"
+                      style={{ imageRendering: "pixelated", objectPosition: "center" }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-stone-800 via-transparent to-transparent" />
+                  </div>
+                )}
+                <div className="p-3">
+                  <h2 className="text-indigo-300 font-bold text-sm mb-1">{state.currentEvent.title}</h2>
+                  <p className="text-stone-300 text-sm leading-relaxed mb-3">{state.currentEvent.text}</p>
+                  <div className="space-y-1.5">
+                    {state.currentEvent.choices?.map((c, i) => (
+                      <button key={i} onClick={() => handleChoice(i)} className="w-full text-left p-2 bg-stone-700 hover:bg-stone-600 rounded text-xs text-stone-200 font-bold transition-colors border border-stone-600">
+                        ▶ {c.text}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             )
