@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import PushYourLuckEngine from "./PushYourLuckEngine";
 import DoomHUD from "./DoomHUD";
 import { getDoomFace } from "./AssetConfig";
+import TriviaEngine, { pickTriviaQuestion, type TriviaQuestion } from "./SilkRoadTrivia";
 
 // ═══════════════════════════════════════════════════════════════
 // SILK ROAD — Chang'an to Constantinople, 130 BCE
@@ -32,7 +33,7 @@ interface CaravanConfig {
 
 interface SRState {
   day: number; turn: number; resources: Resources;
-  phase: "intro" | "outfit" | "traveling" | "event" | "result" | "end";
+  phase: "intro" | "outfit" | "traveling" | "event" | "result" | "end" | "trivia";
   pace: string; distance: number; currentEvent: GameEvent | null;
   resultText: string; decisions: Decision[];
   gameOver: boolean; survived: boolean; earlySale: boolean;
@@ -40,6 +41,10 @@ interface SRState {
   outfit: CaravanConfig;
   culturalExchange: number;
   culturalLog: string[];
+  triviaCounter: number;        // counts events since last trivia
+  currentTrivia: TriviaQuestion | null;
+  usedTriviaIds: Set<string>;
+  triviaStreak: number;          // consecutive correct answers
 }
 
 const TOTAL_DISTANCE = 4000;
@@ -367,6 +372,7 @@ const makeInit = (): SRState => ({
   saleCity: "", saleMultiplier: 0,
   outfit: { ...DEFAULT_OUTFIT },
   culturalExchange: 0, culturalLog: [],
+  triviaCounter: 0, currentTrivia: null, usedTriviaIds: new Set(), triviaStreak: 0,
 });
 
 export default function SilkRoad({ onBack }: { onBack: () => void }) {
@@ -423,9 +429,23 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
       // Event?
       const event = pickEvent(s.day, JOURNEY_DAYS, EVENTS, usedEvents);
       if (event) {
+        // Check if it's trivia time (every other event cycle)
+        if (s.triviaCounter >= 2) {
+          const progress = Math.min((s.distance / TOTAL_DISTANCE) * 100, 100);
+          const trivia = pickTriviaQuestion(progress, s.usedTriviaIds);
+          if (trivia) {
+            s.currentTrivia = trivia;
+            s.usedTriviaIds = new Set(s.usedTriviaIds).add(trivia.id);
+            s.triviaCounter = 0;
+            s.phase = "trivia";
+            return s;
+          }
+        }
+        // Regular event
         setUsedEvents(p => new Set(p).add(event.id));
         s.currentEvent = event;
         s.phase = "event";
+        s.triviaCounter++;
       }
       return s;
     });
@@ -510,6 +530,43 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
       s.decisions.push({ event: s.currentEvent!.title, choice: `Pushed luck ${log.length - 1} times.`, day: s.day });
       s.currentEvent = null;
       s.phase = "traveling";
+      return s;
+    });
+  }, []);
+
+  // 🧙 Handle Trivia Completion
+  const handleTriviaComplete = useCallback((correct: boolean, effects: Record<string, number>) => {
+    setState(prev => {
+      const s = { ...prev, resources: { ...prev.resources }, culturalLog: [...prev.culturalLog], decisions: [...prev.decisions] };
+      const qText = s.currentTrivia?.question || "Trivia";
+
+      if (correct) {
+        s.triviaStreak++;
+        for (const [k, v] of Object.entries(effects)) {
+          if (k === "culturalExchange") {
+            s.culturalExchange += v;
+            s.culturalLog.push(`Sage's Wisdom: +${v}`);
+          } else if (k === "shortcut") {
+            s.distance = Math.min(s.distance + v, TOTAL_DISTANCE);
+          } else if (k === "camels") {
+            s.resources.camels = Math.min((s.resources.camels || 0) + v, 30);
+          } else {
+            s.resources[k] = clamp((s.resources[k] || 0) + v, 0, k === "goods" ? 200 : 100);
+          }
+        }
+        s.decisions.push({ event: "Sage Encounter", choice: `✓ Answered correctly (streak: ${s.triviaStreak}): "${qText}"`, day: s.day });
+      } else {
+        s.triviaStreak = 0;
+        s.decisions.push({ event: "Sage Encounter", choice: `Learned from: "${qText}"`, day: s.day });
+      }
+
+      s.currentTrivia = null;
+      s.phase = "traveling";
+
+      // Check if shortcut pushed us to the end
+      if (s.distance >= TOTAL_DISTANCE) {
+        return { ...s, phase: "end" as const, gameOver: true, survived: true };
+      }
       return s;
     });
   }, []);
@@ -797,6 +854,16 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
                 </div>
               </div>
             )
+          )}
+
+          {/* 🧙 TRIVIA SAGE ENCOUNTER */}
+          {state.phase === "trivia" && state.currentTrivia && (
+            <TriviaEngine
+              question={state.currentTrivia}
+              progress={progress}
+              streak={state.triviaStreak}
+              onComplete={handleTriviaComplete}
+            />
           )}
 
           {state.phase === "result" && (
