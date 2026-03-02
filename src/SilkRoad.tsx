@@ -434,7 +434,7 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
     setState(prev => {
       if (!prev.currentEvent || !prev.currentEvent.choices) return prev;
       const s = { ...prev, resources: { ...prev.resources }, culturalLog: [...prev.culturalLog] };
-      const choice = s.currentEvent!.choices[idx];
+      const choice = s.currentEvent!.choices![idx];
       s.decisions.push({ event: s.currentEvent!.title, choice: choice.text, day: s.day });
 
       let outcome: { effects?: Resources; result?: string; earlyEnd?: boolean };
@@ -505,7 +505,7 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
     setState(prev => {
       if (!prev.currentEvent) return prev;
       const s = { ...prev, decisions: [...prev.decisions] };
-      s.decisions.push({ event: s.currentEvent.title, choice: `Pushed luck ${log.length - 1} times.`, day: s.day });
+      s.decisions.push({ event: s.currentEvent!.title, choice: `Pushed luck ${log.length - 1} times.`, day: s.day });
       s.currentEvent = null;
       s.phase = "traveling";
       return s;
