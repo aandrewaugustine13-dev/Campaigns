@@ -1,5 +1,7 @@
 import { useState, useCallback } from "react";
 import PushYourLuckEngine from "./PushYourLuckEngine";
+import DoomHUD from "./DoomHUD";
+import { getDoomFace } from "./AssetConfig";
 
 // ═══════════════════════════════════════════════════════════════
 // SILK ROAD — Chang'an to Constantinople, 130 BCE
@@ -519,14 +521,27 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
   const r = state.resources;
   const progress = Math.min((state.distance / TOTAL_DISTANCE) * 100, 100);
 
-  // 🔴 NEW: DYNAMIC BACKGROUND LOGIC
-  const getBackgroundImage = (p: number) => {
-    if (p < 30) return "bg_desert.png";
-    if (p < 60) return "bg_mountains.png";
-    return "bg_samarkand.png";
+  // 🔴 NEW: DYNAMIC BACKGROUND LOGIC (procedural SVG until real art exists)
+  const getBackgroundSvg = (p: number) => {
+    const w = 480, h = 120;
+    let sky: string, ground: string, accent: string;
+    if (p < 30) { sky = "#c4604a"; ground = "#c4a060"; accent = "#e8a060"; }       // desert
+    else if (p < 60) { sky = "#4a6a90"; ground = "#5a5a40"; accent = "#8ab4d4"; }  // mountains
+    else { sky = "#3a4a6e"; ground = "#6b5e3a"; accent = "#d4a050"; }              // western cities
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${sky}"/><stop offset="100%" stop-color="${accent}"/></linearGradient></defs><rect width="${w}" height="${h}" fill="url(#s)"/><rect y="${h*0.6}" width="${w}" height="${h*0.4}" fill="${ground}"/><path d="M0,${h*0.55} Q${w*0.2},${h*0.45} ${w*0.4},${h*0.55} Q${w*0.6},${h*0.48} ${w*0.8},${h*0.52} L${w},${h*0.58} L${w},${h*0.6} L0,${h*0.6} Z" fill="${ground}" opacity="0.7"/></svg>`;
+    return `data:image/svg+xml,${encodeURIComponent(svg)}`;
   };
-  const currentBgImage = getBackgroundImage(progress);
+  const currentBgImage = getBackgroundSvg(progress);
   const progressLabel = progress < 15 ? "Gansu Corridor" : progress < 30 ? "Taklamakan Desert" : progress < 45 ? "Ferghana Valley" : progress < 55 ? "Samarkand" : progress < 70 ? "Persia" : progress < 85 ? "Anatolia" : "Roman Empire";
+
+  // Party member portraits mapped to resource health
+  const partyMembers = [
+    { id: "merchant",     role: "Merchant",  label: "", health: clamp(r.goods, 0, 100) },
+    { id: "cameldriver",  role: "Camels",    label: "", health: clamp(r.camels / 20 * 100, 0, 100) },
+    { id: "guard",        role: "Guard",     label: "", health: clamp(r.guards / 6 * 100, 0, 100) },
+    { id: "translator",   role: "Translator",label: "", health: clamp(r.morale, 0, 100) },
+    { id: "guide",        role: "Guide",     label: "", health: clamp(r.water, 0, 100) },
+  ];
 
   // ── INTRO ──
   if (state.phase === "intro") {
@@ -538,11 +553,9 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
             <p className="text-stone-500 text-xs tracking-[0.3em] uppercase mt-1">Chang'an to Constantinople · 130 BCE</p>
           </div>
           <div className="relative h-32 overflow-hidden rounded bg-stone-800 border border-stone-700">
-             <img 
-              src={`/campaigns/silkroad/bg_samarkand.png`} 
-              alt="Silk Road"
-              className="w-full h-full object-cover"
-              style={{ imageRendering: "pixelated" }}
+             <div 
+              className="w-full h-full"
+              style={{ background: "linear-gradient(135deg, #3a4a6e 0%, #c4604a 50%, #d4a050 100%)" }}
              />
              <div className="absolute inset-0 bg-stone-900/40 flex items-center justify-center">
                 <span className="text-6xl drop-shadow-lg">🐫</span>
@@ -666,10 +679,9 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
         <div className="max-w-lg mx-auto">
           <div className="relative w-full overflow-hidden" style={{ height: 120 }}>
             <img 
-              src={`/campaigns/silkroad/${currentBgImage}`} 
+              src={currentBgImage} 
               alt="Silk Road Environment"
               className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
-              style={{ imageRendering: "pixelated" }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-stone-900 via-stone-900/40 to-transparent" />
             <div className="absolute bottom-1 left-2 text-xs font-bold" style={{ color: "#a0a0d4", opacity: 0.85, fontFamily: "monospace" }}>{Math.round(progress)}%</div>
@@ -713,6 +725,9 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
           </div>
         </div>
       </div>
+
+      {/* Party Status HUD */}
+      <DoomHUD members={partyMembers} />
 
       {/* Game area */}
       <div className="flex-1 overflow-y-auto px-4 pb-4">
@@ -761,10 +776,11 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
                 {state.currentEvent.image && (
                   <div className="w-full h-32 relative border-b border-indigo-900/50">
                     <img 
-                      src={`/campaigns/silkroad/${state.currentEvent.image}`} 
+                      src={`/faces/${state.currentEvent.image}`} 
                       alt={state.currentEvent.title}
                       className="w-full h-full object-cover"
                       style={{ imageRendering: "pixelated", objectPosition: "center" }}
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-stone-800 via-transparent to-transparent" />
                   </div>
