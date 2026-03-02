@@ -430,7 +430,7 @@ export default function App(){
     setState(prev=>{
       if(!prev.currentEvent || !prev.currentEvent.choices) return prev;
       const s:GameState={...prev,resources:{...prev.resources},decisions:[...prev.decisions]};
-      const choice=s.currentEvent!.choices[ci];const outcome=resolveChoice(choice);
+      const choice=s.currentEvent!.choices![ci];const outcome=resolveChoice(choice);
       s.decisions.push({event:s.currentEvent!.title,choice:choice.text,day:s.day});
       if(outcome.effects)for(const[k,v]of Object.entries(outcome.effects))if(s.resources[k]!==undefined)s.resources[k]=clampR(k,s.resources[k]+v);
       if(choice.earlyEnd||outcome.earlyEnd)s.earlySale=true;
@@ -454,7 +454,7 @@ export default function App(){
     setState(prev => {
       if (!prev.currentEvent) return prev;
       const s: GameState = { ...prev, decisions: [...prev.decisions] };
-      s.decisions.push({ event: s.currentEvent.title, choice: `Pushed luck ${log.length - 1} times.`, day: s.day });
+      s.decisions.push({ event: s.currentEvent!.title, choice: `Pushed luck ${log.length - 1} times.`, day: s.day });
       s.currentEvent = null;
       s.phase = "sailing";
       return s;
@@ -485,3 +485,145 @@ export default function App(){
       const accidentCeil=97;
 
       let result:string;
+      if(roll<nothingCeil){result="Nothing out there. Five rounds wasted.";}
+      else if(roll<scrapsCeil){s.resources.supplies=clampR("supplies",s.resources.supplies+2);result="Jackrabbits and a prairie chicken. Barely worth the powder.";}
+      else if(roll<decentCeil){s.resources.supplies=clampR("supplies",s.resources.supplies+7);result="A whitetail deer. Crew eats well tonight.";}
+      else if(roll<greatCeil){s.resources.supplies=clampR("supplies",s.resources.supplies+14);result="Full buffalo. Outstanding haul. Crew fat and happy for days.";}
+      else if(roll<accidentCeil){s.resources.horses=Math.max(0,s.resources.horses-1);result="Horse stepped in a prairie dog hole at a gallop. Had to put the animal down.";}
+      else{s.resources.crew=Math.max(0,s.resources.crew-1);result="A hunter caught a rattlesnake bite reaching through brush.";}
+      s.decisions.push({event:"Hunting",choice:"Went hunting",day:s.day});
+      s.resultText=result;s.phase="result";return s;
+    });
+  },[]);
+
+  const r=state.resources;
+  const progress=state.distance/TOTAL_DISTANCE*100;
+  const partyMembers=[
+    {id:"boss",role:"Boss",label:gf(FACES.boss,r.morale).label,health:r.morale},
+    {id:"scout",role:"Scout",label:gf(FACES.scout,r.morale).label,health:r.morale},
+    {id:"cook",role:"Cook",label:gf(FACES.cook,r.supplies).label,health:r.supplies},
+    {id:"wrangler",role:"Wrangler",label:gf(FACES.wrangler,r.herdCondition).label,health:r.herdCondition},
+    {id:"point",role:"Point",label:gf(FACES.point,r.herdCondition).label,health:r.herdCondition},
+    {id:"hand",role:"Hands",label:gf(FACES.hand,Math.min(r.crew/18*100,100)).label,health:Math.min(r.crew/18*100,100)},
+  ];
+
+  if(campaign==="silkroad")return <SilkRoad onBack={backToMenu}/>;
+
+  if(!campaign)return(
+    <div className="h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center" style={{fontFamily:"'Georgia', serif"}}>
+      <h1 className="text-3xl font-bold text-amber-400 mb-2">CAMPAIGNS</h1>
+      <p className="text-stone-400 text-sm mb-8">Choose your trail.</p>
+      <div className="space-y-3 w-64">
+        <button onClick={()=>setCampaign("chisholm")} className="w-full py-3 bg-amber-800 hover:bg-amber-700 rounded font-bold transition-colors">
+          🐂 Chisholm Trail — 1867<br/><span className="text-xs font-normal text-amber-300">San Antonio to Abilene</span>
+        </button>
+        <button onClick={()=>setCampaign("silkroad")} className="w-full py-3 bg-indigo-900 hover:bg-indigo-800 rounded font-bold transition-colors">
+          🐫 Silk Road — 130 BCE<br/><span className="text-xs font-normal text-indigo-300">Chang'an to Constantinople</span>
+        </button>
+      </div>
+    </div>
+  );
+
+  if(state.phase==="intro")return(
+    <div className="h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center" style={{fontFamily:"'Georgia', serif"}}>
+      <div className="max-w-md text-center space-y-4 p-4">
+        <h1 className="text-3xl font-bold text-amber-400">CHISHOLM TRAIL</h1>
+        <p className="text-stone-300">Spring, 1867. San Antonio, Texas.</p>
+        <p className="text-stone-400 text-sm">You have $2,000 and a reputation. Get a herd to Abilene before the other outfits clean out the market.</p>
+        <button onClick={start} className="px-8 py-3 bg-amber-700 hover:bg-amber-600 rounded font-bold transition-colors">BEGIN OUTFIT</button>
+        <button onClick={backToMenu} className="block w-full text-stone-500 hover:text-stone-300 text-xs mt-2">← Back to Campaigns</button>
+      </div>
+    </div>
+  );
+
+  if(state.phase==="outfit")return<OutfitScreen onDone={onOutfitDone}/>;
+
+  if(state.phase==="end")return(
+    <div className="h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center" style={{fontFamily:"'Georgia', serif"}}>
+      <div className="max-w-md text-center space-y-4 p-4">
+        <h1 className="text-3xl font-bold text-amber-400">{state.survived?"ABILENE":"TRAIL'S END"}</h1>
+        <div className="text-6xl">{state.survived?"🏆":"💀"}</div>
+        <div className={`text-4xl font-bold ${GC[getGrade2(r.herd,state.outfit.herd,state.survived)]}`}>
+          Grade: {getGrade2(r.herd,state.outfit.herd,state.survived)}
+        </div>
+        {state.survived&&<p className="text-stone-300">{r.herd.toLocaleString()} head delivered</p>}
+        <p className="text-stone-400 text-sm">{state.survived?`${r.herd.toLocaleString()} head × $40 = $${(r.herd*40).toLocaleString()}`:"The drive failed."}</p>
+        <button onClick={start} className="px-8 py-3 bg-amber-700 hover:bg-amber-600 rounded font-bold transition-colors">RUN AGAIN</button>
+        <button onClick={backToMenu} className="block w-full text-stone-500 hover:text-stone-300 text-xs mt-2">← Back to Campaigns</button>
+      </div>
+    </div>
+  );
+
+  return(
+    <div className="h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden" style={{fontFamily:"'Georgia', serif"}}>
+      <div className="flex-shrink-0 bg-stone-800">
+        <div className="max-w-lg mx-auto">
+          <PrairieScene progress={progress} pace={state.pace} turn={state.turn}/>
+        </div>
+      </div>
+      <div className="flex-shrink-0 bg-stone-800 border-b border-stone-700 px-3 py-2">
+        <div className="max-w-lg mx-auto">
+          <div className="grid grid-cols-4 gap-2 text-xs mb-2">
+            <div className="bg-stone-700 rounded p-1.5 text-center"><div className="text-stone-400">🐂 Herd</div><div className="text-amber-400 font-bold">{r.herd.toLocaleString()}</div></div>
+            <div className="bg-stone-700 rounded p-1.5 text-center"><div className="text-stone-400">🤠 Crew</div><div className="font-bold">{r.crew}</div></div>
+            <div className="bg-stone-700 rounded p-1.5 text-center"><div className="text-stone-400">🐴 Horses</div><div className="font-bold">{r.horses}</div></div>
+            <div className="bg-stone-700 rounded p-1.5 text-center"><div className="text-stone-400">🔫 Ammo</div><div className="font-bold">{r.ammo||0}</div></div>
+          </div>
+          <div className="space-y-1">
+            {([["🌾 Supplies",r.supplies,r.supplies<20?"bg-red-500":"bg-green-500"],["😊 Morale",r.morale,r.morale<25?"bg-red-500":"bg-yellow-500"],["💪 Herd Cond.",r.herdCondition,r.herdCondition<25?"bg-red-500":"bg-emerald-500"]] as [string,number,string][]).map(([label,val,color])=>(
+              <div key={label} className="flex items-center gap-2">
+                <span className="w-20 text-stone-400 text-xs">{label}</span>
+                <div className="flex-1 bg-stone-700 rounded-full h-2"><div className={`${color} h-2 rounded-full transition-all`} style={{width:`${val}%`}}/></div>
+                <span className="text-stone-500 text-xs w-6 text-right">{val}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between text-stone-500 text-xs mt-1">
+            <span>Day {state.day}/{TOTAL_DAYS}</span>
+            <span>{Math.round(state.distance)}/{TOTAL_DISTANCE} mi</span>
+          </div>
+        </div>
+      </div>
+      <DoomHUD members={partyMembers}/>
+      <div className="flex-1 overflow-y-auto px-3 pb-3">
+        <div className="max-w-lg mx-auto space-y-3 mt-2">
+          {state.phase==="sailing"&&(
+            <div className="space-y-3">
+              <div className="border border-stone-700 rounded p-3 bg-stone-800/80">
+                <p className="text-stone-300 text-sm">{getPhrase(progress/100)}</p>
+              </div>
+              <div className="flex gap-2">
+                {PACES.map(p=>(
+                  <button key={p.id} onClick={()=>{setState(prev=>({...prev,pace:p.id}));advanceTurn();}}
+                    className={`flex-1 py-2 rounded text-xs font-bold transition-colors ${p.id==="push"?"bg-red-900 hover:bg-red-800":p.id==="normal"?"bg-stone-700 hover:bg-stone-600":"bg-emerald-900 hover:bg-emerald-800"}`}>
+                    {p.label}<br/><span className="font-normal text-stone-400">{p.desc}</span>
+                  </button>
+                ))}
+              </div>
+              {(r.ammo||0)>=5&&(
+                <button onClick={handleHunt} className="w-full py-2 bg-amber-900 hover:bg-amber-800 rounded text-xs font-bold transition-colors">
+                  🔫 Hunt ({r.ammo||0} rounds)
+                </button>
+              )}
+            </div>
+          )}
+          {state.phase==="event"&&state.currentEvent&&(
+            state.currentEvent.type==="push_luck"?(
+              <PushYourLuckEngine event={state.currentEvent} onUpdate={handlePushUpdate} onLeave={handlePushLeave}/>
+            ):(
+              <VisualNovelEngine currentEvent={state.currentEvent} handleChoice={handleChoice} bossHealth={r.morale} scoutHealth={r.morale}/>
+            )
+          )}
+          {state.phase==="result"&&(
+            <div className="space-y-3">
+              <div className="border border-stone-700 rounded p-3 bg-stone-800/80">
+                <p className="text-stone-300 text-sm leading-relaxed">{state.resultText}</p>
+              </div>
+              <button onClick={continueGame} className="w-full py-2 bg-amber-800 hover:bg-amber-700 rounded text-sm font-bold transition-colors">Continue Trail</button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
