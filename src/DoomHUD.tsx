@@ -14,7 +14,7 @@ export default function DoomHUD({ members }: { members: PartyMember[] }) {
       <div className="text-[#a0a0a0] text-xs font-bold uppercase mb-1 drop-shadow-md">
         Party Status HUD
       </div>
-      <div className="max-w-lg mx-auto grid grid-cols-6 gap-2">
+      <div className={`max-w-lg mx-auto grid gap-2 ${members.length <= 5 ? 'grid-cols-5' : 'grid-cols-6'}`}>
         {members.map((m) => {
           const faceSrc = getDoomFace(m.id, m.health);
           const isCritical = m.health <= 25;
