@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import PushYourLuckEngine from "./PushYourLuckEngine";
 
 // ═══════════════════════════════════════════════════════════════
 // SILK ROAD — Chang'an to Constantinople, 130 BCE
@@ -7,7 +8,14 @@ import { useState, useCallback } from "react";
 interface Resources { [key: string]: number; }
 interface Outcome { weight: number; effects: Resources; result: string; earlyEnd?: boolean; }
 interface Choice { text: string; effects?: Resources; result?: string; outcomes?: Outcome[]; earlyEnd?: boolean; }
-interface GameEvent { id: string; phase_min: number; phase_max: number; weight: number; title: string; text: string; choices: Choice[]; }
+interface PushAttempt { id: string; buttonText: string; successText: string; failureText: string; riskChance: number; rewards: Resources; penalties: Resources; }
+interface GameEvent { 
+  id: string; phase_min: number; phase_max: number; weight: number; title: string; text: string; 
+  type?: "standard" | "push_luck"; 
+  choices?: Choice[];              
+  attempts?: PushAttempt[];        
+  leaveText?: string;              
+}
 interface Decision { event: string; choice: string; day: number; }
 
 interface CaravanConfig {
@@ -111,6 +119,48 @@ const EVENTS: GameEvent[] = [
       {weight:4,effects:{water:-10,morale:-6},result:"He doesn't come back for three days. You're rationing a cup a day when he finally appears."}
     ]}
   ]},
+
+  // 🔴 PUSH YOUR LUCK: ABANDONED OUTPOST 
+  {
+    id: "ruined_outpost",
+    phase_min: 0.15,
+    phase_max: 0.45,
+    weight: 6,
+    type: "push_luck",
+    title: "Abandoned Han Outpost",
+    text: "You find a ruined watchtower half-buried in the dunes. The garrison is long gone, but there might be supplies left behind. The stone structure looks incredibly unstable.",
+    leaveText: "Leave before the roof collapses.",
+    attempts: [
+      {
+        id: "outpost_1",
+        buttonText: "Search the outer courtyard",
+        successText: "Found a half-buried stash of silver coins.",
+        failureText: "A guard sprained his ankle on loose stones. Found nothing.",
+        riskChance: 0.15,
+        rewards: { silver: 25 },
+        penalties: { morale: -3 }
+      },
+      {
+        id: "outpost_2",
+        buttonText: "Pry open the sealed storehouse",
+        successText: "Jackpot. Untouched water skins and a bundle of raw silk.",
+        failureText: "The door was rigged. A collapsing beam crushed a camel.",
+        riskChance: 0.40,
+        rewards: { water: 15, goods: 5 },
+        penalties: { camels: -1, morale: -5 }
+      },
+      {
+        id: "outpost_3",
+        buttonText: "Dig into the commander's quarters",
+        successText: "Found the commander's lockbox and ancient texts. A fortune.",
+        failureText: "The entire structure caved in. It took hours to dig your men out.",
+        riskChance: 0.75,
+        rewards: { silver: 60, culturalExchange: 5 },
+        penalties: { guards: -1, crew: -1, morale: -15 }
+      }
+    ]
+  },
+
   // ── MOUNTAIN/CENTRAL PHASE (0.25-0.6) ──
   {id:"pamir_pass",phase_min:0.3,phase_max:0.5,weight:5,title:"The Roof of the World",text:"The Pamir Mountains. Passes above 15,000 feet. Air so thin the camels stumble. Your Chinese crew has never seen snow like this.",choices:[
     {text:"Take the high pass. Shorter but brutal.",outcomes:[
@@ -131,6 +181,48 @@ const EVENTS: GameEvent[] = [
       {weight:4,effects:{silver:-50,goods:10,morale:-2},result:"Overpaid. Your guard captain is furious. 'We're merchants, not collectors.'"}
     ]}
   ]},
+  
+  // 🔴 PUSH YOUR LUCK: SOGDIAN BAZAAR
+  {
+    id: "sogdian_bazaar",
+    phase_min: 0.4,
+    phase_max: 0.6,
+    weight: 6,
+    type: "push_luck",
+    title: "The Back Alleys of Samarkand",
+    text: "A shady Sogdian broker pulls you aside. He offers to trade rare lapis lazuli for your silk, but he wants to haggle. The longer you push him, the better the deal, but his patience is thin and this alley isn't safe.",
+    leaveText: "Take what you have and walk away.",
+    attempts: [
+      {
+        id: "bazaar_1",
+        buttonText: "Demand a fair rate",
+        successText: "He grumbles but agrees. A solid trade.",
+        failureText: "He takes offense and walks away. Deal's off.",
+        riskChance: 0.20,
+        rewards: { silver: 30 },
+        penalties: { morale: -2 }
+      },
+      {
+        id: "bazaar_2",
+        buttonText: "Push for a heavy discount",
+        successText: "He caves! You walk away with top-tier gems for cheap.",
+        failureText: "He signals his muscle. They rough up your guards and take a bale of silk.",
+        riskChance: 0.50,
+        rewards: { silver: 45, goods: 5 },
+        penalties: { goods: -5, guards: -1, morale: -8 }
+      },
+      {
+        id: "bazaar_3",
+        buttonText: "Threaten to take your business to his rival",
+        successText: "He panics and dumps his best stock on you at a massive loss.",
+        failureText: "It was a trap. You are ambushed by thieves while leaving the alley.",
+        riskChance: 0.85,
+        rewards: { silver: 100, culturalExchange: 4 },
+        penalties: { silver: -50, goods: -10, morale: -15 }
+      }
+    ]
+  },
+
   {id:"sogdian_papermaker",phase_min:0.35,phase_max:0.55,weight:3,title:"The Secret of Paper",text:"A Sogdian craftsman has heard of Chinese paper but has never seen it made. Your translator could demonstrate — but papermaking is a closely guarded Chinese secret. Sharing it would be a betrayal of your homeland's advantage.",choices:[
     {text:"Demonstrate. Knowledge wants to be free.",effects:{culturalExchange:4,morale:2},result:"Your translator shows the process. Within a decade, Samarkand will be the papermaking capital of the Islamic world. Within a century, paper reaches Europe. You just changed history."},
     {text:"Refuse. The secret stays Chinese.",effects:{morale:-1,silver:15},result:"The craftsman offers silver for even a hint. You take the money. Paper will reach the west eventually — but not through you."},
@@ -160,6 +252,7 @@ const EVENTS: GameEvent[] = [
     {text:"No time. Keep moving.",effects:{morale:-2},result:"The monks bow and continue east. The texts will find another translator. Eventually."},
     {text:"Trade — translation for travel advice.",effects:{culturalExchange:3,water:5},result:"They know every water source between here and Merv. Your translator works through the night on their texts. Fair exchange."}
   ]},
+  
   // ── PERSIAN/LATE PHASE (0.5-0.8) ──
   {id:"merv",phase_min:0.5,phase_max:0.65,weight:5,title:"Merv — Gateway to Persia",text:"Merv, the great Persian trading city. Zoroastrian fire temples beside Buddhist stupas beside Greek columns. A Parthian noble offers 30x your original price.",choices:[
     {text:"Sell everything. 30x. Walk away wealthy.",effects:{morale:8},result:"3,000 silver. Your grandchildren will be rich. The road west is someone else's problem.",earlyEnd:true},
@@ -198,6 +291,7 @@ const EVENTS: GameEvent[] = [
     {text:"Keep distance. Share water and move on.",effects:{water:-5,morale:4,culturalExchange:1},result:"Mercy costs five waterskins. They'll remember a Chinese caravan that helped. That reputation travels ahead of you."},
     {text:"Avoid them entirely.",effects:{morale:-2},result:"Cold. But smart. Nobody gets sick."}
   ]},
+  
   // ── ROMAN WORLD (0.7-1.0) ──
   {id:"antioch",phase_min:0.75,phase_max:0.88,weight:5,title:"Antioch — Rome's Eastern Door",text:"Antioch. You can smell the Mediterranean. Roman merchants swarm your caravan. 60x your original price offered before you've unpacked.",choices:[
     {text:"Sell here. 60x. You've made it far enough.",effects:{morale:8},result:"6,000 silver. More money than most Romans will see in a lifetime. The road to Constantinople is dangerous and the return is diminishing.",earlyEnd:true},
@@ -233,6 +327,7 @@ const EVENTS: GameEvent[] = [
     {text:"Sell the trade goods. Keep one bale of silk for yourself.",effects:{goods:-5,morale:8,culturalExchange:1},result:"You keep the finest silk as a reminder. In old age, you'll run your fingers across it and remember the Taklamakan."},
     {text:"Establish a permanent trading post.",effects:{silver:-200,culturalExchange:5,morale:6},result:"Not just a trade — a bridge. You hire local translators, rent a warehouse, and create a permanent connection between east and west. The real Silk Road was never about one trip."}
   ]},
+  
   // ── ANYTIME EVENTS ──
   {id:"caravan_tax",phase_min:0.15,phase_max:0.85,weight:3,title:"Local Warlord",text:"A local strongman wants payment for 'protection' on his stretch of road. His men outnumber your guards three to one.",choices:[
     {text:"Pay. Survival arithmetic.",effects:{silver:-25,morale:-2},result:"He takes the silver and waves you through. This is how empires work."},
@@ -363,9 +458,9 @@ function SilkRoadOutfit({ onDone }: { onDone: (config: CaravanConfig) => void })
 
 function getSilkRoadGrade(survived: boolean, profitMultiplier: number, culturalExchange: number): string {
   if (!survived) return profitMultiplier > 5 ? "D" : "F";
-  const profitScore = Math.min(profitMultiplier / 100, 1) * 40; // 0-40 points
-  const survivalScore = 30; // survived = full survival points
-  const cultureScore = Math.min(culturalExchange / 30, 1) * 30; // 0-30 points
+  const profitScore = Math.min(profitMultiplier / 100, 1) * 40; 
+  const survivalScore = 30; 
+  const cultureScore = Math.min(culturalExchange / 30, 1) * 30; 
   const total = profitScore + survivalScore + cultureScore;
   if (total >= 85) return "A+";
   if (total >= 75) return "A";
@@ -452,9 +547,10 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
     });
   }, [usedEvents]);
 
+  // Standard choices handler
   const handleChoice = useCallback((idx: number) => {
     setState(prev => {
-      if (!prev.currentEvent) return prev;
+      if (!prev.currentEvent || !prev.currentEvent.choices) return prev;
       const s = { ...prev, resources: { ...prev.resources }, culturalLog: [...prev.culturalLog] };
       const choice = s.currentEvent!.choices[idx];
       s.decisions.push({ event: s.currentEvent!.title, choice: choice.text, day: s.day });
@@ -502,6 +598,34 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
       if (s.earlySale) {
         return { ...s, phase: "end" as const, gameOver: true, survived: true };
       }
+      return s;
+    });
+  }, []);
+
+  // 🔴 Handle Push Your Luck Update
+  const handlePushUpdate = useCallback((effects: Resources) => {
+    setState(prev => {
+      const s = { ...prev, resources: { ...prev.resources }, culturalLog: [...prev.culturalLog] };
+      for (const [k, v] of Object.entries(effects)) {
+        if (k === "culturalExchange") {
+          s.culturalExchange += v;
+          if (s.currentEvent) s.culturalLog.push(`${s.currentEvent.title}: +${v}`);
+        } else {
+          s.resources[k] = clamp((s.resources[k] || 0) + v, 0, k === "goods" ? 200 : 100);
+        }
+      }
+      return s;
+    });
+  }, []);
+
+  // 🔴 Handle Push Your Luck Leave
+  const handlePushLeave = useCallback((log: string[]) => {
+    setState(prev => {
+      if (!prev.currentEvent) return prev;
+      const s = { ...prev, decisions: [...prev.decisions] };
+      s.decisions.push({ event: s.currentEvent.title, choice: `Pushed luck ${log.length - 1} times.`, day: s.day });
+      s.currentEvent = null;
+      s.phase = "traveling";
       return s;
     });
   }, []);
@@ -720,18 +844,27 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
             </div>
           )}
 
+          {/* 🔴 CONDITIONAL ENGINE RENDERING */}
           {state.phase === "event" && state.currentEvent && (
-            <div className="border-2 border-indigo-800 rounded p-3 bg-stone-800">
-              <h2 className="text-indigo-300 font-bold text-sm mb-1">{state.currentEvent.title}</h2>
-              <p className="text-stone-300 text-sm leading-relaxed mb-3">{state.currentEvent.text}</p>
-              <div className="space-y-1.5">
-                {state.currentEvent.choices.map((c, i) => (
-                  <button key={i} onClick={() => handleChoice(i)} className="w-full text-left p-2 bg-stone-700 hover:bg-stone-600 rounded text-xs text-stone-200 font-bold transition-colors border border-stone-600">
-                    ▶ {c.text}
-                  </button>
-                ))}
+            state.currentEvent.type === "push_luck" ? (
+              <PushYourLuckEngine
+                event={state.currentEvent}
+                onUpdate={handlePushUpdate}
+                onLeave={handlePushLeave}
+              />
+            ) : (
+              <div className="border-2 border-indigo-800 rounded p-3 bg-stone-800">
+                <h2 className="text-indigo-300 font-bold text-sm mb-1">{state.currentEvent.title}</h2>
+                <p className="text-stone-300 text-sm leading-relaxed mb-3">{state.currentEvent.text}</p>
+                <div className="space-y-1.5">
+                  {state.currentEvent.choices?.map((c, i) => (
+                    <button key={i} onClick={() => handleChoice(i)} className="w-full text-left p-2 bg-stone-700 hover:bg-stone-600 rounded text-xs text-stone-200 font-bold transition-colors border border-stone-600">
+                      ▶ {c.text}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )
           )}
 
           {state.phase === "result" && (
