@@ -3,6 +3,7 @@ import DoomHUD from "./DoomHUD";
 import VisualNovelEngine from "./VisualNovelEngine";
 import PushYourLuckEngine from "./PushYourLuckEngine";
 import SilkRoad from "./SilkRoad";
+import ChisholmTriviaEngine, { pickTriviaQuestion, type TriviaQuestion } from "./ChisholmTrivia";
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -34,11 +35,17 @@ interface OutfitConfig {
 
 interface GameState {
   day: number; turn: number; resources: Resources;
-  phase: "intro" | "outfit" | "sailing" | "event" | "result" | "end";
+  phase: "intro" | "outfit" | "sailing" | "event" | "result" | "end" | "trivia";
   pace: string; distance: number; currentEvent: GameEvent | null;
   resultText: string; decisions: Decision[];
   gameOver: boolean; survived: boolean; earlySale: boolean;
   outfit: OutfitConfig;
+  historicalKnowledge: number;
+  knowledgeLog: string[];
+  triviaCounter: number;
+  currentTrivia: TriviaQuestion | null;
+  usedTriviaIds: Set<string>;
+  triviaStreak: number;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -342,6 +349,45 @@ const EVENTS:GameEvent[]=[
       penalties: { crew: -1, horses: -2, morale: -15, herdCondition: -10 }
     }
   ]
+},
+{
+  id: "abandoned_homestead",
+  phase_min: 0.2,
+  phase_max: 0.7,
+  weight: 5,
+  type: "push_luck",
+  title: "Abandoned Homestead",
+  text: "Your scout found a homestead that's been empty since the war. The root cellar door is still shut, and there's a corral out back with what looks like a few stray horses. Could be supplies in there — could be trouble.",
+  leaveText: "Leave it. Other men's property, other men's problems.",
+  attempts: [
+    {
+      id: "homestead_1",
+      buttonText: "Check the corral for horses",
+      successText: "Two sound horses, abandoned and half-wild. Your wrangler ropes them clean.",
+      failureText: "One kicks your wrangler in the ribs. Nothing gained, dignity lost.",
+      riskChance: 0.15,
+      rewards: { horses: 2, morale: 3 },
+      penalties: { morale: -3, herdCondition: -2 }
+    },
+    {
+      id: "homestead_2",
+      buttonText: "Pry open the root cellar",
+      successText: "Salt pork, dried beans, coffee, and a bottle of whiskey. The cook nearly weeps with joy.",
+      failureText: "The door was wedged for a reason — a rattlesnake den. One cowboy bitten before you slam it shut.",
+      riskChance: 0.40,
+      rewards: { supplies: 12, morale: 8 },
+      penalties: { crew: -1, morale: -6 }
+    },
+    {
+      id: "homestead_3",
+      buttonText: "Search the house itself",
+      successText: "A hidden strongbox under the floorboards. Gold coins, a Winchester, and a letter that'll never reach anyone. Fortune favors the bold.",
+      failureText: "The floor gives way. A cowboy falls through into a collapsed cellar. Broken leg, broken morale, broken everything.",
+      riskChance: 0.70,
+      rewards: { supplies: 8, morale: 15, herd: 5 },
+      penalties: { crew: -1, horses: -1, morale: -12, herdCondition: -8 }
+    }
+  ]
 }
 ];
 
@@ -367,10 +413,22 @@ function getPhrase(p:number):string{
 }
 function getGrade(h:number,s:boolean):string{if(!s)return"F";const p=h/2500;if(p>=0.95)return"A";if(p>=0.88)return"B";if(p>=0.80)return"C";if(p>=0.70)return"D";return"F";}
 function getGrade2(h:number,started:number,s:boolean):string{if(!s)return"F";const p=h/started;if(p>=0.95)return"A";if(p>=0.88)return"B";if(p>=0.80)return"C";if(p>=0.70)return"D";return"F";}
-const GC:Record<string,string>={A:"text-emerald-400",B:"text-blue-400",C:"text-yellow-400",D:"text-orange-400",F:"text-red-500"};
+function getTrailGrade(survived: boolean, herdPct: number, historicalKnowledge: number): string {
+  if (!survived) return herdPct > 0.5 ? "D" : "F";
+  const herdScore = Math.min(herdPct / 0.95, 1) * 50;
+  const survivalScore = 20;
+  const knowledgeScore = Math.min(historicalKnowledge / 30, 1) * 30;
+  const total = herdScore + survivalScore + knowledgeScore;
+  if (total >= 85) return "A+";
+  if (total >= 75) return "A";
+  if (total >= 65) return "B";
+  if (total >= 50) return "C";
+  return "D";
+}
+const GC:Record<string,string>={"A+":"text-amber-300",A:"text-emerald-400",B:"text-blue-400",C:"text-yellow-400",D:"text-orange-400",F:"text-red-500"};
 
 const DEFAULT_OUTFIT: OutfitConfig = { herd: 2500, crew: 12, horses: 60, supplies: 65, guns: 4, spareParts: 3, wages: "standard", budgetSpent: 0, startingCash: 0 };
-const makeInit=():GameState=>({day:1,turn:0,resources:{...INIT_R},phase:"intro",pace:"normal",distance:0,currentEvent:null,resultText:"",decisions:[],gameOver:false,survived:false,earlySale:false,outfit:{...DEFAULT_OUTFIT}});
+const makeInit=():GameState=>({day:1,turn:0,resources:{...INIT_R},phase:"intro",pace:"normal",distance:0,currentEvent:null,resultText:"",decisions:[],gameOver:false,survived:false,earlySale:false,outfit:{...DEFAULT_OUTFIT},historicalKnowledge:0,knowledgeLog:[],triviaCounter:0,currentTrivia:null,usedTriviaIds:new Set(),triviaStreak:0});
 
 // ═══════════════════════════════════════════════════════════════
 // APP
@@ -420,7 +478,21 @@ export default function App(){
       if(s.resources.crew<=2||s.resources.herd<=100||s.resources.horses<=5)return{...s,phase:"end"as const,gameOver:true,survived:false};
       if(s.distance>=TOTAL_DISTANCE)return{...s,phase:"end"as const,gameOver:true,survived:true};
       const event=pickEvent(s.day,TOTAL_DAYS,usedEvents,EVENTS);
-      if(event){setUsedEvents(p=>new Set(p).add(event.id));s.currentEvent=event;s.phase="event";}
+      if(event){
+        if (s.triviaCounter >= 2) {
+          const progress = Math.min((s.distance / TOTAL_DISTANCE) * 100, 100);
+          const trivia = pickTriviaQuestion(progress, s.usedTriviaIds);
+          if (trivia) {
+            s.currentTrivia = trivia;
+            s.usedTriviaIds = new Set(s.usedTriviaIds).add(trivia.id);
+            s.triviaCounter = 0;
+            s.phase = "trivia";
+            return s;
+          }
+        }
+        setUsedEvents(p=>new Set(p).add(event.id));s.currentEvent=event;s.phase="event";
+        s.triviaCounter++;
+      }
       return s;
     });
   },[usedEvents]);
@@ -496,6 +568,39 @@ export default function App(){
     });
   },[]);
 
+  const handleTriviaComplete = useCallback((correct: boolean, effects: Record<string, number>) => {
+    setState(prev => {
+      const s: GameState = { ...prev, resources: { ...prev.resources }, knowledgeLog: [...prev.knowledgeLog], decisions: [...prev.decisions] };
+      const qText = s.currentTrivia?.question || "Trivia";
+
+      if (correct) {
+        s.triviaStreak++;
+        for (const [k, v] of Object.entries(effects)) {
+          if (k === "historicalKnowledge") {
+            s.historicalKnowledge += v;
+            s.knowledgeLog.push(`Sage's Wisdom: +${v}`);
+          } else if (k === "shortcut") {
+            s.distance = Math.min(s.distance + v, TOTAL_DISTANCE);
+          } else if (s.resources[k] !== undefined) {
+            s.resources[k] = clampR(k, s.resources[k] + v);
+          }
+        }
+        s.decisions.push({ event: "Sage Encounter", choice: `✓ Answered correctly (streak: ${s.triviaStreak}): "${qText}"`, day: s.day });
+      } else {
+        s.triviaStreak = 0;
+        s.decisions.push({ event: "Sage Encounter", choice: `Learned from: "${qText}"`, day: s.day });
+      }
+
+      s.currentTrivia = null;
+      s.phase = "sailing";
+
+      if (s.distance >= TOTAL_DISTANCE) {
+        return { ...s, phase: "end" as const, gameOver: true, survived: true };
+      }
+      return s;
+    });
+  }, []);
+
   const r=state.resources;
   const progress=state.distance/TOTAL_DISTANCE*100;
   const partyMembers=[
@@ -538,21 +643,95 @@ export default function App(){
 
   if(state.phase==="outfit")return<OutfitScreen onDone={onOutfitDone}/>;
 
-  if(state.phase==="end")return(
-    <div className="h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center" style={{fontFamily:"'Georgia', serif"}}>
-      <div className="max-w-md text-center space-y-4 p-4">
-        <h1 className="text-3xl font-bold text-amber-400">{state.survived?"ABILENE":"TRAIL'S END"}</h1>
-        <div className="text-6xl">{state.survived?"🏆":"💀"}</div>
-        <div className={`text-4xl font-bold ${GC[getGrade2(r.herd,state.outfit.herd,state.survived)]}`}>
-          Grade: {getGrade2(r.herd,state.outfit.herd,state.survived)}
+  if(state.phase==="end"){
+    const herdPct = state.outfit.herd > 0 ? r.herd / state.outfit.herd : 0;
+    const revenue = state.survived ? r.herd * 40 : 0;
+    const cost = state.outfit.budgetSpent;
+    const profit = revenue - cost;
+    const grade = getTrailGrade(state.survived, herdPct, state.historicalKnowledge);
+
+    return(
+    <div className="h-screen bg-stone-900 text-stone-100 p-4 overflow-y-auto" style={{fontFamily:"'Georgia', serif"}}>
+      <div className="max-w-lg mx-auto space-y-4">
+        <h1 className={`text-2xl font-bold text-center ${state.survived?"text-amber-400":"text-red-500"}`}>
+          {state.survived ? (state.earlySale ? "SOLD ON THE TRAIL" : "ABILENE") : "TRAIL'S END"}
+        </h1>
+        <p className="text-center text-stone-300 text-sm">
+          {state.survived
+            ? state.earlySale ? `Sold the herd early. ${Math.round(progress)}% of the trail complete.`
+            : `${r.herd.toLocaleString()} head delivered to the Abilene railhead. The Kansas Pacific is loading them now.`
+            : `Your drive failed on day ${state.day}. The prairie keeps what it takes.`}
+        </p>
+
+        <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1 text-xs">
+          <h2 className="text-amber-300 font-bold uppercase tracking-wide text-center mb-1">Financial Ledger</h2>
+          <div className="flex justify-between text-stone-400"><span>Outfit Cost</span><span className="text-red-400">-${cost.toLocaleString()}</span></div>
+          <div className="flex justify-between text-stone-400"><span>Herd Started</span><span className="text-stone-200">{state.outfit.herd.toLocaleString()} head</span></div>
+          <div className="flex justify-between text-stone-400"><span>Herd Delivered</span><span className="text-stone-200">{r.herd.toLocaleString()} head ({Math.round(herdPct*100)}%)</span></div>
+          {state.survived && <div className="flex justify-between text-stone-400"><span>Revenue ($40/head)</span><span className="text-emerald-400">+${revenue.toLocaleString()}</span></div>}
+          <div className="border-t border-stone-600 mt-1 pt-1 flex justify-between font-bold">
+            <span className="text-stone-200">Net Profit</span>
+            <span className={profit>=0?"text-emerald-400":"text-red-500"}>{profit>=0?"+":""}${profit.toLocaleString()}</span>
+          </div>
         </div>
-        {state.survived&&<p className="text-stone-300">{r.herd.toLocaleString()} head delivered</p>}
-        <p className="text-stone-400 text-sm">{state.survived?`${r.herd.toLocaleString()} head × $40 = $${(r.herd*40).toLocaleString()}`:"The drive failed."}</p>
-        <button onClick={start} className="px-8 py-3 bg-amber-700 hover:bg-amber-600 rounded font-bold transition-colors">RUN AGAIN</button>
-        <button onClick={backToMenu} className="block w-full text-stone-500 hover:text-stone-300 text-xs mt-2">← Back to Campaigns</button>
+
+        <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1 text-xs">
+          <h2 className="text-amber-300 font-bold uppercase tracking-wide text-center mb-1">Historical Knowledge (TEKS)</h2>
+          <div className="flex justify-between font-bold">
+            <span className="text-stone-200">Trail Wisdom Earned</span>
+            <span className="text-amber-400">{state.historicalKnowledge} points</span>
+          </div>
+          <div className="w-full bg-stone-700 rounded-full h-2 mt-1">
+            <div className="bg-amber-500 h-2 rounded-full transition-all" style={{width:`${Math.min(state.historicalKnowledge/30*100,100)}%`}}/>
+          </div>
+          {state.knowledgeLog.length > 0 && (
+            <div className="mt-2 space-y-0.5">
+              {state.knowledgeLog.map((log, i) => (
+                <p key={i} className="text-stone-500 text-xs">📜 {log}</p>
+              ))}
+            </div>
+          )}
+          {state.historicalKnowledge === 0 && <p className="text-stone-600 text-center italic mt-1">No historical knowledge gained. You drove cattle but learned nothing about the trail's history.</p>}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1">
+            <h2 className="text-amber-300 font-bold text-xs uppercase tracking-wide text-center">Trail Stats</h2>
+            {([["Days", `${state.day}`], ["Distance", `${Math.round(state.distance)} mi`], ["Crew Left", `${r.crew}`], ["Horses Left", `${r.horses}`]] as [string,string][]).map(([l,v])=>(
+              <div key={l} className="flex justify-between text-stone-400 text-xs"><span>{l}</span><span className="text-stone-200">{v}</span></div>
+            ))}
+          </div>
+          <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1">
+            <h2 className="text-blue-300 font-bold text-xs uppercase tracking-wide text-center">Historical Context</h2>
+            {([["Trail distance", "~800 miles"], ["Typical drive", "2-3 months"], ["Herd size", "1,500-3,000"], ["Price in TX", "$4/head"]] as [string,string][]).map(([l,v])=>(
+              <div key={l} className="flex justify-between text-stone-400 text-xs"><span>{l}</span><span className="text-stone-200">{v}</span></div>
+            ))}
+          </div>
+        </div>
+
+        <div className="text-center"><span className="text-stone-500 text-xs">TRAIL RATING: </span><span className={`text-4xl font-bold ${GC[grade]}`}>{grade}</span></div>
+
+        <div className="bg-stone-800 border border-stone-700 rounded p-3">
+          <p className="text-xs text-stone-500 leading-relaxed">The Chisholm Trail operated from 1867 to roughly 1884. An estimated 5 million cattle and 1 million mustangs were driven north along this and other trails. The cattle drive era built the Texas economy after the Civil War, created the cowboy legend, and connected the frontier to the industrial East. Barbed wire, railroads, and quarantine laws ended the drives — but the culture they created defined Texas forever.</p>
+        </div>
+
+        {state.decisions.length > 0 && (
+          <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1">
+            <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wide">Decision Log</h3>
+            {state.decisions.map((d, i) => (
+              <p key={i} className="text-xs text-stone-500"><span className="text-stone-600">Day {d.day}:</span> <span className="text-stone-400">{d.event}</span> — {d.choice}</p>
+            ))}
+          </div>
+        )}
+
+        <div className="text-center pb-4 space-y-2">
+          <button onClick={()=>{setState(makeInit());setUsedEvents(new Set());}} className="px-5 py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded transition-colors">Run It Again</button>
+          <br/><button onClick={backToMenu} className="text-xs text-stone-500 hover:text-stone-300 transition-colors">← Back to Campaigns</button>
+        </div>
       </div>
     </div>
-  );
+    );
+  }
 
   return(
     <div className="h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden" style={{fontFamily:"'Georgia', serif"}}>
@@ -577,6 +756,11 @@ export default function App(){
                 <span className="text-stone-500 text-xs w-6 text-right">{val}</span>
               </div>
             ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-20 text-stone-400 text-xs">📜 Knowledge</span>
+            <div className="flex-1 bg-stone-700 rounded-full h-2"><div className="bg-amber-500 h-2 rounded-full transition-all" style={{width:`${Math.min(state.historicalKnowledge/30*100,100)}%`}}/></div>
+            <span className="text-stone-500 text-xs w-6 text-right">{state.historicalKnowledge}</span>
           </div>
           <div className="flex justify-between text-stone-500 text-xs mt-1">
             <span>Day {state.day}/{TOTAL_DAYS}</span>
@@ -613,6 +797,14 @@ export default function App(){
             ):(
               <VisualNovelEngine currentEvent={state.currentEvent} handleChoice={handleChoice} bossHealth={r.morale} scoutHealth={r.morale}/>
             )
+          )}
+          {state.phase==="trivia"&&state.currentTrivia&&(
+            <ChisholmTriviaEngine
+              question={state.currentTrivia}
+              progress={progress}
+              streak={state.triviaStreak}
+              onComplete={handleTriviaComplete}
+            />
           )}
           {state.phase==="result"&&(
             <div className="space-y-3">
