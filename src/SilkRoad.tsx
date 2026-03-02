@@ -521,17 +521,13 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
   const r = state.resources;
   const progress = Math.min((state.distance / TOTAL_DISTANCE) * 100, 100);
 
-  // 🔴 NEW: DYNAMIC BACKGROUND LOGIC (procedural SVG until real art exists)
-  const getBackgroundSvg = (p: number) => {
-    const w = 480, h = 120;
-    let sky: string, ground: string, accent: string;
-    if (p < 30) { sky = "#c4604a"; ground = "#c4a060"; accent = "#e8a060"; }       // desert
-    else if (p < 60) { sky = "#4a6a90"; ground = "#5a5a40"; accent = "#8ab4d4"; }  // mountains
-    else { sky = "#3a4a6e"; ground = "#6b5e3a"; accent = "#d4a050"; }              // western cities
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${sky}"/><stop offset="100%" stop-color="${accent}"/></linearGradient></defs><rect width="${w}" height="${h}" fill="url(#s)"/><rect y="${h*0.6}" width="${w}" height="${h*0.4}" fill="${ground}"/><path d="M0,${h*0.55} Q${w*0.2},${h*0.45} ${w*0.4},${h*0.55} Q${w*0.6},${h*0.48} ${w*0.8},${h*0.52} L${w},${h*0.58} L${w},${h*0.6} L0,${h*0.6} Z" fill="${ground}" opacity="0.7"/></svg>`;
-    return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  // Dynamic background based on journey progress
+  const getBackgroundImage = (p: number) => {
+    if (p < 30) return "/faces/bg_desert.png";
+    if (p < 60) return "/faces/bg_mountains.png";
+    return "/faces/bg_samarkand.png";
   };
-  const currentBgImage = getBackgroundSvg(progress);
+  const currentBgImage = getBackgroundImage(progress);
   const progressLabel = progress < 15 ? "Gansu Corridor" : progress < 30 ? "Taklamakan Desert" : progress < 45 ? "Ferghana Valley" : progress < 55 ? "Samarkand" : progress < 70 ? "Persia" : progress < 85 ? "Anatolia" : "Roman Empire";
 
   // Party member portraits mapped to resource health
@@ -553,9 +549,11 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
             <p className="text-stone-500 text-xs tracking-[0.3em] uppercase mt-1">Chang'an to Constantinople · 130 BCE</p>
           </div>
           <div className="relative h-32 overflow-hidden rounded bg-stone-800 border border-stone-700">
-             <div 
-              className="w-full h-full"
-              style={{ background: "linear-gradient(135deg, #3a4a6e 0%, #c4604a 50%, #d4a050 100%)" }}
+             <img 
+              src="/faces/bg_samarkand.png"
+              alt="Silk Road"
+              className="w-full h-full object-cover"
+              style={{ imageRendering: "pixelated" }}
              />
              <div className="absolute inset-0 bg-stone-900/40 flex items-center justify-center">
                 <span className="text-6xl drop-shadow-lg">🐫</span>
@@ -682,6 +680,7 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
               src={currentBgImage} 
               alt="Silk Road Environment"
               className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
+              style={{ imageRendering: "pixelated" }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-stone-900 via-stone-900/40 to-transparent" />
             <div className="absolute bottom-1 left-2 text-xs font-bold" style={{ color: "#a0a0d4", opacity: 0.85, fontFamily: "monospace" }}>{Math.round(progress)}%</div>
