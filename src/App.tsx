@@ -478,20 +478,24 @@ export default function App(){
       if(s.resources.crew<=2||s.resources.herd<=100||s.resources.horses<=5)return{...s,phase:"end"as const,gameOver:true,survived:false};
       if(s.distance>=TOTAL_DISTANCE)return{...s,phase:"end"as const,gameOver:true,survived:true};
       const event=pickEvent(s.day,TOTAL_DAYS,usedEvents,EVENTS);
+      console.log(`[ADVANCE] Turn ${s.turn} | Day ${s.day} | Event: ${event?.id || 'NONE'} | TriviaCounter: ${s.triviaCounter}`);
       if(event){
         if (s.triviaCounter >= 2) {
           const progress = Math.min((s.distance / TOTAL_DISTANCE) * 100, 100);
           const trivia = pickTriviaQuestion(progress, s.usedTriviaIds);
+          console.log(`[TRIVIA CHECK] Counter=${s.triviaCounter} | Progress=${progress.toFixed(1)}% | Question found: ${trivia?.id || 'NULL'}`);
           if (trivia) {
             s.currentTrivia = trivia;
             s.usedTriviaIds = new Set(s.usedTriviaIds).add(trivia.id);
             s.triviaCounter = 0;
             s.phase = "trivia";
+            console.log(`[TRIVIA FIRES] Question: ${trivia.id} | Phase set to 'trivia'`);
             return s;
           }
         }
         setUsedEvents(p=>new Set(p).add(event.id));s.currentEvent=event;s.phase="event";
         s.triviaCounter++;
+        console.log(`[EVENT] ${event.id} | Counter now: ${s.triviaCounter}`);
       }
       return s;
     });
@@ -569,6 +573,7 @@ export default function App(){
   },[]);
 
   const handleTriviaComplete = useCallback((correct: boolean, effects: Record<string, number>) => {
+    console.log(`[TRIVIA COMPLETE] Correct: ${correct} | Effects:`, effects);
     setState(prev => {
       const s: GameState = { ...prev, resources: { ...prev.resources }, knowledgeLog: [...prev.knowledgeLog], decisions: [...prev.decisions] };
       const qText = s.currentTrivia?.question || "Trivia";
@@ -603,6 +608,7 @@ export default function App(){
 
   const r=state.resources;
   const progress=state.distance/TOTAL_DISTANCE*100;
+  console.log(`[RENDER] Phase: ${state.phase} | TriviaCounter: ${state.triviaCounter} | HasTrivia: ${!!state.currentTrivia}`);
   const partyMembers=[
     {id:"boss",role:"Boss",label:gf(FACES.boss,r.morale).label,health:r.morale},
     {id:"scout",role:"Scout",label:gf(FACES.scout,r.morale).label,health:r.morale},
