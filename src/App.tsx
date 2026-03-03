@@ -477,21 +477,24 @@ export default function App(){
       if(s.resources.morale<15&&Math.random()<0.3)s.resources.crew=Math.max(0,s.resources.crew-1);
       if(s.resources.crew<=2||s.resources.herd<=100||s.resources.horses<=5)return{...s,phase:"end"as const,gameOver:true,survived:false};
       if(s.distance>=TOTAL_DISTANCE)return{...s,phase:"end"as const,gameOver:true,survived:true};
+
+      // Trivia fires every other turn cycle, independent of events
+      s.triviaCounter++;
+      if (s.triviaCounter >= 2) {
+        const triviaProgress = Math.min((s.distance / TOTAL_DISTANCE) * 100, 100);
+        const trivia = pickTriviaQuestion(triviaProgress, s.usedTriviaIds);
+        if (trivia) {
+          s.currentTrivia = trivia;
+          s.usedTriviaIds = new Set(s.usedTriviaIds).add(trivia.id);
+          s.triviaCounter = 0;
+          s.phase = "trivia";
+          return s;
+        }
+      }
+
       const event=pickEvent(s.day,TOTAL_DAYS,usedEvents,EVENTS);
       if(event){
-        if (s.triviaCounter >= 2) {
-          const progress = Math.min((s.distance / TOTAL_DISTANCE) * 100, 100);
-          const trivia = pickTriviaQuestion(progress, s.usedTriviaIds);
-          if (trivia) {
-            s.currentTrivia = trivia;
-            s.usedTriviaIds = new Set(s.usedTriviaIds).add(trivia.id);
-            s.triviaCounter = 0;
-            s.phase = "trivia";
-            return s;
-          }
-        }
         setUsedEvents(p=>new Set(p).add(event.id));s.currentEvent=event;s.phase="event";
-        s.triviaCounter++;
       }
       return s;
     });

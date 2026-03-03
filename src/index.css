@@ -16,3 +16,12 @@
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-1.5px); }
 }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.35s ease-out forwards;
+}
