@@ -152,7 +152,7 @@ const QUESTIONS: TriviaQuestion[] = [
       "It replaced all other Chinese religions completely",
     ],
     correctIndex: 2,
-    explanation: "When Buddhism reached China, it didn't just copy-paste — it mixed with existing Daoist and Confucian ideas to create uniquely Chinese forms like Chan Buddhism (later Zen in Japan). This is called syncretism: when cultures blend rather than replace each other. It's what makes cultural diffusion creative rather than destructive.",
+    explanation: "When Buddhism reached China, it blended with Daoist and Confucian ideas to create uniquely Chinese forms like Chan Buddhism (later Zen in Japan). This is called syncretism: when cultures blend rather than replace each other. It's what makes cultural diffusion creative rather than destructive.",
   },
   {
     id: "t09", region: "mountain", difficulty: 1,
@@ -214,7 +214,7 @@ const QUESTIONS: TriviaQuestion[] = [
       "It was a metaphor — no actual roads existed",
     ],
     correctIndex: 1,
-    explanation: "The Silk Road was actually dozens of interconnected routes that shifted based on geography, weather, politics, and banditry. If one pass was snowed in, merchants took another. If a kingdom started charging too much tax, trade flowed around it. It was adaptive — like the internet, but with camels.",
+    explanation: "The Silk Road was actually dozens of interconnected routes that shifted based on geography, weather, politics, and banditry. If one pass was snowed in, merchants took another. If a kingdom started charging too much tax, trade flowed around it. It was flexible, with many paths that changed over time.",
   },
   {
     id: "t14", region: "central", difficulty: 2,
@@ -222,7 +222,7 @@ const QUESTIONS: TriviaQuestion[] = [
     choices: [
       "Islam never spread along trade routes",
       "Muslim merchants actively practiced and shared their faith in trade cities",
-      "Buddhism spread faster because it had better marketing",
+      "Buddhism spread faster because rulers forced it",
       "Islam only spread through military conquest, never trade",
     ],
     correctIndex: 1,
@@ -234,7 +234,7 @@ const QUESTIONS: TriviaQuestion[] = [
     choices: [
       "Romans learning to make silk from the Chinese",
       "Chinese learning glassmaking techniques from the Romans",
-      "Americans inventing the internet",
+      "Modern computers connecting the world",
       "Egyptians building the pyramids",
     ],
     correctIndex: 1,
@@ -585,7 +585,7 @@ export default function TriviaEngine({ question, progress, streak, onComplete }:
                   ).join(" · ")}
                 </p>
                 {streak >= 1 && getStreakMultiplier(streak) > 1 && (
-                  <p className="text-xs text-amber-500 mt-1">({getStreakMultiplier(streak)}x streak bonus applied)</p>
+                  <p className="text-xs text-amber-500 mt-1">({getStreakMultiplier(streak)}x streak reward added)</p>
                 )}
               </div>
             )}
