@@ -572,7 +572,7 @@ export default function ChisholmTriviaEngine({ question, progress, streak, onCom
                   ).join(" · ")}
                 </p>
                 {streak >= 1 && getStreakMultiplier(streak) > 1 && (
-                  <p className="text-xs text-amber-500 mt-1">({getStreakMultiplier(streak)}x streak bonus applied)</p>
+                  <p className="text-xs text-amber-500 mt-1">({getStreakMultiplier(streak)}x streak reward added)</p>
                 )}
               </div>
             )}
