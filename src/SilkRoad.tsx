@@ -81,7 +81,7 @@ function pickEvent(day: number, td: number, evts: GameEvent[], used: Set<string>
 
 const EVENTS: GameEvent[] = [
   // ── DESERT PHASE (0-0.3) ──
-  {id:"taklamakan",phase_min:0,phase_max:0.25,weight:5,title:"The Sea of Death",text:"The Taklamakan Desert is one of the driest places on Earth. Local guides warn that many caravans vanish there. Two routes: north along the oases (longer, but has water), or straight through (three days, almost no wells).",trivia:["Many Silk Road caravans traveled at dawn and dusk to save water.","Desert route markers were often bones, stones, and old camp ash."],sageAdvice:[{name:"Master Liu",role:"Han mapmaker",line:"Follow oasis paths when you can. Water keeps animals and people alive."},{name:"Amina",role:"Sogdian guide",line:"Tie bells to lead camels at night. In storms, sound helps your group stay together."}],choices:[
+  {id:"taklamakan",phase_min:0,phase_max:0.25,weight:5,title:"The Sea of Death",text:"You face the Taklamakan Desert. If water runs low, camels and crew can collapse before you reach the next well.",trivia:["Many Silk Road caravans traveled at dawn and dusk to save water.","Desert route markers were often bones, stones, and old camp ash."],sageAdvice:[{name:"Master Liu",role:"Han mapmaker",line:"Follow oasis paths when you can. Water keeps animals and people alive."},{name:"Amina",role:"Sogdian guide",line:"Tie bells to lead camels at night. In storms, sound helps your group stay together."}],choices:[
     {text:"Take the northern route. Follow the oasis trail.",outcomes:[
       {weight:6,effects:{water:-8,camels:-1},result:"Slow travel, but the oases keep the caravan alive. One camel collapses in the dunes."},
       {weight:4,effects:{water:-4,morale:3},result:"Your guide finds every hidden well. The caravan stays strong and hopeful."}
@@ -96,7 +96,7 @@ const EVENTS: GameEvent[] = [
     ]}
   ]},
   
-  {id:"imperial_audit",image:"evt_audit.png",phase_min:0.05,phase_max:0.35,weight:4,title:"Inspector from Chang'an",text:"A Han official rides up with a bamboo scroll. He was sent to count silk and collect taxes for the empire. Your caravan must answer his questions before moving on.",choices:[
+  {id:"imperial_audit",image:"evt_audit.png",phase_min:0.05,phase_max:0.35,weight:4,title:"Inspector from Chang'an",text:"A Han inspector stops your caravan to count silk and collect tax. If he is not satisfied, you lose time, silver, or goods.",choices:[
     {text:"Offer silver and ask for a kind report.",effects:{silver:-25,morale:2},result:"You hand over 25 silver. He writes a friendly report and rides back east."},
     {text:"Explain your journey in detail.",outcomes:[
       {weight:5,effects:{morale:-4},result:"He says your records are messy and gives you a fine."},
@@ -147,7 +147,7 @@ const EVENTS: GameEvent[] = [
     ]
   },
 
-  {id:"guard_strike",phase_min:0.2,phase_max:0.6,weight:4,title:"Guards Demand More Pay",text:"Your hired guards say the desert is more dangerous than expected. They ask for double pay starting today.",choices:[
+  {id:"guard_strike",phase_min:0.2,phase_max:0.6,weight:4,title:"Guards Demand More Pay",text:"Your guards warn that raids are increasing. If they leave, your crew has less protection on the road.",choices:[
     {text:"Pay more so they stay.",effects:{silver:-40,morale:5},result:"They accept the silver and stand ready again."},
     {text:"Refuse the demand.",outcomes:[
       {weight:4,effects:{guards:-2,morale:-8},result:"Two of your best guards quit on the spot and walk back east. You are now severely understaffed in bandit territory."},
@@ -157,7 +157,7 @@ const EVENTS: GameEvent[] = [
   ]},
 
   // ── MOUNTAIN/CENTRAL PHASE (0.25-0.6) ──
-  {id:"pamir_pass",phase_min:0.3,phase_max:0.5,weight:5,title:"The Roof of the World",text:"The Pamir Mountains rise above 15,000 feet. The air is thin, and every step is hard. Snow covers the high passes.",choices:[
+  {id:"pamir_pass",phase_min:0.3,phase_max:0.5,weight:5,title:"The Roof of the World",text:"You climb into the Pamir Mountains. Thin air and snow can cost you camels, supplies, and travel days.",choices:[
     {text:"Take the high pass. Brutal, but fast.",outcomes:[
       {weight:5,effects:{camels:-5,goods:-10,morale:-6,crew:-1},result:"A disaster. Five camels slip into a gorge. Ten bales of silk are lost."},
       {weight:5,effects:{camels:-2,morale:4},result:"Clear skies help you through. Two camels are lost, but spirits rise."}
@@ -169,7 +169,7 @@ const EVENTS: GameEvent[] = [
     ]}
   ]},
 
-  {id:"samarkand",phase_min:0.35,phase_max:0.5,weight:5,title:"The Jewel of the Road",text:"Samarkand is a busy crossroads city. Traders from many lands gather here. A Sogdian broker offers 15x your starting price for all your silk right now.",choices:[
+  {id:"samarkand",phase_min:0.35,phase_max:0.5,weight:5,title:"The Jewel of the Road",text:"You reach Samarkand, a major trade city. Sell now for safety, or keep moving for a bigger reward later.",choices:[
     {text:"Sell all now for 15x.",effects:{morale:8},result:"1,500 silver. The journey ends in dazzling Samarkand.",earlyEnd:true},
     {text:"Sell one quarter, then keep going.",effects:{goods:-25,silver:375,water:15,morale:3},result:"You gain silver and water, and still carry plenty of goods west."},
     {text:"Buy Samarkand specialties to flip in Rome.",outcomes:[
@@ -220,7 +220,7 @@ const EVENTS: GameEvent[] = [
     ]
   },
 
-  {id:"parthian_toll",phase_min:0.55,phase_max:0.75,weight:4,title:"The Parthian Border",text:"Parthian soldiers block the road. Their empire controls this trade route to Rome. Toll: 20% of your goods.",choices:[
+  {id:"parthian_toll",phase_min:0.55,phase_max:0.75,weight:4,title:"The Parthian Border",text:"Parthian soldiers block the pass and demand a toll. What you do here affects your goods, silver, and morale.",choices:[
     {text:"Pay the toll and move on.",effects:{goods:-20,morale:-2},result:"They take exactly 20%, then wave you through."},
     {text:"Negotiate. Offer 10% and useful news.",outcomes:[
       {weight:5,effects:{goods:-10,culturalExchange:1,morale:2},result:"The captain is more interested in Chinese military innovations than silk. You trade stories for a discount."},
@@ -233,7 +233,7 @@ const EVENTS: GameEvent[] = [
   ]},
   
   // ── ROMAN WORLD (0.7-1.0) ──
-  {id:"antioch",phase_min:0.75,phase_max:0.88,weight:5,title:"Antioch — Rome's Eastern Door",text:"Antioch sits near the Mediterranean Sea. Roman merchants crowd around your caravan and offer 60x your starting price.",choices:[
+  {id:"antioch",phase_min:0.75,phase_max:0.88,weight:5,title:"Antioch — Rome's Eastern Door",text:"You arrive at Antioch near the sea. You can take a huge profit now or risk the road ahead.",choices:[
     {text:"Sell here for 60x and end the trip.",effects:{morale:8},result:"6,000 silver. A huge success, and a safe ending.",earlyEnd:true},
     {text:"Sell half. Save the best silk for Constantinople.",effects:{goods:-50,silver:3000,morale:4},result:"Half sells for 60x. You keep top silk for one last market."},
     {text:"Buy Roman goods for the return trip.",outcomes:[
@@ -241,7 +241,7 @@ const EVENTS: GameEvent[] = [
       {weight:4,effects:{silver:-100,goods:5},result:"You paid too much for common trinkets. It is a costly lesson."}
     ]}
   ]},
-  {id:"roman_silk",phase_min:0.7,phase_max:0.95,weight:3,title:"The Senate's Obsession",text:"Roman nobles love Chinese silk. A senator's wife asks for a secret sale and offers double price in gold.",choices:[
+  {id:"roman_silk",phase_min:0.7,phase_max:0.95,weight:3,title:"The Senate's Obsession",text:"A Roman noble asks for a private silk sale. You could earn fast gold, but danger rises after dark.",choices:[
     {text:"Take the secret deal.",outcomes:[
       {weight:5,effects:{goods:-30,silver:600,morale:3},result:"Done in a warehouse at midnight. She pays in gold and leaves quickly."},
       {weight:5,effects:{goods:-30,silver:600,morale:-5,guards:-1},result:"A sting operation! Roman guards raid the warehouse. You escape with the gold, but lose a guard to a gladius."}
@@ -249,7 +249,7 @@ const EVENTS: GameEvent[] = [
     {text:"Sell only in the public market.",effects:{goods:-20,silver:200,morale:2},result:"You get a fair legal price, with less danger."},
     {text:"Give silk gifts to build friendships.",effects:{goods:-10,culturalExchange:3,morale:4},result:"Important Romans remember your caravan and treat you kindly."}
   ]},
-  {id:"constantinople_arrival",phase_min:0.92,phase_max:1.0,weight:6,title:"The Golden City",text:"Constantinople's markets overflow with goods from many lands. Your remaining silk is worth 100x what you paid in Chang'an. You have crossed one of history's greatest trade routes.",choices:[
+  {id:"constantinople_arrival",phase_min:0.92,phase_max:1.0,weight:6,title:"The Golden City",text:"You reach Constantinople after a long journey. Your final choice decides your last profit and your story's ending.",choices:[
     {text:"Sell everything at 100x.",effects:{morale:10},result:"A great finish. Every bale sells at top price.",earlyEnd:true},
     {text:"Sell the goods, but keep one bale for yourself.",effects:{goods:-5,morale:8,culturalExchange:1},result:"You keep the finest silk as a memory of your long desert journey."},
     {text:"Open a permanent trade house.",effects:{silver:-200,culturalExchange:5,morale:6},result:"You hire locals, rent a warehouse, and build a lasting east-west trade link."}
