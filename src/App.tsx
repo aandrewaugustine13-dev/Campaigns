@@ -4,6 +4,10 @@ import VisualNovelEngine from "./VisualNovelEngine";
 import PushYourLuckEngine from "./PushYourLuckEngine";
 import SilkRoad from "./SilkRoad";
 import ChisholmTriviaEngine, { pickTriviaQuestion, type TriviaQuestion } from "./ChisholmTrivia";
+import type { Objective, RouteState, EventGateQuestion } from "./gameModels";
+import { generateObjective, tickObjectives, findNode } from "./gameLogic";
+import { CHISHOLM_ROUTE } from "./routes";
+import { CHISHOLM_EVENT_TRIVIA } from "./trivia";
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -22,6 +26,8 @@ interface GameEvent {
   leaveText?: string;              
   trivia?: string[];
   sageAdvice?: SageAdvice[];
+  riskProfile?: ("LOW" | "MED" | "HIGH")[];
+  triviaGate?: boolean;
 }
 interface Decision { event: string; choice: string; day: number; }
 interface OutfitConfig {
@@ -38,7 +44,7 @@ interface OutfitConfig {
 
 interface GameState {
   day: number; turn: number; resources: Resources;
-  phase: "intro" | "outfit" | "sailing" | "event" | "result" | "end" | "trivia";
+  phase: "intro" | "outfit" | "sailing" | "event" | "result" | "end" | "trivia" | "event_trivia";
   pace: string; distance: number; currentEvent: GameEvent | null;
   resultText: string; decisions: Decision[];
   gameOver: boolean; survived: boolean; earlySale: boolean;
@@ -49,6 +55,14 @@ interface GameState {
   currentTrivia: TriviaQuestion | null;
   usedTriviaIds: Set<string>;
   triviaStreak: number;
+  insight: number;
+  objectives: Objective[];
+  routeState: RouteState;
+  routeTag: "SAFE" | "FAST" | "PROFIT";
+  riskHintsOn: boolean;
+  pendingChoiceIndex: number | null;
+  pendingEventQuestion: EventGateQuestion | null;
+  objectiveNotice: string;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -282,6 +296,29 @@ function weightedPick<T extends{weight?:number}>(items:T[]):T{
   const total=items.reduce((s,i)=>s+(i.weight||1),0);let r=Math.random()*total;
   for(const item of items){r-=item.weight||1;if(r<=0)return item;}return items[0];
 }
+
+function routeAdjustedEvent(day:number,totalDays:number,used:Set<string>,events:GameEvent[],routeTag:"SAFE"|"FAST"|"PROFIT"){
+  const base = pickEvent(day,totalDays,used,events);
+  if (!base) return null;
+  const phase = day / totalDays;
+  const pool = events.filter(e => phase >= e.phase_min && phase <= e.phase_max && !used.has(e.id));
+  if (pool.length === 0) return base;
+  const withWeights = pool.map(e => {
+    const danger = e.id.includes("storm") || e.id.includes("stampede") || e.id.includes("fire") || e.id.includes("rustler") || e.id.includes("fever") || e.id.includes("snake");
+    const market = e.id.includes("buyer") || e.id.includes("competition") || e.id.includes("good_grass");
+    let weight = e.weight;
+    if (routeTag === "SAFE" && danger) weight = Math.max(1, weight - 2);
+    if (routeTag === "FAST" && danger) weight += 2;
+    if (routeTag === "PROFIT" && market) weight += 2;
+    return { ...e, weight };
+  });
+  return weightedPick(withWeights);
+}
+
+function shouldGateTrivia(eventId: string, turn: number){
+  const seed = eventId.length + turn;
+  return seed % 4 === 0;
+}
 function resolveChoice(ch:Choice):{effects?:Resources;result?:string;earlyEnd?:boolean}{
   if(ch.outcomes)return weightedPick(ch.outcomes);return{effects:ch.effects,result:ch.result,earlyEnd:ch.earlyEnd};
 }
@@ -431,7 +468,7 @@ function getTrailGrade(survived: boolean, herdPct: number, historicalKnowledge: 
 const GC:Record<string,string>={"A+":"text-amber-300",A:"text-emerald-400",B:"text-blue-400",C:"text-yellow-400",D:"text-orange-400",F:"text-red-500"};
 
 const DEFAULT_OUTFIT: OutfitConfig = { herd: 2500, crew: 12, horses: 60, supplies: 65, guns: 4, spareParts: 3, wages: "standard", budgetSpent: 0, startingCash: 0 };
-const makeInit=():GameState=>({day:1,turn:0,resources:{...INIT_R},phase:"intro",pace:"normal",distance:0,currentEvent:null,resultText:"",decisions:[],gameOver:false,survived:false,earlySale:false,outfit:{...DEFAULT_OUTFIT},historicalKnowledge:0,knowledgeLog:[],triviaCounter:0,currentTrivia:null,usedTriviaIds:new Set(),triviaStreak:0});
+const makeInit=():GameState=>({day:1,turn:0,resources:{...INIT_R},phase:"intro",pace:"normal",distance:0,currentEvent:null,resultText:"",decisions:[],gameOver:false,survived:false,earlySale:false,outfit:{...DEFAULT_OUTFIT},historicalKnowledge:0,knowledgeLog:[],triviaCounter:0,currentTrivia:null,usedTriviaIds:new Set(),triviaStreak:0,insight:1,objectives:[],routeState:{currentNodeId:"start"},routeTag:"SAFE",riskHintsOn:false,pendingChoiceIndex:null,pendingEventQuestion:null,objectiveNotice:""});
 
 // ═══════════════════════════════════════════════════════════════
 // APP
@@ -469,10 +506,14 @@ export default function App(){
   const advanceTurn=useCallback(()=>{
     setState(prev=>{
       const s:GameState={...prev,resources:{...prev.resources}};
+      const before = { turn: prev.turn, day: prev.day, distance: prev.distance, resources: { ...prev.resources } };
       s.turn+=1;const pace=PACES.find(p=>p.id===s.pace)!;
       s.distance=Math.min(s.distance+pace.mpd*DAYS_PER_TURN,TOTAL_DISTANCE);
       s.day=Math.min(s.day+DAYS_PER_TURN,TOTAL_DAYS+1);
       for(const[k,v]of Object.entries(pace.fx))s.resources[k]=clampR(k,s.resources[k]+v);
+      if (s.routeTag === "FAST") s.resources.herdCondition = clampR("herdCondition", s.resources.herdCondition - 2);
+      if (s.routeTag === "SAFE") s.resources.morale = clampR("morale", s.resources.morale + 1);
+      if (s.routeTag === "PROFIT") s.resources.supplies = clampR("supplies", s.resources.supplies - 1);
       const crewDrain = Math.ceil(s.resources.crew / 10);
       s.resources.supplies=clamp(s.resources.supplies-crewDrain,0,100);
       if(s.resources.herdCondition<20)s.resources.herd=Math.max(0,s.resources.herd-Math.ceil(Math.random()*40)-20);
@@ -480,7 +521,25 @@ export default function App(){
       if(s.resources.morale<15&&Math.random()<0.3)s.resources.crew=Math.max(0,s.resources.crew-1);
       if(s.resources.crew<=2||s.resources.herd<=100||s.resources.horses<=5)return{...s,phase:"end"as const,gameOver:true,survived:false};
       if(s.distance>=TOTAL_DISTANCE)return{...s,phase:"end"as const,gameOver:true,survived:true};
-      const event=pickEvent(s.day,TOTAL_DAYS,usedEvents,EVENTS);
+      const tick = tickObjectives(s.objectives, before, { turn: s.turn, day: s.day, distance: s.distance, resources: { ...s.resources } });
+      s.objectives = tick.active;
+      if (tick.completedNow.length > 0) {
+        const first = tick.completedNow[0];
+        s.insight += first.reward.insight;
+        for (const completed of tick.completedNow) {
+          if (completed.reward.resources) {
+            for (const [k, v] of Object.entries(completed.reward.resources)) {
+              s.resources[k] = clampR(k, (s.resources[k] || 0) + v);
+            }
+          }
+        }
+        s.objectiveNotice = `Objective Complete! ${first.title} (+${first.reward.insight} Insight)`;
+      }
+      if (s.turn % 3 === 0 && s.objectives.length < 2) {
+        s.objectives = [...s.objectives, generateObjective({ turn: s.turn, day: s.day, distance: s.distance, resources: s.resources })];
+      }
+
+      const event=routeAdjustedEvent(s.day,TOTAL_DAYS,usedEvents,EVENTS,s.routeTag);
       console.log(`[ADVANCE] Turn ${s.turn} | Day ${s.day} | Event: ${event?.id || 'NONE'} | TriviaCounter: ${s.triviaCounter}`);
       if(event){
         if (s.triviaCounter >= 2) {
@@ -496,7 +555,10 @@ export default function App(){
             return s;
           }
         }
-        setUsedEvents(p=>new Set(p).add(event.id));s.currentEvent=event;s.phase="event";
+        setUsedEvents(p=>new Set(p).add(event.id));s.currentEvent={...event,triviaGate:shouldGateTrivia(event.id,s.turn)};s.phase="event";
+        s.riskHintsOn = false;
+        s.pendingChoiceIndex = null;
+        s.pendingEventQuestion = null;
         s.triviaCounter++;
         console.log(`[EVENT] ${event.id} | Counter now: ${s.triviaCounter}`);
       }
@@ -504,18 +566,55 @@ export default function App(){
     });
   },[usedEvents]);
 
-  // Handle standard Visual Novel Choice
-  const handleChoice=useCallback((ci:number)=>{
+  const chooseRoute = useCallback((toId: string, tag: "SAFE"|"FAST"|"PROFIT") => {
+    setState(prev => ({ ...prev, routeState: { currentNodeId: toId }, routeTag: tag }));
+  }, []);
+
+  const finalizeChoice=useCallback((ci:number,insightBonus:number)=>{
     setState(prev=>{
       if(!prev.currentEvent || !prev.currentEvent.choices) return prev;
       const s:GameState={...prev,resources:{...prev.resources},decisions:[...prev.decisions]};
       const choice=s.currentEvent!.choices![ci];const outcome=resolveChoice(choice);
       s.decisions.push({event:s.currentEvent!.title,choice:choice.text,day:s.day});
       if(outcome.effects)for(const[k,v]of Object.entries(outcome.effects))if(s.resources[k]!==undefined)s.resources[k]=clampR(k,s.resources[k]+v);
+      if (insightBonus > 0) s.insight += insightBonus;
       if(choice.earlyEnd||outcome.earlyEnd)s.earlySale=true;
-      s.resultText=outcome.result||"";s.phase="result";return s;
+      if (insightBonus > 0) {
+        s.resultText=`${outcome.result||""}\n\nYou answered the trivia correctly and gained +${insightBonus} Insight.`;
+      } else {
+        s.resultText=outcome.result||"";
+      }
+      s.phase="result";
+      s.pendingChoiceIndex = null;
+      s.pendingEventQuestion = null;
+      return s;
     });
   },[]);
+
+  // Handle standard Visual Novel Choice
+  const handleChoice=useCallback((ci:number)=>{
+    if (state.currentEvent?.triviaGate) {
+      const q = CHISHOLM_EVENT_TRIVIA[(state.turn + ci) % CHISHOLM_EVENT_TRIVIA.length];
+      setState(prev => ({ ...prev, phase: "event_trivia", pendingChoiceIndex: ci, pendingEventQuestion: q }));
+      return;
+    }
+    finalizeChoice(ci, 0);
+  },[finalizeChoice, state.currentEvent?.triviaGate, state.turn]);
+
+  const handleEventTriviaAnswer = useCallback((choiceIndex:number)=>{
+    const q = state.pendingEventQuestion;
+    const pendingChoiceIndex = state.pendingChoiceIndex;
+    if (!q || pendingChoiceIndex === null) return;
+    const correct = choiceIndex === q.correctIndex;
+    finalizeChoice(pendingChoiceIndex, correct ? 1 : 0);
+  },[state.pendingEventQuestion,state.pendingChoiceIndex,finalizeChoice]);
+
+  const spendInsightForHints = useCallback(() => {
+    setState(prev => {
+      if (prev.insight <= 0 || prev.riskHintsOn) return prev;
+      return { ...prev, insight: prev.insight - 1, riskHintsOn: true };
+    });
+  }, []);
 
   // 🔴 Handle Push Your Luck Update (Realtime Resource Adjustment)
   const handlePushUpdate = useCallback((effects: Resources) => {
@@ -542,7 +641,7 @@ export default function App(){
 
   const continueGame=useCallback(()=>{
     setState(prev=>{
-      const s:GameState={...prev,currentEvent:null,resultText:""};
+      const s:GameState={...prev,currentEvent:null,resultText:"",objectiveNotice:""};
       if(s.resources.crew<=2||s.resources.herd<=100||s.resources.horses<=5)return{...s,phase:"end"as const,gameOver:true,survived:false};
       if(s.distance>=TOTAL_DISTANCE||s.earlySale)return{...s,phase:"end"as const,gameOver:true,survived:true};
       s.phase="sailing";return s;
@@ -611,6 +710,22 @@ export default function App(){
 
   const r=state.resources;
   const progress=state.distance/TOTAL_DISTANCE*100;
+  const currentRouteNode = findNode(CHISHOLM_ROUTE, state.routeState.currentNodeId) || CHISHOLM_ROUTE[0];
+  const riskHints = (state.currentEvent?.choices || []).map((choice) => {
+    if (choice.outcomes) {
+      const avgLoss = choice.outcomes.reduce((sum, o) => sum + ((o.effects.herd || 0) < 0 ? Math.abs(o.effects.herd || 0) : 0) + ((o.effects.crew || 0) < 0 ? 20 : 0) + ((o.effects.morale || 0) < 0 ? Math.abs(o.effects.morale || 0) : 0), 0) / choice.outcomes.length;
+      if (avgLoss > 70) return "HIGH";
+      if (avgLoss > 30) return "MED";
+      return "LOW";
+    }
+    const herdLoss = Math.abs(Math.min(0, choice.effects?.herd || 0));
+    const moraleLoss = Math.abs(Math.min(0, choice.effects?.morale || 0));
+    const crewLoss = Math.abs(Math.min(0, choice.effects?.crew || 0));
+    const score = herdLoss + moraleLoss + crewLoss * 20;
+    if (score > 70) return "HIGH";
+    if (score > 30) return "MED";
+    return "LOW";
+  });
   console.log(`[RENDER] Phase: ${state.phase} | TriviaCounter: ${state.triviaCounter} | HasTrivia: ${!!state.currentTrivia}`);
   const partyMembers=[
     {id:"boss",role:"Boss",label:gf(FACES.boss,r.morale).label,health:r.morale},
@@ -757,6 +872,9 @@ export default function App(){
             <div className="bg-stone-700 rounded p-1.5 text-center"><div className="text-stone-400">🐴 Horses</div><div className="font-bold">{r.horses}</div></div>
             <div className="bg-stone-700 rounded p-1.5 text-center"><div className="text-stone-400">🔫 Ammo</div><div className="font-bold">{r.ammo||0}</div></div>
           </div>
+          <div className="mb-2 bg-stone-700 rounded p-1.5 text-xs text-center">
+            <span className="text-stone-300">✨ Insight:</span> <span className="text-amber-400 font-bold">{state.insight}</span>
+          </div>
           <div className="space-y-1">
             {([["🌾 Supplies",r.supplies,r.supplies<20?"bg-red-500":"bg-green-500"],["😊 Morale",r.morale,r.morale<25?"bg-red-500":"bg-yellow-500"],["💪 Herd Cond.",r.herdCondition,r.herdCondition<25?"bg-red-500":"bg-emerald-500"]] as [string,number,string][]).map(([label,val,color])=>(
               <div key={label} className="flex items-center gap-2">
@@ -775,6 +893,9 @@ export default function App(){
             <span>Day {state.day}/{TOTAL_DAYS}</span>
             <span>{Math.round(state.distance)}/{TOTAL_DISTANCE} mi</span>
           </div>
+          {state.objectiveNotice && (
+            <p className="text-xs text-emerald-300 mt-1">{state.objectiveNotice}</p>
+          )}
         </div>
       </div>
       <DoomHUD members={partyMembers}/>
@@ -782,6 +903,32 @@ export default function App(){
         <div className="max-w-lg mx-auto space-y-3 mt-2">
           {state.phase==="sailing"&&(
             <div className="space-y-3">
+              <div className="border border-indigo-700 rounded p-2 bg-indigo-950/40">
+                <p className="text-xs text-indigo-300 font-bold">Route: {currentRouteNode.title} ({state.routeTag})</p>
+                <p className="text-xs text-stone-300">{currentRouteNode.description}</p>
+                {currentRouteNode.edges.length > 0 && (
+                  <div className="mt-2 grid grid-cols-1 gap-1">
+                    {currentRouteNode.edges.map((edge) => (
+                      <button key={edge.to} onClick={() => chooseRoute(edge.to, edge.tag)} className="text-left text-xs px-2 py-1 rounded bg-indigo-900 hover:bg-indigo-800">
+                        {edge.label} <span className="text-indigo-300">[{edge.tag}]</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {state.objectives.length > 0 && (
+                <div className="space-y-2">
+                  {state.objectives.map((obj) => (
+                    <div key={obj.id} className="border border-emerald-800 rounded p-2 bg-emerald-950/30">
+                      <p className="text-xs font-bold text-emerald-300">Quest: {obj.title}</p>
+                      <p className="text-xs text-stone-300">{obj.description}</p>
+                      <p className="text-[11px] text-stone-400">Progress: {obj.progress}/{obj.target} · {obj.expiresInTurns} turns left</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div className="border border-stone-700 rounded p-3 bg-stone-800/80">
                 <p className="text-stone-300 text-sm">{getPhrase(progress/100)}</p>
               </div>
@@ -804,8 +951,31 @@ export default function App(){
             state.currentEvent.type==="push_luck"?(
               <PushYourLuckEngine event={state.currentEvent} onUpdate={handlePushUpdate} onLeave={handlePushLeave}/>
             ):(
-              <VisualNovelEngine currentEvent={state.currentEvent} handleChoice={handleChoice} bossHealth={r.morale} scoutHealth={r.morale}/>
+              <VisualNovelEngine
+                currentEvent={state.currentEvent}
+                handleChoice={handleChoice}
+                bossHealth={r.morale}
+                scoutHealth={r.morale}
+                insight={state.insight}
+                onSpendInsightForHints={spendInsightForHints}
+                showRiskHints={state.riskHintsOn}
+                riskHints={riskHints}
+              />
             )
+          )}
+          {state.phase==="event_trivia"&&state.pendingEventQuestion&&(
+            <div className="border border-indigo-700 rounded p-3 bg-indigo-950/40 space-y-2">
+              <p className="text-sm text-indigo-200 font-bold">Quick Sage Question</p>
+              <p className="text-sm text-stone-200">{state.pendingEventQuestion.question}</p>
+              <div className="space-y-1">
+                {state.pendingEventQuestion.choices.map((c, i) => (
+                  <button key={i} onClick={() => handleEventTriviaAnswer(i)} className="w-full text-left text-xs bg-indigo-900 hover:bg-indigo-800 rounded px-2 py-1">
+                    {c}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11px] text-indigo-300">Correct answer: +1 Insight. Wrong answer: no penalty.</p>
+            </div>
           )}
           {state.phase==="trivia"&&state.currentTrivia&&(
             <ChisholmTriviaEngine

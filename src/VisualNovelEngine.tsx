@@ -12,9 +12,13 @@ interface VisualNovelProps {
   handleChoice: (index: number) => void;
   bossHealth: number;
   scoutHealth: number;
+  insight?: number;
+  onSpendInsightForHints?: () => void;
+  showRiskHints?: boolean;
+  riskHints?: string[];
 }
 
-export default function VisualNovelEngine({ currentEvent, handleChoice, bossHealth, scoutHealth }: VisualNovelProps) {
+export default function VisualNovelEngine({ currentEvent, handleChoice, bossHealth, scoutHealth, insight = 0, onSpendInsightForHints, showRiskHints = false, riskHints = [] }: VisualNovelProps) {
   if (!currentEvent) return null;
 
   const [showSages, setShowSages] = useState(false);
@@ -132,6 +136,18 @@ export default function VisualNovelEngine({ currentEvent, handleChoice, bossHeal
             </div>
           )}
 
+          {!!onSpendInsightForHints && (
+            <div className="mb-2">
+              <button
+                onClick={onSpendInsightForHints}
+                disabled={showRiskHints || insight <= 0}
+                className={`text-xs font-bold px-2 py-1 rounded border-2 ${showRiskHints || insight <= 0 ? "border-stone-500 bg-stone-300 text-stone-600" : "border-[#b88645] bg-[#d4a86a] hover:bg-[#ffdf99] text-[#4a2e1b]"}`}
+              >
+                {showRiskHints ? "Sage Risk Hints Shown" : `Ask a Sage (Spend 1 Insight)`}
+              </button>
+            </div>
+          )}
+
           <div className="space-y-1">
             {currentEvent.choices.map((c: any, i: number) => (
               <button
@@ -139,7 +155,10 @@ export default function VisualNovelEngine({ currentEvent, handleChoice, bossHeal
                 onClick={() => handleChoice(i)}
                 className="w-full text-left p-1.5 bg-[#d4a86a] border-2 border-[#b88645] hover:bg-[#ffdf99] hover:border-[#d4a86a] text-[#4a2e1b] font-bold text-xs transition-colors shadow-inner"
               >
-                ▶ {c.text}
+                <span>▶ {c.text}</span>
+                {showRiskHints && riskHints[i] && (
+                  <span className="ml-2 text-[10px] font-bold text-[#7a4f1f]">[{riskHints[i]}]</span>
+                )}
               </button>
             ))}
           </div>
