@@ -73,33 +73,33 @@ function pickEvent(day: number, td: number, evts: GameEvent[], used: Set<string>
 }
 
 // ═══════════════════════════════════════════════════════════════
-// EVENTS - INJECTED WITH ANCIENT CORPORATE BUREAUCRACY & IMAGES
+// EVENTS - SILK ROAD JOURNEY EVENTS & IMAGES
 // ═══════════════════════════════════════════════════════════════
 
 const EVENTS: GameEvent[] = [
   // ── DESERT PHASE (0-0.3) ──
-  {id:"taklamakan",phase_min:0,phase_max:0.25,weight:5,title:"The Sea of Death",text:"The Taklamakan Desert. The local guides refuse to enter, citing 'severe un-aliveness' as a working condition. Two routes: north around the edge (longer, but has water), or straight through (three days, zero infrastructure).",choices:[
-    {text:"Take the northern route. Play it safe with the logistics.",outcomes:[
-      {weight:6,effects:{water:-8,camels:-1},result:"Slow going. The oases hold just enough water to justify the detour. One camel submits its resignation by collapsing in the dunes."},
-      {weight:4,effects:{water:-4,morale:3},result:"Your guide knows every water hole. The crew is highly motivated by the fact that they aren't dead. Excellent team synergy."}
+  {id:"taklamakan",phase_min:0,phase_max:0.25,weight:5,title:"The Sea of Death",text:"The Taklamakan Desert is one of the driest places on Earth. Local guides warn that many caravans vanish there. Two routes: north along the oases (longer, but has water), or straight through (three days, almost no wells).",choices:[
+    {text:"Take the northern route. Follow the oasis trail.",outcomes:[
+      {weight:6,effects:{water:-8,camels:-1},result:"Slow travel, but the oases keep the caravan alive. One camel collapses in the dunes."},
+      {weight:4,effects:{water:-4,morale:3},result:"Your guide finds every hidden well. The caravan stays strong and hopeful."}
     ]},
-    {text:"Straight through. Cut the travel time, maximize ROI.",outcomes:[
-      {weight:4,effects:{water:-20,camels:-4,morale:-8,goods:-10},result:"Catastrophic supply chain failure. A sandstorm buries four camels. You drink the last water drop at dawn on day three. HR is going to hear about this."},
-      {weight:6,effects:{water:-15,morale:5,camels:-2},result:"A brutal but highly efficient sprint. Two camels are written off as operational losses, but you cut a week off the journey."}
+    {text:"Go straight through. Save time.",outcomes:[
+      {weight:4,effects:{water:-20,camels:-4,morale:-8,goods:-10},result:"A sandstorm hits hard. Four camels are buried. Water runs out by the third dawn."},
+      {weight:6,effects:{water:-15,morale:5,camels:-2},result:"The crossing is harsh. Two camels are lost, but you reach the far side faster."}
     ]},
-    {text:"Wait for a Sogdian caravan. Outsource the navigation.",outcomes:[
-      {weight:5,effects:{water:-6,morale:2,silver:-15},result:"They arrive and charge an extortionate consulting fee to let you follow them. Safer, though."},
-      {weight:5,effects:{water:-12,morale:-5},result:"You wait four days. Nobody shows up. Time is money, and you just burned both."}
+    {text:"Wait for a Sogdian caravan and follow them.",outcomes:[
+      {weight:5,effects:{water:-6,morale:2,silver:-15},result:"A caravan arrives and lets you join for a high fee. It is safer than going alone."},
+      {weight:5,effects:{water:-12,morale:-5},result:"You wait four days, but no caravan comes. Supplies run low."}
     ]}
   ]},
   
-  {id:"imperial_audit",image:"evt_audit.png",phase_min:0.05,phase_max:0.35,weight:4,title:"The Mid-Desert Performance Review",text:"A low-level Han bureaucrat catches up to your caravan on a remarkably fast horse. He ignores the starving camels, pulls out a bamboo scroll, and informs you that your 'silver burn rate is unacceptable' and you are behind on your Q3 silk projections.",choices:[
-    {text:"Bribe him to falsify the report.",effects:{silver:-25,morale:2},result:"25 silver changes hands. He notes that your 'operational efficiency is exceeding expectations' and rides back east. Middle management is universal."},
-    {text:"Argue about the physical reality of the desert.",outcomes:[
-      {weight:5,effects:{morale:-4},result:"He writes down 'belligerent attitude toward leadership' and officially fines you for insubordination. He leaves without offering you water."},
-      {weight:5,effects:{morale:4},result:"You point to a bleached human skull in the sand and ask him to audit that. He pales, signs off on the paperwork, and leaves."}
+  {id:"imperial_audit",image:"evt_audit.png",phase_min:0.05,phase_max:0.35,weight:4,title:"Inspector from Chang'an",text:"A Han official rides up with a bamboo scroll. He was sent to count silk and collect taxes for the empire. Your caravan must answer his questions before moving on.",choices:[
+    {text:"Offer silver and ask for a kind report.",effects:{silver:-25,morale:2},result:"You hand over 25 silver. He writes a friendly report and rides back east."},
+    {text:"Explain your journey in detail.",outcomes:[
+      {weight:5,effects:{morale:-4},result:"He says your records are messy and gives you a fine."},
+      {weight:5,effects:{morale:4},result:"He sees your hardships, approves your records, and lets you pass."}
     ]},
-    {text:"Give him a bale of silk to present to his boss.",effects:{goods:-5,culturalExchange:1},result:"A strategic corporate gift. He promises to put in a good word with the Ministry of Trade. Expensive, but it secures your political cover."}
+    {text:"Gift him one bale of silk for the tax office.",effects:{goods:-5,culturalExchange:1},result:"He accepts the gift and promises to speak well of your caravan at the Ministry of Trade."}
   ]},
 
   // 🔴 PUSH YOUR LUCK: ABANDONED OUTPOST 
@@ -111,12 +111,12 @@ const EVENTS: GameEvent[] = [
     weight: 6,
     type: "push_luck",
     title: "Abandoned Han Outpost",
-    text: "You find a ruined watchtower half-buried in the dunes. The garrison is long gone, probably due to budget cuts. There might be abandoned supplies inside, but the stone roof looks like a massive liability.",
-    leaveText: "Ignore it. Not worth the worker's comp claims.",
+    text: "You find a ruined watchtower half-buried in the dunes. The garrison is long gone. There may be supplies inside, but the stone roof looks ready to fall.",
+    leaveText: "Leave it. It looks unsafe.",
     attempts: [
       {
         id: "outpost_1",
-        buttonText: "Search the outer administrative courtyard",
+        buttonText: "Search the outer courtyard",
         successText: "Found a half-buried lockbox of silver coins left by the quartermaster.",
         failureText: "A guard sprained his ankle on loose stones. Complete waste of time.",
         riskChance: 0.15,
@@ -127,7 +127,7 @@ const EVENTS: GameEvent[] = [
         id: "outpost_2",
         buttonText: "Pry open the sealed storehouse",
         successText: "Jackpot. Untouched water skins and a bundle of raw silk left off the official ledger.",
-        failureText: "The door was rigged. A collapsing beam crushed a camel. HR nightmare.",
+        failureText: "The door was trapped. A beam falls and crushes a camel.",
         riskChance: 0.40,
         rewards: { water: 15, goods: 5 },
         penalties: { camels: -1, morale: -5 }
@@ -144,34 +144,34 @@ const EVENTS: GameEvent[] = [
     ]
   },
 
-  {id:"guard_strike",phase_min:0.2,phase_max:0.6,weight:4,title:"Contractor Dispute",text:"Your mercenary guards have formed a committee. They claim the desert constitutes a 'hostile work environment' not covered in their original contract. They want double their per diem, effective immediately.",choices:[
-    {text:"Pay the premium. Retention is cheaper than hiring new guards.",effects:{silver:-40,morale:5},result:"They accept the silver and immediately go back to work. Mercenaries are nothing if not transactional."},
-    {text:"Refuse. A contract is a contract.",outcomes:[
+  {id:"guard_strike",phase_min:0.2,phase_max:0.6,weight:4,title:"Guards Demand More Pay",text:"Your hired guards say the desert is more dangerous than expected. They ask for double pay starting today.",choices:[
+    {text:"Pay more so they stay.",effects:{silver:-40,morale:5},result:"They accept the silver and stand ready again."},
+    {text:"Refuse the demand.",outcomes:[
       {weight:4,effects:{guards:-2,morale:-8},result:"Two of your best guards quit on the spot and walk back east. You are now severely understaffed in bandit territory."},
-      {weight:6,effects:{morale:-2},result:"You stare them down. They grumble about taking this to the guild, but they fall back in line."}
+      {weight:6,effects:{morale:-2},result:"After a tense talk, they agree to keep marching."}
     ]},
-    {text:"Promote the loudest complainer to 'Shift Manager'.",effects:{silver:-10,morale:3},result:"You give the ringleader a fake title and 10 silver. He instantly turns on the other guards and orders them back to work. Divide and conquer."}
+    {text:"Give their leader 10 silver to calm things down.",effects:{silver:-10,morale:3},result:"Their leader takes the gift and convinces the others to keep working."}
   ]},
 
   // ── MOUNTAIN/CENTRAL PHASE (0.25-0.6) ──
-  {id:"pamir_pass",phase_min:0.3,phase_max:0.5,weight:5,title:"The Roof of the World",text:"The Pamir Mountains. Passes above 15,000 feet. The air is so thin your camels are wheezing. Your Chinese crew is staring at the snow like it's a structural defect in the sky.",choices:[
+  {id:"pamir_pass",phase_min:0.3,phase_max:0.5,weight:5,title:"The Roof of the World",text:"The Pamir Mountains rise above 15,000 feet. The air is thin, and every step is hard. Snow covers the high passes.",choices:[
     {text:"Take the high pass. Brutal, but fast.",outcomes:[
-      {weight:5,effects:{camels:-5,goods:-10,morale:-6,crew:-1},result:"Total disaster. Five camels fail to meet performance standards and fall into a gorge. Ten bales of silk lost."},
-      {weight:5,effects:{camels:-2,morale:4},result:"Clear skies. Only two camels written off as shrinkage. The crew feels a massive sense of accomplishment."}
+      {weight:5,effects:{camels:-5,goods:-10,morale:-6,crew:-1},result:"A disaster. Five camels slip into a gorge. Ten bales of silk are lost."},
+      {weight:5,effects:{camels:-2,morale:4},result:"Clear skies help you through. Two camels are lost, but spirits rise."}
     ]},
-    {text:"The valley route. Longer, lower, safer.",effects:{water:-8,camels:-1,morale:1},result:"Five extra days of operational overhead, but nobody dies. One camel goes lame on loose rock."},
-    {text:"Hire local Tajik guides as temporary contractors.",outcomes:[
+    {text:"Take the valley route. Longer, but safer.",effects:{water:-8,camels:-1,morale:1},result:"You spend five extra days, but everyone survives. One camel is hurt on loose rock."},
+    {text:"Hire local Tajik guides.",outcomes:[
       {weight:7,effects:{silver:-20,culturalExchange:2,morale:3},result:"Money well spent. They know every switchback. They share local folklore, which your translator meticulously documents."},
       {weight:3,effects:{silver:-20,goods:-15,morale:-5},result:"The 'guides' vanish in the night with fifteen bales of silk. You just got scammed."}
     ]}
   ]},
 
-  {id:"samarkand",phase_min:0.35,phase_max:0.5,weight:5,title:"The Jewel of the Road",text:"Samarkand. The ultimate networking event. Every language on earth is spoken here. A Sogdian broker in a very nice silk tunic offers you 15x your original price to liquidate your entire inventory right now.",choices:[
-    {text:"Accept the buyout. 15x is a massive win.",effects:{morale:8},result:"1,500 silver. You ring the sales bell. The journey ends in the most beautiful city you'll ever see. Let someone else deal with the Romans.",earlyEnd:true},
-    {text:"Sell a quarter. Secure some liquid capital, keep moving.",effects:{goods:-25,silver:375,water:15,morale:3},result:"A smart, hedged portfolio strategy. Fresh water, fed camels, and still plenty of inventory to sell out west."},
+  {id:"samarkand",phase_min:0.35,phase_max:0.5,weight:5,title:"The Jewel of the Road",text:"Samarkand is a busy crossroads city. Traders from many lands gather here. A Sogdian broker offers 15x your starting price for all your silk right now.",choices:[
+    {text:"Sell all now for 15x.",effects:{morale:8},result:"1,500 silver. The journey ends in dazzling Samarkand.",earlyEnd:true},
+    {text:"Sell one quarter, then keep going.",effects:{goods:-25,silver:375,water:15,morale:3},result:"You gain silver and water, and still carry plenty of goods west."},
     {text:"Buy Samarkand specialties to flip in Rome.",outcomes:[
-      {weight:6,effects:{silver:-50,goods:20,culturalExchange:2},result:"You buy lapis lazuli and high-end paper. The Romans will pay astronomical markups for this. Incredible pivot."},
-      {weight:4,effects:{silver:-50,goods:10,morale:-2},result:"You got out-negotiated. Your guard captain is furious. 'We are logistics, not a hedge fund!'"}
+      {weight:6,effects:{silver:-50,goods:20,culturalExchange:2},result:"You buy lapis lazuli and fine paper. Roman buyers value both goods highly."},
+      {weight:4,effects:{silver:-50,goods:10,morale:-2},result:"You pay too much. Your guards grumble at the poor trade."}
     ]}
   ]},
   
@@ -189,8 +189,8 @@ const EVENTS: GameEvent[] = [
     attempts: [
       {
         id: "bazaar_1",
-        buttonText: "Demand standard market rates",
-        successText: "He grumbles about overhead but agrees. A solid, safe trade.",
+        buttonText: "Ask for the usual bazaar price",
+        successText: "He agrees after a long sigh. It is a fair trade.",
         failureText: "He takes offense to your tone and walks away. Deal's off.",
         riskChance: 0.20,
         rewards: { silver: 30 },
@@ -198,18 +198,18 @@ const EVENTS: GameEvent[] = [
       },
       {
         id: "bazaar_2",
-        buttonText: "Push for a heavy vendor discount",
-        successText: "He caves! You secure top-tier gems at a massive discount.",
-        failureText: "He signals his muscle. They rough up your guards and 'confiscate' a bale of silk as a consulting fee.",
+        buttonText: "Push hard for a lower price",
+        successText: "He gives in. You get excellent gems for less silver.",
+        failureText: "His bodyguards step in. They rough up your guards and seize one bale of silk.",
         riskChance: 0.50,
         rewards: { silver: 45, goods: 5 },
         penalties: { goods: -5, guards: -1, morale: -8 }
       },
       {
         id: "bazaar_3",
-        buttonText: "Threaten to take your business to his primary competitor",
-        successText: "Total leverage. He panics and dumps his best stock on you at a massive loss just to keep the account.",
-        failureText: "A fatal miscalculation. You are ambushed by his men while trying to leave the alley. Hostile takeover.",
+        buttonText: "Threaten to trade with a rival stall",
+        successText: "He panics and offers his best goods at a very low price.",
+        failureText: "The plan backfires. His men ambush your group in the alley.",
         riskChance: 0.85,
         rewards: { silver: 100, culturalExchange: 4 },
         penalties: { silver: -50, goods: -10, morale: -15 }
@@ -217,11 +217,11 @@ const EVENTS: GameEvent[] = [
     ]
   },
 
-  {id:"parthian_toll",phase_min:0.55,phase_max:0.75,weight:4,title:"The Parthian Border",text:"Parthian soldiers block the road. The empire controls all trade heading to Rome. Toll: an un-negotiable 20% tariff on all goods. Welcome to international commerce.",choices:[
-    {text:"Pay the tariff. Cost of doing business.",effects:{goods:-20,morale:-2},result:"They take exactly 20%. Professional thieves with excellent paperwork."},
+  {id:"parthian_toll",phase_min:0.55,phase_max:0.75,weight:4,title:"The Parthian Border",text:"Parthian soldiers block the road. Their empire controls this trade route to Rome. Toll: 20% of your goods.",choices:[
+    {text:"Pay the toll and move on.",effects:{goods:-20,morale:-2},result:"They take exactly 20%, then wave you through."},
     {text:"Negotiate. Offer 10% and 'exclusive intelligence'.",outcomes:[
       {weight:5,effects:{goods:-10,culturalExchange:1,morale:2},result:"The captain is more interested in Chinese military innovations than silk. You trade stories for a discount."},
-      {weight:5,effects:{goods:-25,morale:-4},result:"They reject your counter-offer and take 25% for wasting their time. A brutal lesson in leverage."}
+      {weight:5,effects:{goods:-25,morale:-4},result:"They reject your offer and take 25% for the delay."}
     ]},
     {text:"Find an undocumented bypass route.",outcomes:[
       {weight:4,effects:{silver:-25,morale:3},result:"You bribe a shepherd to show you a goat trail. It adds three days, but you avoid the tariff entirely."},
@@ -230,26 +230,26 @@ const EVENTS: GameEvent[] = [
   ]},
   
   // ── ROMAN WORLD (0.7-1.0) ──
-  {id:"antioch",phase_min:0.75,phase_max:0.88,weight:5,title:"Antioch — Rome's Eastern Door",text:"Antioch. You can smell the Mediterranean. Roman merchants swarm your caravan like vultures. They are offering 60x your original Chang'an procurement price before you've even unpacked.",choices:[
-    {text:"Sell here. 60x. Cash out and retire.",effects:{morale:8},result:"6,000 silver. Your KPIs are completely shattered. The road to Constantinople is dangerous, let someone else handle the final mile.",earlyEnd:true},
-    {text:"Sell half. Save the premium stock for Constantinople.",effects:{goods:-50,silver:3000,morale:4},result:"Half gone at 60x. You keep the finest silk for the richest city in the world. Excellent revenue management."},
-    {text:"Buy Roman goods to establish a two-way pipeline.",outcomes:[
+  {id:"antioch",phase_min:0.75,phase_max:0.88,weight:5,title:"Antioch — Rome's Eastern Door",text:"Antioch sits near the Mediterranean Sea. Roman merchants crowd around your caravan and offer 60x your starting price.",choices:[
+    {text:"Sell here for 60x and end the trip.",effects:{morale:8},result:"6,000 silver. A huge success, and a safe ending.",earlyEnd:true},
+    {text:"Sell half. Save the best silk for Constantinople.",effects:{goods:-50,silver:3000,morale:4},result:"Half sells for 60x. You keep top silk for one last market."},
+    {text:"Buy Roman goods for the return trip.",outcomes:[
       {weight:6,effects:{silver:-100,goods:10,culturalExchange:3},result:"Roman glassware and gold coins. If you survive the return trip, this sells for 50x in Chang'an. You are building an empire."},
       {weight:4,effects:{silver:-100,goods:5},result:"You bought overpriced tourist junk. The locals definitely saw you coming."}
     ]}
   ]},
-  {id:"roman_silk",phase_min:0.7,phase_max:0.95,weight:3,title:"The Senate's Obsession",text:"Roman senators are so obsessed with Chinese silk that the government is trying to regulate it. A senator's wife approaches you for an off-the-books transaction. Double the going rate, paid in gold.",choices:[
-    {text:"Take the deal. We are merchants, not compliance officers.",outcomes:[
+  {id:"roman_silk",phase_min:0.7,phase_max:0.95,weight:3,title:"The Senate's Obsession",text:"Roman nobles love Chinese silk. A senator's wife asks for a secret sale and offers double price in gold.",choices:[
+    {text:"Take the secret deal.",outcomes:[
       {weight:5,effects:{goods:-30,silver:600,morale:3},result:"Done in a warehouse at midnight. She pays in gold. You don't ask for a receipt."},
       {weight:5,effects:{goods:-30,silver:600,morale:-5,guards:-1},result:"A sting operation! Roman guards raid the warehouse. You escape with the gold, but lose a guard to a gladius."}
     ]},
-    {text:"Stick to the public market. Legal and audited.",effects:{goods:-20,silver:200,morale:2},result:"Fair price. Legal. Incredibly boring. Your men are disappointed in your lack of ambition."},
-    {text:"Use the silk to 'lobby' influential Romans.",effects:{goods:-10,culturalExchange:3,morale:4},result:"You give the silk away as 'gifts'. They will remember you. Business is built on relationships, not single transactions."}
+    {text:"Sell only in the public market.",effects:{goods:-20,silver:200,morale:2},result:"You get a fair legal price, with less danger."},
+    {text:"Give silk gifts to build friendships.",effects:{goods:-10,culturalExchange:3,morale:4},result:"Important Romans remember your caravan and treat you kindly."}
   ]},
-  {id:"constantinople_arrival",phase_min:0.92,phase_max:1.0,weight:6,title:"The Golden City",text:"Constantinople. The markets overflow with goods. Your remaining inventory is currently valued at 100x what you paid in Chang'an. You survived the world's longest business trip.",choices:[
-    {text:"Liquidate everything at 100x.",effects:{morale:10},result:"The ultimate payoff. You crossed deserts, mountains, and hostile corporate takeovers. Every bale of silk sold at maximum value.",earlyEnd:true},
+  {id:"constantinople_arrival",phase_min:0.92,phase_max:1.0,weight:6,title:"The Golden City",text:"Constantinople's markets overflow with goods from many lands. Your remaining silk is worth 100x what you paid in Chang'an. You have crossed one of history's greatest trade routes.",choices:[
+    {text:"Sell everything at 100x.",effects:{morale:10},result:"A great finish. Every bale sells at top price.",earlyEnd:true},
     {text:"Sell the goods, but keep one bale for yourself.",effects:{goods:-5,morale:8,culturalExchange:1},result:"You keep the finest silk as a severance package. In old age, you'll look at it and remember the Taklamakan."},
-    {text:"Establish a permanent branch office.",effects:{silver:-200,culturalExchange:5,morale:6},result:"You hire local reps, rent a warehouse, and establish a permanent B2B connection between east and west. You are no longer a merchant; you are an institution."}
+    {text:"Open a permanent trade house.",effects:{silver:-200,culturalExchange:5,morale:6},result:"You hire locals, rent a warehouse, and build a lasting east-west trade link."}
   ]}
 ];
 
@@ -275,7 +275,7 @@ function SilkRoadOutfit({ onDone }: { onDone: (config: CaravanConfig) => void })
   const remaining = OUTFIT_BUDGET - spent;
 
   const ratio = goods / camels;
-  const loadLabel = ratio > 8 ? "OSHA Violation" : ratio > 6 ? "Heavy" : ratio > 4 ? "Optimized" : "Underutilized";
+  const loadLabel = ratio > 8 ? "Dangerously heavy" : ratio > 6 ? "Heavy" : ratio > 4 ? "Balanced" : "Light";
   const loadColor = ratio > 8 ? "text-red-500" : ratio > 6 ? "text-orange-400" : ratio > 4 ? "text-emerald-400" : "text-blue-400";
 
   return (
@@ -283,33 +283,33 @@ function SilkRoadOutfit({ onDone }: { onDone: (config: CaravanConfig) => void })
       <div className="flex-1 overflow-y-auto p-4">
         <div className="max-w-lg mx-auto space-y-4">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-indigo-400">PROCUREMENT PHASE</h1>
-            <p className="text-stone-500 text-xs mt-1">Chang'an Logistics Hub · 130 BCE</p>
+            <h1 className="text-2xl font-bold text-indigo-400">PREPARE THE CARAVAN</h1>
+            <p className="text-stone-500 text-xs mt-1">Chang'an Caravan Yard · 130 BCE</p>
           </div>
           <div className="bg-stone-800 border border-stone-700 rounded p-3 text-xs text-stone-300 leading-relaxed">
-            <p>The Han Emperor has approved your budget. You have <span className="text-indigo-300 font-bold">{OUTFIT_BUDGET} silver</span> to acquire assets for the western expansion. Do not embarrass the dynasty.</p>
+            <p>The Han Emperor funds your journey. You have <span className="text-indigo-300 font-bold">{OUTFIT_BUDGET} silver</span> to prepare your caravan for the long road west.</p>
           </div>
 
           <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-3">
             <div>
               <div className="flex justify-between text-sm"><span>🐫 Camels</span><span className="text-amber-300 font-bold">{camels}</span></div>
               <input type="range" min={0} max={15} value={extraCamels} onChange={e => setExtraCamels(+e.target.value)} className="w-full accent-amber-500" />
-              <p className="text-xs text-stone-500">15 silver each · Core transport infrastructure</p>
+              <p className="text-xs text-stone-500">15 silver each · Main transport animals</p>
             </div>
             <div>
               <div className="flex justify-between text-sm"><span>⚔️ Guards</span><span className="text-amber-300 font-bold">{guards}</span></div>
               <input type="range" min={0} max={8} value={extraGuards} onChange={e => setExtraGuards(+e.target.value)} className="w-full accent-amber-500" />
-              <p className="text-xs text-stone-500">30 silver each · Risk management contractors</p>
+              <p className="text-xs text-stone-500">30 silver each · Protect the caravan</p>
             </div>
             <div>
               <div className="flex justify-between text-sm"><span>💧 Water</span><span className="text-amber-300 font-bold">{water}</span></div>
               <input type="range" min={0} max={25} value={extraWater} onChange={e => setExtraWater(+e.target.value)} className="w-full accent-amber-500" />
-              <p className="text-xs text-stone-500">2 silver per skin · Keeps the assets alive</p>
+              <p className="text-xs text-stone-500">2 silver per skin · Keeps everyone alive</p>
             </div>
             <div>
               <div className="flex justify-between text-sm"><span>📦 Inventory</span><span className="text-amber-300 font-bold">{goods}</span></div>
               <input type="range" min={0} max={40} value={extraGoods} onChange={e => setExtraGoods(+e.target.value)} className="w-full accent-amber-500" />
-              <p className="text-xs text-stone-500">3 silver per bale · Silk, jade, bronze (Your ROI)</p>
+              <p className="text-xs text-stone-500">3 silver per bale · Silk, jade, and bronze</p>
             </div>
           </div>
 
@@ -324,7 +324,7 @@ function SilkRoadOutfit({ onDone }: { onDone: (config: CaravanConfig) => void })
             </div>
           </div>
 
-          {remaining < 0 && <p className="text-red-400 text-xs text-center">Over budget! Corporate will not approve this PO.</p>}
+          {remaining < 0 && <p className="text-red-400 text-xs text-center">Over budget! Remove supplies to continue.</p>}
 
           <div className="text-center pb-4">
             <button
@@ -617,12 +617,12 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
              </div>
           </div>
           <div className="border border-stone-700 rounded p-3 bg-stone-800/80 text-left space-y-2 text-sm text-stone-300 leading-relaxed">
-            <p>You are a lead account executive for the Han Dynasty. Your territory is "The West." Your quota is to move silk, jade, and bronze 4,000 miles through the deadliest deserts and mountains on earth.</p>
+            <p>You lead a Han caravan heading west. Carry silk, jade, and bronze 4,000 miles across deserts and mountains.</p>
             <p>Your inventory costs 50 silver in Chang'an. In Constantinople, it's worth 5,000.</p>
-            <p className="text-indigo-300 font-bold">That's 100x ROI. The Emperor does not care about your supply chain issues.</p>
+            <p className="text-indigo-300 font-bold">That can be a 100x gain. The road is hard, so plan carefully.</p>
           </div>
-          <p className="text-xs text-stone-500 italic">Middlemen at every city will offer to buy your route out. Sell early and safe, or push west to hit your ultimate KPIs.</p>
-          <button onClick={start} className="px-6 py-2.5 bg-indigo-700 hover:bg-indigo-600 text-white font-bold rounded transition-colors tracking-wide">REQUEST PROCUREMENT BUDGET</button>
+          <p className="text-xs text-stone-500 italic">Cities along the way will offer to buy your goods. Sell early for safety, or keep going for a bigger reward.</p>
+          <button onClick={start} className="px-6 py-2.5 bg-indigo-700 hover:bg-indigo-600 text-white font-bold rounded transition-colors tracking-wide">START THE JOURNEY</button>
           <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors">← Back to Campaigns</button>
         </div>
       </div>
@@ -647,20 +647,20 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
       <div className="h-screen bg-stone-900 text-stone-100 p-4 overflow-y-auto" style={{ fontFamily: "'Georgia',serif" }}>
         <div className="max-w-lg mx-auto space-y-4">
           <h1 className={`text-2xl font-bold text-center ${state.survived ? "text-indigo-400" : "text-red-500"}`}>
-            {state.survived ? (state.earlySale ? `ACCOUNT CLOSED: ${state.saleCity.toUpperCase()}` : "CONSTANTINOPLE") : "OPERATIONAL FAILURE"}
+            {state.survived ? (state.earlySale ? `JOURNEY ENDS: ${state.saleCity.toUpperCase()}` : "CONSTANTINOPLE") : "JOURNEY FAILED"}
           </h1>
           <p className="text-center text-stone-300 text-sm">
             {state.survived
-              ? state.earlySale ? `Liquidated inventory at ${mult}x in ${state.saleCity}. ${Math.round(progress)}% of the pipeline complete.`
-              : `Full logistical journey complete. Inventory sold at 100x in Constantinople.`
-              : `Your assets perished on day ${state.day}. The desert does not accept excuses.`}
+              ? state.earlySale ? `You sold your goods at ${mult}x in ${state.saleCity}. You completed ${Math.round(progress)}% of the route.`
+              : `You finished the full route and sold at 100x in Constantinople.`
+              : `Your caravan failed on day ${state.day}. The desert is unforgiving.`}
           </p>
 
           {/* Profit Ledger */}
           <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1 text-xs">
-            <h2 className="text-indigo-300 font-bold uppercase tracking-wide text-center mb-1">Q3 Financial Ledger</h2>
-            <div className="flex justify-between text-stone-400"><span>Procurement Overhead</span><span className="text-red-400">-{cost} silver</span></div>
-            {state.survived && <div className="flex justify-between text-stone-400"><span>Gross Revenue ({mult}x)</span><span className="text-emerald-400">+{revenue} silver</span></div>}
+            <h2 className="text-indigo-300 font-bold uppercase tracking-wide text-center mb-1">Journey Ledger</h2>
+            <div className="flex justify-between text-stone-400"><span>Starting Costs</span><span className="text-red-400">-{cost} silver</span></div>
+            {state.survived && <div className="flex justify-between text-stone-400"><span>Total Sale ({mult}x)</span><span className="text-emerald-400">+{revenue} silver</span></div>}
             <div className="border-t border-stone-600 mt-1 pt-1 flex justify-between font-bold">
               <span className="text-stone-200">Net Profit</span>
               <span className={profit >= 0 ? "text-emerald-400" : "text-red-500"}>{profit >= 0 ? "+" : ""}{profit} silver</span>
@@ -669,7 +669,7 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
 
           {/* Cultural Exchange */}
           <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1 text-xs">
-            <h2 className="text-amber-300 font-bold uppercase tracking-wide text-center mb-1">Cultural KPI (Networking)</h2>
+            <h2 className="text-amber-300 font-bold uppercase tracking-wide text-center mb-1">Cultural Exchange</h2>
             <div className="flex justify-between font-bold">
               <span className="text-stone-200">Knowledge Shared</span>
               <span className="text-amber-400">{state.culturalExchange} points</span>
@@ -684,13 +684,13 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
                 ))}
               </div>
             )}
-            {state.culturalExchange === 0 && <p className="text-stone-600 text-center italic mt-1">Zero cultural impact. You strictly treated this as a transactional relationship.</p>}
+            {state.culturalExchange === 0 && <p className="text-stone-600 text-center italic mt-1">No exchanges recorded. You mostly traded and moved on.</p>}
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1">
-              <h2 className="text-indigo-300 font-bold text-xs uppercase tracking-wide text-center">Operational Metrics</h2>
+              <h2 className="text-indigo-300 font-bold text-xs uppercase tracking-wide text-center">Journey Stats</h2>
               {([["Reached", cityReached], ["Days", `${state.day}`], ["Distance", `${Math.round(state.distance)} mi`], ["Active Camels", `${r.camels}`]] as [string, string][]).map(([l, v]) => (
                 <div key={l} className="flex justify-between text-stone-400 text-xs"><span>{l}</span><span className="text-stone-200">{v}</span></div>
               ))}
@@ -752,13 +752,13 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
         <div className="max-w-lg mx-auto text-xs space-y-1">
           <div className="flex justify-between items-center">
             <span>📦 Inventory <span className="text-amber-300 font-bold">{r.goods}</span></span>
-            <span>🐫 Assets <span className="text-amber-300 font-bold">{r.camels}</span></span>
-            <span>⚔️ Contractors <span className="text-amber-300 font-bold">{r.guards}</span></span>
-            <span>💰 Capital <span className="text-amber-300 font-bold">{r.silver}</span></span>
+            <span>🐫 Camels <span className="text-amber-300 font-bold">{r.camels}</span></span>
+            <span>⚔️ Guards <span className="text-amber-300 font-bold">{r.guards}</span></span>
+            <span>💰 Silver <span className="text-amber-300 font-bold">{r.silver}</span></span>
           </div>
           {([
             ["💧 Hydration", r.water, r.water < 15 ? "bg-red-500" : "bg-blue-500"],
-            ["😊 Synergy", r.morale, r.morale < 25 ? "bg-red-500" : "bg-green-500"],
+            ["😊 Spirit", r.morale, r.morale < 25 ? "bg-red-500" : "bg-green-500"],
           ] as [string, number, string][]).map(([label, val, color]) => (
             <div key={label} className="flex items-center gap-2">
               <span className="w-20 text-stone-400">{label}</span>
@@ -769,7 +769,7 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
             </div>
           ))}
           <div className="flex items-center gap-2">
-            <span className="w-20 text-stone-400">📜 Networking</span>
+            <span className="w-20 text-stone-400">📜 Exchange</span>
             <div className="flex-1 bg-stone-700 rounded-full h-2.5">
               <div className="bg-amber-500 h-2.5 rounded-full transition-all" style={{ width: `${Math.min(state.culturalExchange / 30 * 100, 100)}%` }} />
             </div>
@@ -792,27 +792,27 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
             <div className="space-y-3">
               <div className="border border-stone-700 rounded p-3 bg-stone-800/80">
                 <p className="text-stone-300 text-sm leading-relaxed">
-                  {r.water < 10 ? "Hydration levels critical. The camel assets are depreciating rapidly." :
-                   r.morale < 25 ? "Workplace morale is abysmal. The contractors are discussing a strike." :
-                   r.camels < 8 ? "Severe logistical bottleneck. You don't have enough camels for this inventory." :
-                   progress > 80 ? "The Mediterranean market is close. You can smell the final payout." :
-                   progress > 50 ? "Entering the Persian territory. The worst operational hazards are behind you." :
-                   progress > 30 ? "The mountains loom ahead. This is where the supply chain usually breaks." :
-                   "The caravan moves west. Just you and the operational overhead."}
+                  {r.water < 10 ? "Water is very low. Find a well soon." :
+                   r.morale < 25 ? "The caravan is tired and worried. Spirits are low." :
+                   r.camels < 8 ? "You have few camels left. Carry only what you must." :
+                   progress > 80 ? "The Mediterranean world is close. One last push." :
+                   progress > 50 ? "You are crossing Persian lands. Keep watch on every road." :
+                   progress > 30 ? "The mountains rise ahead. Weather and cliffs are dangerous." :
+                   "The caravan heads west across the great trade road."}
                 </p>
               </div>
               <div className="flex gap-2">
                 <button onClick={() => { setState(p => ({ ...p, pace: "easy" })); advance(); }} className="flex-1 py-2 bg-stone-700 hover:bg-stone-600 rounded text-xs font-bold transition-colors">
-                  🐫 Risk-Averse
+                  🐫 Cautious
                   <br /><span className="text-stone-500 font-normal">Slow · Retains water</span>
                 </button>
                 <button onClick={() => { setState(p => ({ ...p, pace: "normal" })); advance(); }} className="flex-1 py-2 bg-indigo-800 hover:bg-indigo-700 rounded text-xs font-bold transition-colors">
-                  🐫🐫 Optimized
-                  <br /><span className="text-stone-400 font-normal">Standard KPI</span>
+                  🐫🐫 Steady
+                  <br /><span className="text-stone-400 font-normal">Balanced pace</span>
                 </button>
                 <button onClick={() => { setState(p => ({ ...p, pace: "push" })); advance(); }} className="flex-1 py-2 bg-red-900 hover:bg-red-800 rounded text-xs font-bold transition-colors">
                   🐫🐫🐫 Aggressive
-                  <br /><span className="text-stone-400 font-normal">High Burn Rate</span>
+                  <br /><span className="text-stone-400 font-normal">Fast, high risk</span>
                 </button>
               </div>
             </div>

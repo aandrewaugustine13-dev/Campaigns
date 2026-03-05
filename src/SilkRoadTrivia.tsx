@@ -28,7 +28,7 @@ const SAGES: Record<string, Sage> = {
     name: "Zhang Qian",
     title: "Imperial Envoy",
     region: "Gansu Corridor",
-    flavor: "A weathered traveler blocks your path. He carries no weapons — only scrolls and an expression that says he's seen every stupid decision a caravan can make. He offers you a deal: answer his question, and he'll share something useful.",
+    flavor: "A weathered traveler blocks your path. He carries scrolls instead of weapons. He offers a challenge: answer his question, and he will share a useful lesson.",
   },
   mountain: {
     name: "Ashoka's Pilgrim",
@@ -40,13 +40,13 @@ const SAGES: Record<string, Sage> = {
     name: "Rostam the Scribe",
     title: "Sogdian Scholar",
     region: "Samarkand",
-    flavor: "A Sogdian scholar in an ink-stained robe intercepts you in the bazaar. He's writing a history of every caravan that passes through. He'll add your name to the 'competent' list if you can answer one question. The alternative list is much less flattering.",
+    flavor: "A Sogdian scholar in an ink-stained robe greets you in the bazaar. He records stories of each caravan that passes. Answer one question, and your journey will be written in his history.",
   },
   western: {
     name: "Theodora",
     title: "Roman Historian",
     region: "Anatolia",
-    flavor: "A Greek-speaking scholar stops your caravan at a crossroads. She's cataloging trade goods for the Roman Senate and is deeply unimpressed with most merchants' knowledge of their own supply chain. Prove you understand what you're carrying and she'll expedite your customs paperwork.",
+    flavor: "A Greek-speaking scholar stops your caravan at a crossroads. She records trade goods for the Roman Senate. Show that you understand your cargo, and she will help your caravan pass customs quickly.",
   },
 };
 
