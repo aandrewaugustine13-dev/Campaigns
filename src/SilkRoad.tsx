@@ -121,7 +121,7 @@ const EVENTS: GameEvent[] = [
         id: "outpost_1",
         buttonText: "Search the outer courtyard",
         successText: "You find a half-buried lockbox of silver coins from the old garrison.",
-        failureText: "A guard sprained his ankle on loose stones. Complete waste of time.",
+        failureText: "A guard sprains an ankle on loose stones. You lose time and morale.",
         riskChance: 0.15,
         rewards: { silver: 25 },
         penalties: { morale: -3 }
@@ -165,7 +165,7 @@ const EVENTS: GameEvent[] = [
     {text:"Take the valley route. Longer, but safer.",effects:{water:-8,camels:-1,morale:1},result:"You spend five extra days, but everyone survives. One camel is hurt on loose rock."},
     {text:"Hire local Tajik guides.",outcomes:[
       {weight:7,effects:{silver:-20,culturalExchange:2,morale:3},result:"Money well spent. They know every switchback. They share local folklore, which your translator meticulously documents."},
-      {weight:3,effects:{silver:-20,goods:-15,morale:-5},result:"The 'guides' vanish in the night with fifteen bales of silk. You just got scammed."}
+      {weight:3,effects:{silver:-20,goods:-15,morale:-5},result:"The guides vanish in the night with fifteen bales of silk."}
     ]}
   ]},
 
@@ -212,7 +212,7 @@ const EVENTS: GameEvent[] = [
         id: "bazaar_3",
         buttonText: "Threaten to trade with a rival stall",
         successText: "He panics and offers his best goods at a very low price.",
-        failureText: "The plan backfires. His men ambush your group in the alley.",
+        failureText: "The plan fails, and his guards attack in the alley.",
         riskChance: 0.85,
         rewards: { silver: 100, culturalExchange: 4 },
         penalties: { silver: -50, goods: -10, morale: -15 }
@@ -228,7 +228,7 @@ const EVENTS: GameEvent[] = [
     ]},
     {text:"Find an undocumented bypass route.",outcomes:[
       {weight:4,effects:{silver:-25,morale:3},result:"You bribe a shepherd to show you a goat trail. It adds three days, but you avoid the tariff entirely."},
-      {weight:6,effects:{silver:-25,goods:-30,guards:-1,morale:-6},result:"The 'guide' leads you into an ambush. You lose 30 bales, a guard, and your dignity."}
+      {weight:6,effects:{silver:-25,goods:-30,guards:-1,morale:-6},result:"The guide leads you into an ambush. You lose 30 bales and a guard."}
     ]}
   ]},
   
@@ -244,7 +244,7 @@ const EVENTS: GameEvent[] = [
   {id:"roman_silk",phase_min:0.7,phase_max:0.95,weight:3,title:"The Senate's Obsession",text:"A Roman noble asks for a private silk sale. You could earn fast gold, but danger rises after dark.",choices:[
     {text:"Take the secret deal.",outcomes:[
       {weight:5,effects:{goods:-30,silver:600,morale:3},result:"Done in a warehouse at midnight. She pays in gold and leaves quickly."},
-      {weight:5,effects:{goods:-30,silver:600,morale:-5,guards:-1},result:"A sting operation! Roman guards raid the warehouse. You escape with the gold, but lose a guard to a gladius."}
+      {weight:5,effects:{goods:-30,silver:600,morale:-5,guards:-1},result:"Roman guards raid the warehouse. You escape with gold, but one guard is lost."}
     ]},
     {text:"Sell only in the public market.",effects:{goods:-20,silver:200,morale:2},result:"You get a fair legal price, with less danger."},
     {text:"Give silk gifts to build friendships.",effects:{goods:-10,culturalExchange:3,morale:4},result:"Important Romans remember your caravan and treat you kindly."}

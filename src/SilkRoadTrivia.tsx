@@ -152,7 +152,7 @@ const QUESTIONS: TriviaQuestion[] = [
       "It replaced all other Chinese religions completely",
     ],
     correctIndex: 2,
-    explanation: "When Buddhism reached China, it didn't just copy-paste — it mixed with existing Daoist and Confucian ideas to create uniquely Chinese forms like Chan Buddhism (later Zen in Japan). This is called syncretism: when cultures blend rather than replace each other. It's what makes cultural diffusion creative rather than destructive.",
+    explanation: "When Buddhism reached China, it blended with Daoist and Confucian ideas to create uniquely Chinese forms like Chan Buddhism (later Zen in Japan). This is called syncretism: when cultures blend rather than replace each other. It's what makes cultural diffusion creative rather than destructive.",
   },
   {
     id: "t09", region: "mountain", difficulty: 1,
@@ -222,7 +222,7 @@ const QUESTIONS: TriviaQuestion[] = [
     choices: [
       "Islam never spread along trade routes",
       "Muslim merchants actively practiced and shared their faith in trade cities",
-      "Buddhism spread faster because it had better marketing",
+      "Buddhism spread faster because rulers forced it",
       "Islam only spread through military conquest, never trade",
     ],
     correctIndex: 1,
