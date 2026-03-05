@@ -99,7 +99,7 @@ const EVENTS: GameEvent[] = [
       {weight:5,effects:{morale:-4},result:"He says your records are messy and gives you a fine."},
       {weight:5,effects:{morale:4},result:"He sees your hardships, approves your records, and lets you pass."}
     ]},
-    {text:"Gift him one bale of silk for the tax office.",effects:{goods:-5,culturalExchange:1},result:"He accepts the gift and promises to speak well of your caravan at the Ministry of Trade."}
+    {text:"Gift one bale of silk for the imperial storehouse.",effects:{goods:-5,culturalExchange:1},result:"He accepts the gift and marks your caravan as cooperative in his scroll."}
   ]},
 
   // 🔴 PUSH YOUR LUCK: ABANDONED OUTPOST 
@@ -117,7 +117,7 @@ const EVENTS: GameEvent[] = [
       {
         id: "outpost_1",
         buttonText: "Search the outer courtyard",
-        successText: "Found a half-buried lockbox of silver coins left by the quartermaster.",
+        successText: "You find a half-buried lockbox of silver coins from the old garrison.",
         failureText: "A guard sprained his ankle on loose stones. Complete waste of time.",
         riskChance: 0.15,
         rewards: { silver: 25 },
@@ -134,7 +134,7 @@ const EVENTS: GameEvent[] = [
       },
       {
         id: "outpost_3",
-        buttonText: "Dig into the commander's quarters",
+        buttonText: "Dig into the commander's rooms",
         successText: "Found the commander's personal stash and ancient tactical maps. A fortune.",
         failureText: "The entire structure caved in. It took hours to dig your men out. Morale is shattered.",
         riskChance: 0.75,
@@ -219,7 +219,7 @@ const EVENTS: GameEvent[] = [
 
   {id:"parthian_toll",phase_min:0.55,phase_max:0.75,weight:4,title:"The Parthian Border",text:"Parthian soldiers block the road. Their empire controls this trade route to Rome. Toll: 20% of your goods.",choices:[
     {text:"Pay the toll and move on.",effects:{goods:-20,morale:-2},result:"They take exactly 20%, then wave you through."},
-    {text:"Negotiate. Offer 10% and 'exclusive intelligence'.",outcomes:[
+    {text:"Negotiate. Offer 10% and useful news.",outcomes:[
       {weight:5,effects:{goods:-10,culturalExchange:1,morale:2},result:"The captain is more interested in Chinese military innovations than silk. You trade stories for a discount."},
       {weight:5,effects:{goods:-25,morale:-4},result:"They reject your offer and take 25% for the delay."}
     ]},
@@ -234,13 +234,13 @@ const EVENTS: GameEvent[] = [
     {text:"Sell here for 60x and end the trip.",effects:{morale:8},result:"6,000 silver. A huge success, and a safe ending.",earlyEnd:true},
     {text:"Sell half. Save the best silk for Constantinople.",effects:{goods:-50,silver:3000,morale:4},result:"Half sells for 60x. You keep top silk for one last market."},
     {text:"Buy Roman goods for the return trip.",outcomes:[
-      {weight:6,effects:{silver:-100,goods:10,culturalExchange:3},result:"Roman glassware and gold coins. If you survive the return trip, this sells for 50x in Chang'an. You are building an empire."},
-      {weight:4,effects:{silver:-100,goods:5},result:"You bought overpriced tourist junk. The locals definitely saw you coming."}
+      {weight:6,effects:{silver:-100,goods:10,culturalExchange:3},result:"Roman glassware and gold coins. If you return safely, these goods can sell for 50x in Chang'an."},
+      {weight:4,effects:{silver:-100,goods:5},result:"You paid too much for common trinkets. It is a costly lesson."}
     ]}
   ]},
   {id:"roman_silk",phase_min:0.7,phase_max:0.95,weight:3,title:"The Senate's Obsession",text:"Roman nobles love Chinese silk. A senator's wife asks for a secret sale and offers double price in gold.",choices:[
     {text:"Take the secret deal.",outcomes:[
-      {weight:5,effects:{goods:-30,silver:600,morale:3},result:"Done in a warehouse at midnight. She pays in gold. You don't ask for a receipt."},
+      {weight:5,effects:{goods:-30,silver:600,morale:3},result:"Done in a warehouse at midnight. She pays in gold and leaves quickly."},
       {weight:5,effects:{goods:-30,silver:600,morale:-5,guards:-1},result:"A sting operation! Roman guards raid the warehouse. You escape with the gold, but lose a guard to a gladius."}
     ]},
     {text:"Sell only in the public market.",effects:{goods:-20,silver:200,morale:2},result:"You get a fair legal price, with less danger."},
@@ -248,7 +248,7 @@ const EVENTS: GameEvent[] = [
   ]},
   {id:"constantinople_arrival",phase_min:0.92,phase_max:1.0,weight:6,title:"The Golden City",text:"Constantinople's markets overflow with goods from many lands. Your remaining silk is worth 100x what you paid in Chang'an. You have crossed one of history's greatest trade routes.",choices:[
     {text:"Sell everything at 100x.",effects:{morale:10},result:"A great finish. Every bale sells at top price.",earlyEnd:true},
-    {text:"Sell the goods, but keep one bale for yourself.",effects:{goods:-5,morale:8,culturalExchange:1},result:"You keep the finest silk as a severance package. In old age, you'll look at it and remember the Taklamakan."},
+    {text:"Sell the goods, but keep one bale for yourself.",effects:{goods:-5,morale:8,culturalExchange:1},result:"You keep the finest silk as a memory of your long desert journey."},
     {text:"Open a permanent trade house.",effects:{silver:-200,culturalExchange:5,morale:6},result:"You hire locals, rent a warehouse, and build a lasting east-west trade link."}
   ]}
 ];
