@@ -12,12 +12,15 @@ interface Resources { [key: string]: number; }
 interface Outcome { weight: number; effects: Resources; result: string; earlyEnd?: boolean; }
 interface Choice { text: string; effects?: Resources; result?: string; outcomes?: Outcome[]; earlyEnd?: boolean; }
 interface PushAttempt { id: string; buttonText: string; successText: string; failureText: string; riskChance: number; rewards: Resources; penalties: Resources; }
+interface SageAdvice { name: string; role: string; line: string; }
 interface GameEvent { 
   id: string; phase_min: number; phase_max: number; weight: number; title: string; text: string; 
   type?: "standard" | "push_luck"; 
   choices?: Choice[];              
   attempts?: PushAttempt[];        
   leaveText?: string;
+  trivia?: string[];
+  sageAdvice?: SageAdvice[];
   image?: string; // 🔴 NEW: Image support             
 }
 interface Decision { event: string; choice: string; day: number; }
@@ -78,7 +81,7 @@ function pickEvent(day: number, td: number, evts: GameEvent[], used: Set<string>
 
 const EVENTS: GameEvent[] = [
   // ── DESERT PHASE (0-0.3) ──
-  {id:"taklamakan",phase_min:0,phase_max:0.25,weight:5,title:"The Sea of Death",text:"The Taklamakan Desert is one of the driest places on Earth. Local guides warn that many caravans vanish there. Two routes: north along the oases (longer, but has water), or straight through (three days, almost no wells).",choices:[
+  {id:"taklamakan",phase_min:0,phase_max:0.25,weight:5,title:"The Sea of Death",text:"The Taklamakan Desert is one of the driest places on Earth. Local guides warn that many caravans vanish there. Two routes: north along the oases (longer, but has water), or straight through (three days, almost no wells).",trivia:["Many Silk Road caravans traveled at dawn and dusk to save water.","Desert route markers were often bones, stones, and old camp ash."],sageAdvice:[{name:"Master Liu",role:"Han mapmaker",line:"Follow oasis paths when you can. Water keeps animals and people alive."},{name:"Amina",role:"Sogdian guide",line:"Tie bells to lead camels at night. In storms, sound helps your group stay together."}],choices:[
     {text:"Take the northern route. Follow the oasis trail.",outcomes:[
       {weight:6,effects:{water:-8,camels:-1},result:"Slow travel, but the oases keep the caravan alive. One camel collapses in the dunes."},
       {weight:4,effects:{water:-4,morale:3},result:"Your guide finds every hidden well. The caravan stays strong and hopeful."}
