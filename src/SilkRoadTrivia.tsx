@@ -214,7 +214,7 @@ const QUESTIONS: TriviaQuestion[] = [
       "It was a metaphor — no actual roads existed",
     ],
     correctIndex: 1,
-    explanation: "The Silk Road was actually dozens of interconnected routes that shifted based on geography, weather, politics, and banditry. If one pass was snowed in, merchants took another. If a kingdom started charging too much tax, trade flowed around it. It was adaptive — like the internet, but with camels.",
+    explanation: "The Silk Road was actually dozens of interconnected routes that shifted based on geography, weather, politics, and banditry. If one pass was snowed in, merchants took another. If a kingdom started charging too much tax, trade flowed around it. It was flexible, with many paths that changed over time.",
   },
   {
     id: "t14", region: "central", difficulty: 2,
@@ -234,7 +234,7 @@ const QUESTIONS: TriviaQuestion[] = [
     choices: [
       "Romans learning to make silk from the Chinese",
       "Chinese learning glassmaking techniques from the Romans",
-      "Americans inventing the internet",
+      "Modern computers connecting the world",
       "Egyptians building the pyramids",
     ],
     correctIndex: 1,
@@ -585,7 +585,7 @@ export default function TriviaEngine({ question, progress, streak, onComplete }:
                   ).join(" · ")}
                 </p>
                 {streak >= 1 && getStreakMultiplier(streak) > 1 && (
-                  <p className="text-xs text-amber-500 mt-1">({getStreakMultiplier(streak)}x streak bonus applied)</p>
+                  <p className="text-xs text-amber-500 mt-1">({getStreakMultiplier(streak)}x streak reward added)</p>
                 )}
               </div>
             )}

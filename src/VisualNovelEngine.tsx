@@ -1,5 +1,11 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { getDoomFace } from "./AssetConfig";
+
+interface SageAdvice {
+  name: string;
+  role: string;
+  line: string;
+}
 
 interface VisualNovelProps {
   currentEvent: any;
@@ -10,6 +16,25 @@ interface VisualNovelProps {
 
 export default function VisualNovelEngine({ currentEvent, handleChoice, bossHealth, scoutHealth }: VisualNovelProps) {
   if (!currentEvent) return null;
+
+  const [showSages, setShowSages] = useState(false);
+
+  useEffect(() => {
+    setShowSages(false);
+  }, [currentEvent?.id]);
+
+  const didYouKnow = useMemo(() => {
+    const trivia = Array.isArray(currentEvent.trivia) ? currentEvent.trivia : [];
+    if (trivia.length === 0) return null;
+    const key = String(currentEvent.id || currentEvent.title || "event");
+    const seed = key.split("").reduce((sum: number, ch: string) => sum + ch.charCodeAt(0), 0);
+    return trivia[seed % trivia.length];
+  }, [currentEvent]);
+
+  const sageLines: SageAdvice[] = useMemo(() => {
+    const sages = Array.isArray(currentEvent.sageAdvice) ? currentEvent.sageAdvice : [];
+    return sages.slice(0, 2);
+  }, [currentEvent]);
 
   return (
     <div className="border-4 border-[#1a0f0a]">
@@ -80,6 +105,33 @@ export default function VisualNovelEngine({ currentEvent, handleChoice, bossHeal
           <p className="text-[#5c3a21] font-bold text-sm mb-2 drop-shadow-sm leading-snug">
             {currentEvent.text}
           </p>
+
+          {didYouKnow && (
+            <p className="text-[#6e4b2c] text-xs mb-2 bg-[#f3dfb4] border border-[#d1b07b] rounded px-2 py-1">
+              <span className="font-bold">Did you know?</span> {didYouKnow}
+            </p>
+          )}
+
+          {sageLines.length > 0 && (
+            <div className="mb-2">
+              <button
+                onClick={() => setShowSages(v => !v)}
+                className="text-xs font-bold px-2 py-1 rounded border-2 border-[#b88645] bg-[#d4a86a] hover:bg-[#ffdf99] text-[#4a2e1b]"
+              >
+                {showSages ? "Hide Sage Advice" : "Ask a Sage"}
+              </button>
+              {showSages && (
+                <div className="mt-1 space-y-1">
+                  {sageLines.map((sage, i) => (
+                    <p key={i} className="text-xs text-[#5c3a21] bg-[#f7e7c5] border border-[#d1b07b] rounded px-2 py-1">
+                      <span className="font-bold">{sage.name}</span> ({sage.role}): {sage.line}
+                    </p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="space-y-1">
             {currentEvent.choices.map((c: any, i: number) => (
               <button
