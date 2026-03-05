@@ -8,6 +8,44 @@ interface VisualNovelProps {
   scoutHealth: number;
 }
 
+function SageReveal({ sages }: { sages: { name: string; role: string; line: string }[] }) {
+  const [open, setOpen] = React.useState(false);
+  const sage = sages[0]; // Show first sage
+  return (
+    <div className="mb-2">
+      {!open ? (
+        <button
+          onClick={() => setOpen(true)}
+          className="w-full text-left p-1.5 bg-[#b89060]/60 border border-[#a07850] rounded text-[#4a2e1b] text-xs font-bold hover:bg-[#c4a070] transition-colors"
+        >
+          🧙 Ask a Sage for guidance…
+        </button>
+      ) : (
+        <div className="bg-[#b89060]/60 border border-[#a07850] rounded p-2">
+          <p className="text-[#4a2e1b] text-xs font-bold">{sage.name}, {sage.role}:</p>
+          <p className="text-[#4a2e1b] text-xs italic mt-0.5">"{sage.line}"</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TriviaBox({ trivia }: { trivia: string[] }) {
+  const text = React.useMemo(
+    () => trivia[Math.floor(Math.random() * trivia.length)],
+    // New trivia fact is picked once per trivia array reference (i.e., per event)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [trivia]
+  );
+  return (
+    <div className="bg-[#c4956a] border-2 border-[#a07850] rounded p-2 mb-2">
+      <p className="text-[#4a2e1b] text-xs italic">
+        💡 <strong>Did you know?</strong> {text}
+      </p>
+    </div>
+  );
+}
+
 export default function VisualNovelEngine({ currentEvent, handleChoice, bossHealth, scoutHealth }: VisualNovelProps) {
   if (!currentEvent) return null;
 
@@ -80,6 +118,14 @@ export default function VisualNovelEngine({ currentEvent, handleChoice, bossHeal
           <p className="text-[#5c3a21] font-bold text-sm mb-2 drop-shadow-sm leading-snug">
             {currentEvent.text}
           </p>
+          {/* Did you know? */}
+          {currentEvent.trivia && currentEvent.trivia.length > 0 && (
+            <TriviaBox trivia={currentEvent.trivia} />
+          )}
+          {/* Ask a Sage */}
+          {currentEvent.sageAdvice && currentEvent.sageAdvice.length > 0 && (
+            <SageReveal sages={currentEvent.sageAdvice} />
+          )}
           <div className="space-y-1">
             {currentEvent.choices.map((c: any, i: number) => (
               <button

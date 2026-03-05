@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import PushYourLuckEngine from "./PushYourLuckEngine";
 import DoomHUD from "./DoomHUD";
 import { getDoomFace } from "./AssetConfig";
@@ -18,7 +18,9 @@ interface GameEvent {
   choices?: Choice[];              
   attempts?: PushAttempt[];        
   leaveText?: string;
-  image?: string; // 🔴 NEW: Image support             
+  image?: string; // 🔴 NEW: Image support
+  trivia?: string[];
+  sageAdvice?: { name: string; role: string; line: string }[];
 }
 interface Decision { event: string; choice: string; day: number; }
 
@@ -91,7 +93,7 @@ const EVENTS: GameEvent[] = [
       {weight:5,effects:{water:-6,morale:2,silver:-15},result:"They arrive and charge an extortionate consulting fee to let you follow them. Safer, though."},
       {weight:5,effects:{water:-12,morale:-5},result:"You wait four days. Nobody shows up. Time is money, and you just burned both."}
     ]}
-  ]},
+  ],trivia:["The name Taklamakan may mean 'place of no return' in the local Uyghur language.","Ancient travelers left markers in the sand so others could find the oases. Many markers were buried by shifting dunes."],sageAdvice:[{name:"Zhang Qian",role:"Imperial Envoy",line:"Follow the mountains on the northern edge. The oases there have saved many caravans before yours."}]},
   
   {id:"imperial_audit",image:"evt_audit.png",phase_min:0.05,phase_max:0.35,weight:4,title:"The Mid-Desert Performance Review",text:"A low-level Han bureaucrat catches up to your caravan on a remarkably fast horse. He ignores the starving camels, pulls out a bamboo scroll, and informs you that your 'silver burn rate is unacceptable' and you are behind on your Q3 silk projections.",choices:[
     {text:"Bribe him to falsify the report.",effects:{silver:-25,morale:2},result:"25 silver changes hands. He notes that your 'operational efficiency is exceeding expectations' and rides back east. Middle management is universal."},
@@ -113,6 +115,13 @@ const EVENTS: GameEvent[] = [
     title: "Abandoned Han Outpost",
     text: "You find a ruined watchtower half-buried in the dunes. The garrison is long gone, probably due to budget cuts. There might be abandoned supplies inside, but the stone roof looks like a massive liability.",
     leaveText: "Ignore it. Not worth the worker's comp claims.",
+    trivia: [
+      "The Han Dynasty built a chain of watchtowers along the Silk Road stretching for thousands of miles to protect trade caravans.",
+      "Soldiers stationed at desert outposts sent messages using smoke signals during the day and torchlight at night.",
+    ],
+    sageAdvice: [
+      { name: "Wei Qing", role: "Han General", line: "These towers were built to last, but the desert lasts longer. Whatever the soldiers left behind, it is yours now — if you dare." },
+    ],
     attempts: [
       {
         id: "outpost_1",
@@ -164,7 +173,7 @@ const EVENTS: GameEvent[] = [
       {weight:7,effects:{silver:-20,culturalExchange:2,morale:3},result:"Money well spent. They know every switchback. They share local folklore, which your translator meticulously documents."},
       {weight:3,effects:{silver:-20,goods:-15,morale:-5},result:"The 'guides' vanish in the night with fifteen bales of silk. You just got scammed."}
     ]}
-  ]},
+  ],trivia:["The Pamir Mountains are called the 'Roof of the World.' Some passes sit higher than 15,000 feet above sea level.","Historians believe Silk Road merchants used yaks to carry loads over the highest Pamir passes, since camels struggle in deep snow."],sageAdvice:[{name:"Ashoka's Pilgrim",role:"Wandering Monk",line:"Move slowly at this height. The thin air can make even strong travelers dizzy and confused."}]},
 
   {id:"samarkand",phase_min:0.35,phase_max:0.5,weight:5,title:"The Jewel of the Road",text:"Samarkand. The ultimate networking event. Every language on earth is spoken here. A Sogdian broker in a very nice silk tunic offers you 15x your original price to liquidate your entire inventory right now.",choices:[
     {text:"Accept the buyout. 15x is a massive win.",effects:{morale:8},result:"1,500 silver. You ring the sales bell. The journey ends in the most beautiful city you'll ever see. Let someone else deal with the Romans.",earlyEnd:true},
@@ -359,6 +368,44 @@ function getSilkRoadGrade(survived: boolean, profitMultiplier: number, culturalE
 }
 
 const GC: Record<string, string> = { "A+": "text-amber-300", A: "text-emerald-400", B: "text-blue-400", C: "text-orange-400", D: "text-red-400", F: "text-red-600" };
+
+function SilkRoadSageReveal({ sages }: { sages: { name: string; role: string; line: string }[] }) {
+  const [open, setOpen] = useState(false);
+  const sage = sages[0];
+  return (
+    <div className="mb-2">
+      {!open ? (
+        <button
+          onClick={() => setOpen(true)}
+          className="w-full text-left p-1.5 bg-indigo-900/40 border border-indigo-800/50 rounded text-indigo-200 text-xs font-bold hover:bg-indigo-800/50 transition-colors"
+        >
+          🧙 Ask a Sage for guidance…
+        </button>
+      ) : (
+        <div className="bg-indigo-900/40 border border-indigo-800/50 rounded p-2">
+          <p className="text-indigo-300 text-xs font-bold">{sage.name}, {sage.role}:</p>
+          <p className="text-indigo-200 text-xs italic mt-0.5">"{sage.line}"</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SilkRoadTriviaBox({ trivia }: { trivia: string[] }) {
+  const text = React.useMemo(
+    () => trivia[Math.floor(Math.random() * trivia.length)],
+    // New trivia fact is picked once per trivia array reference (i.e., per event)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [trivia]
+  );
+  return (
+    <div className="bg-indigo-900/30 border border-indigo-800/50 rounded p-2 mb-2">
+      <p className="text-indigo-200 text-xs italic">
+        💡 <strong>Did you know?</strong> {text}
+      </p>
+    </div>
+  );
+}
 
 // ═══════════════════════════════════════════════════════════════
 // MAIN COMPONENT
@@ -844,6 +891,14 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
                 <div className="p-3">
                   <h2 className="text-indigo-300 font-bold text-sm mb-1">{state.currentEvent.title}</h2>
                   <p className="text-stone-300 text-sm leading-relaxed mb-3">{state.currentEvent.text}</p>
+                  {/* Did you know? */}
+                  {state.currentEvent.trivia && state.currentEvent.trivia.length > 0 && (
+                    <SilkRoadTriviaBox trivia={state.currentEvent.trivia} />
+                  )}
+                  {/* Ask a Sage */}
+                  {state.currentEvent.sageAdvice && state.currentEvent.sageAdvice.length > 0 && (
+                    <SilkRoadSageReveal sages={state.currentEvent.sageAdvice} />
+                  )}
                   <div className="space-y-1.5">
                     {state.currentEvent.choices?.map((c, i) => (
                       <button key={i} onClick={() => handleChoice(i)} className="w-full text-left p-2 bg-stone-700 hover:bg-stone-600 rounded text-xs text-stone-200 font-bold transition-colors border border-stone-600">
