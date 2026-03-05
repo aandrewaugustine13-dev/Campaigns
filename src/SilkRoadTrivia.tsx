@@ -46,7 +46,7 @@ const SAGES: Record<string, Sage> = {
     name: "Theodora",
     title: "Roman Historian",
     region: "Anatolia",
-    flavor: "A Greek-speaking scholar stops your caravan at a crossroads. She's cataloging trade goods for the Roman Senate and is deeply unimpressed with most merchants' knowledge of their own supply chain. Prove you understand what you're carrying and she'll expedite your customs paperwork.",
+    flavor: "A Greek-speaking scholar stops your caravan at a crossroads. She's cataloging trade goods for the Roman Senate and is deeply unimpressed with most merchants' knowledge of what they carry and where it comes from. Prove you understand what you're carrying and she'll expedite your customs paperwork.",
   },
 };
 
