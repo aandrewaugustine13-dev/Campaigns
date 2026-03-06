@@ -1,5 +1,10 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { getDoomFace } from "./AssetConfig";
+import AnimatedPortrait from "./AnimatedPortrait";
+import {
+  getPortraitStateForHealth,
+  isPortraitRole,
+} from "./portraitSystem";
 
 interface PartyMember {
   id: string;
@@ -18,6 +23,27 @@ const STATIC_PORTRAIT_MAP: Record<string, string> = {
 };
 
 export default function DoomHUD({ members }: { members: PartyMember[] }) {
+  const previousHealth = useRef<Record<string, number>>({});
+  const [damageTriggers, setDamageTriggers] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const nextTriggers: Record<string, number> = {};
+    let changed = false;
+
+    members.forEach((member) => {
+      const prior = previousHealth.current[member.id];
+      if (typeof prior === "number" && member.health < prior) {
+        nextTriggers[member.id] = (damageTriggers[member.id] ?? 0) + 1;
+        changed = true;
+      }
+      previousHealth.current[member.id] = member.health;
+    });
+
+    if (changed) {
+      setDamageTriggers((prev) => ({ ...prev, ...nextTriggers }));
+    }
+  }, [members, damageTriggers]);
+
   return (
     <div className="flex-shrink-0 bg-[#2d1b11] border-t-4 border-[#1a0f0a] p-2">
       <div className="text-[#a0a0a0] text-xs font-bold uppercase mb-1 drop-shadow-md">

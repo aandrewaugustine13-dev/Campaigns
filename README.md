@@ -1,29 +1,79 @@
 # Campaigns
 
-A Vite + React + TypeScript project styled with Tailwind CSS.
+**Campaigns** is a browser-based educational history game where players guide real-world expeditions, trails, and journeys through difficult choices, limited resources, and changing conditions.
 
-## Deployment
+Inspired by classics like **The Oregon Trail**, the goal of **Campaigns** is to make history more interactive, readable, and engaging for students and curious players.
 
-This project deploys automatically to **Cloudflare Pages** via GitHub Actions on every push to the `main` branch.
+## What It Is
 
-### Setup
+In each campaign, players take charge of a historical journey and try to keep their group moving, healthy, and supplied. Along the way, they face problems based on real historical challenges such as:
 
-To enable deployments, add the following secrets to your GitHub repository (**Settings → Secrets and variables → Actions**):
+- weather
+- illness
+- morale
+- supply shortages
+- dangerous terrain
+- leadership decisions
+- historically grounded events
 
-| Secret | Description |
-|---|---|
-| `CLOUDFLARE_API_TOKEN` | A Cloudflare API token with Pages edit permissions |
-| `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account ID |
+The game is designed to help players learn through decision-making rather than memorization.
 
-The Cloudflare Pages project name is **`campaigns`**.
+## Educational Focus
 
-### Manual deployment
+**Campaigns** is being built first and foremost as an educational tool.
 
-You can also trigger a deployment manually from the **Actions** tab using the `workflow_dispatch` event.
+The project aims to:
 
-## Local development
+- make history more engaging for students
+- encourage curiosity about real people, places, and events
+- show how geography, leadership, scarcity, and risk shaped historical outcomes
+- present history in a format that is easy to read and interact with
+- support classroom-friendly use with accessible language and clear choices
 
-```bash
-npm install
-npm run dev
-```
+Rather than treating history as a list of facts, **Campaigns** treats it as a series of human problems, tradeoffs, and consequences.
+
+## Features
+
+Planned and in-progress features include:
+
+- multiple historical campaigns
+- resource management
+- crew health and morale systems
+- event-based decision making
+- student-friendly writing
+- historically informed scenarios
+- retro-inspired HUD portraits and browser-game presentation
+
+## Example Campaigns
+
+Possible campaigns include journeys such as:
+
+- the Chisholm Trail
+- Lewis and Clark
+- Magellan's circumnavigation
+- the Silk Road
+
+Each campaign can introduce its own challenges, geography, and historical context.
+
+## Why This Project Exists
+
+A lot of educational tools are informative but not very engaging.  
+A lot of games are engaging but not very educational.
+
+**Campaigns** is an attempt to combine both.
+
+The goal is to create something that can be useful in classrooms, interesting to students, and fun enough that players actually want to keep going. Which, in educational game design, is basically the final boss.
+
+## Status
+
+This project is currently in active development.
+
+Systems, art, campaigns, and educational content are still evolving.
+
+## Tech
+
+This is a browser-based project built to stay lightweight, readable, and easy to expand.
+
+## Author
+
+Created by **Andrew Augustine**.
