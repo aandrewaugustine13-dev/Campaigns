@@ -9,6 +9,11 @@ import type { Objective, RouteState, EventGateQuestion } from "./gameModels";
 import { generateObjective, tickObjectives, findNode } from "./gameLogic";
 import { CHISHOLM_ROUTE } from "./routes";
 import { CHISHOLM_EVENT_TRIVIA } from "./trivia";
+import {
+  useFloatingNumbers, FloatingNumbers,
+  useScreenShake, useStatPulse, useResourceTracker,
+  StatBox, ResourceBar, StreakFlash,
+} from "./GameJuice";
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -483,6 +488,31 @@ export default function App(){
   const start=useCallback(()=>{setState({...makeInit(),phase:"outfit"});setUsedEvents(new Set());},[]);
   const backToMenu=useCallback(()=>{setCampaign(null);setState(makeInit());},[]);
 
+  // ── Game Juice ──────────────────────────────────────────────
+  const { floats, spawn: spawnFloat } = useFloatingNumbers();
+  const { shakeClass, shake } = useScreenShake();
+  const { pulses, pulse } = useStatPulse();
+
+  const RESOURCE_LABELS: Record<string, string> = {
+    herd: "herd", crew: "crew", horses: "horses", ammo: "ammo",
+    supplies: "supplies", morale: "morale", herdCondition: "cond",
+  };
+
+  const onDelta = useCallback((key: string, delta: number) => {
+    const label = RESOURCE_LABELS[key];
+    if (!label) return;
+    pulse(key, delta > 0 ? "gain" : "loss");
+    spawnFloat(delta, label);
+  }, [pulse, spawnFloat]);
+
+  const onBigHit = useCallback((totalLoss: number) => {
+    if (totalLoss > 100) shake("heavy");
+    else if (totalLoss > 30) shake("medium");
+    else shake("light");
+  }, [shake]);
+
+  useResourceTracker(state.resources, { onDelta, onBigHit });
+
   const onOutfitDone=useCallback((config:OutfitConfig)=>{
     setState(prev=>{
       const rating=getCrewRating(config.herd,config.crew);
@@ -859,7 +889,11 @@ export default function App(){
   }
 
   return(
-    <div className="h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden" style={{fontFamily:"'Georgia', serif"}}>
+    <div className={`h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden ${shakeClass}`} style={{fontFamily:"'Georgia', serif"}}>
+      <StreakFlash streak={state.triviaStreak} />
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 pointer-events-none z-50">
+        <FloatingNumbers floats={floats} />
+      </div>
       <div className="flex-shrink-0 bg-stone-800">
         <div className="max-w-lg mx-auto">
           <PrairieScene progress={progress} pace={state.pace} turn={state.turn}/>
@@ -868,22 +902,18 @@ export default function App(){
       <div className="flex-shrink-0 bg-stone-800 border-b border-stone-700 px-3 py-2">
         <div className="max-w-lg mx-auto">
           <div className="grid grid-cols-4 gap-2 text-xs mb-2">
-            <div className="bg-stone-700 rounded p-1.5 text-center"><div className="text-stone-400">🐂 Herd</div><div className="text-amber-400 font-bold">{r.herd.toLocaleString()}</div></div>
-            <div className="bg-stone-700 rounded p-1.5 text-center"><div className="text-stone-400">🤠 Crew</div><div className="font-bold">{r.crew}</div></div>
-            <div className="bg-stone-700 rounded p-1.5 text-center"><div className="text-stone-400">🐴 Horses</div><div className="font-bold">{r.horses}</div></div>
-            <div className="bg-stone-700 rounded p-1.5 text-center"><div className="text-stone-400">🔫 Ammo</div><div className="font-bold">{r.ammo||0}</div></div>
+            <StatBox icon="🐂" label="Herd" value={r.herd} pulseState={pulses.herd || ""} />
+            <StatBox icon="🤠" label="Crew" value={r.crew} pulseState={pulses.crew || ""} />
+            <StatBox icon="🐴" label="Horses" value={r.horses} pulseState={pulses.horses || ""} />
+            <StatBox icon="🔫" label="Ammo" value={r.ammo||0} pulseState={pulses.ammo || ""} />
           </div>
           <div className="mb-2 bg-stone-700 rounded p-1.5 text-xs text-center">
             <span className="text-stone-300">✨ Insight:</span> <span className="text-amber-400 font-bold">{state.insight}</span>
           </div>
           <div className="space-y-1">
-            {([["🌾 Supplies",r.supplies,r.supplies<20?"bg-red-500":"bg-green-500"],["😊 Morale",r.morale,r.morale<25?"bg-red-500":"bg-yellow-500"],["💪 Herd Cond.",r.herdCondition,r.herdCondition<25?"bg-red-500":"bg-emerald-500"]] as [string,number,string][]).map(([label,val,color])=>(
-              <div key={label} className="flex items-center gap-2">
-                <span className="w-20 text-stone-400 text-xs">{label}</span>
-                <div className="flex-1 bg-stone-700 rounded-full h-2"><div className={`${color} h-2 rounded-full transition-all`} style={{width:`${val}%`}}/></div>
-                <span className="text-stone-500 text-xs w-6 text-right">{val}</span>
-              </div>
-            ))}
+            <ResourceBar label="🌾 Supplies" value={r.supplies} color={r.supplies<20?"bg-red-500":"bg-green-500"} pulseState={pulses.supplies || ""} />
+            <ResourceBar label="😊 Morale" value={r.morale} color={r.morale<25?"bg-red-500":"bg-yellow-500"} pulseState={pulses.morale || ""} />
+            <ResourceBar label="💪 Herd Cond." value={r.herdCondition} color={r.herdCondition<25?"bg-red-500":"bg-emerald-500"} pulseState={pulses.herdCondition || ""} />
           </div>
           <div className="flex items-center gap-2">
             <span className="w-20 text-stone-400 text-xs">📜 Knowledge</span>
