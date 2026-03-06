@@ -59,7 +59,10 @@ export default function DoomHUD({ members }: { members: PartyMember[] }) {
 
           return (
             <div key={m.id} className="flex flex-col items-center bg-[#1a0f0a] border-2 border-[#3d2516] p-1">
-              <div className="w-12 h-12 relative">
+              <div
+                key={`portrait-${m.id}-${damageTriggers[m.id] ?? 0}`}
+                className={`w-12 h-12 relative ${damageTriggers[m.id] ? "juice-portrait-hit" : ""}`}
+              >
                 <img
                   src={faceSrc}
                   alt={m.role}
@@ -68,15 +71,15 @@ export default function DoomHUD({ members }: { members: PartyMember[] }) {
                   onError={(e) => { if (fallbackSrc) (e.target as HTMLImageElement).src = fallbackSrc; }}
                 />
                 {isCritical && (
-                  <div className="absolute inset-0 bg-red-600 opacity-30 mix-blend-multiply"></div>
+                  <div className="absolute inset-0 bg-red-600 opacity-30 mix-blend-multiply animate-pulse"></div>
                 )}
               </div>
               <span className="text-white font-bold mt-1" style={{ fontSize: "9px" }}>
                 {m.role}
               </span>
-              <div className="w-full h-1.5 bg-red-900 mt-1 border border-black">
+              <div className="w-full h-1.5 bg-red-900 mt-1 border border-black overflow-hidden">
                 <div
-                  className={`h-full ${m.health > 50 ? "bg-green-500" : "bg-red-500"}`}
+                  className={`h-full transition-all duration-500 ${m.health > 50 ? "bg-green-500" : m.health > 25 ? "bg-yellow-500" : "bg-red-500"}`}
                   style={{ width: `${m.health}%` }}
                 />
               </div>
