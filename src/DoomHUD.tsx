@@ -13,6 +13,8 @@ interface PartyMember {
   health: number;
 }
 
+// State-based portraits sliced from Grok-generated character sheets
+// Falls back to static pixel dither PNGs if state portrait fails to load
 const STATIC_PORTRAIT_MAP: Record<string, string> = {
   boss: "/faces/role01_64_dither.png",
   wrangler: "/faces/role02_64_dither.png",
@@ -51,7 +53,8 @@ export default function DoomHUD({ members }: { members: PartyMember[] }) {
       </div>
       <div className={`max-w-lg mx-auto grid gap-2 ${members.length <= 5 ? "grid-cols-5" : "grid-cols-6"}`}>
         {members.map((m) => {
-          const faceSrc = STATIC_PORTRAIT_MAP[m.id] ?? getDoomFace(m.id, m.health);
+          const faceSrc = getDoomFace(m.id, m.health);
+          const fallbackSrc = STATIC_PORTRAIT_MAP[m.id];
           const isCritical = m.health <= 25;
 
           return (
@@ -61,7 +64,8 @@ export default function DoomHUD({ members }: { members: PartyMember[] }) {
                   src={faceSrc}
                   alt={m.role}
                   className="w-full h-full object-cover"
-                  style={{ imageRendering: "pixelated" }}
+                  style={{ imageRendering: "auto" }}
+                  onError={(e) => { if (fallbackSrc) (e.target as HTMLImageElement).src = fallbackSrc; }}
                 />
                 {isCritical && (
                   <div className="absolute inset-0 bg-red-600 opacity-30 mix-blend-multiply"></div>
