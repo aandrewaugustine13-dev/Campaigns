@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import DoomHUD from "./DoomHUD";
+import PortraitDebugPanel from "./PortraitDebugPanel";
 import VisualNovelEngine from "./VisualNovelEngine";
 import PushYourLuckEngine from "./PushYourLuckEngine";
 import SilkRoad from "./SilkRoad";
@@ -899,6 +900,7 @@ export default function App(){
         </div>
       </div>
       <DoomHUD members={partyMembers}/>
+      <PortraitDebugPanel />
       <div className="flex-1 overflow-y-auto px-3 pb-3">
         <div className="max-w-lg mx-auto space-y-3 mt-2">
           {state.phase==="sailing"&&(
