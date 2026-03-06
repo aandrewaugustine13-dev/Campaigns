@@ -77,3 +77,18 @@ This is a browser-based project built to stay lightweight, readable, and easy to
 ## Author
 
 Created by **Andrew Augustine**.
+## Face Strip Slicing Utility
+
+To split `*_states.png` face strips into individual status panels:
+
+```bash
+python scripts/slice_faces.py
+```
+
+Optional flags:
+
+```bash
+python scripts/slice_faces.py --in public/faces --out public/faces/sliced --divider 6
+```
+
+The script writes generated PNGs into `public/faces/sliced/` (these are build artifacts and are not committed).
