@@ -13,6 +13,15 @@ interface PartyMember {
   health: number;
 }
 
+const STATIC_PORTRAIT_MAP: Record<string, string> = {
+  boss: "/faces/role01_64_dither.png",
+  wrangler: "/faces/role02_64_dither.png",
+  point: "/faces/role03_64_dither.png",
+  hand: "/faces/role04_64_dither.png",
+  cook: "/faces/role05_64_dither.png",
+  scout: "/faces/role06_64_dither.png",
+};
+
 export default function DoomHUD({ members }: { members: PartyMember[] }) {
   const previousHealth = useRef<Record<string, number>>({});
   const [damageTriggers, setDamageTriggers] = useState<Record<string, number>>({});
@@ -42,26 +51,19 @@ export default function DoomHUD({ members }: { members: PartyMember[] }) {
       </div>
       <div className={`max-w-lg mx-auto grid gap-2 ${members.length <= 5 ? "grid-cols-5" : "grid-cols-6"}`}>
         {members.map((m) => {
+          const faceSrc = STATIC_PORTRAIT_MAP[m.id] ?? getDoomFace(m.id, m.health);
           const isCritical = m.health <= 25;
 
           return (
             <div key={m.id} className="flex flex-col items-center bg-[#1a0f0a] border-2 border-[#3d2516] p-1">
-              <div className="w-12 h-12 relative border border-black">
-                {isPortraitRole(m.id) ? (
-                  <AnimatedPortrait
-                    roleId={m.id}
-                    state={getPortraitStateForHealth(m.health)}
-                    damageTrigger={damageTriggers[m.id] ?? 0}
-                  />
-                ) : (
-                  <img
-                    src={getDoomFace(m.id, m.health)}
-                    alt={m.role}
-                    className="w-full h-full object-cover"
-                    style={{ imageRendering: "pixelated" }}
-                  />
-                )}
-                {isCritical && !isPortraitRole(m.id) && (
+              <div className="w-12 h-12 relative">
+                <img
+                  src={faceSrc}
+                  alt={m.role}
+                  className="w-full h-full object-cover"
+                  style={{ imageRendering: "pixelated" }}
+                />
+                {isCritical && (
                   <div className="absolute inset-0 bg-red-600 opacity-30 mix-blend-multiply"></div>
                 )}
               </div>
