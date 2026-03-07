@@ -14,6 +14,7 @@ import {
   useScreenShake, useStatPulse, useResourceTracker,
   StatBox, ResourceBar, StreakFlash,
 } from "./GameJuice";
+import TrailMap, { getRegionFlavor } from "./TrailMap";
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -889,11 +890,19 @@ export default function App(){
   }
 
   return(
-    <div className={`h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden ${shakeClass}`} style={{fontFamily:"'Georgia', serif"}}>
+    <div className={`h-screen bg-stone-900 text-stone-100 flex overflow-hidden ${shakeClass}`} style={{fontFamily:"'Georgia', serif"}}>
       <StreakFlash streak={state.triviaStreak} />
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 pointer-events-none z-50">
         <FloatingNumbers floats={floats} />
       </div>
+
+      {/* ── Map Sidebar ──────────────────────────────────── */}
+      <div className="hidden md:flex w-48 lg:w-56 flex-shrink-0">
+        <TrailMap progress={progress} day={state.day} totalDays={TOTAL_DAYS} />
+      </div>
+
+      {/* ── Main Game Column ─────────────────────────────── */}
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
       <div className="flex-shrink-0 bg-stone-800">
         <div className="max-w-lg mx-auto">
           <PrairieScene progress={progress} pace={state.pace} turn={state.turn}/>
@@ -963,6 +972,7 @@ export default function App(){
 
               <div className="border border-stone-700 rounded p-3 bg-stone-800/80">
                 <p className="text-stone-300 text-sm">{getPhrase(progress/100)}</p>
+                <p className="text-stone-500 text-xs mt-1 italic">{getRegionFlavor(progress)}</p>
               </div>
               <div className="flex gap-2">
                 {PACES.map(p=>(
@@ -1027,6 +1037,7 @@ export default function App(){
           )}
         </div>
       </div>
+      </div>{/* end main game column */}
     </div>
   );
 }
