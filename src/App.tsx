@@ -15,6 +15,8 @@ import {
   StatBox, ResourceBar, StreakFlash,
 } from "./GameJuice";
 import TrailMap, { getRegionFlavor } from "./TrailMap";
+import { SAGES, type SageEncounterData } from "./Sages";
+import SageEncounter from "./SageEncounter";
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -51,7 +53,7 @@ interface OutfitConfig {
 
 interface GameState {
   day: number; turn: number; resources: Resources;
-  phase: "intro" | "outfit" | "sailing" | "event" | "result" | "end" | "trivia" | "event_trivia";
+  phase: "intro" | "outfit" | "sailing" | "event" | "result" | "end" | "trivia" | "event_trivia" | "sage";
   pace: string; distance: number; currentEvent: GameEvent | null;
   resultText: string; decisions: Decision[];
   gameOver: boolean; survived: boolean; earlySale: boolean;
@@ -70,6 +72,9 @@ interface GameState {
   pendingChoiceIndex: number | null;
   pendingEventQuestion: EventGateQuestion | null;
   objectiveNotice: string;
+  sageIndex: number;
+  currentSage: SageEncounterData | null;
+  sagesMet: string[];
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -442,12 +447,12 @@ const EVENTS:GameEvent[]=[
 // CONSTANTS & HELPERS
 // ═══════════════════════════════════════════════════════════════
 
-const TOTAL_DAYS=70,DAYS_PER_TURN=5,TOTAL_DISTANCE=800;
+const TOTAL_DAYS=125,DAYS_PER_TURN=5,TOTAL_DISTANCE=800;
 const INIT_R:Resources={herd:2500,crew:12,horses:60,supplies:65,morale:55,herdCondition:60};
 const PACES=[
-  {id:"easy",label:"Easy",desc:"10 mi/day \u00b7 Herd fattens",mpd:10,fx:{herdCondition:2,morale:1,supplies:-1}as Resources},
-  {id:"normal",label:"Normal",desc:"15 mi/day \u00b7 Standard",mpd:15,fx:{herdCondition:-1,morale:-1,supplies:-2}as Resources},
-  {id:"push",label:"Push",desc:"22 mi/day \u00b7 Brutal",mpd:22,fx:{herdCondition:-5,morale:-4,supplies:-3}as Resources},
+  {id:"easy",label:"Easy",desc:"5 mi/day \u00b7 Herd fattens",mpd:5,fx:{herdCondition:2,morale:1,supplies:-1}as Resources},
+  {id:"normal",label:"Normal",desc:"7 mi/day \u00b7 Standard",mpd:7,fx:{herdCondition:-1,morale:-1,supplies:-2}as Resources},
+  {id:"push",label:"Push",desc:"10 mi/day \u00b7 Brutal",mpd:10,fx:{herdCondition:-5,morale:-4,supplies:-3}as Resources},
 ];
 function getPhrase(p:number):string{
   if(p<0.15)return"Eight hundred miles of dust and trouble ahead.";
@@ -475,7 +480,7 @@ function getTrailGrade(survived: boolean, herdPct: number, historicalKnowledge: 
 const GC:Record<string,string>={"A+":"text-amber-300",A:"text-emerald-400",B:"text-blue-400",C:"text-yellow-400",D:"text-orange-400",F:"text-red-500"};
 
 const DEFAULT_OUTFIT: OutfitConfig = { herd: 2500, crew: 12, horses: 60, supplies: 65, guns: 4, spareParts: 3, wages: "standard", budgetSpent: 0, startingCash: 0 };
-const makeInit=():GameState=>({day:1,turn:0,resources:{...INIT_R},phase:"intro",pace:"normal",distance:0,currentEvent:null,resultText:"",decisions:[],gameOver:false,survived:false,earlySale:false,outfit:{...DEFAULT_OUTFIT},historicalKnowledge:0,knowledgeLog:[],triviaCounter:0,currentTrivia:null,usedTriviaIds:new Set(),triviaStreak:0,insight:1,objectives:[],routeState:{currentNodeId:"start"},routeTag:"SAFE",riskHintsOn:false,pendingChoiceIndex:null,pendingEventQuestion:null,objectiveNotice:""});
+const makeInit=():GameState=>({day:1,turn:0,resources:{...INIT_R},phase:"intro",pace:"normal",distance:0,currentEvent:null,resultText:"",decisions:[],gameOver:false,survived:false,earlySale:false,outfit:{...DEFAULT_OUTFIT},historicalKnowledge:0,knowledgeLog:[],triviaCounter:0,currentTrivia:null,usedTriviaIds:new Set(),triviaStreak:0,insight:1,objectives:[],routeState:{currentNodeId:"start"},routeTag:"SAFE",riskHintsOn:false,pendingChoiceIndex:null,pendingEventQuestion:null,objectiveNotice:"",sageIndex:0,currentSage:null,sagesMet:[]});
 
 // ═══════════════════════════════════════════════════════════════
 // APP
@@ -569,6 +574,19 @@ export default function App(){
       }
       if (s.turn % 3 === 0 && s.objectives.length < 2) {
         s.objectives = [...s.objectives, generateObjective({ turn: s.turn, day: s.day, distance: s.distance, resources: s.resources })];
+      }
+
+      // ── SAGE CHECK — fires before any random event ────
+      const currentProgress = (s.distance / TOTAL_DISTANCE) * 100;
+      const prevProgress = (before.distance / TOTAL_DISTANCE) * 100;
+      if (s.sageIndex < SAGES.length) {
+        const nextSage = SAGES[s.sageIndex];
+        if (currentProgress >= nextSage.threshold) {
+          s.currentSage = nextSage;
+          s.phase = "sage";
+          console.log(`[SAGE] Triggered: ${nextSage.name} at ${currentProgress.toFixed(1)}% (threshold: ${nextSage.threshold}%)`);
+          return s;
+        }
       }
 
       const event=routeAdjustedEvent(s.day,TOTAL_DAYS,usedEvents,EVENTS,s.routeTag);
@@ -679,6 +697,48 @@ export default function App(){
       s.phase="sailing";return s;
     });
   },[]);
+
+  const handleSageComplete = useCallback((correct: boolean) => {
+    setState(prev => {
+      if (!prev.currentSage) return prev;
+      const s: GameState = {
+        ...prev,
+        resources: { ...prev.resources },
+        decisions: [...prev.decisions],
+        knowledgeLog: [...prev.knowledgeLog],
+        sagesMet: [...prev.sagesMet],
+      };
+      const sage = s.currentSage!;
+      const reward = correct ? sage.reward.correct : sage.reward.wrong;
+      const knowledge = correct ? sage.reward.knowledgeCorrect : sage.reward.knowledgeWrong;
+
+      // Apply resource rewards
+      for (const [k, v] of Object.entries(reward)) {
+        if (k === "insight") {
+          s.insight += v;
+        } else if (s.resources[k] !== undefined) {
+          s.resources[k] = clampR(k, s.resources[k] + v);
+        }
+      }
+
+      // Apply knowledge
+      s.historicalKnowledge += knowledge;
+      s.knowledgeLog.push(`${sage.name}: +${knowledge} knowledge${correct ? " (correct)" : ""}`);
+      s.decisions.push({
+        event: `Sage: ${sage.name}`,
+        choice: correct ? `Answered correctly` : `Learned from ${sage.name}`,
+        day: s.day,
+      });
+
+      // Advance sage index and record the meeting
+      s.sagesMet.push(sage.id);
+      s.sageIndex = prev.sageIndex + 1;
+      s.currentSage = null;
+      s.phase = "sailing";
+
+      return s;
+    });
+  }, []);
 
   const handleHunt=useCallback(()=>{
     setState(prev=>{
@@ -988,6 +1048,12 @@ export default function App(){
                 </button>
               )}
             </div>
+          )}
+          {state.phase==="sage"&&state.currentSage&&(
+            <SageEncounter
+              sage={state.currentSage}
+              onComplete={handleSageComplete}
+            />
           )}
           {state.phase==="event"&&state.currentEvent&&(
             state.currentEvent.type==="push_luck"?(
