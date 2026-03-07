@@ -64,37 +64,28 @@ function HerdIcon({ x, y }: { x: number; y: number }) {
       <div
         className="absolute rounded-full"
         style={{
-          width: 44,
-          height: 44,
-          left: -22,
-          top: -22,
-          background: "radial-gradient(circle, rgba(251,191,36,0.35) 0%, transparent 65%)",
+          width: 56,
+          height: 56,
+          left: -28,
+          top: -28,
+          background: "radial-gradient(circle, rgba(251,191,36,0.3) 0%, transparent 65%)",
           animation: "trailPulse 2.5s ease-in-out infinite",
         }}
       />
-      {/* Herd SVG */}
-      <svg
-        width="36" height="36" viewBox="0 0 40 40"
+      {/* Illustrated herd */}
+      <img
+        src="/faces/icon_herd.png"
+        alt="Your herd"
         style={{
-          marginLeft: -18,
-          marginTop: -18,
-          filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.9))",
+          width: 52,
+          height: 52,
+          marginLeft: -26,
+          marginTop: -26,
+          mixBlendMode: "multiply",
+          filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.4))",
         }}
-      >
-        <ellipse cx="20" cy="34" rx="14" ry="4" fill="#a08060" opacity="0.25">
-          <animate attributeName="rx" values="10;15;10" dur="2s" repeatCount="indefinite" />
-        </ellipse>
-        <ellipse cx="13" cy="26" rx="5" ry="3.5" fill="#3d2512" opacity="0.6" />
-        <ellipse cx="27" cy="27" rx="4.5" ry="3" fill="#3d2512" opacity="0.5" />
-        <ellipse cx="20" cy="19" rx="8" ry="5.5" fill="#5c3a1e" />
-        <ellipse cx="20" cy="13" rx="4" ry="3.5" fill="#7a5230" />
-        <line x1="14" y1="12" x2="8" y2="8" stroke="#d4a843" strokeWidth="2.5" strokeLinecap="round" />
-        <line x1="26" y1="12" x2="32" y2="8" stroke="#d4a843" strokeWidth="2.5" strokeLinecap="round" />
-        <circle cx="8" cy="8" r="1" fill="#fef3c7" />
-        <circle cx="32" cy="8" r="1" fill="#fef3c7" />
-        <circle cx="18" cy="12" r="1" fill="#1a0f0a" />
-        <circle cx="22" cy="12" r="1" fill="#1a0f0a" />
-      </svg>
+        draggable={false}
+      />
     </div>
   );
 }
@@ -205,29 +196,32 @@ export default function TrailMap({
                   color: reached ? "#451a03" : "#78716c",
                 }}
               >
-                {reached ? "✓" : (stop.supply ? "🏪" : "")}
+                {reached ? "✓" : ""}
               </div>
 
-              {/* Supply tag — only for unreached supply towns */}
+              {/* Supply tag — illustrated store for unreached supply towns */}
               {stop.supply && !reached && (
                 <div
-                  className="absolute whitespace-nowrap pointer-events-none"
+                  className="absolute pointer-events-none"
                   style={{
-                    top: -18,
+                    top: -24,
                     left: "50%",
                     transform: "translateX(-50%)",
                   }}
                 >
-                  <span
-                    className="px-1.5 py-0.5 rounded text-[9px] font-bold"
+                  <img
+                    src="/faces/icon_store.png"
+                    alt="Supplies"
                     style={{
-                      backgroundColor: isApproaching ? "rgba(8,145,178,0.9)" : "rgba(20,14,6,0.8)",
-                      color: isApproaching ? "#cffafe" : "#a8a29e",
-                      border: `1px solid ${isApproaching ? "rgba(34,211,238,0.5)" : "rgba(87,83,78,0.3)"}`,
+                      width: isApproaching ? 36 : 28,
+                      height: isApproaching ? 36 : 28,
+                      mixBlendMode: "multiply",
+                      opacity: isApproaching ? 1 : 0.6,
+                      filter: isApproaching ? "drop-shadow(0 0 4px rgba(34,211,238,0.6))" : "none",
+                      transition: "all 0.3s ease",
                     }}
-                  >
-                    {isApproaching ? "SUPPLIES" : "supplies"}
-                  </span>
+                    draggable={false}
+                  />
                 </div>
               )}
             </div>
