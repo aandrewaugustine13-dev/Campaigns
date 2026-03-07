@@ -897,7 +897,7 @@ export default function App(){
       </div>
 
       {/* ── Map Sidebar ──────────────────────────────────── */}
-      <div className="hidden md:flex w-48 lg:w-56 flex-shrink-0">
+      <div className="hidden md:flex w-72 lg:w-80 xl:w-96 flex-shrink-0">
         <TrailMap progress={progress} day={state.day} totalDays={TOTAL_DAYS} />
       </div>
 
