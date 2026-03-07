@@ -55,7 +55,7 @@ export default function SageEncounter({ sage, onComplete }: Props) {
                   <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;
                     font-size:24px;font-weight:bold;color:#d97706;font-family:Georgia,serif;
                     background:linear-gradient(135deg,#3d2516,#2d1b11);">
-                    ${sage.name.split(" ").map(w => w[0]).join("")}
+                    ${sage.name.split(" ").map((w: string) => w[0]).join("")}
                   </div>`;
               }}
             />
@@ -126,7 +126,7 @@ export default function SageEncounter({ sage, onComplete }: Props) {
               {sage.question.question}
             </p>
             <div className="space-y-2">
-              {sage.question.choices.map((choice, i) => (
+              {sage.question.choices.map((choice: string, i: number) => (
                 <button
                   key={i}
                   onClick={() => handleAnswer(i)}

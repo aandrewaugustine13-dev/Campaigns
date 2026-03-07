@@ -715,9 +715,9 @@ export default function App(){
       // Apply resource rewards
       for (const [k, v] of Object.entries(reward)) {
         if (k === "insight") {
-          s.insight += v;
+          s.insight += (v as number);
         } else if (s.resources[k] !== undefined) {
-          s.resources[k] = clampR(k, s.resources[k] + v);
+          s.resources[k] = clampR(k, s.resources[k] + (v as number));
         }
       }
 
