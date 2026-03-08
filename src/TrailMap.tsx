@@ -125,111 +125,115 @@ export default function TrailMap({
 
   return (
     <div
-      className="flex flex-col h-full overflow-hidden"
+      className="w-full flex flex-col h-full overflow-hidden"
       style={{
         background: "#1a1408",
         borderRight: "3px solid #2d1b11",
       }}
     >
-      {/* Map area — the parchment image fills the sidebar */}
-      <div className="flex-1 relative min-h-0 overflow-hidden">
-        <img
-          src="/faces/map_chisholm.png"
-          alt="Chisholm Trail"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ objectPosition: "center top" }}
-          draggable={false}
-        />
+      {/* Map area — show full map art while consuming available sidebar width */}
+      <div className="flex-1 relative min-h-0 overflow-hidden bg-[#171106]">
+        <div className="absolute inset-0 flex justify-center">
+          <div className="relative w-full" style={{ aspectRatio: "412 / 1024", maxHeight: "100%" }}>
+            <img
+              src="/faces/map_chisholm.png"
+              alt="Chisholm Trail"
+              className="absolute inset-0 h-full w-full object-contain"
+              style={{ objectPosition: "center top" }}
+              draggable={false}
+            />
 
-        {/* Stop markers — dots only, map already has labels */}
-        {STOPS.map(stop => {
-          const reached = progress >= stop.pct;
-          const isCurrent = stop.id === currentStop.id && progress > 0;
-          const isApproaching = approachingSupply && nextSupply?.id === stop.id;
-          const isFlashing = stop.id === milestoneId;
+            {/* Stop markers — dots only, map already has labels */}
+            {STOPS.map(stop => {
+              const reached = progress >= stop.pct;
+              const isCurrent = stop.id === currentStop.id && progress > 0;
+              const isApproaching = approachingSupply && nextSupply?.id === stop.id;
+              const isFlashing = stop.id === milestoneId;
 
-          return (
-            <div
-              key={stop.id}
-              className="absolute"
-              style={{
-                left: `${stop.x}%`,
-                top: `${stop.y}%`,
-                transform: "translate(-50%, -50%)",
-                zIndex: isCurrent ? 15 : 10,
-              }}
-            >
-              {/* Approaching supply pulse ring */}
-              {isApproaching && (
+              return (
                 <div
-                  className="absolute rounded-full border-2 border-cyan-400"
+                  key={stop.id}
+                  className="absolute"
                   style={{
-                    width: 40,
-                    height: 40,
-                    left: -20,
-                    top: -20,
-                    animation: "trailPulse 1.5s ease-out infinite",
-                  }}
-                />
-              )}
-
-              {/* Marker dot */}
-              <div
-                className="rounded-full flex items-center justify-center transition-all duration-300"
-                style={{
-                  width: isCurrent ? 18 : 14,
-                  height: isCurrent ? 18 : 14,
-                  marginLeft: isCurrent ? -9 : -7,
-                  marginTop: isCurrent ? -9 : -7,
-                  backgroundColor: reached
-                    ? (stop.supply ? "#fbbf24" : "#d97706")
-                    : "rgba(68,64,60,0.6)",
-                  border: `2px solid ${
-                    isFlashing ? "#fef3c7" : reached ? "#451a03" : "rgba(87,83,78,0.5)"
-                  }`,
-                  boxShadow: isFlashing
-                    ? "0 0 16px rgba(251,191,36,1), 0 0 30px rgba(251,191,36,0.5)"
-                    : isCurrent
-                    ? "0 0 10px rgba(251,191,36,0.6)"
-                    : "0 1px 3px rgba(0,0,0,0.5)",
-                  fontSize: 8,
-                  color: reached ? "#451a03" : "#78716c",
-                }}
-              >
-                {reached ? "✓" : ""}
-              </div>
-
-              {/* Supply tag — illustrated store for unreached supply towns */}
-              {stop.supply && !reached && (
-                <div
-                  className="absolute pointer-events-none"
-                  style={{
-                    top: -24,
-                    left: "50%",
-                    transform: "translateX(-50%)",
+                    left: `${stop.x}%`,
+                    top: `${stop.y}%`,
+                    transform: "translate(-50%, -50%)",
+                    zIndex: isCurrent ? 15 : 10,
                   }}
                 >
-                  <img
-                    src="/faces/icon_store.png"
-                    alt="Supplies"
-                    style={{
-                      width: isApproaching ? 36 : 28,
-                      height: isApproaching ? 36 : 28,
-                      mixBlendMode: "multiply",
-                      opacity: isApproaching ? 1 : 0.6,
-                      filter: isApproaching ? "drop-shadow(0 0 4px rgba(34,211,238,0.6))" : "none",
-                      transition: "all 0.3s ease",
-                    }}
-                    draggable={false}
-                  />
-                </div>
-              )}
-            </div>
-          );
-        })}
+                  {/* Approaching supply pulse ring */}
+                  {isApproaching && (
+                    <div
+                      className="absolute rounded-full border-2 border-cyan-400"
+                      style={{
+                        width: 40,
+                        height: 40,
+                        left: -20,
+                        top: -20,
+                        animation: "trailPulse 1.5s ease-out infinite",
+                      }}
+                    />
+                  )}
 
-        {/* Herd icon */}
-        <HerdIcon x={herd.x} y={herd.y} />
+                  {/* Marker dot */}
+                  <div
+                    className="rounded-full flex items-center justify-center transition-all duration-300"
+                    style={{
+                      width: isCurrent ? 18 : 14,
+                      height: isCurrent ? 18 : 14,
+                      marginLeft: isCurrent ? -9 : -7,
+                      marginTop: isCurrent ? -9 : -7,
+                      backgroundColor: reached
+                        ? (stop.supply ? "#fbbf24" : "#d97706")
+                        : "rgba(68,64,60,0.6)",
+                      border: `2px solid ${
+                        isFlashing ? "#fef3c7" : reached ? "#451a03" : "rgba(87,83,78,0.5)"
+                      }`,
+                      boxShadow: isFlashing
+                        ? "0 0 16px rgba(251,191,36,1), 0 0 30px rgba(251,191,36,0.5)"
+                        : isCurrent
+                        ? "0 0 10px rgba(251,191,36,0.6)"
+                        : "0 1px 3px rgba(0,0,0,0.5)",
+                      fontSize: 8,
+                      color: reached ? "#451a03" : "#78716c",
+                    }}
+                  >
+                    {reached ? "✓" : ""}
+                  </div>
+
+                  {/* Supply tag — illustrated store for unreached supply towns */}
+                  {stop.supply && !reached && (
+                    <div
+                      className="absolute pointer-events-none"
+                      style={{
+                        top: -24,
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                      }}
+                    >
+                      <img
+                        src="/faces/icon_store.png"
+                        alt="Supplies"
+                        style={{
+                          width: isApproaching ? 36 : 28,
+                          height: isApproaching ? 36 : 28,
+                          mixBlendMode: "multiply",
+                          opacity: isApproaching ? 1 : 0.6,
+                          filter: isApproaching ? "drop-shadow(0 0 4px rgba(34,211,238,0.6))" : "none",
+                          transition: "all 0.3s ease",
+                        }}
+                        draggable={false}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Herd icon */}
+            <HerdIcon x={herd.x} y={herd.y} />
+          </div>
+        </div>
 
         {/* Milestone arrival banner */}
         {flashStop && (
