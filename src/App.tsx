@@ -204,7 +204,7 @@ function OutfitScreen({ onDone }: { onDone: (config: OutfitConfig) => void }) {
   const potentialValue = herd * 40;
 
   return (
-    <div className="h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden" style={{ fontFamily: "'Georgia', serif" }}>
+    <div className="west-app h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden" style={{ fontFamily: "'Georgia', serif" }}>
       <div className="flex-shrink-0 bg-stone-800">
         <div className="max-w-xl xl:max-w-2xl mx-auto">
           <PrairieScene progress={0} pace="easy" turn={0} />
@@ -950,7 +950,7 @@ export default function App(){
   }
 
   return(
-    <div className={`h-screen bg-stone-900 text-stone-100 flex overflow-hidden ${shakeClass}`} style={{fontFamily:"'Georgia', serif"}}>
+    <div className={`west-app h-screen bg-stone-900 text-stone-100 flex overflow-hidden ${shakeClass}`} style={{fontFamily:"'Georgia', serif"}}>
       <StreakFlash streak={state.triviaStreak} />
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 pointer-events-none z-50">
         <FloatingNumbers floats={floats} />

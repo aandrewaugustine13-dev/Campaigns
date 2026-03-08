@@ -135,8 +135,8 @@ export default function TrailMap({
     <div
       className="h-full overflow-hidden"
       style={{
-        background: "#1a1408",
-        borderRight: "3px solid #2d1b11",
+        background: "#1c140f",
+        borderRight: "2px solid #4f3828",
       }}
     >
       <div className="flex h-full min-h-0 flex-col xl:flex-row">
@@ -221,7 +221,7 @@ export default function TrailMap({
         <div
           className="flex-shrink-0 px-3 py-2 space-y-1.5 border-t-2 border-t-[#3d2516] xl:w-44 2xl:w-52 xl:border-t-0 xl:border-l xl:border-l-stone-800"
           style={{
-            background: "linear-gradient(135deg, #2d1b11, #1a1408)",
+            background: "linear-gradient(135deg, #312219, #1b1410)",
           }}
         >
           <div className="flex justify-between items-center xl:flex-col xl:items-start xl:gap-1">

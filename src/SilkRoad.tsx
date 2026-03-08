@@ -282,7 +282,7 @@ function SilkRoadOutfit({ onDone }: { onDone: (config: CaravanConfig) => void })
   const loadColor = ratio > 8 ? "text-red-500" : ratio > 6 ? "text-orange-400" : ratio > 4 ? "text-emerald-400" : "text-blue-400";
 
   return (
-    <div className="h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden" style={{ fontFamily: "'Georgia',serif" }}>
+    <div className="west-app h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden" style={{ fontFamily: "'Georgia',serif" }}>
       <div className="flex-1 overflow-y-auto p-4">
         <div className="max-w-lg mx-auto space-y-4">
           <div className="text-center">
@@ -731,7 +731,7 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
 
   // ── MAIN GAME ──
   return (
-    <div className="h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden" style={{ fontFamily: "'Georgia',serif" }}>
+    <div className="west-app h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden" style={{ fontFamily: "'Georgia',serif" }}>
       {/* 🔴 NEW: DYNAMIC SCENE BANNER */}
       <div className="flex-shrink-0 bg-stone-800 border-b border-stone-700">
         <div className="max-w-lg mx-auto">
