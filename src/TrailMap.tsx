@@ -91,6 +91,13 @@ function nextSupplyTown(progress: number): TrailStop | null {
   return STOPS.find(s => s.supply && s.pct > progress) || null;
 }
 
+const CAMP_MARKERS = STOPS
+  .filter((stop) => stop.supply && stop.id !== "sanantonio")
+  .map((stop) => {
+    const [x, y] = TRAIL_PATH[stop.pathIndex];
+    return { id: stop.id, name: stop.name, x, y };
+  });
+
 // ═══════════════════════════════════════════════════════════════
 // MAIN MAP COMPONENT
 // ═══════════════════════════════════════════════════════════════
@@ -126,132 +133,140 @@ export default function TrailMap({
 
   return (
     <div
-      className="flex flex-col h-full overflow-hidden"
+      className="h-full overflow-hidden"
       style={{
         background: "#1a1408",
         borderRight: "3px solid #2d1b11",
       }}
     >
-      {/* Map + herd overlay */}
-      <div className="flex-1 relative min-h-0 overflow-hidden">
-        {/* The parchment map */}
-        <img
-          src="/faces/map_chisholm.png"
-          alt="Chisholm Trail"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ objectPosition: "center top" }}
-          draggable={false}
-        />
-
-        {/* Herd marker — just a glowing dot following the trail */}
-        <div
-          className="absolute pointer-events-none"
-          style={{
-            left: `${herd.x}%`,
-            top: `${herd.y}%`,
-            transform: "translate(-50%, -50%)",
-            transition: "left 1s ease-in-out, top 1s ease-in-out",
-            zIndex: 20,
-          }}
-        >
-          {/* Outer pulse */}
-          <div
-            className="absolute rounded-full"
-            style={{
-              width: 32,
-              height: 32,
-              left: -16,
-              top: -16,
-              background: "radial-gradient(circle, rgba(180,60,30,0.4) 0%, transparent 70%)",
-              animation: "trailPulse 2s ease-in-out infinite",
-            }}
-          />
-          {/* Inner marker */}
-          <div
-            className="rounded-full"
-            style={{
-              width: 14,
-              height: 14,
-              marginLeft: -7,
-              marginTop: -7,
-              backgroundColor: "#91332a",
-              border: "2.5px solid #fef3c7",
-              boxShadow: "0 0 8px rgba(145,51,42,0.7), 0 1px 3px rgba(0,0,0,0.6)",
-            }}
-          />
-        </div>
-
-        {/* Milestone arrival banner */}
-        {flashStop && (
-          <div className="absolute left-0 right-0 top-3 z-30 flex justify-center pointer-events-none">
+      <div className="flex h-full min-h-0 flex-col xl:flex-row">
+        {/* Map + herd overlay */}
+        <div className="flex-1 min-h-0 p-2 xl:p-3 xl:pr-2">
+          <div className="h-full w-full flex items-center justify-center">
             <div
-              className="px-3 py-1.5 rounded-lg font-black uppercase tracking-wider"
-              style={{
-                fontSize: 12,
-                background: "linear-gradient(135deg, rgba(69,26,3,0.95), rgba(146,64,14,0.95))",
-                color: "#fef3c7",
-                textShadow: "0 1px 3px rgba(0,0,0,0.8)",
-                boxShadow: "0 0 24px rgba(217,119,6,0.6), inset 0 1px 0 rgba(251,191,36,0.3)",
-                border: "2px solid rgba(217,119,6,0.5)",
-                fontFamily: "'Georgia', serif",
-                animation: "milestoneSlideIn 2.5s ease-out forwards",
-              }}
+              className="relative h-full max-h-full w-full max-w-full"
+              style={{ aspectRatio: "412 / 1024" }}
             >
-              📍 {flashStop.name}
+              {/* The parchment map */}
+              <img
+                src="/faces/map_chisholm.png"
+                alt="Chisholm Trail"
+                className="absolute inset-0 w-full h-full object-fill"
+                draggable={false}
+              />
+
+              {/* Static camp markers */}
+              {CAMP_MARKERS.map((camp) => (
+                <img
+                  key={camp.id}
+                  src="/map-icons/camp.png"
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute pointer-events-none select-none"
+                  style={{
+                    left: `${camp.x}%`,
+                    top: `${camp.y}%`,
+                    width: "clamp(12px, 1.2vw, 16px)",
+                    height: "clamp(12px, 1.2vw, 16px)",
+                    transform: "translate(-50%, -50%)",
+                    zIndex: 12,
+                  }}
+                  draggable={false}
+                />
+              ))}
+
+              {/* Herd marker */}
+              <img
+                src="/map-icons/herd.png"
+                alt=""
+                aria-hidden="true"
+                className="absolute pointer-events-none select-none"
+                style={{
+                  left: `${herd.x}%`,
+                  top: `${herd.y}%`,
+                  width: "clamp(14px, 1.4vw, 18px)",
+                  height: "clamp(14px, 1.4vw, 18px)",
+                  transform: "translate(-50%, -50%)",
+                  transition: "left 1s ease-in-out, top 1s ease-in-out",
+                  zIndex: 20,
+                }}
+                draggable={false}
+              />
+
+              {/* Milestone arrival banner */}
+              {flashStop && (
+                <div className="absolute left-0 right-0 top-3 z-30 flex justify-center pointer-events-none">
+                  <div
+                    className="px-3 py-1.5 rounded-lg font-black uppercase tracking-wider"
+                    style={{
+                      fontSize: 12,
+                      background: "linear-gradient(135deg, rgba(69,26,3,0.95), rgba(146,64,14,0.95))",
+                      color: "#fef3c7",
+                      textShadow: "0 1px 3px rgba(0,0,0,0.8)",
+                      boxShadow: "0 0 24px rgba(217,119,6,0.6), inset 0 1px 0 rgba(251,191,36,0.3)",
+                      border: "2px solid rgba(217,119,6,0.5)",
+                      fontFamily: "'Georgia', serif",
+                      animation: "milestoneSlideIn 2.5s ease-out forwards",
+                    }}
+                  >
+                    📍 {flashStop.name}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        )}
-      </div>
-
-      {/* Info panel — minimal */}
-      <div
-        className="flex-shrink-0 px-3 py-2 space-y-1.5"
-        style={{
-          background: "linear-gradient(135deg, #2d1b11, #1a1408)",
-          borderTop: "2px solid #3d2516",
-        }}
-      >
-        <div className="flex justify-between items-center">
-          <span className="text-xs text-amber-400 font-bold" style={{ fontFamily: "'Georgia', serif" }}>
-            📍 {currentStop.name}
-          </span>
-          <span className="text-[10px] text-stone-500">
-            Day {day}/{totalDays}
-          </span>
         </div>
 
-        {/* Trail progress bar */}
-        <div className="space-y-0.5">
-          <div className="flex justify-between text-[10px] text-stone-500">
-            <span>{Math.round(progress * 8)} mi</span>
-            <span>800 mi</span>
+        {/* Info panel — minimal */}
+        <div
+          className="flex-shrink-0 px-3 py-2 space-y-1.5 border-t-2 border-t-[#3d2516] xl:w-44 2xl:w-52 xl:border-t-0 xl:border-l xl:border-l-stone-800"
+          style={{
+            background: "linear-gradient(135deg, #2d1b11, #1a1408)",
+          }}
+        >
+          <div className="flex justify-between items-center xl:flex-col xl:items-start xl:gap-1">
+            <span className="text-xs text-amber-400 font-bold" style={{ fontFamily: "'Georgia', serif" }}>
+              📍 {currentStop.name}
+            </span>
+            <span className="text-[10px] text-stone-500">
+              Day {day}/{totalDays}
+            </span>
           </div>
-          <div className="w-full h-2 bg-stone-800 rounded-full overflow-hidden border border-stone-700">
+
+          {/* Trail progress bar */}
+          <div className="space-y-0.5">
+            <div className="flex justify-between text-[10px] text-stone-500">
+              <span>{Math.round(progress * 8)} mi</span>
+              <span>800 mi</span>
+            </div>
+            <div className="w-full h-2 bg-stone-800 rounded-full overflow-hidden border border-stone-700">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{
+                  width: `${progress}%`,
+                  background: "linear-gradient(90deg, #92400e, #d97706, #fbbf24)",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Next supply */}
+          {nextSupply && (
             <div
-              className="h-full rounded-full transition-all duration-700"
-              style={{
-                width: `${progress}%`,
-                background: "linear-gradient(90deg, #92400e, #d97706, #fbbf24)",
-              }}
-            />
-          </div>
+              className={`text-[11px] ${approachingSupply ? "text-cyan-400 font-bold" : "text-stone-500"}`}
+              style={{ fontFamily: "'Georgia', serif" }}
+            >
+              {approachingSupply
+                ? `🏪 ${nextSupply.name} — ${Math.round((nextSupply.pct - progress) * 8)} mi`
+                : `Next supplies: ${nextSupply.name} (${Math.round((nextSupply.pct - progress) * 8)} mi)`
+              }
+            </div>
+          )}
         </div>
-
-        {/* Next supply */}
-        {nextSupply && (
-          <div
-            className={`text-[11px] ${approachingSupply ? "text-cyan-400 font-bold" : "text-stone-500"}`}
-            style={{ fontFamily: "'Georgia', serif" }}
-          >
-            {approachingSupply
-              ? `🏪 ${nextSupply.name} — ${Math.round((nextSupply.pct - progress) * 8)} mi`
-              : `Next supplies: ${nextSupply.name} (${Math.round((nextSupply.pct - progress) * 8)} mi)`
-            }
-          </div>
-        )}
       </div>
     </div>
   );
+
 }
 
 // ═══════════════════════════════════════════════════════════════
