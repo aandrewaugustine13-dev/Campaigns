@@ -47,8 +47,8 @@ export default function DoomHUD({ members }: { members: PartyMember[] }) {
   }, [members, damageTriggers]);
 
   return (
-    <div className="flex-shrink-0 bg-[#2d1b11] border-t-4 border-[#1a0f0a] p-2 md:px-4">
-      <div className="text-[#a0a0a0] text-xs font-bold uppercase mb-1 drop-shadow-md">
+    <div className="flex-shrink-0 bg-[#261b15] border-t-2 border-[#574230] p-2 md:px-4">
+      <div className="text-[#c9b89f] text-xs font-bold uppercase mb-1 drop-shadow-md">
         Party Status HUD
       </div>
       <div className={`w-full grid gap-2 ${members.length <= 5 ? "grid-cols-5" : "grid-cols-6"}`}>
@@ -58,7 +58,7 @@ export default function DoomHUD({ members }: { members: PartyMember[] }) {
           const isCritical = m.health <= 25;
 
           return (
-            <div key={m.id} className="flex flex-col items-center bg-[#1a0f0a] border-2 border-[#3d2516] p-1">
+            <div key={m.id} className="flex flex-col items-center bg-[#1b130f] border border-[#5a4434] rounded p-1">
               <div
                 key={`portrait-${m.id}-${damageTriggers[m.id] ?? 0}`}
                 className={`w-12 h-12 relative ${damageTriggers[m.id] ? "juice-portrait-hit" : ""}`}
@@ -74,10 +74,10 @@ export default function DoomHUD({ members }: { members: PartyMember[] }) {
                   <div className="absolute inset-0 bg-red-600 opacity-30 mix-blend-multiply animate-pulse"></div>
                 )}
               </div>
-              <span className="text-white font-bold mt-1" style={{ fontSize: "9px" }}>
+              <span className="text-stone-200 font-bold mt-1 tracking-wide" style={{ fontSize: "9px" }}>
                 {m.role}
               </span>
-              <div className="w-full h-1.5 bg-red-900 mt-1 border border-black overflow-hidden">
+              <div className="w-full h-1.5 bg-[#3a281f] mt-1 border border-[#5a4432] overflow-hidden rounded-full">
                 <div
                   className={`h-full transition-all duration-500 ${m.health > 50 ? "bg-green-500" : m.health > 25 ? "bg-yellow-500" : "bg-red-500"}`}
                   style={{ width: `${m.health}%` }}

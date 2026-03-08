@@ -132,3 +132,42 @@
   50% { transform: scale(1.4); opacity: 0.3; }
   100% { transform: scale(1); opacity: 0.8; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   OLD WEST STRATEGY SKIN (restrained + readable)
+   ═══════════════════════════════════════════════════════════════ */
+
+.west-app {
+  color: #f2e6d0;
+  background: radial-gradient(circle at top, #2b1f19 0%, #16100d 65%);
+}
+
+.west-app .bg-stone-900 { background-color: #1a130f !important; }
+.west-app .bg-stone-800 { background-color: #2b1f18 !important; }
+.west-app .bg-stone-700 { background-color: #3a2a20 !important; }
+.west-app .border-stone-700 { border-color: #5b4534 !important; }
+.west-app .border-stone-600 { border-color: #6a503d !important; }
+.west-app .text-stone-500 { color: #b7a58f !important; }
+.west-app .text-stone-400 { color: #ccbca6 !important; }
+.west-app .text-stone-300 { color: #e2d1b6 !important; }
+.west-app .text-stone-200 { color: #f2e6d0 !important; }
+.west-app .text-amber-400 { color: #e0b24d !important; }
+.west-app .text-amber-300 { color: #e8c377 !important; }
+.west-app .bg-amber-700 { background-color: #8f5323 !important; }
+.west-app .hover\:bg-amber-600:hover { background-color: #a2602b !important; }
+
+.west-app button {
+  border-radius: 0.35rem;
+  border-width: 1px;
+  border-color: #6d4e35;
+  letter-spacing: 0.01em;
+}
+
+.west-app .rounded {
+  border-radius: 0.35rem !important;
+}
+
+.west-app .shadow-lg,
+.west-app .drop-shadow-md {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+}
