@@ -161,9 +161,9 @@ export function StatBox({
 
   return (
     <div
-      className={`bg-stone-700 rounded p-1.5 text-center relative overflow-hidden border-2 transition-colors duration-150 ${borderColor} ${bgFlash}`}
+      className={`bg-stone-700 rounded p-1.5 text-center relative overflow-hidden border transition-colors duration-150 ${borderColor} ${bgFlash}`}
     >
-      <div className="text-stone-400 text-xs">{icon} {label}</div>
+      <div className="text-stone-400 text-[11px] tracking-wide">{icon} {label}</div>
       <div
         className={`font-bold transition-all duration-200 ${
           pulseState === "gain" ? "text-emerald-300 scale-110" :
@@ -196,7 +196,7 @@ export function ResourceBar({
   return (
     <div className={`flex items-center gap-2 ${pulseState === "loss" ? "juice-flash-loss" : pulseState === "gain" ? "juice-flash-gain" : ""}`}>
       <span className="w-20 text-stone-400 text-xs">{label}</span>
-      <div className="flex-1 bg-stone-700 rounded-full h-2 overflow-hidden">
+      <div className="flex-1 bg-stone-700 rounded-full h-2 overflow-hidden border border-stone-600">
         <div
           className={`${color} h-2 rounded-full transition-all duration-500`}
           style={{ width: `${value}%` }}
