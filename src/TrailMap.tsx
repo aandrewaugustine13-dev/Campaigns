@@ -1,43 +1,90 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 
 // ═══════════════════════════════════════════════════════════════
-// CHISHOLM TRAIL MAP — parchment map with game overlay
-// Coordinates are % positions matched to the actual map artwork
+// CHISHOLM TRAIL MAP — parchment map with herd following the trail
+// No clutter. Just the map art and your cattle moving north.
 // ═══════════════════════════════════════════════════════════════
 
+// Trail path points traced from the dotted line on the map image
+// Each point is [x%, y%] from top-left of the image
+// More points = smoother curve following the actual trail
+const TRAIL_PATH: [number, number][] = [
+  [50, 91],    // San Antonio
+  [50, 88],
+  [51, 85],
+  [52, 82],    // heading toward Austin
+  [53, 80],
+  [54, 78],    // Austin
+  [55, 75],
+  [56, 72],
+  [57, 69],
+  [58, 66],
+  [58, 64],    // Waco
+  [57, 61],
+  [55, 58],
+  [52, 56],
+  [48, 54],
+  [45, 53],    // Fort Worth
+  [44, 51],
+  [44, 49],
+  [44, 47],
+  [45, 45],
+  [45, 43],    // Red River / Trail Crossing
+  [45, 41],
+  [44, 39],
+  [43, 37],
+  [42, 35],
+  [41, 33],
+  [40, 31],    // Chisholm's Post area
+  [40, 29],
+  [41, 27],
+  [42, 25],
+  [44, 23],
+  [46, 21],
+  [49, 19],
+  [52, 18],    // Wichita
+  [52, 16],
+  [51, 14],
+  [50, 12],
+  [49, 10],    // Abilene
+];
+
+// Trail stops — for the info panel and milestone detection
 interface TrailStop {
   id: string;
   name: string;
-  x: number;
-  y: number;
-  pct: number;
+  pathIndex: number;  // index into TRAIL_PATH where this stop sits
+  pct: number;        // % along trail
   supply: boolean;
 }
 
-// Positions mapped to the parchment map image
 const STOPS: TrailStop[] = [
-  { id: "sanantonio", name: "San Antonio",       x: 46, y: 89,  pct: 0,   supply: true  },
-  { id: "austin",     name: "Austin",            x: 52, y: 78,  pct: 12,  supply: true  },
-  { id: "waco",       name: "Waco",              x: 57, y: 64,  pct: 25,  supply: true  },
-  { id: "fortworth",  name: "Fort Worth",        x: 42, y: 53,  pct: 37,  supply: true  },
-  { id: "redriver",   name: "Red River",         x: 40, y: 43,  pct: 50,  supply: false },
-  { id: "chisholm",   name: "Chisholm's Post",   x: 38, y: 31,  pct: 60,  supply: true  },
-  { id: "wichita",    name: "Wichita",           x: 54, y: 19,  pct: 82,  supply: true  },
-  { id: "abilene",    name: "Abilene",           x: 50, y: 10,  pct: 100, supply: true  },
+  { id: "sanantonio", name: "San Antonio",     pathIndex: 0,  pct: 0,   supply: true  },
+  { id: "austin",     name: "Austin",          pathIndex: 5,  pct: 12,  supply: true  },
+  { id: "waco",       name: "Waco",            pathIndex: 10, pct: 25,  supply: true  },
+  { id: "fortworth",  name: "Fort Worth",      pathIndex: 15, pct: 37,  supply: true  },
+  { id: "redriver",   name: "Red River",       pathIndex: 20, pct: 50,  supply: false },
+  { id: "chisholm",   name: "Chisholm's Post", pathIndex: 26, pct: 60,  supply: true  },
+  { id: "wichita",    name: "Wichita",         pathIndex: 32, pct: 82,  supply: true  },
+  { id: "abilene",    name: "Abilene",         pathIndex: 36, pct: 100, supply: true  },
 ];
 
-function getHerdPos(progress: number): { x: number; y: number } {
-  if (progress <= 0) return { x: STOPS[0].x, y: STOPS[0].y };
-  if (progress >= 100) return { x: STOPS[STOPS.length - 1].x, y: STOPS[STOPS.length - 1].y };
-  for (let i = 0; i < STOPS.length - 1; i++) {
-    const a = STOPS[i];
-    const b = STOPS[i + 1];
-    if (progress >= a.pct && progress <= b.pct) {
-      const t = (progress - a.pct) / (b.pct - a.pct);
-      return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
-    }
-  }
-  return { x: STOPS[0].x, y: STOPS[0].y };
+// Interpolate position along the trail path
+function getHerdPosition(progress: number): { x: number; y: number } {
+  const p = Math.max(0, Math.min(100, progress)) / 100;
+  const totalSegments = TRAIL_PATH.length - 1;
+  const exactIndex = p * totalSegments;
+  const i = Math.floor(exactIndex);
+  const t = exactIndex - i;
+
+  if (i >= totalSegments) return { x: TRAIL_PATH[totalSegments][0], y: TRAIL_PATH[totalSegments][1] };
+
+  const [x1, y1] = TRAIL_PATH[i];
+  const [x2, y2] = TRAIL_PATH[i + 1];
+  return {
+    x: x1 + (x2 - x1) * t,
+    y: y1 + (y2 - y1) * t,
+  };
 }
 
 function nextSupplyTown(progress: number): TrailStop | null {
@@ -45,53 +92,7 @@ function nextSupplyTown(progress: number): TrailStop | null {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// HERD ICON
-// ═══════════════════════════════════════════════════════════════
-
-function HerdIcon({ x, y }: { x: number; y: number }) {
-  return (
-    <div
-      className="absolute pointer-events-none"
-      style={{
-        left: `${x}%`,
-        top: `${y}%`,
-        transform: "translate(-50%, -50%)",
-        transition: "left 0.8s ease, top 0.8s ease",
-        zIndex: 25,
-      }}
-    >
-      {/* Glow */}
-      <div
-        className="absolute rounded-full"
-        style={{
-          width: 56,
-          height: 56,
-          left: -28,
-          top: -28,
-          background: "radial-gradient(circle, rgba(251,191,36,0.3) 0%, transparent 65%)",
-          animation: "trailPulse 2.5s ease-in-out infinite",
-        }}
-      />
-      {/* Illustrated herd */}
-      <img
-        src="/faces/icon_herd.png"
-        alt="Your herd"
-        style={{
-          width: 52,
-          height: 52,
-          marginLeft: -26,
-          marginTop: -26,
-          mixBlendMode: "multiply",
-          filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.4))",
-        }}
-        draggable={false}
-      />
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════
-// MAIN MAP
+// MAIN MAP COMPONENT
 // ═══════════════════════════════════════════════════════════════
 
 export default function TrailMap({
@@ -117,7 +118,7 @@ export default function TrailMap({
     }
   }, [progress]);
 
-  const herd = getHerdPos(progress);
+  const herd = useMemo(() => getHerdPosition(progress), [progress]);
   const nextSupply = nextSupplyTown(progress);
   const approachingSupply = nextSupply && (nextSupply.pct - progress) < 8;
   const currentStop = [...STOPS].reverse().find(s => progress >= s.pct) || STOPS[0];
@@ -125,114 +126,59 @@ export default function TrailMap({
 
   return (
     <div
-      className="w-full flex flex-col h-full overflow-hidden"
+      className="flex flex-col h-full overflow-hidden"
       style={{
         background: "#1a1408",
         borderRight: "3px solid #2d1b11",
       }}
     >
-      {/* Map area — show full map art while consuming available sidebar width */}
-      <div className="flex-1 relative min-h-0 overflow-hidden bg-[#171106]">
-        <div className="absolute inset-0 flex justify-center">
-          <div className="relative w-full" style={{ aspectRatio: "412 / 1024", maxHeight: "100%" }}>
-            <img
-              src="/faces/map_chisholm.png"
-              alt="Chisholm Trail"
-              className="absolute inset-0 h-full w-full object-contain"
-              style={{ objectPosition: "center top" }}
-              draggable={false}
-            />
+      {/* Map + herd overlay */}
+      <div className="flex-1 relative min-h-0 overflow-hidden">
+        {/* The parchment map */}
+        <img
+          src="/faces/map_chisholm.png"
+          alt="Chisholm Trail"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ objectPosition: "center top" }}
+          draggable={false}
+        />
 
-            {/* Stop markers — dots only, map already has labels */}
-            {STOPS.map(stop => {
-              const reached = progress >= stop.pct;
-              const isCurrent = stop.id === currentStop.id && progress > 0;
-              const isApproaching = approachingSupply && nextSupply?.id === stop.id;
-              const isFlashing = stop.id === milestoneId;
-
-              return (
-                <div
-                  key={stop.id}
-                  className="absolute"
-                  style={{
-                    left: `${stop.x}%`,
-                    top: `${stop.y}%`,
-                    transform: "translate(-50%, -50%)",
-                    zIndex: isCurrent ? 15 : 10,
-                  }}
-                >
-                  {/* Approaching supply pulse ring */}
-                  {isApproaching && (
-                    <div
-                      className="absolute rounded-full border-2 border-cyan-400"
-                      style={{
-                        width: 40,
-                        height: 40,
-                        left: -20,
-                        top: -20,
-                        animation: "trailPulse 1.5s ease-out infinite",
-                      }}
-                    />
-                  )}
-
-                  {/* Marker dot */}
-                  <div
-                    className="rounded-full flex items-center justify-center transition-all duration-300"
-                    style={{
-                      width: isCurrent ? 18 : 14,
-                      height: isCurrent ? 18 : 14,
-                      marginLeft: isCurrent ? -9 : -7,
-                      marginTop: isCurrent ? -9 : -7,
-                      backgroundColor: reached
-                        ? (stop.supply ? "#fbbf24" : "#d97706")
-                        : "rgba(68,64,60,0.6)",
-                      border: `2px solid ${
-                        isFlashing ? "#fef3c7" : reached ? "#451a03" : "rgba(87,83,78,0.5)"
-                      }`,
-                      boxShadow: isFlashing
-                        ? "0 0 16px rgba(251,191,36,1), 0 0 30px rgba(251,191,36,0.5)"
-                        : isCurrent
-                        ? "0 0 10px rgba(251,191,36,0.6)"
-                        : "0 1px 3px rgba(0,0,0,0.5)",
-                      fontSize: 8,
-                      color: reached ? "#451a03" : "#78716c",
-                    }}
-                  >
-                    {reached ? "✓" : ""}
-                  </div>
-
-                  {/* Supply tag — illustrated store for unreached supply towns */}
-                  {stop.supply && !reached && (
-                    <div
-                      className="absolute pointer-events-none"
-                      style={{
-                        top: -24,
-                        left: "50%",
-                        transform: "translateX(-50%)",
-                      }}
-                    >
-                      <img
-                        src="/faces/icon_store.png"
-                        alt="Supplies"
-                        style={{
-                          width: isApproaching ? 36 : 28,
-                          height: isApproaching ? 36 : 28,
-                          mixBlendMode: "multiply",
-                          opacity: isApproaching ? 1 : 0.6,
-                          filter: isApproaching ? "drop-shadow(0 0 4px rgba(34,211,238,0.6))" : "none",
-                          transition: "all 0.3s ease",
-                        }}
-                        draggable={false}
-                      />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-
-            {/* Herd icon */}
-            <HerdIcon x={herd.x} y={herd.y} />
-          </div>
+        {/* Herd marker — just a glowing dot following the trail */}
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            left: `${herd.x}%`,
+            top: `${herd.y}%`,
+            transform: "translate(-50%, -50%)",
+            transition: "left 1s ease-in-out, top 1s ease-in-out",
+            zIndex: 20,
+          }}
+        >
+          {/* Outer pulse */}
+          <div
+            className="absolute rounded-full"
+            style={{
+              width: 32,
+              height: 32,
+              left: -16,
+              top: -16,
+              background: "radial-gradient(circle, rgba(180,60,30,0.4) 0%, transparent 70%)",
+              animation: "trailPulse 2s ease-in-out infinite",
+            }}
+          />
+          {/* Inner marker */}
+          <div
+            className="rounded-full"
+            style={{
+              width: 14,
+              height: 14,
+              marginLeft: -7,
+              marginTop: -7,
+              backgroundColor: "#91332a",
+              border: "2.5px solid #fef3c7",
+              boxShadow: "0 0 8px rgba(145,51,42,0.7), 0 1px 3px rgba(0,0,0,0.6)",
+            }}
+          />
         </div>
 
         {/* Milestone arrival banner */}
@@ -251,13 +197,13 @@ export default function TrailMap({
                 animation: "milestoneSlideIn 2.5s ease-out forwards",
               }}
             >
-              📍 Reached {flashStop.name}
+              📍 {flashStop.name}
             </div>
           </div>
         )}
       </div>
 
-      {/* Bottom info panel */}
+      {/* Info panel — minimal */}
       <div
         className="flex-shrink-0 px-3 py-2 space-y-1.5"
         style={{
@@ -274,7 +220,7 @@ export default function TrailMap({
           </span>
         </div>
 
-        {/* Mileage bar */}
+        {/* Trail progress bar */}
         <div className="space-y-0.5">
           <div className="flex justify-between text-[10px] text-stone-500">
             <span>{Math.round(progress * 8)} mi</span>
@@ -291,13 +237,14 @@ export default function TrailMap({
           </div>
         </div>
 
+        {/* Next supply */}
         {nextSupply && (
           <div
             className={`text-[11px] ${approachingSupply ? "text-cyan-400 font-bold" : "text-stone-500"}`}
             style={{ fontFamily: "'Georgia', serif" }}
           >
             {approachingSupply
-              ? `🏪 ${nextSupply.name} ahead — ${Math.round((nextSupply.pct - progress) * 8)} mi`
+              ? `🏪 ${nextSupply.name} — ${Math.round((nextSupply.pct - progress) * 8)} mi`
               : `Next supplies: ${nextSupply.name} (${Math.round((nextSupply.pct - progress) * 8)} mi)`
             }
           </div>
