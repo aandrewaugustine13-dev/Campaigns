@@ -14,7 +14,7 @@ import {
   useScreenShake, useStatPulse, useResourceTracker,
   StatBox, ResourceBar, StreakFlash,
 } from "./GameJuice";
-import TrailMap, { getRegionFlavor } from "./TrailMap";
+import TrailMap, { getRegionFlavor, isNearSupplyTown } from "./TrailMap";
 import { SAGES, type SageEncounterData } from "./Sages";
 import SageEncounter from "./SageEncounter";
 
@@ -46,6 +46,8 @@ interface OutfitConfig {
   supplies: number;
   guns: number;
   spareParts: number;
+  medicalGear: number;
+  horseQuality: number;
   wages: "low" | "standard" | "good";
   budgetSpent: number;
   startingCash: number;
@@ -166,12 +168,14 @@ const OUTFIT_BUDGET = 2000;
 const BASE_CREW = 8;
 const BASE_HORSES = 30;
 const BASE_SUPPLIES = 35;
-const COST_COWBOY = 80;
-const COST_HORSE = 25;
-const COST_SUPPLY = 3;
-const COST_GUN = 20;
-const COST_SPAREPARTS = 15;
-const WAGE_COST: Record<string, number> = { low: 0, standard: 120, good: 280 };
+const COST_COWBOY = 120;
+const COST_HORSE = 40;
+const COST_SUPPLY = 6;
+const COST_GUN = 35;
+const COST_SPAREPARTS = 65;
+const COST_MEDICAL_GEAR = 75;
+const COST_HORSE_QUALITY = 90;
+const WAGE_COST: Record<string, number> = { low: 0, standard: 160, good: 360 };
 const WAGE_MORALE: Record<string, number> = { low: 35, standard: 50, good: 68 };
 const HERD_OPTIONS = [1500, 2000, 2500, 3000, 3500];
 
@@ -191,13 +195,15 @@ function OutfitScreen({ onDone }: { onDone: (config: OutfitConfig) => void }) {
   const [extraSupplies, setExtraSupplies] = useState(10); 
   const [guns, setGuns] = useState(4);
   const [spareParts, setSpareParts] = useState(3);
+  const [medicalGear, setMedicalGear] = useState(2);
+  const [horseQuality, setHorseQuality] = useState(2);
   const [wages, setWages] = useState<"low" | "standard" | "good">("standard");
 
   const herd = HERD_OPTIONS[herdIdx];
   const crew = BASE_CREW + extraCrew;
   const horses = BASE_HORSES + extraHorses;
   const supplies = BASE_SUPPLIES + extraSupplies;
-  const spent = extraCrew * COST_COWBOY + extraHorses * COST_HORSE + extraSupplies * COST_SUPPLY + guns * COST_GUN + spareParts * COST_SPAREPARTS + WAGE_COST[wages];
+  const spent = extraCrew * COST_COWBOY + extraHorses * COST_HORSE + extraSupplies * COST_SUPPLY + guns * COST_GUN + spareParts * COST_SPAREPARTS + medicalGear * COST_MEDICAL_GEAR + horseQuality * COST_HORSE_QUALITY + WAGE_COST[wages];
   const remaining = OUTFIT_BUDGET - spent;
   const rating = getCrewRating(herd, crew);
   const horsesPerCowboy = (horses / crew).toFixed(1);
@@ -266,6 +272,22 @@ function OutfitScreen({ onDone }: { onDone: (config: OutfitConfig) => void }) {
           </div>
 
           <div className="bg-stone-800 border border-stone-700 rounded p-2.5">
+            <div className="flex justify-between items-center text-xs mb-1">
+              <span className="text-stone-300 font-bold">🩺 Medical Gear</span>
+              <span className="font-mono">{medicalGear} kits</span>
+            </div>
+            <input type="range" min={0} max={6} value={medicalGear} onChange={e => setMedicalGear(+e.target.value)} className="w-full accent-amber-500 h-2" />
+          </div>
+
+          <div className="bg-stone-800 border border-stone-700 rounded p-2.5">
+            <div className="flex justify-between items-center text-xs mb-1">
+              <span className="text-stone-300 font-bold">🐎 Horse Quality</span>
+              <span className="font-mono">Tier {horseQuality + 1}</span>
+            </div>
+            <input type="range" min={0} max={4} value={horseQuality} onChange={e => setHorseQuality(+e.target.value)} className="w-full accent-amber-500 h-2" />
+          </div>
+
+          <div className="bg-stone-800 border border-stone-700 rounded p-2.5">
             <div className="flex justify-between items-center text-xs mb-1.5">
               <span className="text-stone-300 font-bold">{"\uD83D\uDD25"} Cowboy Wages</span>
             </div>
@@ -287,7 +309,7 @@ function OutfitScreen({ onDone }: { onDone: (config: OutfitConfig) => void }) {
           </div>
 
           <button
-            onClick={() => onDone({ herd, crew, horses, supplies, guns, spareParts, wages, budgetSpent: spent, startingCash: Math.max(0, remaining) })}
+            onClick={() => onDone({ herd, crew, horses, supplies, guns, spareParts, medicalGear, horseQuality, wages, budgetSpent: spent, startingCash: Math.max(0, remaining) })}
             disabled={remaining < 0}
             className={`w-full py-2.5 font-bold rounded transition-colors ${remaining >= 0 ? "bg-amber-700 hover:bg-amber-600 text-white" : "bg-stone-700 text-stone-500 cursor-not-allowed"}`}
           >
@@ -339,7 +361,7 @@ function pickEvent(day:number,td:number,used:Set<string>,evts:GameEvent[]):GameE
   const pool=el.length>0?el:evts.filter(e=>p>=e.phase_min&&p<=e.phase_max);
   if(!pool.length)return null;return weightedPick(pool);
 }
-function clampR(k:string,v:number):number{const m:Record<string,number>={herd:3500,crew:18,horses:60,ammo:200,spareParts:10};return clamp(v,0,m[k]||100);}
+function clampR(k:string,v:number):number{const m:Record<string,number>={herd:3500,crew:24,horses:70,ammo:240,spareParts:12,wagonCondition:100,cash:5000};return clamp(v,0,m[k]||100);}
 
 // ═══════════════════════════════════════════════════════════════
 // ALL 17 EVENTS
@@ -448,7 +470,7 @@ const EVENTS:GameEvent[]=[
 // ═══════════════════════════════════════════════════════════════
 
 const TOTAL_DAYS=125,DAYS_PER_TURN=5,TOTAL_DISTANCE=800;
-const INIT_R:Resources={herd:2500,crew:12,horses:60,supplies:65,morale:55,herdCondition:60};
+const INIT_R:Resources={herd:2500,crew:12,horses:60,supplies:65,morale:55,herdCondition:60,wagonCondition:72,cash:250};
 const PACES=[
   {id:"easy",label:"Easy",desc:"5 mi/day \u00b7 Herd fattens",mpd:5,fx:{herdCondition:2,morale:1,supplies:-1}as Resources},
   {id:"normal",label:"Normal",desc:"7 mi/day \u00b7 Standard",mpd:7,fx:{herdCondition:-1,morale:-1,supplies:-2}as Resources},
@@ -479,7 +501,7 @@ function getTrailGrade(survived: boolean, herdPct: number, historicalKnowledge: 
 }
 const GC:Record<string,string>={"A+":"text-amber-300",A:"text-emerald-400",B:"text-blue-400",C:"text-yellow-400",D:"text-orange-400",F:"text-red-500"};
 
-const DEFAULT_OUTFIT: OutfitConfig = { herd: 2500, crew: 12, horses: 60, supplies: 65, guns: 4, spareParts: 3, wages: "standard", budgetSpent: 0, startingCash: 0 };
+const DEFAULT_OUTFIT: OutfitConfig = { herd: 2500, crew: 12, horses: 60, supplies: 65, guns: 4, spareParts: 3, medicalGear: 2, horseQuality: 2, wages: "standard", budgetSpent: 0, startingCash: 0 };
 const makeInit=():GameState=>({day:1,turn:0,resources:{...INIT_R},phase:"intro",pace:"normal",distance:0,currentEvent:null,resultText:"",decisions:[],gameOver:false,survived:false,earlySale:false,outfit:{...DEFAULT_OUTFIT},historicalKnowledge:0,knowledgeLog:[],triviaCounter:0,currentTrivia:null,usedTriviaIds:new Set(),triviaStreak:0,insight:1,objectives:[],routeState:{currentNodeId:"start"},routeTag:"SAFE",riskHintsOn:false,pendingChoiceIndex:null,pendingEventQuestion:null,objectiveNotice:"",sageIndex:0,currentSage:null,sagesMet:[]});
 
 // ═══════════════════════════════════════════════════════════════
@@ -501,7 +523,7 @@ export default function App(){
 
   const RESOURCE_LABELS: Record<string, string> = {
     herd: "herd", crew: "crew", horses: "horses", ammo: "ammo",
-    supplies: "supplies", morale: "morale", herdCondition: "cond",
+    supplies: "supplies", morale: "morale", herdCondition: "cond", wagonCondition: "wagon",
   };
 
   const onDelta = useCallback((key: string, delta: number) => {
@@ -535,6 +557,8 @@ export default function App(){
           herdCondition:rating.condition,
           ammo:config.guns*10,
           spareParts:config.spareParts,
+          wagonCondition:clampR("wagonCondition", 56 + config.spareParts * 6 + config.horseQuality * 6),
+          cash:config.startingCash,
         },
       };
     });
@@ -545,17 +569,63 @@ export default function App(){
       const s:GameState={...prev,resources:{...prev.resources}};
       const before = { turn: prev.turn, day: prev.day, distance: prev.distance, resources: { ...prev.resources } };
       s.turn+=1;const pace=PACES.find(p=>p.id===s.pace)!;
-      s.distance=Math.min(s.distance+pace.mpd*DAYS_PER_TURN,TOTAL_DISTANCE);
       s.day=Math.min(s.day+DAYS_PER_TURN,TOTAL_DAYS+1);
-      for(const[k,v]of Object.entries(pace.fx))s.resources[k]=clampR(k,s.resources[k]+v);
-      if (s.routeTag === "FAST") s.resources.herdCondition = clampR("herdCondition", s.resources.herdCondition - 2);
+      for(const[k,v]of Object.entries(pace.fx))s.resources[k]=clampR(k,(s.resources[k]||0)+v);
+      if (s.routeTag === "FAST") {
+        s.resources.herdCondition = clampR("herdCondition", s.resources.herdCondition - 2);
+        s.resources.wagonCondition = clampR("wagonCondition", s.resources.wagonCondition - 3);
+      }
       if (s.routeTag === "SAFE") s.resources.morale = clampR("morale", s.resources.morale + 1);
       if (s.routeTag === "PROFIT") s.resources.supplies = clampR("supplies", s.resources.supplies - 1);
-      const crewDrain = Math.ceil(s.resources.crew / 10);
-      s.resources.supplies=clamp(s.resources.supplies-crewDrain,0,100);
-      if(s.resources.herdCondition<20)s.resources.herd=Math.max(0,s.resources.herd-Math.ceil(Math.random()*40)-20);
-      else if(s.resources.herdCondition<35&&Math.random()<0.4)s.resources.herd=Math.max(0,s.resources.herd-Math.ceil(Math.random()*15));
-      if(s.resources.morale<15&&Math.random()<0.3)s.resources.crew=Math.max(0,s.resources.crew-1);
+
+      // Crew shortages throttle pace and herd control
+      const crewPenalty = s.resources.crew <= 5 ? 0.6 : s.resources.crew <= 7 ? 0.78 : s.resources.crew <= 9 ? 0.9 : 1;
+      const wagonPenalty = s.resources.wagonCondition <= 0 ? 0.45 : s.resources.wagonCondition < 20 ? 0.7 : s.resources.wagonCondition < 40 ? 0.85 : 1;
+      const distanceGain = pace.mpd * DAYS_PER_TURN * crewPenalty * wagonPenalty;
+      s.distance=Math.min(s.distance+distanceGain,TOTAL_DISTANCE);
+
+      const crewDrain = Math.ceil(s.resources.crew / 8);
+      const wagonLossDrain = s.resources.wagonCondition <= 0 ? 7 : 0;
+      s.resources.supplies=clamp(s.resources.supplies-crewDrain-wagonLossDrain,0,100);
+
+      // Wagon stress model
+      const supplyStress = s.resources.supplies < 22 ? 5 : s.resources.supplies < 35 ? 3 : 0;
+      const herdStress = s.resources.herdCondition < 30 ? 3 : 0;
+      const hardPaceStress = s.pace === "push" ? 6 : s.pace === "normal" ? 2 : 0;
+      const weatherStress = Math.random() < 0.25 ? Math.ceil(Math.random() * 4) : 0;
+      const totalWagonStress = supplyStress + herdStress + hardPaceStress + weatherStress;
+      s.resources.wagonCondition = clampR("wagonCondition", s.resources.wagonCondition - totalWagonStress + Math.floor((s.outfit.horseQuality || 0) / 2));
+
+      // Breakdowns and spare parts consequences
+      const breakdownRisk = (s.pace === "push" ? 0.22 : s.pace === "normal" ? 0.12 : 0.06) + (s.resources.wagonCondition < 35 ? 0.1 : 0) + (s.resources.spareParts <= 0 ? 0.12 : 0);
+      if (Math.random() < breakdownRisk) {
+        if (s.resources.spareParts > 0) {
+          s.resources.spareParts = clampR("spareParts", s.resources.spareParts - 1);
+          s.resources.wagonCondition = clampR("wagonCondition", s.resources.wagonCondition + 12);
+          s.resources.supplies = clampR("supplies", s.resources.supplies - 4);
+          s.resultText = "Wagon axle strain forced a field repair. You burned one spare-part crate and lost time.";
+          s.phase = "result";
+        } else {
+          s.resources.wagonCondition = clampR("wagonCondition", s.resources.wagonCondition - 20);
+          s.resources.supplies = clampR("supplies", s.resources.supplies - 12);
+          s.resources.herdCondition = clampR("herdCondition", s.resources.herdCondition - 6);
+          if (Math.random() < 0.35) {
+            s.resources.wagonCondition = 0;
+            s.resultText = "No spare parts. The chuck wagon was abandoned in mud and broken timber. You are now hauling what you can on horseback.";
+          } else {
+            s.resultText = "No spare parts. The wagon limps onward, badly damaged, with food and medical stores spilling out.";
+          }
+          s.phase = "result";
+        }
+      }
+
+      // Consequential failures under weak conditions
+      if(s.resources.herdCondition<20)s.resources.herd=Math.max(0,s.resources.herd-Math.ceil(Math.random()*65)-25);
+      else if(s.resources.herdCondition<35&&Math.random()<0.6)s.resources.herd=Math.max(0,s.resources.herd-Math.ceil(Math.random()*30));
+      if(s.resources.crew<=7&&Math.random()<0.35)s.resources.herd=Math.max(0,s.resources.herd-Math.ceil(Math.random()*35));
+      if(s.resources.morale<20&&Math.random()<0.4)s.resources.crew=Math.max(0,s.resources.crew-1);
+      if(s.resources.supplies<15&&Math.random()<0.3)s.resources.crew=Math.max(0,s.resources.crew-1);
+
       if(s.resources.crew<=2||s.resources.herd<=100||s.resources.horses<=5)return{...s,phase:"end"as const,gameOver:true,survived:false};
       if(s.distance>=TOTAL_DISTANCE)return{...s,phase:"end"as const,gameOver:true,survived:true};
       const tick = tickObjectives(s.objectives, before, { turn: s.turn, day: s.day, distance: s.distance, resources: { ...s.resources } });
@@ -626,7 +696,12 @@ export default function App(){
       const s:GameState={...prev,resources:{...prev.resources},decisions:[...prev.decisions]};
       const choice=s.currentEvent!.choices![ci];const outcome=resolveChoice(choice);
       s.decisions.push({event:s.currentEvent!.title,choice:choice.text,day:s.day});
-      if(outcome.effects)for(const[k,v]of Object.entries(outcome.effects))if(s.resources[k]!==undefined)s.resources[k]=clampR(k,s.resources[k]+v);
+      if(outcome.effects)for(const[k,v]of Object.entries(outcome.effects))if(s.resources[k]!==undefined){
+        let delta = v;
+        if (k === "herd" && v < 0 && s.resources.crew <= 7) delta = Math.floor(v * 1.35);
+        if (k === "supplies" && v < 0 && s.resources.wagonCondition <= 20) delta = Math.floor(v * 1.3);
+        s.resources[k]=clampR(k,s.resources[k]+delta);
+      }
       if (insightBonus > 0) s.insight += insightBonus;
       if(choice.earlyEnd||outcome.earlyEnd)s.earlySale=true;
       if (insightBonus > 0) {
@@ -766,6 +841,48 @@ export default function App(){
     });
   },[]);
 
+  const handleTownRepair = useCallback(() => {
+    setState(prev => {
+      if (prev.resources.cash < 140) return prev;
+      const s: GameState = { ...prev, resources: { ...prev.resources }, decisions: [...prev.decisions], resultText: "" };
+      s.resources.cash = clampR("cash", s.resources.cash - 140);
+      s.resources.wagonCondition = clampR("wagonCondition", s.resources.wagonCondition + 28);
+      s.resources.spareParts = clampR("spareParts", s.resources.spareParts + 1);
+      s.decisions.push({ event: "Town Stop", choice: "Paid for blacksmith wagon repair", day: s.day });
+      s.resultText = "You paid steep town rates for blacksmith work and one spare-part crate.";
+      s.phase = "result";
+      return s;
+    });
+  }, []);
+
+  const handleTownHire = useCallback(() => {
+    setState(prev => {
+      if (prev.resources.cash < 110) return prev;
+      const s: GameState = { ...prev, resources: { ...prev.resources }, decisions: [...prev.decisions], resultText: "" };
+      s.resources.cash = clampR("cash", s.resources.cash - 110);
+      s.resources.crew = clampR("crew", s.resources.crew + 1);
+      s.resources.morale = clampR("morale", s.resources.morale + 4);
+      s.decisions.push({ event: "Town Stop", choice: "Hired replacement hand", day: s.day });
+      s.resultText = "You hired a replacement hand at inflated trail-town wages.";
+      s.phase = "result";
+      return s;
+    });
+  }, []);
+
+  const handleTownResupply = useCallback(() => {
+    setState(prev => {
+      if (prev.resources.cash < 95) return prev;
+      const s: GameState = { ...prev, resources: { ...prev.resources }, decisions: [...prev.decisions], resultText: "" };
+      s.resources.cash = clampR("cash", s.resources.cash - 95);
+      s.resources.supplies = clampR("supplies", s.resources.supplies + 20);
+      s.resources.morale = clampR("morale", s.resources.morale + 3);
+      s.decisions.push({ event: "Town Stop", choice: "Bought provisions and medicine", day: s.day });
+      s.resultText = "You bought costly trail provisions, enough to steady the camp for now.";
+      s.phase = "result";
+      return s;
+    });
+  }, []);
+
   const handleTriviaComplete = useCallback((correct: boolean, effects: Record<string, number>) => {
     console.log(`[TRIVIA COMPLETE] Correct: ${correct} | Effects:`, effects);
     setState(prev => {
@@ -803,6 +920,15 @@ export default function App(){
   const r=state.resources;
   const progress=state.distance/TOTAL_DISTANCE*100;
   const currentRouteNode = findNode(CHISHOLM_ROUTE, state.routeState.currentNodeId) || CHISHOLM_ROUTE[0];
+  const supplyTown = isNearSupplyTown(progress);
+  const wagonState = r.wagonCondition <= 0 ? "lost" : r.wagonCondition < 20 ? "critical" : r.wagonCondition < 40 ? "damaged" : r.wagonCondition < 65 ? "strained" : "operational";
+  const warningFlags = [
+    r.crew <= 7 ? "⚠️ Crew undermanned: herd control and security are deteriorating." : null,
+    r.spareParts <= 0 ? "⚠️ No spare parts: next wagon failure could force abandonment." : null,
+    r.wagonCondition < 35 ? `⚠️ Wagon ${wagonState}: travel and recovery options are collapsing.` : null,
+    r.supplies < 20 ? "⚠️ Supplies unsustainable: illness, desertion, and herd losses likely." : null,
+    r.morale < 20 ? "⚠️ Morale collapse risk: desertion likely in the next bad event." : null,
+  ].filter(Boolean) as string[];
   const riskHints = (state.currentEvent?.choices || []).map((choice) => {
     if (choice.outcomes) {
       const avgLoss = choice.outcomes.reduce((sum, o) => sum + ((o.effects.herd || 0) < 0 ? Math.abs(o.effects.herd || 0) : 0) + ((o.effects.crew || 0) < 0 ? 20 : 0) + ((o.effects.morale || 0) < 0 ? Math.abs(o.effects.morale || 0) : 0), 0) / choice.outcomes.length;
@@ -850,7 +976,7 @@ export default function App(){
       <div className="max-w-md text-center space-y-4 p-4">
         <h1 className="text-3xl font-bold text-amber-400">CHISHOLM TRAIL</h1>
         <p className="text-stone-300">Spring, 1867. San Antonio, Texas.</p>
-        <p className="text-stone-400 text-sm">You have $2,000 and a reputation. Get a herd to Abilene before the other outfits clean out the market.</p>
+        <p className="text-stone-400 text-sm">You have $2,000 and a reputation. Every outfit choice matters now — weak crews and wagons break on the trail.</p>
         <button onClick={start} className="px-8 py-3 bg-amber-700 hover:bg-amber-600 rounded font-bold transition-colors">BEGIN OUTFIT</button>
         <button onClick={backToMenu} className="block w-full text-stone-500 hover:text-stone-300 text-xs mt-2">← Back to Campaigns</button>
       </div>
@@ -970,11 +1096,13 @@ export default function App(){
       </div>
       <div className="flex-shrink-0 bg-stone-800 border-b border-stone-700 px-3 py-2">
         <div className="max-w-lg mx-auto">
-          <div className="grid grid-cols-4 gap-2 text-xs mb-2">
+          <div className="grid grid-cols-6 gap-2 text-xs mb-2">
             <StatBox icon="🐂" label="Herd" value={r.herd} pulseState={pulses.herd || ""} />
             <StatBox icon="🤠" label="Crew" value={r.crew} pulseState={pulses.crew || ""} />
             <StatBox icon="🐴" label="Horses" value={r.horses} pulseState={pulses.horses || ""} />
             <StatBox icon="🔫" label="Ammo" value={r.ammo||0} pulseState={pulses.ammo || ""} />
+            <StatBox icon="🛞" label="Wagon" value={r.wagonCondition||0} pulseState={pulses.wagonCondition || ""} />
+            <StatBox icon="💵" label="Cash" value={r.cash||0} pulseState={pulses.cash || ""} />
           </div>
           <div className="mb-2 bg-stone-700 rounded p-1.5 text-xs text-center">
             <span className="text-stone-300">✨ Insight:</span> <span className="text-amber-400 font-bold">{state.insight}</span>
@@ -995,6 +1123,13 @@ export default function App(){
           </div>
           {state.objectiveNotice && (
             <p className="text-xs text-emerald-300 mt-1">{state.objectiveNotice}</p>
+          )}
+          {warningFlags.length > 0 && (
+            <div className="mt-1 space-y-0.5">
+              {warningFlags.map((w) => (
+                <p key={w} className="text-[11px] text-amber-300">{w}</p>
+              ))}
+            </div>
           )}
         </div>
       </div>
@@ -1034,17 +1169,37 @@ export default function App(){
                 <p className="text-stone-300 text-sm">{getPhrase(progress/100)}</p>
                 <p className="text-stone-500 text-xs mt-1 italic">{getRegionFlavor(progress)}</p>
               </div>
+
+              {supplyTown.near && (
+                <div className="border border-amber-800 rounded p-2 bg-amber-950/30 space-y-2">
+                  <p className="text-xs text-amber-300 font-bold">Town stop nearby: {supplyTown.town}</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <button onClick={handleTownRepair} disabled={(r.cash||0) < 140} className="text-xs px-2 py-1 rounded bg-stone-700 hover:bg-stone-600 disabled:opacity-50">Repair Wagon ($140)</button>
+                    <button onClick={handleTownHire} disabled={(r.cash||0) < 110} className="text-xs px-2 py-1 rounded bg-stone-700 hover:bg-stone-600 disabled:opacity-50">Hire Hand ($110)</button>
+                    <button onClick={handleTownResupply} disabled={(r.cash||0) < 95} className="text-xs px-2 py-1 rounded bg-stone-700 hover:bg-stone-600 disabled:opacity-50">Resupply ($95)</button>
+                  </div>
+                </div>
+              )}
               <div className="flex gap-2">
-                {PACES.map(p=>(
-                  <button key={p.id} onClick={()=>{setState(prev=>({...prev,pace:p.id}));advanceTurn();}}
-                    className={`flex-1 py-2 rounded text-xs font-bold transition-colors ${p.id==="push"?"bg-red-900 hover:bg-red-800":p.id==="normal"?"bg-stone-700 hover:bg-stone-600":"bg-emerald-900 hover:bg-emerald-800"}`}>
-                    {p.label}<br/><span className="font-normal text-stone-400">{p.desc}</span>
-                  </button>
-                ))}
+                {PACES.map(p=>{
+                  const blocked = (p.id === "push" && (r.crew <= 7 || r.wagonCondition <= 20)) || (p.id === "normal" && r.wagonCondition <= 0);
+                  return (
+                    <button key={p.id} onClick={()=>{if(blocked) return; setState(prev=>({...prev,pace:p.id}));advanceTurn();}}
+                      disabled={blocked}
+                      className={`flex-1 py-2 rounded text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${p.id==="push"?"bg-red-900 hover:bg-red-800":p.id==="normal"?"bg-stone-700 hover:bg-stone-600":"bg-emerald-900 hover:bg-emerald-800"}`}>
+                      {p.label}<br/><span className="font-normal text-stone-400">{blocked ? "Blocked: crew/wagon" : p.desc}</span>
+                    </button>
+                  );
+                })}
               </div>
               {(r.ammo||0)>=5&&(
                 <button onClick={handleHunt} className="w-full py-2 bg-amber-900 hover:bg-amber-800 rounded text-xs font-bold transition-colors">
                   🔫 Hunt ({r.ammo||0} rounds)
+                </button>
+              )}
+              {r.wagonCondition <= 0 && (
+                <button onClick={()=>setState(prev=>({...prev, phase:"end", gameOver:true, survived:false, resultText:"You turned back after losing the chuck wagon."}))} className="w-full py-2 bg-red-900 hover:bg-red-800 rounded text-xs font-bold transition-colors">
+                  ↩ Turn Back Before More Losses
                 </button>
               )}
             </div>
