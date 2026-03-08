@@ -204,9 +204,9 @@ function OutfitScreen({ onDone }: { onDone: (config: OutfitConfig) => void }) {
   const potentialValue = herd * 40;
 
   return (
-    <div className="h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden" style={{ fontFamily: "'Georgia', serif" }}>
+    <div className="west-app h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden" style={{ fontFamily: "'Georgia', serif" }}>
       <div className="flex-shrink-0 bg-stone-800">
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-xl xl:max-w-2xl mx-auto">
           <PrairieScene progress={0} pace="easy" turn={0} />
         </div>
       </div>
@@ -950,21 +950,21 @@ export default function App(){
   }
 
   return(
-    <div className={`h-screen bg-stone-900 text-stone-100 flex overflow-hidden ${shakeClass}`} style={{fontFamily:"'Georgia', serif"}}>
+    <div className={`west-app h-screen bg-stone-900 text-stone-100 flex overflow-hidden ${shakeClass}`} style={{fontFamily:"'Georgia', serif"}}>
       <StreakFlash streak={state.triviaStreak} />
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 pointer-events-none z-50">
         <FloatingNumbers floats={floats} />
       </div>
 
       {/* ── Map Sidebar ──────────────────────────────────── */}
-      <div className="hidden md:flex w-80 lg:w-96 xl:w-[420px] flex-shrink-0">
+      <div className="hidden md:flex w-[360px] lg:w-[420px] xl:w-[500px] 2xl:w-[560px] flex-shrink-0">
         <TrailMap progress={progress} day={state.day} totalDays={TOTAL_DAYS} />
       </div>
 
       {/* ── Main Game Column ─────────────────────────────── */}
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0 xl:px-3 2xl:px-6">
       <div className="flex-shrink-0 bg-stone-800">
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-xl xl:max-w-2xl mx-auto">
           <PrairieScene progress={progress} pace={state.pace} turn={state.turn}/>
         </div>
       </div>
@@ -1001,7 +1001,7 @@ export default function App(){
       <DoomHUD members={partyMembers}/>
       <PortraitDebugPanel />
       <div className="flex-1 overflow-y-auto px-3 pb-3">
-        <div className="max-w-lg mx-auto space-y-3 mt-2">
+        <div className="max-w-xl xl:max-w-2xl mx-auto space-y-3 mt-2">
           {state.phase==="sailing"&&(
             <div className="space-y-3">
               <div className="border border-indigo-700 rounded p-2 bg-indigo-950/40">

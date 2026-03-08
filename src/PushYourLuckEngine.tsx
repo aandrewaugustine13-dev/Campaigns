@@ -50,10 +50,10 @@ export default function PushYourLuckEngine({ event, onUpdate, onLeave }: PushYou
   };
 
   return (
-    <div className="border-2 border-amber-800 rounded bg-stone-800 shadow-lg overflow-hidden">
+    <div className="border border-[#6a503d] rounded bg-stone-800 shadow-lg overflow-hidden">
       {/* 🔴 NEW: Dynamic Image Banner */}
       {event.image && (
-        <div className="w-full h-32 relative border-b border-amber-900/50">
+        <div className="w-full h-32 relative border-b border-[#5b4536]">
           <img 
             src={`/campaigns/silkroad/${event.image}`} 
             alt={event.title}
@@ -66,8 +66,8 @@ export default function PushYourLuckEngine({ event, onUpdate, onLeave }: PushYou
 
       <div className="p-3 space-y-4">
         <div>
-          <h2 className="text-amber-400 font-bold text-lg mb-2">{event.title}</h2>
-          <div className="bg-stone-900 border border-stone-700 p-3 rounded space-y-2 h-40 overflow-y-auto font-mono text-xs">
+          <h2 className="text-amber-300 font-bold text-lg mb-2 tracking-wide">{event.title}</h2>
+          <div className="bg-stone-900 border border-stone-700 p-3 rounded space-y-2 h-40 overflow-y-auto text-xs leading-relaxed">
             {log.map((entry, i) => (
               <p key={i} className={entry.includes('CRITICAL FAILURE') ? 'text-red-400 font-bold' : entry.includes('SUCCESS') ? 'text-emerald-400' : 'text-stone-300'}>
                 {entry}
@@ -80,7 +80,7 @@ export default function PushYourLuckEngine({ event, onUpdate, onLeave }: PushYou
           {!failed && attemptIndex < attempts.length && (
             <button 
               onClick={handleAttempt}
-              className="w-full text-left p-3 bg-amber-900/50 hover:bg-amber-800 rounded text-sm text-amber-100 font-bold transition-colors border border-amber-700 flex justify-between items-center"
+              className="w-full text-left p-3 bg-[#5a351b] hover:bg-[#704122] rounded text-sm text-amber-100 font-bold transition-colors border border-[#8c623d] flex justify-between items-center"
             >
               <span>▶ {currentAttempt.buttonText}</span>
               <span className="text-red-400 text-xs">Risk: {Math.round(currentAttempt.riskChance * 100)}%</span>
@@ -89,7 +89,7 @@ export default function PushYourLuckEngine({ event, onUpdate, onLeave }: PushYou
           
           <button 
             onClick={() => onLeave(log)}
-            className="w-full text-center p-2 bg-stone-700 hover:bg-stone-600 rounded text-xs text-stone-300 font-bold transition-colors border border-stone-600 mt-2"
+            className="w-full text-center p-2 bg-stone-700 hover:bg-[#4a372a] rounded text-xs text-stone-300 font-bold transition-colors border border-stone-600 mt-2"
           >
             {failed ? "Limp away in defeat" : (event.leaveText || "Move On")}
           </button>
