@@ -30,6 +30,10 @@ interface CaravanConfig {
   camels: number;
   guards: number;
   water: number;
+  rations: number;
+  spareParts: number;
+  medicine: number;
+  cartGear: number;
   silver: number;
   budgetSpent: number;
 }
@@ -48,18 +52,22 @@ interface SRState {
   currentTrivia: TriviaQuestion | null;
   usedTriviaIds: Set<string>;
   triviaStreak: number;          // consecutive correct answers
+  caravanFeed: string[];
+  hardPaceStreak: number;
 }
 
 const TOTAL_DISTANCE = 4000;
 const JOURNEY_DAYS = 120;
 
 const INIT_R: Resources = {
-  goods: 100, water: 50, camels: 20, morale: 55,
-  silver: 100, guards: 6, crew: 4,
+  goods: 100, water: 50, rations: 55, camels: 20, morale: 55,
+  silver: 100, guards: 6, crew: 4, spareParts: 3, medicine: 2,
+  cartCondition: 72, fatigue: 10, sickness: 8,
 };
 
 const DEFAULT_OUTFIT: CaravanConfig = {
-  goods: 100, camels: 20, guards: 6, water: 50, silver: 100, budgetSpent: 0,
+  goods: 100, camels: 20, guards: 6, water: 50, rations: 55,
+  spareParts: 3, medicine: 2, cartGear: 2, silver: 100, budgetSpent: 0,
 };
 
 function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, v)); }
@@ -260,78 +268,91 @@ const EVENTS: GameEvent[] = [
 // OUTFIT SCREEN
 // ═══════════════════════════════════════════════════════════════
 
-const OUTFIT_BUDGET = 500;
+const OUTFIT_BUDGET = 620;
 
 function SilkRoadOutfit({ onDone }: { onDone: (config: CaravanConfig) => void }) {
-  const [extraCamels, setExtraCamels] = useState(5);
+  const [extraCamels, setExtraCamels] = useState(4);
   const [extraGuards, setExtraGuards] = useState(2);
   const [extraWater, setExtraWater] = useState(10);
-  const [extraGoods, setExtraGoods] = useState(20);
+  const [extraRations, setExtraRations] = useState(12);
+  const [extraGoods, setExtraGoods] = useState(18);
+  const [spareParts, setSpareParts] = useState(3);
+  const [medicine, setMedicine] = useState(2);
+  const [cartGear, setCartGear] = useState(2);
 
-  const baseCamels = 15, baseGuards = 4, baseWater = 40, baseGoods = 80;
+  const baseCamels = 14, baseGuards = 4, baseWater = 36, baseRations = 40, baseGoods = 72;
   const camels = baseCamels + extraCamels;
   const guards = baseGuards + extraGuards;
   const water = baseWater + extraWater;
+  const rations = baseRations + extraRations;
   const goods = baseGoods + extraGoods;
 
-  const spent = extraCamels * 15 + extraGuards * 30 + extraWater * 2 + extraGoods * 3;
+  const spent = extraCamels * 24 + extraGuards * 42 + extraWater * 4 + extraRations * 3 + extraGoods * 5 + spareParts * 24 + medicine * 26 + cartGear * 38;
   const remaining = OUTFIT_BUDGET - spent;
 
-  const ratio = goods / camels;
-  const loadLabel = ratio > 8 ? "Dangerously heavy" : ratio > 6 ? "Heavy" : ratio > 4 ? "Balanced" : "Light";
-  const loadColor = ratio > 8 ? "text-red-500" : ratio > 6 ? "text-orange-400" : ratio > 4 ? "text-emerald-400" : "text-blue-400";
+  const loadRatio = goods / Math.max(camels, 1);
+  const loadLabel = loadRatio > 7 ? "Overloaded" : loadRatio > 5.5 ? "Heavy" : loadRatio > 4.2 ? "Balanced" : "Light";
+  const loadColor = loadRatio > 7 ? "text-red-500" : loadRatio > 5.5 ? "text-orange-400" : loadRatio > 4.2 ? "text-emerald-400" : "text-blue-400";
 
   return (
     <div className="west-app h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden" style={{ fontFamily: "'Georgia',serif" }}>
       <div className="flex-1 overflow-y-auto p-4">
-        <div className="max-w-lg mx-auto space-y-4">
+        <div className="max-w-3xl mx-auto space-y-4">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-indigo-400">PREPARE THE CARAVAN</h1>
+            <h1 className="text-2xl font-bold text-indigo-300">PREPARE THE CARAVAN</h1>
             <p className="text-stone-500 text-xs mt-1">Chang'an Caravan Yard · 130 BCE</p>
           </div>
-          <div className="bg-stone-800 border border-stone-700 rounded p-3 text-xs text-stone-300 leading-relaxed">
-            <p>The Han Emperor funds your journey. You have <span className="text-indigo-300 font-bold">{OUTFIT_BUDGET} silver</span> to prepare your caravan for the long road west.</p>
-          </div>
 
-          <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-3">
-            <div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-2">
               <div className="flex justify-between text-sm"><span>🐫 Camels</span><span className="text-amber-300 font-bold">{camels}</span></div>
-              <input type="range" min={0} max={15} value={extraCamels} onChange={e => setExtraCamels(+e.target.value)} className="w-full accent-amber-500" />
-              <p className="text-xs text-stone-500">15 silver each · Main transport animals</p>
-            </div>
-            <div>
+              <input type="range" min={0} max={12} value={extraCamels} onChange={e => setExtraCamels(+e.target.value)} className="w-full accent-amber-500" />
+              <p className="text-xs text-stone-500">24 silver each · Endurance and cargo movement</p>
+
               <div className="flex justify-between text-sm"><span>⚔️ Guards</span><span className="text-amber-300 font-bold">{guards}</span></div>
               <input type="range" min={0} max={8} value={extraGuards} onChange={e => setExtraGuards(+e.target.value)} className="w-full accent-amber-500" />
-              <p className="text-xs text-stone-500">30 silver each · Protect the caravan</p>
+              <p className="text-xs text-stone-500">42 silver each · Night watch and road security</p>
+
+              <div className="flex justify-between text-sm"><span>💧 Water Capacity</span><span className="text-amber-300 font-bold">{water}</span></div>
+              <input type="range" min={0} max={24} value={extraWater} onChange={e => setExtraWater(+e.target.value)} className="w-full accent-amber-500" />
+              <p className="text-xs text-stone-500">4 silver per skin · Desert survival</p>
+
+              <div className="flex justify-between text-sm"><span>🥖 Rations</span><span className="text-amber-300 font-bold">{rations}</span></div>
+              <input type="range" min={0} max={30} value={extraRations} onChange={e => setExtraRations(+e.target.value)} className="w-full accent-amber-500" />
+              <p className="text-xs text-stone-500">3 silver each · Crew stamina and morale</p>
             </div>
-            <div>
-              <div className="flex justify-between text-sm"><span>💧 Water</span><span className="text-amber-300 font-bold">{water}</span></div>
-              <input type="range" min={0} max={25} value={extraWater} onChange={e => setExtraWater(+e.target.value)} className="w-full accent-amber-500" />
-              <p className="text-xs text-stone-500">2 silver per skin · Keeps everyone alive</p>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm"><span>📦 Inventory</span><span className="text-amber-300 font-bold">{goods}</span></div>
-              <input type="range" min={0} max={40} value={extraGoods} onChange={e => setExtraGoods(+e.target.value)} className="w-full accent-amber-500" />
-              <p className="text-xs text-stone-500">3 silver per bale · Silk, jade, and bronze</p>
+
+            <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-2">
+              <div className="flex justify-between text-sm"><span>📦 Trade Goods</span><span className="text-amber-300 font-bold">{goods}</span></div>
+              <input type="range" min={0} max={44} value={extraGoods} onChange={e => setExtraGoods(+e.target.value)} className="w-full accent-amber-500" />
+              <p className="text-xs text-stone-500">5 silver each · Profit engine, but heavier load</p>
+
+              <div className="flex justify-between text-sm"><span>🧰 Spare Parts</span><span className="text-amber-300 font-bold">{spareParts}</span></div>
+              <input type="range" min={0} max={8} value={spareParts} onChange={e => setSpareParts(+e.target.value)} className="w-full accent-amber-500" />
+              <p className="text-xs text-stone-500">24 silver each · Keeps carts moving</p>
+
+              <div className="flex justify-between text-sm"><span>🩺 Medicine</span><span className="text-amber-300 font-bold">{medicine}</span></div>
+              <input type="range" min={0} max={7} value={medicine} onChange={e => setMedicine(+e.target.value)} className="w-full accent-amber-500" />
+              <p className="text-xs text-stone-500">26 silver each · Lowers sickness losses</p>
+
+              <div className="flex justify-between text-sm"><span>🛞 Cart Gear</span><span className="text-amber-300 font-bold">Tier {cartGear + 1}</span></div>
+              <input type="range" min={0} max={4} value={cartGear} onChange={e => setCartGear(+e.target.value)} className="w-full accent-amber-500" />
+              <p className="text-xs text-stone-500">38 silver per tier · Better durability</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 text-xs">
-            <div className="bg-stone-800 border border-stone-700 rounded p-2">
-              <span className="text-stone-500">Camel load:</span>
-              <span className={`ml-1 font-bold ${loadColor}`}>{loadLabel}</span>
-            </div>
-            <div className="bg-stone-800 border border-stone-700 rounded p-2">
-              <span className="text-stone-500">Budget left:</span>
-              <span className={`ml-1 font-bold ${remaining >= 0 ? "text-emerald-400" : "text-red-500"}`}>{remaining}</span>
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <div className="bg-stone-800 border border-stone-700 rounded p-2"><span className="text-stone-500">Load:</span> <span className={`font-bold ${loadColor}`}>{loadLabel}</span></div>
+            <div className="bg-stone-800 border border-stone-700 rounded p-2"><span className="text-stone-500">Budget:</span> <span className={`font-bold ${remaining >= 0 ? "text-emerald-400" : "text-red-500"}`}>{remaining}</span></div>
+            <div className="bg-stone-800 border border-stone-700 rounded p-2"><span className="text-stone-500">Water+Food:</span> <span className="font-bold text-blue-300">{water + rations}</span></div>
+            <div className="bg-stone-800 border border-stone-700 rounded p-2"><span className="text-stone-500">Repair Reserve:</span> <span className="font-bold text-amber-300">{spareParts + cartGear}</span></div>
           </div>
 
-          {remaining < 0 && <p className="text-red-400 text-xs text-center">Over budget! Remove supplies to continue.</p>}
+          {remaining < 0 && <p className="text-red-400 text-xs text-center">Over budget. Remove cargo or equipment to proceed.</p>}
 
           <div className="text-center pb-4">
             <button
-              onClick={() => onDone({ goods, camels, guards, water, silver: remaining + 50, budgetSpent: spent })}
+              onClick={() => onDone({ goods, camels, guards, water, rations, spareParts, medicine, cartGear, silver: remaining + 40, budgetSpent: spent })}
               disabled={remaining < 0}
               className={`px-6 py-2.5 font-bold rounded transition-colors tracking-wide ${remaining >= 0 ? "bg-indigo-700 hover:bg-indigo-600 text-white" : "bg-stone-700 text-stone-500 cursor-not-allowed"}`}
             >
@@ -363,6 +384,38 @@ function getSilkRoadGrade(survived: boolean, profitMultiplier: number, culturalE
 
 const GC: Record<string, string> = { "A+": "text-amber-300", A: "text-emerald-400", B: "text-blue-400", C: "text-orange-400", D: "text-red-400", F: "text-red-600" };
 
+const SILK_STOPS = [
+  { id: "changan", name: "Chang'an", pct: 0 },
+  { id: "dunhuang", name: "Dunhuang", pct: 14 },
+  { id: "taklamakan", name: "Taklamakan", pct: 28 },
+  { id: "samarkand", name: "Samarkand", pct: 50 },
+  { id: "merv", name: "Merv", pct: 62 },
+  { id: "antioch", name: "Antioch", pct: 82 },
+  { id: "constantinople", name: "Constantinople", pct: 100 },
+];
+
+function isNearSilkStop(progress: number) {
+  return SILK_STOPS.find((s) => Math.abs(s.pct - progress) <= 5) || null;
+}
+
+function buildCaravanFeed(resources: Resources, pace: string, distanceGain: number, day: number, hardPaceStreak: number): string[] {
+  const notes: string[] = [];
+  notes.push(`Day ${day}: the caravan made about ${Math.round(distanceGain)} miles at ${pace} pace.`);
+
+  if ((resources.water || 0) < 20) notes.push("Water stores are holding, but only just.");
+  if ((resources.rations || 0) < 20) notes.push("The cooks are stretching supplies carefully.");
+  if ((resources.camels || 0) < 10) notes.push("Several animals are tiring under the current load.");
+  if ((resources.guards || 0) < 4) notes.push("The guards report a restless night watch.");
+  if ((resources.cartCondition || 0) < 35) notes.push("One cart is not riding smoothly.");
+  if ((resources.spareParts || 0) <= 0) notes.push("No spare parts remain for another major repair.");
+  if ((resources.fatigue || 0) > 65 || hardPaceStreak >= 2) notes.push("Several team members look sore after repeated hard days.");
+  if ((resources.sickness || 0) > 35) notes.push("The camp medic notes a rise in coughs and fevers.");
+  if ((resources.morale || 0) < 30) notes.push("Camp is quiet tonight, and spirits are low.");
+
+  if (notes.length === 1) notes.push("Conditions are steady today, but careful planning still matters.");
+  return notes.slice(0, 3);
+}
+
 // ═══════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════
@@ -376,6 +429,8 @@ const makeInit = (): SRState => ({
   outfit: { ...DEFAULT_OUTFIT },
   culturalExchange: 0, culturalLog: [],
   triviaCounter: 0, currentTrivia: null, usedTriviaIds: new Set(), triviaStreak: 0,
+  caravanFeed: ["The caravan gathers in Chang'an and checks every cart wheel."],
+  hardPaceStreak: 0,
 });
 
 export default function SilkRoad({ onBack }: { onBack: () => void }) {
@@ -390,49 +445,112 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
       phase: "traveling" as const,
       outfit: config,
       resources: {
-        goods: config.goods, water: config.water, camels: config.camels,
-        guards: config.guards, morale: 55, crew: 4, silver: config.silver,
+        goods: config.goods,
+        water: config.water,
+        rations: config.rations,
+        camels: config.camels,
+        guards: config.guards,
+        morale: 55,
+        crew: 4,
+        silver: config.silver,
+        spareParts: config.spareParts,
+        medicine: config.medicine,
+        cartCondition: clamp(58 + config.cartGear * 9 + config.spareParts * 2, 0, 100),
+        fatigue: 8,
+        sickness: 6,
       },
-      culturalExchange: 0, culturalLog: [],
+      hardPaceStreak: 0,
+      caravanFeed: ["The caravan departs Chang'an with sealed ledgers and fresh cart pins."],
+      culturalExchange: 0,
+      culturalLog: [],
     }));
   }, []);
 
   const advance = useCallback(() => {
     setState(prev => {
-      const s = { ...prev, resources: { ...prev.resources } };
+      const s = { ...prev, resources: { ...prev.resources }, caravanFeed: [...prev.caravanFeed] };
       s.turn++;
-      const daysPerTurn = s.pace === "push" ? 5 : s.pace === "normal" ? 4 : 3;
-      s.day += daysPerTurn;
-      const dist = s.pace === "push" ? 55 : s.pace === "normal" ? 40 : 25;
-      s.distance = Math.min(s.distance + dist + Math.floor(Math.random() * 15), TOTAL_DISTANCE);
+      const pace = s.pace === "push" ? { id: "push", miles: 58, water: -5, rations: -4, morale: -3, fatigue: 12, cart: -8 } :
+                   s.pace === "normal" ? { id: "normal", miles: 42, water: -4, rations: -3, morale: -1, fatigue: 8, cart: -4 } :
+                   { id: "easy", miles: 30, water: -3, rations: -2, morale: 1, fatigue: 4, cart: -1 };
 
-      // Daily consumption
-      s.resources.water = clamp(s.resources.water - (s.pace === "push" ? 4 : s.pace === "normal" ? 3 : 2), 0, 100);
-      s.resources.morale = clamp(s.resources.morale + (s.pace === "push" ? -2 : s.pace === "easy" ? 1 : 0), 0, 100);
+      s.hardPaceStreak = pace.id === "push" ? s.hardPaceStreak + 1 : Math.max(0, s.hardPaceStreak - 1);
+      const camelPenalty = s.resources.camels <= 7 ? 0.62 : s.resources.camels <= 10 ? 0.78 : 1;
+      const crewPenalty = s.resources.crew <= 2 ? 0.75 : 1;
+      const cartPenalty = s.resources.cartCondition <= 0 ? 0.45 : s.resources.cartCondition < 25 ? 0.72 : 1;
+      const distanceGain = (pace.miles + Math.floor(Math.random() * 12)) * camelPenalty * crewPenalty * cartPenalty;
 
-      // Camel attrition on push
-      if (s.pace === "push" && Math.random() < 0.15) {
-        s.resources.camels = Math.max(0, s.resources.camels - 1);
+      s.day += pace.id === "push" ? 5 : pace.id === "normal" ? 4 : 3;
+      s.distance = Math.min(s.distance + distanceGain, TOTAL_DISTANCE);
+
+      s.resources.water = clamp((s.resources.water || 0) + pace.water, 0, 100);
+      s.resources.rations = clamp((s.resources.rations || 0) + pace.rations, 0, 100);
+      s.resources.morale = clamp((s.resources.morale || 0) + pace.morale, 0, 100);
+      s.resources.fatigue = clamp((s.resources.fatigue || 0) + pace.fatigue, 0, 100);
+      s.resources.cartCondition = clamp((s.resources.cartCondition || 0) + pace.cart + Math.floor((s.resources.spareParts || 0) > 0 ? 1 : 0), 0, 100);
+
+      // Supply and health pressure
+      if ((s.resources.water || 0) < 15) {
+        s.resources.morale = clamp((s.resources.morale || 0) - 5, 0, 100);
+        s.resources.sickness = clamp((s.resources.sickness || 0) + 8, 0, 100);
+      }
+      if ((s.resources.rations || 0) < 18) {
+        s.resources.morale = clamp((s.resources.morale || 0) - 4, 0, 100);
+        s.resources.fatigue = clamp((s.resources.fatigue || 0) + 6, 0, 100);
       }
 
-      // Water crisis
-      if (s.resources.water <= 5) {
-        s.resources.morale = clamp(s.resources.morale - 5, 0, 100);
-        if (Math.random() < 0.3) s.resources.camels = Math.max(0, s.resources.camels - 1);
+      // Low guards increase loss risk
+      if ((s.resources.guards || 0) < 4 && Math.random() < 0.28) {
+        s.resources.goods = Math.max(0, (s.resources.goods || 0) - (4 + Math.ceil(Math.random() * 6)));
       }
+
+      // Repeated hard pace consequences
+      if (s.hardPaceStreak >= 2 && Math.random() < 0.4) {
+        s.resources.camels = Math.max(0, (s.resources.camels || 0) - 1);
+      }
+
+      // Cart breakdown severity
+      const breakdownRisk = (pace.id === "push" ? 0.22 : 0.12) + ((s.resources.cartCondition || 0) < 35 ? 0.16 : 0) + ((s.resources.spareParts || 0) <= 0 ? 0.14 : 0);
+      if (Math.random() < breakdownRisk) {
+        if ((s.resources.spareParts || 0) > 0) {
+          s.resources.spareParts = Math.max(0, (s.resources.spareParts || 0) - 1);
+          s.resources.cartCondition = clamp((s.resources.cartCondition || 0) + 14, 0, 100);
+          s.resources.rations = clamp((s.resources.rations || 0) - 5, 0, 100);
+          s.resultText = "A cart wheel failed at noon. The crew used one spare part and resumed by dusk.";
+          s.phase = "result";
+        } else {
+          s.resources.cartCondition = clamp((s.resources.cartCondition || 0) - 20, 0, 100);
+          s.resources.goods = Math.max(0, (s.resources.goods || 0) - 8);
+          s.resources.morale = clamp((s.resources.morale || 0) - 6, 0, 100);
+          s.resultText = "Without spare parts, a damaged cart had to be stripped for salvage. Cargo was lost.";
+          s.phase = "result";
+        }
+      }
+
+      // Sickness and attrition
+      if ((s.resources.sickness || 0) > 45 && Math.random() < 0.25) {
+        s.resources.crew = Math.max(0, (s.resources.crew || 0) - 1);
+        s.resources.morale = clamp((s.resources.morale || 0) - 6, 0, 100);
+      }
+      if ((s.resources.fatigue || 0) > 70 && Math.random() < 0.25) {
+        s.resources.guards = Math.max(0, (s.resources.guards || 0) - 1);
+      }
+
+      const feed = buildCaravanFeed(s.resources, pace.id, distanceGain, s.day, s.hardPaceStreak);
+      const nearby = isNearSilkStop(Math.min((s.distance / TOTAL_DISTANCE) * 100, 100));
+      if (nearby) feed.push(`${nearby.name} is close. Repairs and hiring are possible, but expensive.`);
+      s.caravanFeed = [...s.caravanFeed, ...feed].slice(-18);
 
       // End conditions
-      if (s.resources.crew <= 1 || s.resources.camels <= 2 || s.resources.water <= 0) {
+      if (s.resources.crew <= 1 || s.resources.camels <= 2 || s.resources.water <= 0 || s.resources.rations <= 0) {
         return { ...s, phase: "end" as const, gameOver: true, survived: false };
       }
       if (s.distance >= TOTAL_DISTANCE) {
         return { ...s, phase: "end" as const, gameOver: true, survived: true };
       }
 
-      // Event?
       const event = pickEvent(s.day, JOURNEY_DAYS, EVENTS, usedEvents);
       if (event) {
-        // Check if it's trivia time (every other event cycle)
         if (s.triviaCounter >= 2) {
           const progress = Math.min((s.distance / TOTAL_DISTANCE) * 100, 100);
           const trivia = pickTriviaQuestion(progress, s.usedTriviaIds);
@@ -444,7 +562,6 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
             return s;
           }
         }
-        // Regular event
         setUsedEvents(p => new Set(p).add(event.id));
         s.currentEvent = event;
         s.phase = "event";
@@ -580,6 +697,58 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
 
   const r = state.resources;
   const progress = Math.min((state.distance / TOTAL_DISTANCE) * 100, 100);
+  const nearbyStop = isNearSilkStop(progress);
+  const warnings = [
+    (r.guards || 0) < 4 ? "Low guard numbers increase theft and ambush risk." : null,
+    (r.camels || 0) < 9 ? "Animal losses are slowing travel and reducing carrying power." : null,
+    (r.spareParts || 0) <= 0 ? "No spare parts remain. Cart failures will be severe." : null,
+    (r.water || 0) < 20 || (r.rations || 0) < 20 ? "Food and water are under pressure." : null,
+    (r.cartCondition || 0) < 35 ? "Cart condition is poor. Consider repairs at the next city." : null,
+  ].filter(Boolean) as string[];
+
+  const handleCityRepair = useCallback(() => {
+    setState(prev => {
+      if ((prev.resources.silver || 0) < 120) return prev;
+      const s = { ...prev, resources: { ...prev.resources }, caravanFeed: [...prev.caravanFeed], resultText: "" };
+      s.resources.silver = clamp((s.resources.silver || 0) - 120, 0, 1000);
+      s.resources.cartCondition = clamp((s.resources.cartCondition || 0) + 30, 0, 100);
+      s.resources.spareParts = clamp((s.resources.spareParts || 0) + 1, 0, 12);
+      s.caravanFeed.push("City wheelwrights reinforced the carts by evening.");
+      s.resultText = "You paid city craftsmen for repairs and a replacement axle pin.";
+      s.phase = "result";
+      return s;
+    });
+  }, []);
+
+  const handleCityHire = useCallback(() => {
+    setState(prev => {
+      if ((prev.resources.silver || 0) < 95) return prev;
+      const s = { ...prev, resources: { ...prev.resources }, caravanFeed: [...prev.caravanFeed], resultText: "" };
+      s.resources.silver = clamp((s.resources.silver || 0) - 95, 0, 1000);
+      s.resources.guards = clamp((s.resources.guards || 0) + 1, 0, 16);
+      s.resources.crew = clamp((s.resources.crew || 0) + 1, 0, 12);
+      s.resources.morale = clamp((s.resources.morale || 0) + 4, 0, 100);
+      s.caravanFeed.push("Two new hires joined the caravan at the city gate.");
+      s.resultText = "You hired additional caravan hands and a guard at high city wages.";
+      s.phase = "result";
+      return s;
+    });
+  }, []);
+
+  const handleCityResupply = useCallback(() => {
+    setState(prev => {
+      if ((prev.resources.silver || 0) < 85) return prev;
+      const s = { ...prev, resources: { ...prev.resources }, caravanFeed: [...prev.caravanFeed], resultText: "" };
+      s.resources.silver = clamp((s.resources.silver || 0) - 85, 0, 1000);
+      s.resources.water = clamp((s.resources.water || 0) + 22, 0, 100);
+      s.resources.rations = clamp((s.resources.rations || 0) + 22, 0, 100);
+      s.resources.medicine = clamp((s.resources.medicine || 0) + 1, 0, 10);
+      s.caravanFeed.push("Fresh water and grain were loaded before sunrise.");
+      s.resultText = "You bought water, grain, and medicine at city market prices.";
+      s.phase = "result";
+      return s;
+    });
+  }, []);
 
   // Dynamic background based on journey progress
   const getBackgroundImage = (p: number) => {
@@ -732,115 +901,98 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
   // ── MAIN GAME ──
   return (
     <div className="west-app h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden" style={{ fontFamily: "'Georgia',serif" }}>
-      {/* 🔴 NEW: DYNAMIC SCENE BANNER */}
-      <div className="flex-shrink-0 bg-stone-800 border-b border-stone-700">
-        <div className="max-w-lg mx-auto">
-          <div className="relative w-full overflow-hidden" style={{ height: 120 }}>
-            <img 
-              src={currentBgImage} 
-              alt="Silk Road Environment"
-              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
-              style={{ imageRendering: "pixelated" }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-stone-900 via-stone-900/40 to-transparent" />
-            <div className="absolute bottom-1 left-2 text-xs font-bold" style={{ color: "#a0a0d4", opacity: 0.85, fontFamily: "monospace" }}>{Math.round(progress)}%</div>
-            <div className="absolute bottom-1 right-2 text-xs font-bold" style={{ color: "#a0a0d4", opacity: 0.85, fontFamily: "monospace" }}>{Math.round(state.distance)} mi</div>
-            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-xs font-bold" style={{ color: "#a0a0d4", opacity: 0.85, fontFamily: "monospace" }}>{progressLabel}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Resource dashboard */}
-      <div className="flex-shrink-0 bg-stone-900 px-4 pt-2 pb-1">
-        <div className="max-w-lg mx-auto text-xs space-y-1">
-          <div className="flex justify-between items-center">
-            <span>📦 Inventory <span className="text-amber-300 font-bold">{r.goods}</span></span>
-            <span>🐫 Camels <span className="text-amber-300 font-bold">{r.camels}</span></span>
-            <span>⚔️ Guards <span className="text-amber-300 font-bold">{r.guards}</span></span>
-            <span>💰 Silver <span className="text-amber-300 font-bold">{r.silver}</span></span>
-          </div>
-          {([
-            ["💧 Hydration", r.water, r.water < 15 ? "bg-red-500" : "bg-blue-500"],
-            ["😊 Spirit", r.morale, r.morale < 25 ? "bg-red-500" : "bg-green-500"],
-          ] as [string, number, string][]).map(([label, val, color]) => (
-            <div key={label} className="flex items-center gap-2">
-              <span className="w-20 text-stone-400">{label}</span>
-              <div className="flex-1 bg-stone-700 rounded-full h-2.5">
-                <div className={`${color} h-2.5 rounded-full transition-all`} style={{ width: `${val}%` }} />
+      {/* Top horizontal route map */}
+      <div className="flex-shrink-0 bg-stone-800 border-b border-stone-700 px-3 pt-2 pb-3">
+        <div className="w-full">
+          <div className="relative w-full h-[170px] lg:h-[190px] rounded border border-stone-700 overflow-hidden" style={{ background: "linear-gradient(180deg,#3a2d23 0%,#2d221a 20%,#22303a 55%,#2d221a 100%)" }}>
+            <div className="absolute inset-x-6 top-[52%] h-[2px] bg-amber-200/70" />
+            {SILK_STOPS.map((stop) => (
+              <div key={stop.id} className="absolute" style={{ left: `calc(${stop.pct}% - 8px)`, top: "45%" }}>
+                <div className="w-4 h-4 rounded-full bg-stone-900 border border-amber-300" />
+                <div className="text-[10px] text-stone-200 mt-1 whitespace-nowrap -translate-x-1/3">{stop.name}</div>
               </div>
-              <span className="text-stone-500 w-6 text-right">{val}</span>
+            ))}
+            <div className="absolute" style={{ left: `calc(${progress}% - 10px)`, top: "38%", transition: "left 700ms ease" }}>
+              <div className="w-5 h-5 rounded-full bg-indigo-400 border-2 border-indigo-100 shadow" />
+              <p className="text-[10px] text-indigo-100 mt-1 -translate-x-1/4 whitespace-nowrap">Caravan</p>
             </div>
-          ))}
-          <div className="flex items-center gap-2">
-            <span className="w-20 text-stone-400">📜 Exchange</span>
-            <div className="flex-1 bg-stone-700 rounded-full h-2.5">
-              <div className="bg-amber-500 h-2.5 rounded-full transition-all" style={{ width: `${Math.min(state.culturalExchange / 30 * 100, 100)}%` }} />
-            </div>
-            <span className="text-stone-500 w-6 text-right">{state.culturalExchange}</span>
-          </div>
-          <div className="flex justify-between text-stone-500 mt-1">
-            <span>Day {state.day}</span>
-            <span>{Math.round(state.distance)}/{TOTAL_DISTANCE} mi</span>
+            <div className="absolute left-2 bottom-2 text-xs text-stone-300">Day {state.day} · {Math.round(state.distance)} / {TOTAL_DISTANCE} mi</div>
+            <div className="absolute right-2 bottom-2 text-xs text-indigo-200">{Math.round(progress)}%</div>
           </div>
         </div>
       </div>
 
-      {/* Party Status HUD */}
-      <DoomHUD members={partyMembers} />
+      {/* Full-width strategy board */}
+      <div className="flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)_300px] gap-3 p-3 overflow-hidden">
+        {/* Left: caravan status */}
+        <aside className="bg-stone-800/90 border border-stone-700 rounded p-3 overflow-y-auto">
+          <h3 className="text-xs uppercase tracking-wide font-bold text-amber-300 mb-2">Caravan Ledger</h3>
+          <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+            <div className="bg-stone-900/60 border border-stone-700 rounded p-2">📦 Goods <span className="text-amber-300 font-bold">{r.goods}</span></div>
+            <div className="bg-stone-900/60 border border-stone-700 rounded p-2">💰 Silver <span className="text-amber-300 font-bold">{r.silver}</span></div>
+            <div className="bg-stone-900/60 border border-stone-700 rounded p-2">🐫 Camels <span className="text-amber-300 font-bold">{r.camels}</span></div>
+            <div className="bg-stone-900/60 border border-stone-700 rounded p-2">⚔️ Guards <span className="text-amber-300 font-bold">{r.guards}</span></div>
+            <div className="bg-stone-900/60 border border-stone-700 rounded p-2">🧰 Parts <span className="text-amber-300 font-bold">{r.spareParts||0}</span></div>
+            <div className="bg-stone-900/60 border border-stone-700 rounded p-2">🛞 Carts <span className="text-amber-300 font-bold">{r.cartCondition||0}</span></div>
+          </div>
 
-      {/* Game area */}
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
-        <div className="max-w-lg mx-auto space-y-3 mt-2">
+          <div className="space-y-2 text-xs">
+            {[['💧 Water', r.water || 0, 'bg-blue-500'], ['🥖 Rations', r.rations || 0, 'bg-amber-500'], ['😊 Morale', r.morale || 0, r.morale < 25 ? 'bg-red-500' : 'bg-emerald-500'], ['😷 Sickness', r.sickness || 0, 'bg-red-500'], ['🥾 Fatigue', r.fatigue || 0, 'bg-orange-500']].map(([label,val,color]) => (
+              <div key={String(label)}>
+                <div className="flex justify-between text-stone-300"><span>{label}</span><span>{Number(val)}</span></div>
+                <div className="h-2 bg-stone-700 rounded overflow-hidden border border-stone-600"><div className={`${String(color)} h-2`} style={{width:`${Math.min(Number(val),100)}%`}}/></div>
+              </div>
+            ))}
+          </div>
+
+          {warnings.length > 0 && (
+            <div className="mt-3 space-y-1">
+              {warnings.map((w) => <p key={w} className="text-[11px] text-amber-300">⚠ {w}</p>)}
+            </div>
+          )}
+
+          {nearbyStop && (
+            <div className="mt-3 border border-indigo-700 rounded p-2 bg-indigo-950/30 space-y-2">
+              <p className="text-xs text-indigo-300 font-bold">{nearbyStop.name} services available</p>
+              <div className="grid grid-cols-1 gap-1">
+                <button onClick={handleCityRepair} disabled={(r.silver||0)<120} className="text-xs py-1 rounded bg-stone-700 hover:bg-stone-600 disabled:opacity-50">Repair Carts (120)</button>
+                <button onClick={handleCityHire} disabled={(r.silver||0)<95} className="text-xs py-1 rounded bg-stone-700 hover:bg-stone-600 disabled:opacity-50">Hire Guard + Hand (95)</button>
+                <button onClick={handleCityResupply} disabled={(r.silver||0)<85} className="text-xs py-1 rounded bg-stone-700 hover:bg-stone-600 disabled:opacity-50">Resupply Water/Food (85)</button>
+              </div>
+            </div>
+          )}
+        </aside>
+
+        {/* Center: core interactions */}
+        <section className="min-h-0 overflow-y-auto space-y-3 pr-1">
           {state.phase === "traveling" && (
             <div className="space-y-3">
               <div className="border border-stone-700 rounded p-3 bg-stone-800/80">
                 <p className="text-stone-300 text-sm leading-relaxed">
-                  {r.water < 10 ? "Water is very low. Find a well soon." :
-                   r.morale < 25 ? "The caravan is tired and worried. Spirits are low." :
-                   r.camels < 8 ? "You have few camels left. Carry only what you must." :
-                   progress > 80 ? "The Mediterranean world is close. One last push." :
-                   progress > 50 ? "You are crossing Persian lands. Keep watch on every road." :
-                   progress > 30 ? "The mountains rise ahead. Weather and cliffs are dangerous." :
-                   "The caravan heads west across the great trade road."}
+                  {r.water < 12 ? "Water is critically low. The caravan must find wells soon." :
+                   r.rations < 15 ? "Rations are thin. Every meal now requires careful planning." :
+                   r.cartCondition < 25 ? "Cart wear is severe. A major breakdown could halt travel." :
+                   r.camels < 8 ? "The remaining animals are carrying too much weight." :
+                   progress > 80 ? "Western markets are close. Stay disciplined for the final leg." :
+                   "The caravan continues west with steady caution."}
                 </p>
               </div>
-              <div className="flex gap-2">
-                <button onClick={() => { setState(p => ({ ...p, pace: "easy" })); advance(); }} className="flex-1 py-2 bg-stone-700 hover:bg-stone-600 rounded text-xs font-bold transition-colors">
-                  🐫 Cautious
-                  <br /><span className="text-stone-500 font-normal">Slow · Retains water</span>
-                </button>
-                <button onClick={() => { setState(p => ({ ...p, pace: "normal" })); advance(); }} className="flex-1 py-2 bg-indigo-800 hover:bg-indigo-700 rounded text-xs font-bold transition-colors">
-                  🐫🐫 Steady
-                  <br /><span className="text-stone-400 font-normal">Balanced pace</span>
-                </button>
-                <button onClick={() => { setState(p => ({ ...p, pace: "push" })); advance(); }} className="flex-1 py-2 bg-red-900 hover:bg-red-800 rounded text-xs font-bold transition-colors">
-                  🐫🐫🐫 Aggressive
-                  <br /><span className="text-stone-400 font-normal">Fast, high risk</span>
-                </button>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <button onClick={() => { setState(p => ({ ...p, pace: "easy" })); advance(); }} className="py-2 bg-stone-700 hover:bg-stone-600 rounded text-xs font-bold">Cautious<br/><span className="font-normal text-stone-400">Lower strain</span></button>
+                <button onClick={() => { setState(p => ({ ...p, pace: "normal" })); advance(); }} className="py-2 bg-indigo-800 hover:bg-indigo-700 rounded text-xs font-bold">Steady<br/><span className="font-normal text-stone-300">Balanced pace</span></button>
+                <button onClick={() => { setState(p => ({ ...p, pace: "push" })); advance(); }} className="py-2 bg-red-900 hover:bg-red-800 rounded text-xs font-bold" disabled={(r.cartCondition||0)<=15 || (r.camels||0)<=6}>Aggressive<br/><span className="font-normal text-stone-300">Fast · high strain</span></button>
               </div>
             </div>
           )}
 
-          {/* 🔴 CONDITIONAL ENGINE RENDERING */}
           {state.phase === "event" && state.currentEvent && (
             state.currentEvent.type === "push_luck" ? (
-              <PushYourLuckEngine
-                event={state.currentEvent}
-                onUpdate={handlePushUpdate}
-                onLeave={handlePushLeave}
-              />
+              <PushYourLuckEngine event={state.currentEvent} onUpdate={handlePushUpdate} onLeave={handlePushLeave} />
             ) : (
-              <div className="border-2 border-indigo-800 rounded bg-stone-800 overflow-hidden shadow-lg">
-                {/* 🔴 NEW: STANDARD EVENT IMAGE INJECTION */}
+              <div className="border border-indigo-800 rounded bg-stone-800 overflow-hidden shadow-lg">
                 {state.currentEvent.image && (
                   <div className="w-full h-32 relative border-b border-indigo-900/50">
-                    <img 
-                      src={`/faces/${state.currentEvent.image}`} 
-                      alt={state.currentEvent.title}
-                      className="w-full h-full object-cover"
-                      style={{ imageRendering: "pixelated", objectPosition: "center" }}
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                    />
+                    <img src={`/faces/${state.currentEvent.image}`} alt={state.currentEvent.title} className="w-full h-full object-cover" style={{ imageRendering: "pixelated", objectPosition: "center" }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                     <div className="absolute inset-0 bg-gradient-to-t from-stone-800 via-transparent to-transparent" />
                   </div>
                 )}
@@ -849,9 +1001,7 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
                   <p className="text-stone-300 text-sm leading-relaxed mb-3">{state.currentEvent.text}</p>
                   <div className="space-y-1.5">
                     {state.currentEvent.choices?.map((c, i) => (
-                      <button key={i} onClick={() => handleChoice(i)} className="w-full text-left p-2 bg-stone-700 hover:bg-stone-600 rounded text-xs text-stone-200 font-bold transition-colors border border-stone-600">
-                        ▶ {c.text}
-                      </button>
+                      <button key={i} onClick={() => handleChoice(i)} className="w-full text-left p-2 bg-stone-700 hover:bg-stone-600 rounded text-xs text-stone-200 font-bold transition-colors border border-stone-600">▶ {c.text}</button>
                     ))}
                   </div>
                 </div>
@@ -859,14 +1009,8 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
             )
           )}
 
-          {/* 🧙 TRIVIA SAGE ENCOUNTER */}
           {state.phase === "trivia" && state.currentTrivia && (
-            <TriviaEngine
-              question={state.currentTrivia}
-              progress={progress}
-              streak={state.triviaStreak}
-              onComplete={handleTriviaComplete}
-            />
+            <TriviaEngine question={state.currentTrivia} progress={progress} streak={state.triviaStreak} onComplete={handleTriviaComplete} />
           )}
 
           {state.phase === "result" && (
@@ -874,11 +1018,25 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
               <div className="border border-stone-700 rounded p-3 bg-stone-800/80">
                 <p className="text-stone-300 text-sm leading-relaxed">{state.resultText}</p>
               </div>
-              <button onClick={dismissResult} className="w-full py-2 bg-indigo-800 hover:bg-indigo-700 rounded text-sm font-bold transition-colors">Acknowledge</button>
+              <button onClick={dismissResult} className="w-full py-2 bg-indigo-800 hover:bg-indigo-700 rounded text-sm font-bold transition-colors">Continue</button>
             </div>
           )}
-        </div>
+        </section>
+
+        {/* Right: running caravan notes */}
+        <aside className="bg-stone-800/90 border border-stone-700 rounded p-3 min-h-0 overflow-y-auto">
+          <h3 className="text-xs uppercase tracking-wide font-bold text-amber-300 mb-2">Caravan Notes</h3>
+          <p className="text-[11px] text-stone-400 mb-2">Latest reports from scouts, guards, cooks, and cart crews.</p>
+          <div className="space-y-2">
+            {[...state.caravanFeed].slice(-12).reverse().map((note, idx) => (
+              <div key={`${idx}-${note.slice(0,16)}`} className={`rounded border p-2 ${idx===0 ? "border-amber-700 bg-amber-950/20" : "border-stone-700 bg-stone-900/60"}`}>
+                <p className="text-[11px] leading-relaxed text-stone-300">{note}</p>
+              </div>
+            ))}
+          </div>
+        </aside>
       </div>
     </div>
   );
 }
+
