@@ -77,6 +77,8 @@ interface GameState {
   sageIndex: number;
   currentSage: SageEncounterData | null;
   sagesMet: string[];
+  trailFeed: string[];
+  hardPaceStreak: number;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -212,7 +214,7 @@ function OutfitScreen({ onDone }: { onDone: (config: OutfitConfig) => void }) {
   return (
     <div className="west-app h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden" style={{ fontFamily: "'Georgia', serif" }}>
       <div className="flex-shrink-0 bg-stone-800">
-        <div className="max-w-xl xl:max-w-2xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <PrairieScene progress={0} pace="easy" turn={0} />
         </div>
       </div>
@@ -501,8 +503,31 @@ function getTrailGrade(survived: boolean, herdPct: number, historicalKnowledge: 
 }
 const GC:Record<string,string>={"A+":"text-amber-300",A:"text-emerald-400",B:"text-blue-400",C:"text-yellow-400",D:"text-orange-400",F:"text-red-500"};
 
+function buildTrailFeedEntries(resources: Resources, paceId: string, hardPaceStreak: number, distanceGain: number, day: number): string[] {
+  const notes: string[] = [];
+  notes.push(`Day ${day}: ${Math.round(distanceGain)} miles covered at ${paceId} pace.`);
+
+  if (resources.supplies < 15) notes.push("Supplies are running thin. The cook asks for careful rationing.");
+  else if (resources.supplies < 30) notes.push("Salt pork is shrinking faster than expected.");
+
+  if (resources.morale < 20) notes.push("Camp is quieter tonight, and spirits are low.");
+  else if (resources.morale < 35) notes.push("Several riders look worn after the long days.");
+
+  if (resources.wagonCondition <= 0) notes.push("The chuck wagon is lost. Travel is now much harder.");
+  else if (resources.wagonCondition < 20) notes.push("The rear axle sounds rough. Repairs are urgent.");
+  else if (resources.wagonCondition < 40) notes.push("The wagon frame is strained. A hard crossing could break it.");
+
+  if ((resources.spareParts || 0) <= 0) notes.push("No spare parts remain. Another breakdown could end the drive.");
+  if (resources.crew <= 7) notes.push("Too few hands are riding. Herd control is slipping.");
+  if (resources.herdCondition < 30) notes.push("A few cattle need closer watching on the trail.");
+  if (hardPaceStreak >= 2) notes.push("Back-to-back hard days are tiring horses and crew.");
+
+  if (notes.length < 2) notes.push("The outfit stays steady today, but caution still matters.");
+  return notes.slice(0, 3);
+}
+
 const DEFAULT_OUTFIT: OutfitConfig = { herd: 2500, crew: 12, horses: 60, supplies: 65, guns: 4, spareParts: 3, medicalGear: 2, horseQuality: 2, wages: "standard", budgetSpent: 0, startingCash: 0 };
-const makeInit=():GameState=>({day:1,turn:0,resources:{...INIT_R},phase:"intro",pace:"normal",distance:0,currentEvent:null,resultText:"",decisions:[],gameOver:false,survived:false,earlySale:false,outfit:{...DEFAULT_OUTFIT},historicalKnowledge:0,knowledgeLog:[],triviaCounter:0,currentTrivia:null,usedTriviaIds:new Set(),triviaStreak:0,insight:1,objectives:[],routeState:{currentNodeId:"start"},routeTag:"SAFE",riskHintsOn:false,pendingChoiceIndex:null,pendingEventQuestion:null,objectiveNotice:"",sageIndex:0,currentSage:null,sagesMet:[]});
+const makeInit=():GameState=>({day:1,turn:0,resources:{...INIT_R},phase:"intro",pace:"normal",distance:0,currentEvent:null,resultText:"",decisions:[],gameOver:false,survived:false,earlySale:false,outfit:{...DEFAULT_OUTFIT},historicalKnowledge:0,knowledgeLog:[],triviaCounter:0,currentTrivia:null,usedTriviaIds:new Set(),triviaStreak:0,insight:1,objectives:[],routeState:{currentNodeId:"start"},routeTag:"SAFE",riskHintsOn:false,pendingChoiceIndex:null,pendingEventQuestion:null,objectiveNotice:"",sageIndex:0,currentSage:null,sagesMet:[],trailFeed:["Spring 1867: the outfit gathers in San Antonio and checks the wagon."],hardPaceStreak:0});
 
 // ═══════════════════════════════════════════════════════════════
 // APP
@@ -548,6 +573,8 @@ export default function App(){
       return{...prev,
         phase:"sailing"as const,
         outfit:config,
+        trailFeed:["You roll out of San Antonio with fresh teams and a strict ledger."],
+        hardPaceStreak:0,
         resources:{
           herd:config.herd,
           crew:config.crew,
@@ -583,6 +610,7 @@ export default function App(){
       const wagonPenalty = s.resources.wagonCondition <= 0 ? 0.45 : s.resources.wagonCondition < 20 ? 0.7 : s.resources.wagonCondition < 40 ? 0.85 : 1;
       const distanceGain = pace.mpd * DAYS_PER_TURN * crewPenalty * wagonPenalty;
       s.distance=Math.min(s.distance+distanceGain,TOTAL_DISTANCE);
+      s.hardPaceStreak = pace.id === "push" ? s.hardPaceStreak + 1 : Math.max(0, s.hardPaceStreak - 1);
 
       const crewDrain = Math.ceil(s.resources.crew / 8);
       const wagonLossDrain = s.resources.wagonCondition <= 0 ? 7 : 0;
@@ -626,6 +654,11 @@ export default function App(){
       if(s.resources.morale<20&&Math.random()<0.4)s.resources.crew=Math.max(0,s.resources.crew-1);
       if(s.resources.supplies<15&&Math.random()<0.3)s.resources.crew=Math.max(0,s.resources.crew-1);
 
+      const turnFeed = buildTrailFeedEntries(s.resources, pace.id, s.hardPaceStreak, distanceGain, s.day);
+      if (isNearSupplyTown((s.distance / TOTAL_DISTANCE) * 100).near) {
+        turnFeed.push("A town is close ahead. Repairs and fresh hands are available for a high price.");
+      }
+      s.trailFeed = [...s.trailFeed, ...turnFeed].slice(-18);
       if(s.resources.crew<=2||s.resources.herd<=100||s.resources.horses<=5)return{...s,phase:"end"as const,gameOver:true,survived:false};
       if(s.distance>=TOTAL_DISTANCE)return{...s,phase:"end"as const,gameOver:true,survived:true};
       const tick = tickObjectives(s.objectives, before, { turn: s.turn, day: s.day, distance: s.distance, resources: { ...s.resources } });
@@ -850,6 +883,7 @@ export default function App(){
       s.resources.spareParts = clampR("spareParts", s.resources.spareParts + 1);
       s.decisions.push({ event: "Town Stop", choice: "Paid for blacksmith wagon repair", day: s.day });
       s.resultText = "You paid steep town rates for blacksmith work and one spare-part crate.";
+      s.trailFeed = [...(s.trailFeed || []), "Blacksmith repairs finished by lantern light. The wagon sounds steadier."].slice(-18);
       s.phase = "result";
       return s;
     });
@@ -864,6 +898,7 @@ export default function App(){
       s.resources.morale = clampR("morale", s.resources.morale + 4);
       s.decisions.push({ event: "Town Stop", choice: "Hired replacement hand", day: s.day });
       s.resultText = "You hired a replacement hand at inflated trail-town wages.";
+      s.trailFeed = [...(s.trailFeed || []), "A new hand joined at town. Camp duty and night watch improved."].slice(-18);
       s.phase = "result";
       return s;
     });
@@ -878,6 +913,7 @@ export default function App(){
       s.resources.morale = clampR("morale", s.resources.morale + 3);
       s.decisions.push({ event: "Town Stop", choice: "Bought provisions and medicine", day: s.day });
       s.resultText = "You bought costly trail provisions, enough to steady the camp for now.";
+      s.trailFeed = [...(s.trailFeed || []), "Fresh provisions reached camp. Meals should hold for several more days."].slice(-18);
       s.phase = "result";
       return s;
     });
@@ -1083,19 +1119,34 @@ export default function App(){
       </div>
 
       {/* ── Map Sidebar ──────────────────────────────────── */}
-      <div className="hidden md:flex w-[360px] lg:w-[420px] xl:w-[500px] 2xl:w-[560px] flex-shrink-0">
+      <div className="hidden md:flex w-[360px] lg:w-[430px] xl:w-[520px] 2xl:w-[580px] flex-shrink-0">
         <TrailMap progress={progress} day={state.day} totalDays={TOTAL_DAYS} />
       </div>
 
+
+      <aside className="hidden xl:flex w-72 2xl:w-80 flex-shrink-0 border-l border-stone-700 bg-stone-900/80 flex-col">
+        <div className="px-3 py-2 border-b border-stone-700">
+          <p className="text-xs font-bold uppercase tracking-wide text-amber-300">On the Trail</p>
+          <p className="text-[11px] text-stone-400">Recent notes from camp, herd, and wagon.</p>
+        </div>
+        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2">
+          {[...state.trailFeed].slice(-12).reverse().map((entry, idx) => (
+            <div key={`${idx}-${entry.slice(0,18)}`} className={`rounded border p-2 ${idx===0 ? "border-amber-700 bg-amber-950/20" : "border-stone-700 bg-stone-800/60"}`}>
+              <p className="text-[11px] leading-relaxed text-stone-300">{entry}</p>
+            </div>
+          ))}
+        </div>
+      </aside>
+
       {/* ── Main Game Column ─────────────────────────────── */}
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0 xl:px-3 2xl:px-6">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0 xl:px-4 2xl:px-8">
       <div className="flex-shrink-0 bg-stone-800">
         <div className="max-w-xl xl:max-w-2xl mx-auto">
           <PrairieScene progress={progress} pace={state.pace} turn={state.turn}/>
         </div>
       </div>
       <div className="flex-shrink-0 bg-stone-800 border-b border-stone-700 px-3 py-2">
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-4xl mx-auto">
           <div className="grid grid-cols-6 gap-2 text-xs mb-2">
             <StatBox icon="🐂" label="Herd" value={r.herd} pulseState={pulses.herd || ""} />
             <StatBox icon="🤠" label="Crew" value={r.crew} pulseState={pulses.crew || ""} />
@@ -1136,7 +1187,7 @@ export default function App(){
       <DoomHUD members={partyMembers}/>
       <PortraitDebugPanel />
       <div className="flex-1 overflow-y-auto px-3 pb-3">
-        <div className="max-w-xl xl:max-w-2xl mx-auto space-y-3 mt-2">
+        <div className="max-w-4xl mx-auto space-y-3 mt-2">
           {state.phase==="sailing"&&(
             <div className="space-y-3">
               <div className="border border-indigo-700 rounded p-2 bg-indigo-950/40">
