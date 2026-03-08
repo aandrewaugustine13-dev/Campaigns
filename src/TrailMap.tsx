@@ -91,6 +91,13 @@ function nextSupplyTown(progress: number): TrailStop | null {
   return STOPS.find(s => s.supply && s.pct > progress) || null;
 }
 
+const CAMP_MARKERS = STOPS
+  .filter((stop) => stop.supply && stop.id !== "sanantonio")
+  .map((stop) => {
+    const [x, y] = TRAIL_PATH[stop.pathIndex];
+    return { id: stop.id, name: stop.name, x, y };
+  });
+
 // ═══════════════════════════════════════════════════════════════
 // MAIN MAP COMPONENT
 // ═══════════════════════════════════════════════════════════════
@@ -148,43 +155,43 @@ export default function TrailMap({
                 draggable={false}
               />
 
-              {/* Herd marker — just a glowing dot following the trail */}
-              <div
-                className="absolute pointer-events-none"
+              {/* Static camp markers */}
+              {CAMP_MARKERS.map((camp) => (
+                <img
+                  key={camp.id}
+                  src="/map-icons/camp.png"
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute pointer-events-none select-none"
+                  style={{
+                    left: `${camp.x}%`,
+                    top: `${camp.y}%`,
+                    width: "clamp(12px, 1.2vw, 16px)",
+                    height: "clamp(12px, 1.2vw, 16px)",
+                    transform: "translate(-50%, -50%)",
+                    zIndex: 12,
+                  }}
+                  draggable={false}
+                />
+              ))}
+
+              {/* Herd marker */}
+              <img
+                src="/map-icons/herd.png"
+                alt=""
+                aria-hidden="true"
+                className="absolute pointer-events-none select-none"
                 style={{
                   left: `${herd.x}%`,
                   top: `${herd.y}%`,
+                  width: "clamp(14px, 1.4vw, 18px)",
+                  height: "clamp(14px, 1.4vw, 18px)",
                   transform: "translate(-50%, -50%)",
                   transition: "left 1s ease-in-out, top 1s ease-in-out",
                   zIndex: 20,
                 }}
-              >
-                {/* Outer pulse */}
-                <div
-                  className="absolute rounded-full"
-                  style={{
-                    width: 32,
-                    height: 32,
-                    left: -16,
-                    top: -16,
-                    background: "radial-gradient(circle, rgba(180,60,30,0.4) 0%, transparent 70%)",
-                    animation: "trailPulse 2s ease-in-out infinite",
-                  }}
-                />
-                {/* Inner marker */}
-                <div
-                  className="rounded-full"
-                  style={{
-                    width: 14,
-                    height: 14,
-                    marginLeft: -7,
-                    marginTop: -7,
-                    backgroundColor: "#91332a",
-                    border: "2.5px solid #fef3c7",
-                    boxShadow: "0 0 8px rgba(145,51,42,0.7), 0 1px 3px rgba(0,0,0,0.6)",
-                  }}
-                />
-              </div>
+                draggable={false}
+              />
 
               {/* Milestone arrival banner */}
               {flashStop && (
