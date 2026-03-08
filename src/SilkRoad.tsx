@@ -754,7 +754,7 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
   const getBackgroundImage = (p: number) => {
     if (p < 30) return "/faces/bg_desert.png";
     if (p < 60) return "/faces/bg_mountains.png";
-    return "/faces/bg_samarkand.png";
+    return "/faces/bg_travel.png";
   };
   const currentBgImage = getBackgroundImage(progress);
   const progressLabel = progress < 15 ? "Gansu Corridor" : progress < 30 ? "Taklamakan Desert" : progress < 45 ? "Ferghana Valley" : progress < 55 ? "Samarkand" : progress < 70 ? "Persia" : progress < 85 ? "Anatolia" : "Roman Empire";
@@ -779,7 +779,7 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
           </div>
           <div className="relative h-32 overflow-hidden rounded bg-stone-800 border border-stone-700">
              <img 
-              src="/faces/bg_samarkand.png"
+              src="/faces/bg_travel.png"
               alt="Silk Road"
               className="w-full h-full object-cover"
               style={{ imageRendering: "pixelated" }}
@@ -903,27 +903,35 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
     <div className="west-app h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden" style={{ fontFamily: "'Georgia',serif" }}>
       {/* Top horizontal route map */}
       <div className="flex-shrink-0 bg-stone-800 border-b border-stone-700 px-3 pt-2 pb-3">
-        <div className="w-full">
-          <div className="relative w-full h-[170px] lg:h-[190px] rounded border border-stone-700 overflow-hidden" style={{ background: "linear-gradient(180deg,#3a2d23 0%,#2d221a 20%,#22303a 55%,#2d221a 100%)" }}>
-            <div className="absolute inset-x-6 top-[52%] h-[2px] bg-amber-200/70" />
+        <div className="w-full max-w-[1700px] mx-auto">
+          <div className="relative w-full h-[160px] md:h-[180px] xl:h-[210px] rounded border border-stone-700 overflow-hidden" style={{ backgroundImage: "url(/faces/bg_travel.png)", backgroundSize: "cover", backgroundPosition: "center" }}>
+            <div className="absolute inset-0 bg-stone-900/55" />
+            <div className="absolute inset-x-6 top-[52%] h-[2px] bg-amber-200/80 z-10" />
             {SILK_STOPS.map((stop) => (
-              <div key={stop.id} className="absolute" style={{ left: `calc(${stop.pct}% - 8px)`, top: "45%" }}>
+              <div key={stop.id} className="absolute z-20" style={{ left: `calc(${stop.pct}% - 8px)`, top: "45%" }}>
                 <div className="w-4 h-4 rounded-full bg-stone-900 border border-amber-300" />
                 <div className="text-[10px] text-stone-200 mt-1 whitespace-nowrap -translate-x-1/3">{stop.name}</div>
               </div>
             ))}
-            <div className="absolute" style={{ left: `calc(${progress}% - 10px)`, top: "38%", transition: "left 700ms ease" }}>
+            <div className="absolute z-30" style={{ left: `calc(${progress}% - 10px)`, top: "38%", transition: "left 700ms ease" }}>
               <div className="w-5 h-5 rounded-full bg-indigo-400 border-2 border-indigo-100 shadow" />
               <p className="text-[10px] text-indigo-100 mt-1 -translate-x-1/4 whitespace-nowrap">Caravan</p>
             </div>
-            <div className="absolute left-2 bottom-2 text-xs text-stone-300">Day {state.day} · {Math.round(state.distance)} / {TOTAL_DISTANCE} mi</div>
-            <div className="absolute right-2 bottom-2 text-xs text-indigo-200">{Math.round(progress)}%</div>
+            <div className="absolute z-20 left-2 bottom-2 text-xs text-stone-200">Day {state.day} · {Math.round(state.distance)} / {TOTAL_DISTANCE} mi</div>
+            <div className="absolute z-20 right-2 bottom-2 text-xs text-indigo-200">{Math.round(progress)}%</div>
           </div>
         </div>
       </div>
 
+      <div className="flex-shrink-0">
+        <div className="max-w-[1700px] mx-auto">
+          <DoomHUD members={partyMembers} />
+        </div>
+      </div>
+
       {/* Full-width strategy board */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)_300px] gap-3 p-3 overflow-hidden">
+      <div className="flex-1 min-h-0 p-3 overflow-hidden">
+        <div className="h-full max-w-[1700px] mx-auto grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)_320px] gap-3">
         {/* Left: caravan status */}
         <aside className="bg-stone-800/90 border border-stone-700 rounded p-3 overflow-y-auto">
           <h3 className="text-xs uppercase tracking-wide font-bold text-amber-300 mb-2">Caravan Ledger</h3>
@@ -1035,6 +1043,7 @@ export default function SilkRoad({ onBack }: { onBack: () => void }) {
             ))}
           </div>
         </aside>
+        </div>
       </div>
     </div>
   );
