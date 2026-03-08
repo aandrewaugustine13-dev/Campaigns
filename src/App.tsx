@@ -715,9 +715,9 @@ export default function App(){
       // Apply resource rewards
       for (const [k, v] of Object.entries(reward)) {
         if (k === "insight") {
-          s.insight += (v as number);
+          s.insight += v;
         } else if (s.resources[k] !== undefined) {
-          s.resources[k] = clampR(k, s.resources[k] + (v as number));
+          s.resources[k] = clampR(k, s.resources[k] + v);
         }
       }
 
@@ -950,26 +950,26 @@ export default function App(){
   }
 
   return(
-    <div className={`h-screen bg-stone-900 text-stone-100 overflow-hidden md:grid md:grid-cols-[320px_minmax(0,1fr)] lg:grid-cols-[360px_minmax(0,1fr)] xl:grid-cols-[420px_minmax(0,1fr)] ${shakeClass}`} style={{fontFamily:"'Georgia', serif"}}>
+    <div className={`h-screen bg-stone-900 text-stone-100 flex overflow-hidden ${shakeClass}`} style={{fontFamily:"'Georgia', serif"}}>
       <StreakFlash streak={state.triviaStreak} />
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 pointer-events-none z-50">
         <FloatingNumbers floats={floats} />
       </div>
 
       {/* ── Map Sidebar ──────────────────────────────────── */}
-      <div className="hidden md:flex min-h-0 border-r border-stone-700/70">
+      <div className="hidden md:flex w-80 lg:w-96 xl:w-[420px] flex-shrink-0">
         <TrailMap progress={progress} day={state.day} totalDays={TOTAL_DAYS} />
       </div>
 
       {/* ── Main Game Column ─────────────────────────────── */}
-      <div className="flex min-w-0 flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
       <div className="flex-shrink-0 bg-stone-800">
-        <div className="w-full px-3 md:px-5">
+        <div className="max-w-lg mx-auto">
           <PrairieScene progress={progress} pace={state.pace} turn={state.turn}/>
         </div>
       </div>
       <div className="flex-shrink-0 bg-stone-800 border-b border-stone-700 px-3 py-2">
-        <div className="w-full px-0 md:px-2">
+        <div className="max-w-lg mx-auto">
           <div className="grid grid-cols-4 gap-2 text-xs mb-2">
             <StatBox icon="🐂" label="Herd" value={r.herd} pulseState={pulses.herd || ""} />
             <StatBox icon="🤠" label="Crew" value={r.crew} pulseState={pulses.crew || ""} />
@@ -1000,15 +1000,15 @@ export default function App(){
       </div>
       <DoomHUD members={partyMembers}/>
       <PortraitDebugPanel />
-      <div className="flex-1 overflow-y-auto px-3 pb-3 md:px-5">
-        <div className="w-full space-y-3 mt-2">
+      <div className="flex-1 overflow-y-auto px-3 pb-3">
+        <div className="max-w-lg mx-auto space-y-3 mt-2">
           {state.phase==="sailing"&&(
             <div className="space-y-3">
               <div className="border border-indigo-700 rounded p-2 bg-indigo-950/40">
                 <p className="text-xs text-indigo-300 font-bold">Route: {currentRouteNode.title} ({state.routeTag})</p>
                 <p className="text-xs text-stone-300">{currentRouteNode.description}</p>
                 {currentRouteNode.edges.length > 0 && (
-                  <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-1.5">
+                  <div className="mt-2 grid grid-cols-1 gap-1">
                     {currentRouteNode.edges.map((edge) => (
                       <button key={edge.to} onClick={() => chooseRoute(edge.to, edge.tag)} className="text-left text-xs px-2 py-1 rounded bg-indigo-900 hover:bg-indigo-800">
                         {edge.label} <span className="text-indigo-300">[{edge.tag}]</span>
