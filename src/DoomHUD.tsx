@@ -47,11 +47,11 @@ export default function DoomHUD({ members }: { members: PartyMember[] }) {
   }, [members, damageTriggers]);
 
   return (
-    <div className="flex-shrink-0 bg-[#2d1b11] border-t-4 border-[#1a0f0a] p-2">
+    <div className="flex-shrink-0 bg-[#2d1b11] border-t-4 border-[#1a0f0a] p-2 md:px-4">
       <div className="text-[#a0a0a0] text-xs font-bold uppercase mb-1 drop-shadow-md">
         Party Status HUD
       </div>
-      <div className={`max-w-lg mx-auto grid gap-2 ${members.length <= 5 ? "grid-cols-5" : "grid-cols-6"}`}>
+      <div className={`w-full grid gap-2 ${members.length <= 5 ? "grid-cols-5" : "grid-cols-6"}`}>
         {members.map((m) => {
           const faceSrc = getDoomFace(m.id, m.health);
           const fallbackSrc = STATIC_PORTRAIT_MAP[m.id];
