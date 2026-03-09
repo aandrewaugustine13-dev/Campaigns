@@ -171,3 +171,48 @@
 .west-app .drop-shadow-md {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   CHISHOLM PARALLAX BACKGROUND SYSTEM
+   ═══════════════════════════════════════════════════════════════ */
+
+.chisholm-layer {
+  transition: opacity 900ms ease;
+  pointer-events: none;
+}
+
+@keyframes chisholmPan {
+  0% { background-position: 0 0, 0 0, 0 0; }
+  100% { background-position: 1024px 0, 0 0, 0 0; }
+}
+
+.chisholm-pan {
+  animation: chisholmPan var(--pan-duration, 180s) linear infinite;
+  pointer-events: none;
+  will-change: background-position;
+}
+
+@keyframes chisholmActorMove {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(130vw); }
+}
+
+.chisholm-actor-move {
+  animation: chisholmActorMove var(--actor-duration, 70s) linear infinite;
+  animation-delay: var(--actor-delay, 0s);
+  pointer-events: none;
+  will-change: transform;
+}
+
+@keyframes chisholmSpriteFrames {
+  from { background-position-x: 0; }
+  to { background-position-x: calc(var(--strip-frames, 6) * -100%); }
+}
+
+.chisholm-sprite-strip {
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-size: calc(var(--strip-frames, 6) * 100%) 100%, 100% 100%;
+  animation: chisholmSpriteFrames var(--strip-fps, 1s) steps(var(--strip-frames, 6)) infinite;
+  border-radius: 999px;
+}
