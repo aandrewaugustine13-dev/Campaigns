@@ -6,17 +6,17 @@ Do **not** rename files; final production art should replace placeholders using 
 > Note: this repo currently avoids committing binary assets. The `.png` files in this folder are text stubs so the paths exist; replace each with actual PNG artwork before release.
 
 ## Required files
-- `/public/backgrounds/chisholm/sky_day.png`
-- `/public/backgrounds/chisholm/sky_dusk.png`
-- `/public/backgrounds/chisholm/sky_night.png`
-- `/public/backgrounds/chisholm/clouds_far.png`
-- `/public/backgrounds/chisholm/hills_far.png`
-- `/public/backgrounds/chisholm/prairie_mid.png`
-- `/public/backgrounds/chisholm/trail_foreground.png`
-- `/public/backgrounds/chisholm/herd_strip.png`
-- `/public/backgrounds/chisholm/riders_strip.png`
-- `/public/backgrounds/chisholm/chuckwagon_strip.png`
-- `/public/backgrounds/chisholm/dust_fx_strip.png`
+- `/backgrounds/chisholm/sky_day.png`
+- `/backgrounds/chisholm/sky_dusk.png`
+- `/backgrounds/chisholm/sky_night.png`
+- `/backgrounds/chisholm/clouds_far.png`
+- `/backgrounds/chisholm/hills_far.png`
+- `/backgrounds/chisholm/prairie_mid.png`
+- `/backgrounds/chisholm/trail_foreground.png`
+- `/backgrounds/chisholm/herd_strip.png`
+- `/backgrounds/chisholm/riders_strip.png`
+- `/backgrounds/chisholm/chuckwagon_strip.png`
+- `/backgrounds/chisholm/dust_fx_strip.png`
 
 ## Dimensions and format guidance
 All files should be PNG. Maintain a wide, cinematic aspect and preserve transparency where noted.
