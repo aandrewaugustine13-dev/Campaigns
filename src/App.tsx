@@ -17,6 +17,7 @@ import {
 import TrailMap, { getRegionFlavor, isNearSupplyTown } from "./TrailMap";
 import { SAGES, type SageEncounterData } from "./Sages";
 import SageEncounter from "./SageEncounter";
+import ChisholmParallaxBackground from "./ChisholmParallaxBackground";
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -148,18 +149,8 @@ function PixelFace({spriteData,size=48}:{spriteData:string;size?:number}){
 // ═══════════════════════════════════════════════════════════════
 
 function PrairieScene({ progress, pace }: { progress: number; pace: string; turn: number }) {
-  const speed = pace === "push" ? "12s" : pace === "normal" ? "20s" : "35s";
-  const miLabel = progress < 10 ? "San Antonio" : progress > 90 ? "Abilene" : `${Math.round(progress * 8)} mi`;
-
-  return (
-    <div className="relative w-full overflow-hidden rounded-b border-b border-stone-700" style={{ height: 180 }}>
-      <div className="absolute inset-0" style={{ backgroundImage: `url(/faces/bg_sky.png)`, backgroundSize: "cover", backgroundPosition: "center bottom", imageRendering: "pixelated" }} />
-      <div className="absolute bottom-0 left-0 right-0" style={{ height: 60, backgroundImage: `url(/faces/fg_cattle.png)`, backgroundSize: "auto 100%", backgroundRepeat: "repeat-x", backgroundPosition: "bottom", animation: `bgScroll ${speed} linear infinite, cattleBob 0.6s ease-in-out infinite`, imageRendering: "pixelated" }} />
-      <div className="absolute inset-0" style={{ background: "linear-gradient(transparent 60%, rgba(0,0,0,0.3) 100%)" }} />
-      <div className="absolute bottom-1 left-2 text-xs font-bold" style={{ color: "#d4a843", opacity: 0.85, fontFamily: "monospace" }}>{Math.round(progress)}%</div>
-      <div className="absolute bottom-1 right-2 text-xs font-bold" style={{ color: "#d4a843", opacity: 0.85, fontFamily: "monospace" }}>{miLabel}</div>
-    </div>
-  );
+  const mappedPace = pace === "push" ? "push" : pace === "normal" ? "normal" : "rest";
+  return <ChisholmParallaxBackground progress={progress} pace={mappedPace} />;
 }
 
 // ═══════════════════════════════════════════════════════════════
