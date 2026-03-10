@@ -182,8 +182,8 @@
 }
 
 @keyframes chisholmPan {
-  0% { background-position: 0 0, 0 0, 0 0; }
-  100% { background-position: 1024px 0, 0 0, 0 0; }
+  0% { background-position: 0 0; }
+  100% { background-position: var(--pan-distance, 1024px) 0; }
 }
 
 .chisholm-pan {
@@ -212,7 +212,7 @@
 .chisholm-sprite-strip {
   image-rendering: pixelated;
   background-repeat: no-repeat;
-  background-size: calc(var(--strip-frames, 6) * 100%) 100%, 100% 100%;
+  background-size: calc(var(--strip-frames, 6) * 100%) 100%;
   animation: chisholmSpriteFrames var(--strip-fps, 1s) steps(var(--strip-frames, 6)) infinite;
   border-radius: 999px;
 }

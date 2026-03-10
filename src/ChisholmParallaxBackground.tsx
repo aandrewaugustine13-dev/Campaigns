@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const CHISHOLM_ASSETS = {
   skyDay: "/backgrounds/chisholm/sky_day.png",
@@ -13,6 +13,8 @@ const CHISHOLM_ASSETS = {
   chuckwagonStrip: "/backgrounds/chisholm/chuckwagon_strip.png",
   dustFxStrip: "/backgrounds/chisholm/dust_fx_strip.png",
 } as const;
+
+const PANORAMA_RATIO = 3 / 2;
 
 interface LayerSpeedConfig {
   clouds: number;
@@ -52,8 +54,9 @@ export default function ChisholmParallaxBackground({
   showDustFx = true,
   layerSpeed,
 }: ChisholmParallaxBackgroundProps) {
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const [timeTick, setTimeTick] = useState(() => Date.now());
-  const [assetReady, setAssetReady] = useState<Record<string, boolean>>({});
+  const [viewportWidth, setViewportWidth] = useState(0);
 
   useEffect(() => {
     const interval = window.setInterval(() => setTimeTick(Date.now()), 200);
@@ -61,28 +64,15 @@ export default function ChisholmParallaxBackground({
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    const entries = Object.entries(CHISHOLM_ASSETS);
-    entries.forEach(([key, src]) => {
-      const img = new Image();
-      img.onload = () => {
-        if (!cancelled) setAssetReady((prev) => ({ ...prev, [key]: true }));
-      };
-      img.onerror = () => {
-        if (!cancelled) {
-          setAssetReady((prev) => ({ ...prev, [key]: false }));
-          console.warn(`[ChisholmParallaxBackground] Asset failed to decode: ${src}`);
-        }
-      };
-      img.src = src;
+    if (!rootRef.current) return;
+    const element = rootRef.current;
+    const observer = new ResizeObserver(() => {
+      setViewportWidth(element.clientWidth);
     });
-    return () => {
-      cancelled = true;
-    };
+    observer.observe(element);
+    setViewportWidth(element.clientWidth);
+    return () => observer.disconnect();
   }, []);
-
-  const withFallback = (key: keyof typeof CHISHOLM_ASSETS, fallback: string) =>
-    assetReady[key] === false ? fallback : `url(${CHISHOLM_ASSETS[key]}), ${fallback}`;
 
   const travelFactor = pace === "push" ? 0.85 : pace === "normal" ? 1 : 1.25;
   const speeds: LayerSpeedConfig = {
@@ -93,17 +83,24 @@ export default function ChisholmParallaxBackground({
     ...layerSpeed,
   };
 
-  const cycle = useMemo(() => ((timeTick % cycleDurationMs) / cycleDurationMs), [timeTick, cycleDurationMs]);
+  const cycle = useMemo(() => (timeTick % cycleDurationMs) / cycleDurationMs, [timeTick, cycleDurationMs]);
   const sky = useMemo(() => dayWeights(cycle), [cycle]);
   const distanceLabel = progress < 10 ? "San Antonio" : progress > 90 ? "Abilene" : `${Math.round(progress * 8)} mi`;
 
+  const tileWidth = useMemo(() => {
+    const fromHeight = Math.round(height * PANORAMA_RATIO);
+    return Math.max(fromHeight, viewportWidth || fromHeight);
+  }, [height, viewportWidth]);
+
+  const actorScale = height / 190;
+
   return (
-    <div className="relative w-full overflow-hidden rounded-b border-b border-stone-700" style={{ height }}>
+    <div ref={rootRef} className="relative w-full overflow-hidden rounded-b border-b border-stone-700" style={{ height }}>
       <div
         className="absolute inset-0 chisholm-layer"
         style={{
           opacity: sky.day,
-          backgroundImage: withFallback("skyDay", "linear-gradient(180deg, #8ec8f0 0%, #d6ebff 45%, #f5d8aa 100%)"),
+          backgroundImage: `url(${CHISHOLM_ASSETS.skyDay})`,
           backgroundSize: "cover",
           backgroundPosition: "center bottom",
         }}
@@ -112,7 +109,7 @@ export default function ChisholmParallaxBackground({
         className="absolute inset-0 chisholm-layer"
         style={{
           opacity: sky.dusk,
-          backgroundImage: withFallback("skyDusk", "linear-gradient(180deg, #f7b37b 0%, #cf6e56 45%, #5f3a5f 100%)"),
+          backgroundImage: `url(${CHISHOLM_ASSETS.skyDusk})`,
           backgroundSize: "cover",
           backgroundPosition: "center bottom",
           mixBlendMode: "screen",
@@ -122,7 +119,7 @@ export default function ChisholmParallaxBackground({
         className="absolute inset-0 chisholm-layer"
         style={{
           opacity: sky.night,
-          backgroundImage: withFallback("skyNight", "radial-gradient(circle at 70% 20%, rgba(255,255,220,0.25), transparent 20%), linear-gradient(180deg, #101530 0%, #1e2b46 45%, #1d2234 100%)"),
+          backgroundImage: `url(${CHISHOLM_ASSETS.skyNight})`,
           backgroundSize: "cover",
           backgroundPosition: "center bottom",
         }}
@@ -132,9 +129,11 @@ export default function ChisholmParallaxBackground({
         className="absolute inset-0 chisholm-pan"
         style={{
           ["--pan-duration" as string]: `${speeds.clouds}s`,
-          backgroundImage: withFallback("cloudsFar", "radial-gradient(ellipse at 15% 20%, rgba(255,255,255,0.2), transparent 40%), radial-gradient(ellipse at 75% 26%, rgba(255,255,255,0.12), transparent 35%)"),
-          backgroundRepeat: "repeat-x, no-repeat, no-repeat",
-          backgroundSize: "auto 55%, 100% 100%, 100% 100%",
+          ["--pan-distance" as string]: `${tileWidth}px`,
+          backgroundImage: `url(${CHISHOLM_ASSETS.cloudsFar})`,
+          backgroundRepeat: "repeat-x",
+          backgroundSize: `${tileWidth}px 55%`,
+          backgroundPosition: "0 0",
           opacity: 0.7,
         }}
       />
@@ -144,10 +143,10 @@ export default function ChisholmParallaxBackground({
         style={{
           height: "52%",
           ["--pan-duration" as string]: `${speeds.hills}s`,
-          backgroundImage: withFallback("hillsFar", "linear-gradient(180deg, transparent 0%, rgba(92, 110, 88, 0.78) 45%, rgba(73, 88, 72, 0.92) 100%)"),
-          backgroundRepeat: "repeat-x, no-repeat",
-          backgroundSize: "auto 100%, 100% 100%",
-          opacity: 0.95,
+          ["--pan-distance" as string]: `${tileWidth}px`,
+          backgroundImage: `url(${CHISHOLM_ASSETS.hillsFar})`,
+          backgroundRepeat: "repeat-x",
+          backgroundSize: `${tileWidth}px 100%`,
         }}
       />
 
@@ -156,9 +155,10 @@ export default function ChisholmParallaxBackground({
         style={{
           height: "40%",
           ["--pan-duration" as string]: `${speeds.prairie}s`,
-          backgroundImage: withFallback("prairieMid", "linear-gradient(180deg, rgba(96, 112, 61, 0.6) 0%, rgba(82, 92, 50, 0.92) 60%, rgba(71, 70, 38, 1) 100%)"),
-          backgroundRepeat: "repeat-x, no-repeat",
-          backgroundSize: "auto 100%, 100% 100%",
+          ["--pan-distance" as string]: `${tileWidth}px`,
+          backgroundImage: `url(${CHISHOLM_ASSETS.prairieMid})`,
+          backgroundRepeat: "repeat-x",
+          backgroundSize: `${tileWidth}px 100%`,
         }}
       />
 
@@ -167,9 +167,10 @@ export default function ChisholmParallaxBackground({
         style={{
           height: "30%",
           ["--pan-duration" as string]: `${speeds.trail}s`,
-          backgroundImage: withFallback("trailForeground", "linear-gradient(180deg, rgba(93, 70, 44, 0.2) 0%, rgba(93, 70, 44, 0.85) 50%, rgba(60, 45, 30, 1) 100%)"),
-          backgroundRepeat: "repeat-x, no-repeat",
-          backgroundSize: "auto 100%, 100% 100%",
+          ["--pan-distance" as string]: `${tileWidth}px`,
+          backgroundImage: `url(${CHISHOLM_ASSETS.trailForeground})`,
+          backgroundRepeat: "repeat-x",
+          backgroundSize: `${tileWidth}px 100%`,
         }}
       />
 
@@ -181,9 +182,9 @@ export default function ChisholmParallaxBackground({
               style={{
                 ["--strip-frames" as string]: "8",
                 ["--strip-fps" as string]: "1.1s",
-                width: 120,
-                height: 34,
-                backgroundImage: withFallback("herdStrip", "linear-gradient(180deg, rgba(35, 26, 18, 0.75), rgba(35, 26, 18, 0.75))"),
+                width: Math.round(120 * actorScale),
+                height: Math.round(34 * actorScale),
+                backgroundImage: `url(${CHISHOLM_ASSETS.herdStrip})`,
               }}
             />
           </div>
@@ -194,9 +195,9 @@ export default function ChisholmParallaxBackground({
               style={{
                 ["--strip-frames" as string]: "6",
                 ["--strip-fps" as string]: "0.9s",
-                width: 72,
-                height: 30,
-                backgroundImage: withFallback("ridersStrip", "linear-gradient(180deg, rgba(26, 19, 13, 0.8), rgba(26, 19, 13, 0.8))"),
+                width: Math.round(72 * actorScale),
+                height: Math.round(30 * actorScale),
+                backgroundImage: `url(${CHISHOLM_ASSETS.ridersStrip})`,
               }}
             />
           </div>
@@ -207,9 +208,9 @@ export default function ChisholmParallaxBackground({
               style={{
                 ["--strip-frames" as string]: "6",
                 ["--strip-fps" as string]: "1.2s",
-                width: 92,
-                height: 34,
-                backgroundImage: withFallback("chuckwagonStrip", "linear-gradient(180deg, rgba(47, 32, 21, 0.9), rgba(47, 32, 21, 0.9))"),
+                width: Math.round(92 * actorScale),
+                height: Math.round(34 * actorScale),
+                backgroundImage: `url(${CHISHOLM_ASSETS.chuckwagonStrip})`,
               }}
             />
           </div>
@@ -223,9 +224,9 @@ export default function ChisholmParallaxBackground({
             style={{
               ["--strip-frames" as string]: "10",
               ["--strip-fps" as string]: "1s",
-              width: 84,
-              height: 34,
-              backgroundImage: withFallback("dustFxStrip", "radial-gradient(ellipse at center, rgba(184, 145, 96, 0.26), rgba(184, 145, 96, 0.02))"),
+              width: Math.round(84 * actorScale),
+              height: Math.round(34 * actorScale),
+              backgroundImage: `url(${CHISHOLM_ASSETS.dustFxStrip})`,
               opacity: 0.75,
             }}
           />
