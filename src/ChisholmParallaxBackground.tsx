@@ -180,41 +180,55 @@ export default function ChisholmParallaxBackground({
 
       {showForegroundActors && (
         <>
-          <div className="absolute bottom-[18%] left-[-25%] chisholm-actor-move" style={{ ["--actor-duration" as string]: "58s" }}>
-            <div
-              className="chisholm-sprite-strip"
+          {/* Herd — content is 193px tall centered at ~53% in a 1024px image */}
+          <div className="absolute left-[-25%] chisholm-actor-move" style={{
+            ["--actor-duration" as string]: "58s",
+            bottom: `${Math.round(-height * 0.15)}px`,
+          }}>
+            <img
+              src={CHISHOLM_ASSETS.herdStrip}
+              alt=""
+              draggable={false}
               style={{
-                ["--strip-frames" as string]: "8",
-                ["--strip-fps" as string]: "1.1s",
-                width: Math.round(120 * actorScale),
-                height: Math.round(34 * actorScale),
-                backgroundImage: `url(${CHISHOLM_ASSETS.herdStrip})`,
+                height: Math.round(height * 1.05 * actorScale),
+                width: "auto",
+                pointerEvents: "none",
               }}
             />
           </div>
 
-          <div className="absolute bottom-[19%] left-[-18%] chisholm-actor-move" style={{ ["--actor-duration" as string]: "76s", ["--actor-delay" as string]: "-14s" }}>
-            <div
-              className="chisholm-sprite-strip"
+          {/* Riders — content is 304px tall centered at ~51% in a 1024px image */}
+          <div className="absolute left-[-18%] chisholm-actor-move" style={{
+            ["--actor-duration" as string]: "76s",
+            ["--actor-delay" as string]: "-14s",
+            bottom: `${Math.round(-height * 0.08)}px`,
+          }}>
+            <img
+              src={CHISHOLM_ASSETS.ridersStrip}
+              alt=""
+              draggable={false}
               style={{
-                ["--strip-frames" as string]: "6",
-                ["--strip-fps" as string]: "0.9s",
-                width: Math.round(72 * actorScale),
-                height: Math.round(30 * actorScale),
-                backgroundImage: `url(${CHISHOLM_ASSETS.ridersStrip})`,
+                height: Math.round(height * 0.9 * actorScale),
+                width: "auto",
+                pointerEvents: "none",
               }}
             />
           </div>
 
-          <div className="absolute bottom-[17.5%] left-[-18%] chisholm-actor-move" style={{ ["--actor-duration" as string]: "95s", ["--actor-delay" as string]: "-30s" }}>
-            <div
-              className="chisholm-sprite-strip"
+          {/* Chuckwagon — content is 515px tall centered at ~49% in a 1024px image */}
+          <div className="absolute left-[-18%] chisholm-actor-move" style={{
+            ["--actor-duration" as string]: "95s",
+            ["--actor-delay" as string]: "-30s",
+            bottom: `${Math.round(-height * 0.02)}px`,
+          }}>
+            <img
+              src={CHISHOLM_ASSETS.chuckwagonStrip}
+              alt=""
+              draggable={false}
               style={{
-                ["--strip-frames" as string]: "6",
-                ["--strip-fps" as string]: "1.2s",
-                width: Math.round(92 * actorScale),
-                height: Math.round(34 * actorScale),
-                backgroundImage: `url(${CHISHOLM_ASSETS.chuckwagonStrip})`,
+                height: Math.round(height * 0.72 * actorScale),
+                width: "auto",
+                pointerEvents: "none",
               }}
             />
           </div>
@@ -222,16 +236,20 @@ export default function ChisholmParallaxBackground({
       )}
 
       {showDustFx && (
-        <div className="absolute bottom-[16%] left-[-10%] chisholm-actor-move" style={{ ["--actor-duration" as string]: "68s", ["--actor-delay" as string]: "-8s" }}>
-          <div
-            className="chisholm-sprite-strip"
+        <div className="absolute left-[-10%] chisholm-actor-move" style={{
+          ["--actor-duration" as string]: "68s",
+          ["--actor-delay" as string]: "-8s",
+          bottom: `${Math.round(-height * 0.25)}px`,
+        }}>
+          <img
+            src={CHISHOLM_ASSETS.dustFxStrip}
+            alt=""
+            draggable={false}
             style={{
-              ["--strip-frames" as string]: "10",
-              ["--strip-fps" as string]: "1s",
-              width: Math.round(84 * actorScale),
-              height: Math.round(34 * actorScale),
-              backgroundImage: `url(${CHISHOLM_ASSETS.dustFxStrip})`,
+              height: Math.round(height * 0.95 * actorScale),
+              width: "auto",
               opacity: 0.75,
+              pointerEvents: "none",
             }}
           />
         </div>
