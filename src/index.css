@@ -204,15 +204,4 @@
   will-change: transform;
 }
 
-@keyframes chisholmSpriteFrames {
-  from { background-position-x: 0; }
-  to { background-position-x: calc(var(--strip-frames, 6) * -100%); }
-}
-
-.chisholm-sprite-strip {
-  image-rendering: pixelated;
-  background-repeat: no-repeat;
-  background-size: calc(var(--strip-frames, 6) * 100%) 100%;
-  animation: chisholmSpriteFrames var(--strip-fps, 1s) steps(var(--strip-frames, 6)) infinite;
-  border-radius: 999px;
-}
+/* chisholm-sprite-strip removed — actor images are single panoramics, not sprite sheets */
