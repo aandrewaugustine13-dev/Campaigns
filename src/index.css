@@ -182,14 +182,14 @@
 }
 
 @keyframes chisholmPan {
-  0% { background-position: 0 0; }
-  100% { background-position: var(--pan-distance, 1024px) 0; }
+  0% { transform: translateX(0); }
+  100% { transform: translateX(calc(var(--pan-distance, 1024px) * -1)); }
 }
 
 .chisholm-pan {
   animation: chisholmPan var(--pan-duration, 180s) linear infinite;
   pointer-events: none;
-  will-change: background-position;
+  will-change: transform;
 }
 
 @keyframes chisholmActorMove {
