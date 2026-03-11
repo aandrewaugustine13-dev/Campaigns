@@ -56,7 +56,7 @@ export default function ChisholmParallaxBackground({
 }: ChisholmParallaxBackgroundProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [timeTick, setTimeTick] = useState(() => Date.now());
-  const [viewportWidth, setViewportWidth] = useState(0);
+  const [viewportWidth, setViewportWidth] = useState(() => typeof window !== "undefined" ? window.innerWidth : 0);
 
   useEffect(() => {
     const interval = window.setInterval(() => setTimeTick(Date.now()), 200);
@@ -66,11 +66,11 @@ export default function ChisholmParallaxBackground({
   useEffect(() => {
     if (!rootRef.current) return;
     const element = rootRef.current;
+    setViewportWidth(element.clientWidth);
     const observer = new ResizeObserver(() => {
       setViewportWidth(element.clientWidth);
     });
     observer.observe(element);
-    setViewportWidth(element.clientWidth);
     return () => observer.disconnect();
   }, []);
 
@@ -126,8 +126,9 @@ export default function ChisholmParallaxBackground({
       />
 
       <div
-        className="absolute inset-0 chisholm-pan"
+        className="absolute top-0 left-0 h-full chisholm-pan"
         style={{
+          width: `calc(100% + ${tileWidth}px)`,
           ["--pan-duration" as string]: `${speeds.clouds}s`,
           ["--pan-distance" as string]: `${tileWidth}px`,
           backgroundImage: `url(${CHISHOLM_ASSETS.cloudsFar})`,
@@ -139,9 +140,10 @@ export default function ChisholmParallaxBackground({
       />
 
       <div
-        className="absolute inset-x-0 bottom-0 chisholm-pan"
+        className="absolute left-0 bottom-0 chisholm-pan"
         style={{
           height: "52%",
+          width: `calc(100% + ${tileWidth}px)`,
           ["--pan-duration" as string]: `${speeds.hills}s`,
           ["--pan-distance" as string]: `${tileWidth}px`,
           backgroundImage: `url(${CHISHOLM_ASSETS.hillsFar})`,
@@ -151,9 +153,10 @@ export default function ChisholmParallaxBackground({
       />
 
       <div
-        className="absolute inset-x-0 bottom-0 chisholm-pan"
+        className="absolute left-0 bottom-0 chisholm-pan"
         style={{
           height: "40%",
+          width: `calc(100% + ${tileWidth}px)`,
           ["--pan-duration" as string]: `${speeds.prairie}s`,
           ["--pan-distance" as string]: `${tileWidth}px`,
           backgroundImage: `url(${CHISHOLM_ASSETS.prairieMid})`,
@@ -163,9 +166,10 @@ export default function ChisholmParallaxBackground({
       />
 
       <div
-        className="absolute inset-x-0 bottom-0 chisholm-pan"
+        className="absolute left-0 bottom-0 chisholm-pan"
         style={{
           height: "30%",
+          width: `calc(100% + ${tileWidth}px)`,
           ["--pan-duration" as string]: `${speeds.trail}s`,
           ["--pan-distance" as string]: `${tileWidth}px`,
           backgroundImage: `url(${CHISHOLM_ASSETS.trailForeground})`,
