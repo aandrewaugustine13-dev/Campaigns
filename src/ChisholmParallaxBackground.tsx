@@ -125,24 +125,27 @@ export default function ChisholmParallaxBackground({
         }}
       />
 
+      {/* Clouds — cropped to 1536x503 content */}
       <div
-        className="absolute top-0 left-0 h-full chisholm-pan"
+        className="absolute top-0 left-0 chisholm-pan"
         style={{
+          height: "65%",
           width: `calc(100% + ${tileWidth}px)`,
           ["--pan-duration" as string]: `${speeds.clouds}s`,
           ["--pan-distance" as string]: `${tileWidth}px`,
           backgroundImage: `url(${CHISHOLM_ASSETS.cloudsFar})`,
           backgroundRepeat: "repeat-x",
-          backgroundSize: `${tileWidth}px 55%`,
+          backgroundSize: `${tileWidth}px 100%`,
           backgroundPosition: "0 0",
           opacity: 0.7,
         }}
       />
 
+      {/* Hills — cropped to 1536x158 content */}
       <div
         className="absolute left-0 bottom-0 chisholm-pan"
         style={{
-          height: "52%",
+          height: "55%",
           width: `calc(100% + ${tileWidth}px)`,
           ["--pan-duration" as string]: `${speeds.hills}s`,
           ["--pan-distance" as string]: `${tileWidth}px`,
@@ -152,10 +155,11 @@ export default function ChisholmParallaxBackground({
         }}
       />
 
+      {/* Prairie — cropped to 1536x214 content, RGBA with grey removed */}
       <div
         className="absolute left-0 bottom-0 chisholm-pan"
         style={{
-          height: "40%",
+          height: "45%",
           width: `calc(100% + ${tileWidth}px)`,
           ["--pan-duration" as string]: `${speeds.prairie}s`,
           ["--pan-distance" as string]: `${tileWidth}px`,
@@ -165,10 +169,11 @@ export default function ChisholmParallaxBackground({
         }}
       />
 
+      {/* Trail foreground — cropped to 1536x205 content */}
       <div
         className="absolute left-0 bottom-0 chisholm-pan"
         style={{
-          height: "30%",
+          height: "35%",
           width: `calc(100% + ${tileWidth}px)`,
           ["--pan-duration" as string]: `${speeds.trail}s`,
           ["--pan-distance" as string]: `${tileWidth}px`,
