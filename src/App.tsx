@@ -24,6 +24,7 @@ import { SAGES } from "./campaigns/chisholm/sages";
 import type { SageEncounterData } from "./campaigns/types";
 import SageEncounter from "./SageEncounter";
 import ChisholmParallaxBackground from "./campaigns/chisholm/parallax";
+import { ChisholmCampaign } from "./campaigns/chisholm/index";
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -297,19 +298,19 @@ function pickEvent(day:number,td:number,used:Set<string>,evts:GameEvent[]):GameE
 function getGrade2(h:number,started:number,s:boolean):string{if(!s)return"F";const p=h/started;if(p>=0.95)return"A";if(p>=0.88)return"B";if(p>=0.80)return"C";if(p>=0.70)return"D";return"F";}
 const GC:Record<string,string>={"A+":"text-amber-300",A:"text-emerald-400",B:"text-blue-400",C:"text-yellow-400",D:"text-orange-400",F:"text-red-500"};
 const DEFAULT_OUTFIT: OutfitConfig = { herd: 2500, crew: 12, horses: 60, supplies: 65, guns: 4, spareParts: 3, medicalGear: 2, horseQuality: 2, wages: "standard", budgetSpent: 0, startingCash: 0 };
-const makeInit=():GameState=>({day:1,turn:0,resources:{...INIT_R},phase:"intro",pace:"normal",distance:0,currentEvent:null,resultText:"",decisions:[],gameOver:false,survived:false,earlySale:false,outfit:{...DEFAULT_OUTFIT},historicalKnowledge:0,knowledgeLog:[],triviaCounter:0,currentTrivia:null,usedTriviaIds:new Set(),triviaStreak:0,insight:1,objectives:[],routeState:{currentNodeId:"start"},routeTag:"SAFE",riskHintsOn:false,pendingChoiceIndex:null,pendingEventQuestion:null,objectiveNotice:"",sageIndex:0,currentSage:null,sagesMet:[],trailFeed:["Spring 1867: the outfit gathers in San Antonio and checks the wagon."],hardPaceStreak:0});
+const makeInit=():GameState=>({day:1,turn:0,resources:{...INIT_R},phase:"intro",pace:"normal",distance:0,currentEvent:null,resultText:"",decisions:[],gameOver:false,survived:false,earlySale:false,outfit:{...DEFAULT_OUTFIT},historicalKnowledge:0,knowledgeLog:[],triviaCounter:0,currentTrivia:null,usedTriviaIds:new Set(),triviaStreak:0,insight:1,objectives:[],routeState:{currentNodeId:"start"},routeTag:"SAFE",riskHintsOn:false,pendingChoiceIndex:null,pendingEventQuestion:null,objectiveNotice:"",sageIndex:0,currentSage:null,sagesMet:[],trailFeed:[ChisholmCampaign.trailFeedOpener],hardPaceStreak:0});
 
 // ═══════════════════════════════════════════════════════════════
 // APP
 // ═══════════════════════════════════════════════════════════════
 
 export default function App(){
-  const[campaign,setCampaign]=useState<string|null>(null);
+  const[campaignId,setCampaignId]=useState<string|null>(null);
   const[state,setState]=useState<GameState>(makeInit());
   const[usedEvents,setUsedEvents]=useState<Set<string>>(new Set());
 
   const start=useCallback(()=>{setState({...makeInit(),phase:"outfit"});setUsedEvents(new Set());},[]);
-  const backToMenu=useCallback(()=>{setCampaign(null);setState(makeInit());},[]);
+  const backToMenu=useCallback(()=>{setCampaignId(null);setState(makeInit());},[]);
 
   // ── Game Juice ──────────────────────────────────────────────
   const { floats, spawn: spawnFloat } = useFloatingNumbers();
@@ -748,17 +749,17 @@ export default function App(){
   console.log(`[RENDER] Phase: ${state.phase} | TriviaCounter: ${state.triviaCounter} | HasTrivia: ${!!state.currentTrivia}`);
   const partyMembers = getPartyMembers(r);
 
-  if(campaign==="silkroad")return <SilkRoad onBack={backToMenu}/>;
+  if(campaignId==="silkroad")return <SilkRoad onBack={backToMenu}/>;
 
-  if(!campaign)return(
+  if(!campaignId)return(
     <div className="h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center" style={{fontFamily:"'Georgia', serif"}}>
       <h1 className="text-3xl font-bold text-amber-400 mb-2">CAMPAIGNS</h1>
       <p className="text-stone-400 text-sm mb-8">Choose your trail.</p>
       <div className="space-y-3 w-64">
-        <button onClick={()=>setCampaign("chisholm")} className="w-full py-3 bg-amber-800 hover:bg-amber-700 rounded font-bold transition-colors">
+        <button onClick={()=>setCampaignId("chisholm")} className="w-full py-3 bg-amber-800 hover:bg-amber-700 rounded font-bold transition-colors">
           🐂 Chisholm Trail — 1867<br/><span className="text-xs font-normal text-amber-300">San Antonio to Abilene</span>
         </button>
-        <button onClick={()=>setCampaign("silkroad")} className="w-full py-3 bg-indigo-900 hover:bg-indigo-800 rounded font-bold transition-colors">
+        <button onClick={()=>setCampaignId("silkroad")} className="w-full py-3 bg-indigo-900 hover:bg-indigo-800 rounded font-bold transition-colors">
           🐫 Silk Road — 130 BCE<br/><span className="text-xs font-normal text-indigo-300">Chang'an to Constantinople</span>
         </button>
       </div>
@@ -768,9 +769,9 @@ export default function App(){
   if(state.phase==="intro")return(
     <div className="h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center" style={{fontFamily:"'Georgia', serif"}}>
       <div className="max-w-md text-center space-y-4 p-4">
-        <h1 className="text-3xl font-bold text-amber-400">CHISHOLM TRAIL</h1>
-        <p className="text-stone-300">Spring, 1867. San Antonio, Texas.</p>
-        <p className="text-stone-400 text-sm">You have $2,000 and a reputation. Every outfit choice matters now — weak crews and wagons break on the trail.</p>
+        <h1 className="text-3xl font-bold text-amber-400">{ChisholmCampaign.title}</h1>
+        <p className="text-stone-300">{ChisholmCampaign.subtitle}</p>
+        <p className="text-stone-400 text-sm">{ChisholmCampaign.introBody}</p>
         <button onClick={start} className="px-8 py-3 bg-amber-700 hover:bg-amber-600 rounded font-bold transition-colors">BEGIN OUTFIT</button>
         <button onClick={backToMenu} className="block w-full text-stone-500 hover:text-stone-300 text-xs mt-2">← Back to Campaigns</button>
       </div>
@@ -781,7 +782,7 @@ export default function App(){
 
   if(state.phase==="end"){
     const herdPct = state.outfit.herd > 0 ? r.herd / state.outfit.herd : 0;
-    const revenue = state.survived ? r.herd * 40 : 0;
+    const revenue = state.survived ? r.herd * ChisholmCampaign.revenuePerUnit : 0;
     const cost = state.outfit.budgetSpent;
     const profit = revenue - cost;
     const grade = getTrailGrade(state.survived, herdPct, state.historicalKnowledge);
@@ -804,7 +805,7 @@ export default function App(){
           <div className="flex justify-between text-stone-400"><span>Outfit Cost</span><span className="text-red-400">-${cost.toLocaleString()}</span></div>
           <div className="flex justify-between text-stone-400"><span>Herd Started</span><span className="text-stone-200">{state.outfit.herd.toLocaleString()} head</span></div>
           <div className="flex justify-between text-stone-400"><span>Herd Delivered</span><span className="text-stone-200">{r.herd.toLocaleString()} head ({Math.round(herdPct*100)}%)</span></div>
-          {state.survived && <div className="flex justify-between text-stone-400"><span>Revenue ($40/head)</span><span className="text-emerald-400">+${revenue.toLocaleString()}</span></div>}
+          {state.survived && <div className="flex justify-between text-stone-400"><span>Revenue (${ChisholmCampaign.revenuePerUnit}/head)</span><span className="text-emerald-400">+${revenue.toLocaleString()}</span></div>}
           <div className="border-t border-stone-600 mt-1 pt-1 flex justify-between font-bold">
             <span className="text-stone-200">Net Profit</span>
             <span className={profit>=0?"text-emerald-400":"text-red-500"}>{profit>=0?"+":""}${profit.toLocaleString()}</span>
@@ -848,7 +849,7 @@ export default function App(){
         <div className="text-center"><span className="text-stone-500 text-xs">TRAIL RATING: </span><span className={`text-4xl font-bold ${GC[grade]}`}>{grade}</span></div>
 
         <div className="bg-stone-800 border border-stone-700 rounded p-3">
-          <p className="text-xs text-stone-500 leading-relaxed">The Chisholm Trail operated from 1867 to roughly 1884. An estimated 5 million cattle and 1 million mustangs were driven north along this and other trails. The cattle drive era built the Texas economy after the Civil War, created the cowboy legend, and connected the frontier to the industrial East. Barbed wire, railroads, and quarantine laws ended the drives — but the culture they created defined Texas forever.</p>
+          <p className="text-xs text-stone-500 leading-relaxed">{ChisholmCampaign.historicalContext}</p>
         </div>
 
         {state.decisions.length > 0 && (
