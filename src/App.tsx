@@ -14,7 +14,8 @@ import {
   useScreenShake, useStatPulse, useResourceTracker,
   StatBox, ResourceBar, StreakFlash,
 } from "./GameJuice";
-import TrailMap, { getRegionFlavor, isNearSupplyTown } from "./TrailMap";
+import TrailMap from "./TrailMap";
+import { TRAIL_PATH, STOPS, MAP_IMAGE, TOTAL_DISTANCE as CHISHOLM_DISTANCE, getRegionFlavor, isNearSupplyTown } from "./campaigns/chisholm/trailMap";
 import { SAGES } from "./campaigns/chisholm/sages";
 import type { SageEncounterData } from "./campaigns/types";
 import SageEncounter from "./SageEncounter";
@@ -1112,7 +1113,7 @@ export default function App(){
 
       {/* ── Map Sidebar ──────────────────────────────────── */}
       <div className="hidden md:flex w-[360px] lg:w-[430px] xl:w-[520px] 2xl:w-[580px] flex-shrink-0">
-        <TrailMap progress={progress} day={state.day} totalDays={TOTAL_DAYS} />
+        <TrailMap progress={progress} day={state.day} totalDays={TOTAL_DAYS} trailPath={TRAIL_PATH} trailStops={STOPS} mapImage={MAP_IMAGE} totalDistance={CHISHOLM_DISTANCE} />
       </div>
 
 

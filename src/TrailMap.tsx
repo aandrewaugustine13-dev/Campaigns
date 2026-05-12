@@ -1,121 +1,57 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import type { TrailStop } from "./campaigns/types";
 
 // ═══════════════════════════════════════════════════════════════
-// CHISHOLM TRAIL MAP — parchment map with herd following the trail
-// No clutter. Just the map art and your cattle moving north.
+// TRAIL MAP — parchment map with herd following the trail
+// Accepts campaign-specific path, stops, map image, and distance.
 // ═══════════════════════════════════════════════════════════════
 
-// Trail path points traced from the dotted line on the map image
-// Each point is [x%, y%] from top-left of the image
-// More points = smoother curve following the actual trail
-const TRAIL_PATH: [number, number][] = [
-  [50, 91],    // San Antonio
-  [50, 88],
-  [51, 85],
-  [52, 82],    // heading toward Austin
-  [53, 80],
-  [54, 78],    // Austin
-  [55, 75],
-  [56, 72],
-  [57, 69],
-  [58, 66],
-  [58, 64],    // Waco
-  [57, 61],
-  [55, 58],
-  [52, 56],
-  [48, 54],
-  [45, 53],    // Fort Worth
-  [44, 51],
-  [44, 49],
-  [44, 47],
-  [45, 45],
-  [45, 43],    // Red River / Trail Crossing
-  [45, 41],
-  [44, 39],
-  [43, 37],
-  [42, 35],
-  [41, 33],
-  [40, 31],    // Chisholm's Post area
-  [40, 29],
-  [41, 27],
-  [42, 25],
-  [44, 23],
-  [46, 21],
-  [49, 19],
-  [52, 18],    // Wichita
-  [52, 16],
-  [51, 14],
-  [50, 12],
-  [49, 10],    // Abilene
-];
-
-// Trail stops — for the info panel and milestone detection
-interface TrailStop {
-  id: string;
-  name: string;
-  pathIndex: number;  // index into TRAIL_PATH where this stop sits
-  pct: number;        // % along trail
-  supply: boolean;
-}
-
-const STOPS: TrailStop[] = [
-  { id: "sanantonio", name: "San Antonio",     pathIndex: 0,  pct: 0,   supply: true  },
-  { id: "austin",     name: "Austin",          pathIndex: 5,  pct: 12,  supply: true  },
-  { id: "waco",       name: "Waco",            pathIndex: 10, pct: 25,  supply: true  },
-  { id: "fortworth",  name: "Fort Worth",      pathIndex: 15, pct: 37,  supply: true  },
-  { id: "redriver",   name: "Red River",       pathIndex: 20, pct: 50,  supply: false },
-  { id: "chisholm",   name: "Chisholm's Post", pathIndex: 26, pct: 60,  supply: true  },
-  { id: "wichita",    name: "Wichita",         pathIndex: 32, pct: 82,  supply: true  },
-  { id: "abilene",    name: "Abilene",         pathIndex: 36, pct: 100, supply: true  },
-];
-
-// Interpolate position along the trail path
-function getHerdPosition(progress: number): { x: number; y: number } {
+function getHerdPosition(
+  trailPath: [number, number][],
+  progress: number,
+): { x: number; y: number } {
   const p = Math.max(0, Math.min(100, progress)) / 100;
-  const totalSegments = TRAIL_PATH.length - 1;
+  const totalSegments = trailPath.length - 1;
   const exactIndex = p * totalSegments;
   const i = Math.floor(exactIndex);
   const t = exactIndex - i;
 
-  if (i >= totalSegments) return { x: TRAIL_PATH[totalSegments][0], y: TRAIL_PATH[totalSegments][1] };
+  if (i >= totalSegments) return { x: trailPath[totalSegments][0], y: trailPath[totalSegments][1] };
 
-  const [x1, y1] = TRAIL_PATH[i];
-  const [x2, y2] = TRAIL_PATH[i + 1];
+  const [x1, y1] = trailPath[i];
+  const [x2, y2] = trailPath[i + 1];
   return {
     x: x1 + (x2 - x1) * t,
     y: y1 + (y2 - y1) * t,
   };
 }
 
-function nextSupplyTown(progress: number): TrailStop | null {
-  return STOPS.find(s => s.supply && s.pct > progress) || null;
+function nextSupplyTown(trailStops: TrailStop[], progress: number): TrailStop | null {
+  return trailStops.find(s => s.supply && s.pct > progress) || null;
 }
-
-const CAMP_MARKERS = STOPS
-  .filter((stop) => stop.supply && stop.id !== "sanantonio")
-  .map((stop) => {
-    const [x, y] = TRAIL_PATH[stop.pathIndex];
-    return { id: stop.id, name: stop.name, x, y };
-  });
-
-// ═══════════════════════════════════════════════════════════════
-// MAIN MAP COMPONENT
-// ═══════════════════════════════════════════════════════════════
 
 export default function TrailMap({
   progress,
   day,
   totalDays,
+  trailPath,
+  trailStops,
+  mapImage,
+  totalDistance,
 }: {
   progress: number;
   day: number;
   totalDays: number;
+  trailPath: [number, number][];
+  trailStops: TrailStop[];
+  mapImage: string;
+  totalDistance: number;
 }) {
   const [milestoneId, setMilestoneId] = useState<string | null>(null);
-  const reachedRef = useRef<Set<string>>(new Set(["sanantonio"]));
+  const reachedRef = useRef<Set<string>>(new Set([trailStops[0]?.id]));
 
   useEffect(() => {
-    for (const stop of STOPS) {
+    for (const stop of trailStops) {
       if (progress >= stop.pct && !reachedRef.current.has(stop.id)) {
         reachedRef.current.add(stop.id);
         setMilestoneId(stop.id);
@@ -123,13 +59,25 @@ export default function TrailMap({
         return () => clearTimeout(t);
       }
     }
-  }, [progress]);
+  }, [progress, trailStops]);
 
-  const herd = useMemo(() => getHerdPosition(progress), [progress]);
-  const nextSupply = nextSupplyTown(progress);
+  const campMarkers = useMemo(
+    () =>
+      trailStops
+        .filter((stop) => stop.supply && stop.id !== trailStops[0]?.id)
+        .map((stop) => {
+          const [x, y] = trailPath[stop.pathIndex];
+          return { id: stop.id, name: stop.name, x, y };
+        }),
+    [trailPath, trailStops],
+  );
+
+  const herd = useMemo(() => getHerdPosition(trailPath, progress), [trailPath, progress]);
+  const nextSupply = nextSupplyTown(trailStops, progress);
   const approachingSupply = nextSupply && (nextSupply.pct - progress) < 8;
-  const currentStop = [...STOPS].reverse().find(s => progress >= s.pct) || STOPS[0];
-  const flashStop = milestoneId ? STOPS.find(s => s.id === milestoneId) : null;
+  const currentStop = [...trailStops].reverse().find(s => progress >= s.pct) || trailStops[0];
+  const flashStop = milestoneId ? trailStops.find(s => s.id === milestoneId) : null;
+  const distMult = totalDistance / 100;
 
   return (
     <div
@@ -149,14 +97,14 @@ export default function TrailMap({
             >
               {/* The parchment map */}
               <img
-                src="/faces/map_chisholm.png"
-                alt="Chisholm Trail"
+                src={mapImage}
+                alt="Trail Map"
                 className="absolute inset-0 w-full h-full object-fill"
                 draggable={false}
               />
 
               {/* Static camp markers */}
-              {CAMP_MARKERS.map((camp) => (
+              {campMarkers.map((camp) => (
                 <img
                   key={camp.id}
                   src="/map-icons/camp.png"
@@ -236,8 +184,8 @@ export default function TrailMap({
           {/* Trail progress bar */}
           <div className="space-y-0.5">
             <div className="flex justify-between text-[10px] text-stone-500">
-              <span>{Math.round(progress * 8)} mi</span>
-              <span>800 mi</span>
+              <span>{Math.round(progress * distMult)} mi</span>
+              <span>{totalDistance} mi</span>
             </div>
             <div className="w-full h-2 bg-stone-800 rounded-full overflow-hidden border border-stone-700">
               <div
@@ -257,8 +205,8 @@ export default function TrailMap({
               style={{ fontFamily: "'Georgia', serif" }}
             >
               {approachingSupply
-                ? `🏪 ${nextSupply.name} — ${Math.round((nextSupply.pct - progress) * 8)} mi`
-                : `Next supplies: ${nextSupply.name} (${Math.round((nextSupply.pct - progress) * 8)} mi)`
+                ? `🏪 ${nextSupply.name} — ${Math.round((nextSupply.pct - progress) * distMult)} mi`
+                : `Next supplies: ${nextSupply.name} (${Math.round((nextSupply.pct - progress) * distMult)} mi)`
               }
             </div>
           )}
@@ -266,27 +214,4 @@ export default function TrailMap({
       </div>
     </div>
   );
-
-}
-
-// ═══════════════════════════════════════════════════════════════
-// EXPORTS
-// ═══════════════════════════════════════════════════════════════
-
-export function getRegionFlavor(progress: number): string {
-  if (progress < 12) return "South Texas brush country. Mesquite and prickly pear.";
-  if (progress < 25) return "Rolling Hill Country. The Brazos is ahead.";
-  if (progress < 37) return "Blackland Prairie. Rich soil, wide sky.";
-  if (progress < 50) return "Cross Timbers. Last piece of Texas before the Nations.";
-  if (progress < 60) return "Red River crossing. You're leaving Texas.";
-  if (progress < 82) return "Indian Territory. Chickasaw and Choctaw country.";
-  if (progress < 95) return "Kansas grasslands. You can almost smell Abilene.";
-  return "Railhead country. Cattle buyers everywhere.";
-}
-
-export function isNearSupplyTown(progress: number): { near: boolean; town: string | null; distance: number } {
-  const next = STOPS.find(s => s.supply && s.pct > progress);
-  if (!next) return { near: false, town: null, distance: 999 };
-  const dist = next.pct - progress;
-  return { near: dist < 8, town: next.name, distance: Math.round(dist * 8) };
 }
