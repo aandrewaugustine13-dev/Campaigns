@@ -15,7 +15,11 @@ import {
   StatBox, ResourceBar, StreakFlash,
 } from "./GameJuice";
 import TrailMap from "./TrailMap";
-import { TRAIL_PATH, STOPS, MAP_IMAGE, TOTAL_DISTANCE as CHISHOLM_DISTANCE, getRegionFlavor, isNearSupplyTown } from "./campaigns/chisholm/trailMap";
+import { TRAIL_PATH, STOPS, MAP_IMAGE, TOTAL_DISTANCE, getRegionFlavor, isNearSupplyTown } from "./campaigns/chisholm/trailMap";
+import { EVENTS } from "./campaigns/chisholm/events";
+import { FACES, gf } from "./campaigns/chisholm/pixelFaces";
+import { OUTFIT_BUDGET, BASE_CREW, BASE_HORSES, BASE_SUPPLIES, COST_COWBOY, COST_HORSE, COST_SUPPLY, COST_GUN, COST_SPAREPARTS, COST_MEDICAL_GEAR, COST_HORSE_QUALITY, WAGE_COST, WAGE_MORALE, HERD_OPTIONS } from "./campaigns/chisholm/outfitConfig";
+import { TOTAL_DAYS, DAYS_PER_TURN, INIT_R, PACES, RESOURCE_LABELS, clampR, getPhrase, getTrailGrade, buildTrailFeedEntries, getPartyMembers } from "./campaigns/chisholm/config";
 import { SAGES } from "./campaigns/chisholm/sages";
 import type { SageEncounterData } from "./campaigns/types";
 import SageEncounter from "./SageEncounter";
@@ -84,67 +88,6 @@ interface GameState {
   hardPaceStreak: number;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// PIXEL FACE SYSTEM
-// ═══════════════════════════════════════════════════════════════
-
-const FC: Record<string, string> = {
-  ".":"transparent",s:"#e8b796",d:"#c4896b",w:"#a0654d",
-  H:"#5c3a1e",h:"#7a5230",B:"#d4a843",e:"#1a1a2e",W:"#f0e8dc",r:"#3d2512",
-  m:"#8b3a3a",M:"#5c1e1e",g:"#4a6741",G:"#364d30",b:"#8b2020",n:"#6b1515",
-  c:"#c9a84c",C:"#a08530",f:"#5c3a1e",F:"#3d2512",x:"#7a5570",k:"#8b3a3a",
-  D:"#c4a882",t:"#b8d4e8",
-};
-
-const B_H="....HHHHHH....."+"...HhHHHHhH...."+"..HhHHHHHHhH..."+"..BBBBBBBBBB..."+"...sssssssss..."+"..sssssssssss.."+"..sWesssseWs..."+"..ssesssssess.."+"..ssssddsssss.."+"..ssssddsssss.."+"..sfssmmssfs..."+"..sffssmssff..."+"...sssssssss..."+"...dsssssssd..."+"....ggggggg...."+"...gGgggggGg...";
-const B_T="....HHHHHH....."+"...HhHHHHhH...."+"..HhHHHHHHhH..."+"..BBBBBBBBBB..."+"...ddsssssdd..."+"..sssssssssss.."+"..dWesssseWd..."+"..ssesssssess.."+"..ssssddsssss.."+"..ssssddsssss.."+"..sfssmmssfs..."+"..sffsssssff..."+"...sssssssss..."+"...dsssssssd..."+"....ggggggg...."+"...gGgggggGg...";
-const B_W="....HHHHHH....."+"...HhHHHHhH...."+"..HhHHHHHHhH..."+"..BBBBBBBBBB..."+"...ddsssssdd..."+"..ddsssssssdd.."+"..dWesssseWd..."+"..ssesssssess.."+"..xsssddsssxs.."+"..ssssddsssss.."+"..sfsMMMssfs..."+"..sffsssssff..."+"...sssssssss..."+"...wssssssswt.."+"....ggggggg...."+"...gGgggggGg...";
-const B_D="....HHHHHH....."+"...HhHHHHhH...."+"..HhHHHHHHhH..."+"..BBBBBBBBBB..."+"...xxsssssxx..."+"..xxsssssssxx.."+"..xWesssseWx..."+"..ssesssssess.."+"..xkssddssskx.."+"..ssssddsssss.."+"..sfMMMMMsfs..."+"..sFfsssssFs..."+"...wswswswsw..."+"...wssssssswt.."+"....ggggggg...."+"...gGgggggGg...";
-const S_H="................"+"....rrrrrrr....."+"...rrrrrrrrr...."+"..rrrsssssrrr..."+"..rrsssssssrr..."+"..ssssssssssss.."+"..sWesssseWs..."+"..ssesssssess.."+"..sssssssssss.."+"..ssssddsssss.."+"..ssssmmsssss.."+"..ssssssssss..."+"...bbbbbbbbb..."+"...bnbbbbbbn..."+"....ggggggg...."+"...gGgggggGg...";
-const S_T="................"+"....rrrrrrr....."+"...rrrrrrrrr...."+"..rrrsssssrrr..."+"..rrsssssssrr..."+"..ddsssssssdd.."+"..dWesssseWd..."+"..ssesssssess.."+"..sssssssssss.."+"..ssssddsssss.."+"..ssssmmsssss.."+"..ssssssssss..."+"...bbbbbbbbb..."+"...bnbbbbbbn..."+"....ggggggg...."+"...gGgggggGg...";
-const S_W="................"+"....rrrrrrr....."+"...rrrrrrrrr...."+"..rrrsssssrrr..."+"..rrdsssssdrrr.."+"..ddsssssssdd.."+"..dWesssseWd..."+"..ssesssssess.."+"..xssssssssxs.."+"..ssssddsssss.."+"..sssMMMsssss.."+"..ssssssssss..."+"...bbbbbbbbb..."+"...bnbbbbbbn..."+"....ggggggg...."+"...gGgggggGg...";
-const S_D="................"+"....rrrrrrr....."+"...rrrrrrrrr...."+"..rrrxsssxrrr..."+"..rrxsssssxrr..."+"..xxsssssssxx.."+"..xWesssseWx..."+"..ssesssssess.."+"..xkssssssskx.."+"..ssssddsssss.."+"..ssMMMMMssss.."+"..wsswssswss..."+"...bbbbbbbbb..."+"...bnbbbbbbn..."+"....ggggggg...."+"...gGgggggGg...";
-const CK_H="................"+"....HHHHHH....."+"...HHHHHHHH...."+"..HHHHHHHHHH..."+"...sssssssss..."+"..sssssssssss.."+"..sWesssseWs..."+"..ssesssssess.."+"..ssssddsssss.."+"..sssssssssss.."+"..ssssmmsssss.."+"..sssssssssss..."+"...ccccccccc..."+"...cCcccccCc..."+"....ccccccc...."+"...cCcccccCc...";
-const CK_T="................"+"....HHHHHH....."+"...HHHHHHHH...."+"..HHHHHHHHHH..."+"...ddsssssdd..."+"..sssssssssss.."+"..dWesssseWd..."+"..ssesssssess.."+"..ssssddsssss.."+"..sssssssssss.."+"..ssssmmsssss.."+"..sssssssssss..."+"...ccccccccc..."+"...cCcccccCc..."+"....ccccccc...."+"...cCcccccCc...";
-const CK_W="................"+"....HHHHHH....."+"...HHHHHHHH...."+"..HHHHHHHHHH..."+"...ddsssssdd..."+"..ddsssssssdd.."+"..dWesssseWd..."+"..ssesssssess.."+"..xsssddsssxs.."+"..sssssssssss.."+"..ssMMMMMssss.."+"..sssssssssss..."+"...ccccccccc..."+"...cCcccccCc..."+"....ccccccc...."+"...cCcccccCc...";
-const CK_D="................"+"....HHHHHH....."+"...HHHHHHHH...."+"..HHHHHHHHHH..."+"...xxsssssxx..."+"..xxsssssssxx.."+"..xWesssseWx..."+"..ssesssssess.."+"..xkssddssskx.."+"..sssssssssss.."+"..sMMMMMMMsss.."+"..wswswswsww..."+"...ccccccccc..."+"...cCcccccCc..."+"....ccccccc...."+"...cCcccccCc...";
-const WR_H="...HHHHHHHHH..."+"..HhHHHHHHhH..."+"..HhHHHHHHhH..."+"..BBBBBBBBBB..."+"...sssssssss..."+"..sssssssssss.."+"..sWesssseWs..."+"..ssesssssess.."+"..ssssddsssss.."+"..sssssssssss.."+"..ssssmmsssss.."+"..sssssssssss..."+"...sssssssss..."+"...dsssssssd..."+"....ggggggg...."+"...gGgggggGg...";
-const WR_T="...HHHHHHHHH..."+"..HhHHHHHHhH..."+"..HhHHHHHHhH..."+"..BBBBBBBBBB..."+"...ddsssssdd..."+"..sssssssssss.."+"..dWesssseWd..."+"..ssesssssess.."+"..ssssddsssss.."+"..sssssssssss.."+"..ssssmmsssss.."+"..sssssssssss..."+"...sssssssss..."+"...dsssssssd..."+"....ggggggg...."+"...gGgggggGg...";
-const WR_W="...HHHHHHHHH..."+"..HhHHHHHHhH..."+"..HhHHHHHHhH..."+"..BBBBBBBBBB..."+"...ddsssssdd..."+"..ddsssssssdd.."+"..dWesssseWd..."+"..ssesssssess.."+"..xsssddsssxs.."+"..sssssssssss.."+"..sssMMMsssss.."+"..sssssssssss..."+"...sssssssss..."+"...wssssssswt.."+"....ggggggg...."+"...gGgggggGg...";
-const WR_D="...HHHHHHHHH..."+"..HhHHHHHHhH..."+"..HhHHHHHHhH..."+"..BBBBBBBBBB..."+"...xxsssssxx..."+"..xxsssssssxx.."+"..xWesssseWx..."+"..ssesssssess.."+"..xkssddssskx.."+"..sssssssssss.."+"..sMMMMMMMsss.."+"..wswswswsww..."+"...wswswswsw..."+"...wssssssswt.."+"....ggggggg...."+"...gGgggggGg...";
-const PT_H="....HHHHHH....."+"...HhHHHHhH...."+"..HHHHHHHHHH..."+"..BBBBBBBBBB..."+"...sssssssss..."+"..sssssssssss.."+"..sWesssseWs..."+"..ssesssssess.."+"..ssssddsssss.."+"..sssssssssss.."+"..ssssmmsssss.."+"...sssssssss..."+"...bbbbbbbbb..."+"...bnbbbbbbn..."+"....ggggggg...."+"...gGgggggGg...";
-const PT_T="....HHHHHH....."+"...HhHHHHhH...."+"..HHHHHHHHHH..."+"..BBBBBBBBBB..."+"...DDsssssDD..."+"..DDsssssssDD.."+"..DWesssseWD..."+"..ssesssssess.."+"..ssssddsssss.."+"..sssssssssss.."+"..ssssmmsssss.."+"...sssssssss..."+"...bbbbbbbbb..."+"...bnbbbbbbn..."+"....ggggggg...."+"...gGgggggGg...";
-const PT_W="....HHHHHH....."+"...HhHHHHhH...."+"..HHHHHHHHHH..."+"..BBBBBBBBBB..."+"...DDdsssdDD..."+"..DDdsssssdDD.."+"..DWesssseWD..."+"..ssesssssess.."+"..bbbbbbbbbbb.."+"..bnbbbbbbbbn.."+"..bbbbbbbbbbb.."+"...bbbbbbbbb..."+"...bbbbbbbbb..."+"...bnbbbbbbn..."+"....ggggggg...."+"...gGgggggGg...";
-const PT_D="....HHHHHH....."+"...HhHHHHhH...."+"..HHHHHHHHHH..."+"..BBBBBBBBBB..."+"...xxdsssdxx..."+"..xxdsssssdxx.."+"..xWesssseWx..."+"..ssesssssess.."+"..bbbbbbbbbbb.."+"..bnbbbbbbbbn.."+"..bbbbbbbbbbb.."+"...bbbbbbbbb..."+"...bbbbbbbbb..."+"...bnbbbbbbn..."+"....ggggggg...."+"...gGgggggGg...";
-const HD_H="................"+"....HHHHHH....."+"...HHHHHHHH...."+"..BBBBBBBBBB..."+"...sssssssss..."+"..sssssssssss.."+"..sWesssseWs..."+"..ssesssssess.."+"..ssssddsssss.."+"..sssssssssss.."+"..ssssmmsssss.."+"...sssssssss..."+"...sssssssss..."+"...dsssssssd..."+"....ggggggg...."+"...gGgggggGg...";
-const HD_S="................"+"....HHHHHH....."+"...HHHHHHHH...."+"..BBBBBBBBBB..."+"...ddsssssdd..."+"..sssssssssss.."+"..dWesssseWd..."+"..ssesssssess.."+"..ssssddsssss.."+"..sssssssssss.."+"..ssssmmsssss.."+"...sssssssss..."+"...sssssssss..."+"...dsssssssd..."+"....ggggggg...."+"...gGgggggGg...";
-const HD_K="................"+"....HHHHHH....."+"...HHHHHHHH...."+"..BBBBBBBBBB..."+"...ddsssssdd..."+"..ddsssssssdd.."+"..dWesssseWd..."+"..ssesssssess.."+"..xsssddsssxs.."+"..sssssssssss.."+"..sssMMMsssss.."+"...wsswsswss..."+"...sssssssss..."+"...wssssssswt.."+"....ggggggg...."+"...gGgggggGg...";
-const HD_G="................"+"....HHHHHH....."+"...HHHHHHHH...."+"..BBBBBBBBBB..."+"...xxsssssxx..."+"..xxwssssswxx.."+"..xWesssseWx..."+"..ssesssssess.."+"..xkwsddsxkxs.."+"..wsssssssssw.."+"..wMMMMMMMwww.."+"...wswswswsw..."+"...wswswswsw..."+"...wssssssswt.."+"....ggggggg...."+"...gGgggggGg...";
-
-interface FL { threshold: number; sprite: string; label: string; }
-const FACES: Record<string, FL[]> = {
-  boss:[{threshold:70,sprite:B_H,label:"Confident"},{threshold:45,sprite:B_T,label:"Wary"},{threshold:20,sprite:B_W,label:"Worried"},{threshold:0,sprite:B_D,label:"Desperate"}],
-  scout:[{threshold:70,sprite:S_H,label:"Sharp"},{threshold:45,sprite:S_T,label:"Cautious"},{threshold:20,sprite:S_W,label:"Rattled"},{threshold:0,sprite:S_D,label:"Gone"}],
-  cook:[{threshold:60,sprite:CK_H,label:"Fed"},{threshold:35,sprite:CK_T,label:"Scraping"},{threshold:15,sprite:CK_W,label:"Empty"},{threshold:0,sprite:CK_D,label:"Nothing"}],
-  wrangler:[{threshold:70,sprite:WR_H,label:"Strong"},{threshold:45,sprite:WR_T,label:"Thin"},{threshold:20,sprite:WR_W,label:"Lame"},{threshold:0,sprite:WR_D,label:"Afoot"}],
-  point:[{threshold:70,sprite:PT_H,label:"Steady"},{threshold:45,sprite:PT_T,label:"Dusty"},{threshold:20,sprite:PT_W,label:"Masked"},{threshold:0,sprite:PT_D,label:"Losing"}],
-  hand:[{threshold:80,sprite:HD_H,label:"Full crew"},{threshold:55,sprite:HD_S,label:"Short"},{threshold:30,sprite:HD_K,label:"Skeleton"},{threshold:0,sprite:HD_G,label:"Bones"}],
-};
-function gf(set:FL[],v:number):FL{for(const f of set){if(v>=f.threshold)return f;}return set[set.length-1];}
-
-function PixelFace({spriteData,size=48}:{spriteData:string;size?:number}){
-  const ref=useRef<HTMLCanvasElement>(null);
-  useEffect(()=>{
-    const c=ref.current;if(!c)return;const ctx=c.getContext("2d")!;const px=size/16;
-    ctx.clearRect(0,0,size,size);
-    for(let i=0;i<spriteData.length;i++){
-      const ch=spriteData[i];if(ch==="."||ch===" ")continue;
-      const color=FC[ch];if(!color||color==="transparent")continue;
-      ctx.fillStyle=color;ctx.fillRect((i%16)*px,Math.floor(i/16)*px,px,px);
-    }
-  },[spriteData,size]);
-  return <canvas ref={ref} width={size} height={size} style={{imageRendering:"pixelated",width:size,height:size}}/>;
-}
 
 // ═══════════════════════════════════════════════════════════════
 // ANIMATED PRAIRIE SCENE 
@@ -159,20 +102,6 @@ function PrairieScene({ progress, pace }: { progress: number; pace: string; turn
 // OUTFIT SCREEN
 // ═══════════════════════════════════════════════════════════════
 
-const OUTFIT_BUDGET = 2000;
-const BASE_CREW = 8;
-const BASE_HORSES = 30;
-const BASE_SUPPLIES = 35;
-const COST_COWBOY = 120;
-const COST_HORSE = 40;
-const COST_SUPPLY = 6;
-const COST_GUN = 35;
-const COST_SPAREPARTS = 65;
-const COST_MEDICAL_GEAR = 75;
-const COST_HORSE_QUALITY = 90;
-const WAGE_COST: Record<string, number> = { low: 0, standard: 160, good: 360 };
-const WAGE_MORALE: Record<string, number> = { low: 35, standard: 50, good: 68 };
-const HERD_OPTIONS = [1500, 2000, 2500, 3000, 3500];
 
 function getCrewRating(herd: number, crew: number): { label: string; color: string; condition: number } {
   const ratio = herd / crew;
@@ -356,169 +285,17 @@ function pickEvent(day:number,td:number,used:Set<string>,evts:GameEvent[]):GameE
   const pool=el.length>0?el:evts.filter(e=>p>=e.phase_min&&p<=e.phase_max);
   if(!pool.length)return null;return weightedPick(pool);
 }
-function clampR(k:string,v:number):number{const m:Record<string,number>={herd:3500,crew:24,horses:70,ammo:240,spareParts:12,wagonCondition:100,cash:5000};return clamp(v,0,m[k]||100);}
-
 // ═══════════════════════════════════════════════════════════════
-// ALL 17 EVENTS
+// ALL 17 EVENTS — imported from campaigns/chisholm/events.ts
 // ═══════════════════════════════════════════════════════════════
 
-const EVENTS:GameEvent[]=[
-{id:"river_crossing_early",phase_min:0,phase_max:0.3,weight:5,title:"River Crossing \u2014 The Brazos",text:"You reach the flooded Brazos River. A bad crossing can drown cattle, lose horses, and slow your drive.",trivia:["Trail drives often paused at rivers because one bad crossing could scatter a herd.","Historians think scouts tested water depth on horseback before moving cattle."],sageAdvice:[{name:"Nina",role:"Trail scout",line:"Watch the current first. Fast water can pull calves away from the herd."},{name:"Mr. Redford",role:"Old trail hand",line:"A slower crossing can save many cattle. Patience is a trail skill."}],choices:[{text:"Take the wide ford. Half a day lost but safer.",outcomes:[{weight:6,effects:{herdCondition:-2},result:"The wide ford works. Water up to the cattle\u2019s bellies but they cross steady. Boring success \u2014 the best kind."},{weight:4,effects:{herd:-30,herdCondition:-4,horses:-2},result:"The \u2018safe\u2019 ford has a sinkhole. Thirty head drown. Two horses go down."}]},{text:"Cross here. Deep but narrow \u2014 fast.",outcomes:[{weight:5,effects:{herd:-60,morale:-6,horses:-3},result:"Too deep. Current catches the middle of the herd. Sixty head gone."},{weight:5,effects:{herd:-8,morale:4},result:"Your lead steer walks straight in and the herd follows. Eight head swept away."}]},{text:"Wait a day. Let the river drop.",outcomes:[{weight:5,effects:{supplies:-4,herdCondition:3,herd:-5},result:"River drops overnight. Easy crossing. Patience pays."},{weight:5,effects:{supplies:-4,herd:-80,morale:-8},result:"It rains again. River rises. Eighty head gone."}]}]},
-{id:"stampede_night",phase_min:0,phase_max:0.8,weight:5,title:"Stampede \u2014 Lightning",text:"Lightning hits near camp at night. If the herd stampedes, you can lose cattle, riders, and distance.",choices:[{text:"Ride to the front. Turn the leaders.",outcomes:[{weight:5,effects:{herd:-40,horses:-2,morale:-3},result:"You turn them into a wide circle by dawn. Forty head over a bluff."},{weight:3,effects:{herd:-15,morale:5,herdCondition:-3},result:"Your best rider turns the lead steer hard. Fifteen scattered. The crew cheers loudly."},{weight:2,effects:{herd:-20,crew:-1,morale:-10,horses:-1},result:"A horse hits a prairie dog hole at full gallop in the dark. Horse and rider go down."}]},{text:"Hold position. Protect the camp.",effects:{herd:-150,morale:-5},result:"You let them run. A hundred fifty head just gone."},{text:"Get every rider out singing.",outcomes:[{weight:4,effects:{herd:-20,morale:3,herdCondition:-2},result:"Cowboys singing \u2018Lorena\u2019 in a thunderstorm. Twenty head gone but the herd settles."},{weight:6,effects:{herd:-100,morale:-6,herdCondition:-5},result:"Too far gone. Herd splits three ways. A hundred head scattered."}]}]},
-{id:"water_scarce",phase_min:0.2,phase_max:0.7,weight:5,title:"Dry Country",text:"You have gone two days without water. If you guess wrong now, cattle and horses can die fast.",choices:[{text:"Push through fast.",outcomes:[{weight:5,effects:{herd:-50,herdCondition:-8,morale:-4,horses:-3},result:"Cattle stagger. Calves drop. Fifty head didn\u2019t make it."},{weight:5,effects:{herd:-20,herdCondition:-4,morale:3},result:"Scout signals river ahead by evening. Twenty lost to heat. The rest drink."}]},{text:"Slow down. Look for water.",outcomes:[{weight:4,effects:{supplies:-6,herd:-30,herdCondition:-3,morale:-5},result:"Extra day of suffering. Thirty dead."},{weight:6,effects:{herdCondition:-2,supplies:-3,herd:-8,morale:4},result:"Scout finds an underground seep. Eight head lost."}]},{text:"Night drive. Move in the cool.",outcomes:[{weight:5,effects:{herd:-25,morale:-5,herdCondition:-3},result:"Twenty-five walk off a cutbank in the dark."},{weight:5,effects:{herd:-10,morale:2,herdCondition:1,horses:-1},result:"It works. By dawn you see trees \u2014 water."}]}]},
-{id:"rustlers",phase_min:0.3,phase_max:0.8,weight:4,title:"Riders on the Ridge",text:"Unknown riders shadow your herd. If trouble starts, you may lose cattle, gear, or crew health.",choices:[{text:"Arm up and ride out.",outcomes:[{weight:5,effects:{morale:5,herdCondition:-2},result:"They are another trail crew, not rustlers. Morale rises."},{weight:5,effects:{morale:-3,crew:-1,supplies:-2},result:"They scatter but one puts a rifle shot through your flank rider\u2019s shoulder."}]},{text:"Circle tight and post guards.",effects:{herdCondition:-4,morale:-3,supplies:-2},result:"They disappear at sundown. You\u2019ll never know what they were."},{text:"Ignore them. Keep driving.",outcomes:[{weight:4,effects:{herd:-200,morale:-12,horses:-4},result:"They hit at dawn. 200 head gone."},{weight:6,effects:{morale:2},result:"They drift away by evening, and danger passes."}]}]},
-{id:"crew_quit",phase_min:0.3,phase_max:0.7,weight:4,title:"Two Hands Give Notice",text:"Two hands want to quit before dawn. Fewer riders means slower travel and weaker herd control.",choices:[{text:"Let them go.",effects:{crew:-2,morale:-3},result:"They ride out at dawn."},{text:"Offer double wages.",outcomes:[{weight:6,effects:{supplies:-5,morale:3},result:"Double pay keeps them."},{weight:4,effects:{crew:-2,morale:-6},result:"\u2018It is not about money.\u2019"}]},{text:"Remind them they signed a contract.",effects:{morale:-8},result:"They stay, but morale drops and teamwork suffers."}]},
-{id:"indian_territory",phase_min:0.4,phase_max:0.7,weight:5,title:"Indian Territory",text:"You enter Nations land and must pay a legal toll. The choice affects herd safety and supplies.",choices:[{text:"Pay the toll. It\u2019s their land.",effects:{morale:-3,herdCondition:2,herd:-250},result:"250 head equivalent. The toll bought intelligence and escort."},{text:"Negotiate. Offer five cents.",outcomes:[{weight:5,effects:{morale:1,herdCondition:1,herd:-175},result:"Seven cents. 175 head. Fair."},{weight:5,effects:{morale:-5,herdCondition:-3,herd:-50,supplies:-4},result:"No escort. Bad crossing. The toll was cheaper than ignorance."}]},{text:"Refuse. Push through.",outcomes:[{weight:3,effects:{morale:4,herdCondition:-4},result:"No attack comes, but your crew stays tense and tired."},{weight:7,effects:{herd:-300,morale:-8,horses:-5,crew:-1,herdCondition:-6},result:"Ambush at a river crossing. 300 head gone. A cowboy takes an arrow."}]}]},
-{id:"cook_wagon",phase_min:0.1,phase_max:0.6,weight:4,title:"Busted Axle",text:"Your chuck wagon axle breaks. Without food and tools, morale drops and repairs cost time.",choices:[{text:"Full stop. Repair. Whole day.",effects:{supplies:-3,herdCondition:-3,morale:1},result:"Cottonwood replacement axle. The cook makes coffee and the crew forgives."},{text:"Rig a temporary fix.",outcomes:[{weight:5,effects:{morale:-2,supplies:-2},result:"Holds three days then fails in a creek. Half your flour ruined."},{weight:5,effects:{morale:2},result:"Holds all the way. Sometimes the quick fix is the right fix."}]},{text:"Abandon the wagon.",effects:{supplies:-15,morale:-10,horses:-3},result:"Cold jerky and creek water for every meal. This is survival now."}]},
-{id:"good_grass",phase_min:0.1,phase_max:0.8,weight:3,title:"Paradise Valley",text:"Your scout finds rich grass and clean water. Resting helps herd health but costs precious days.",choices:[{text:"Two days\u2019 rest.",effects:{herdCondition:10,morale:6,supplies:-5,horses:2},result:"The herd recovers well, and the crew feels strong again."},{text:"One day.",effects:{herdCondition:5,morale:3,supplies:-3},result:"Enough to take the edge off."},{text:"Keep moving.",outcomes:[{weight:5,effects:{morale:-6,herdCondition:-2},result:"The crew is disappointed as you move on."},{weight:5,effects:{morale:-3,herdCondition:-1},result:"Soon after, a crossing appears and morale steadies."}]}]},
-{id:"river_red",phase_min:0.35,phase_max:0.55,weight:5,title:"The Red River",text:"You face the wide Red River. A poor plan can sweep cattle away and ruin your schedule.",choices:[{text:"Scout downstream.",outcomes:[{weight:5,effects:{supplies:-4,herd:-15,herdCondition:-1},result:"Better crossing found. Fifteen lost. Patience paid."},{weight:5,effects:{supplies:-6,morale:-3,herd:-40},result:"Nothing better. Forty head gone."}]},{text:"Cross here and now.",outcomes:[{weight:4,effects:{herd:-80,morale:-6,horses:-4,crew:-1},result:"The crossing turns chaotic. You lose eighty head and one rider."},{weight:6,effects:{herd:-25,morale:4},result:"The lead steer holds course. You lose twenty-five head but cross safely."}]},{text:"Wait for another outfit. Watch and learn.",outcomes:[{weight:5,effects:{supplies:-5,herd:-10,morale:2},result:"Watch their mistakes. Cross clean. Ten head \u2014 a miracle for the Red."},{weight:5,effects:{supplies:-8,morale:-5,herdCondition:-3},result:"No one arrives. You lose two days and supplies."}]}]},
-{id:"snakebite",phase_min:0,phase_max:0.8,weight:3,title:"Rattler",text:"A snake bites your best roper. Treatment choice affects crew health and herd control.",choices:[{text:"Cut and suck.",outcomes:[{weight:5,effects:{morale:-3,crew:-1},result:"The treatment fails, and you lose a crew member."},{weight:5,effects:{morale:2,herdCondition:-2},result:"By day four, he can sit up and recover slowly."}]},{text:"Send a rider for medicine.",effects:{crew:-1,morale:-2,herdCondition:-3,supplies:-4},result:"You are short on riders, and the medicine comes too late."},{text:"Tourniquet, whiskey, chuck wagon.",effects:{morale:-1,herdCondition:-2},result:"He makes it. Barely. He\u2019ll tell this story for fifty years."}]},
-{id:"tornado",phase_min:0.2,phase_max:0.7,weight:3,title:"Green Sky",text:"Dark clouds spin on the horizon. You have minutes to protect crew, horses, and herd.",choices:[{text:"Scatter the herd.",outcomes:[{weight:5,effects:{herd:-60,morale:-4,herdCondition:-5},result:"Twister hits where the herd was. Sixty gone but the bulk survived."},{weight:5,effects:{herd:-30,morale:4},result:"Misses by a mile. Too close."}]},{text:"Hold tight. Low ground.",outcomes:[{weight:4,effects:{herd:-200,crew:-1,horses:-6,morale:-12},result:"Direct hit. 200 gone. A cowboy thrown."},{weight:6,effects:{herd:-20,morale:2,herdCondition:-3},result:"Low ground saves you. Twenty caught. Lucky everything."}]},{text:"Ride south.",effects:{herd:-40,herdCondition:-6,morale:-5,supplies:-3},result:"Cattle fight you every step. Forty scatter. But you\u2019re alive."}]},
-{id:"competition",phase_min:0.3,phase_max:0.8,weight:3,title:"Competition",text:"A larger herd races toward Abilene. Arriving late could lower your sale price and final score.",choices:[{text:"Push hard. Outpace them.",effects:{herdCondition:-8,morale:-3,supplies:-5,horses:-3},result:"Cattle drop weight. But you pull ahead."},{text:"Hold pace. Fat cattle sell higher.",outcomes:[{weight:6,effects:{morale:-2},result:"They pass you. But your cattle are fat."},{weight:4,effects:{morale:3},result:"They push too hard. Stampede. Tortoise and the hare."}]},{text:"Send a rider to lock in a price.",effects:{crew:-1,morale:2},result:"Sharpest man, fastest horse, letter of intent."}]},
-{id:"prairie_fire",phase_min:0.1,phase_max:0.6,weight:3,title:"Smoke on the Horizon",text:"A prairie fire moves toward your trail. Wrong timing can trap cattle in smoke and heat.",choices:[{text:"Set a backfire.",outcomes:[{weight:6,effects:{herd:-20,herdCondition:-3,morale:2},result:"Scout burns a strip. Twenty bolt. Professional work."},{weight:4,effects:{herd:-80,morale:-6,herdCondition:-5},result:"Backfire gets away. Fire on TWO sides. Eighty gone."}]},{text:"Drive east. Outflank it.",effects:{herdCondition:-5,morale:-3,supplies:-3,herd:-15},result:"Fire slides past. Fifteen scatter."},{text:"Find water.",outcomes:[{weight:4,effects:{herd:-5,morale:5,herdCondition:2},result:"Wide creek. Herd stands belly-deep while the world burns."},{weight:6,effects:{herd:-40,morale:-4,herdCondition:-4},result:"No creek. Forty head lost in the smoke."}]}]},
-{id:"buyer",phase_min:0.7,phase_max:0.95,weight:4,title:"A Buyer on the Trail",text:"A buyer offers cash today at a lower price. Waiting may earn more, but risk grows each day.",choices:[{text:"Take the deal.",effects:{morale:8},result:"$30 a head. You left $25,000 on the table. But you\u2019re done.",earlyEnd:true},{text:"Counter at $35.",outcomes:[{weight:5,effects:{morale:6},result:"\u2018$33.\u2019 Done today.",earlyEnd:true},{weight:5,effects:{morale:-2},result:"\u2018$30 is the offer.\u2019 He rides on."}]},{text:"Refuse.",outcomes:[{weight:5,effects:{morale:4},result:"\u2018Your herd, your call.\u2019"},{weight:5,effects:{morale:-3},result:"That night a hand says Abilene prices dropped to $28."}]}]},
-{id:"horse_thief",phase_min:0.2,phase_max:0.6,weight:3,title:"Missing Horses",text:"Eight horses are missing at dawn. Without mounts, scouts and guards cannot cover the herd.",choices:[{text:"Send riders after them.",outcomes:[{weight:5,effects:{morale:4,herdCondition:-3},result:"Horses back. One cowboy shot in the arm."},{weight:5,effects:{horses:-8,morale:-2,herdCondition:-4},result:"Lost the trail. Eight horses gone."}]},{text:"Let them go.",effects:{horses:-8,morale:-6},result:"A trail boss who won\u2019t fight for his remuda."},{text:"Double the watch.",effects:{horses:-8,morale:-4,herdCondition:-2},result:"Horses are safer, but the crew grows very tired."}]},
-{id:"fever",phase_min:0.25,phase_max:0.7,weight:3,title:"Tick Fever",text:"Tick fever appears in your herd. Act now, or sickness spreads and many cattle die.",choices:[{text:"Cut the sick ones.",effects:{herd:-36,morale:-2,herdCondition:4},result:"Thirty-six left standing. The fever stops."},{text:"Treat on the move.",outcomes:[{weight:5,effects:{herd:-100,herdCondition:-8,morale:-6,supplies:-4},result:"The fever spreads. You lose one hundred head."},{weight:5,effects:{herd:-15,herdCondition:-2,supplies:-4},result:"The treatment helps some cattle, but fifteen are lost."}]},{text:"Push hard. Outrun the ticks.",effects:{herdCondition:-6,herd:-50,morale:-4,horses:-2},result:"The disease keeps spreading, and fifty cattle die."}]},
-// 🔴 NEW PUSH YOUR LUCK EVENT ADDED HERE 🔴
-{
-  id: "stray_longhorns",
-  phase_min: 0.1,
-  phase_max: 0.8,
-  weight: 6,
-  type: "push_luck",
-  title: "Stray Longhorns in the Brush",
-  text: "Scout spotted a dozen unbranded longhorns deep in a thicket of mesquite and prickly pear. Pulling them out will take time, and the brush is thick with rattlers and broken ground.",
-  leaveText: "Leave them. We have enough trouble.",
-  attempts: [
-    {
-      id: "stray_1",
-      buttonText: "Rope the easy ones on the edge",
-      successText: "Got three head without much fuss. Added to the herd.",
-      failureText: "A steer bolted and caught a horse in the ribs. Had to let them go.",
-      riskChance: 0.10,
-      rewards: { herd: 3, morale: 2 },
-      penalties: { horses: -1, morale: -2 }
-    },
-    {
-      id: "stray_2",
-      buttonText: "Push deeper into the thicket",
-      successText: "Hauled out five more. The crew is getting scratched to hell, but it's free money.",
-      failureText: "Rattlesnake spooked a horse. Rider thrown into a cactus, horse lame. Total mess.",
-      riskChance: 0.35,
-      rewards: { herd: 5, morale: 5 },
-      penalties: { horses: -1, herdCondition: -5, morale: -8 }
-    },
-    {
-      id: "stray_3",
-      buttonText: "Dismount and flush out the last few",
-      successText: "Dragged the last four out by their horns. A perfect haul, worth an extra $160 in Abilene.",
-      failureText: "Ambushed by a feral bull hiding in the brush. One cowboy gored, two horses scattered. A disaster.",
-      riskChance: 0.65,
-      rewards: { herd: 4, morale: 10 },
-      penalties: { crew: -1, horses: -2, morale: -15, herdCondition: -10 }
-    }
-  ]
-},
-{
-  id: "abandoned_homestead",
-  phase_min: 0.2,
-  phase_max: 0.7,
-  weight: 5,
-  type: "push_luck",
-  title: "Abandoned Homestead",
-  text: "Your scout found a homestead that's been empty since the war. The root cellar door is still shut, and there's a corral out back with what looks like a few stray horses. Could be supplies in there — could be trouble.",
-  leaveText: "Leave it. Other men's property, other men's problems.",
-  attempts: [
-    {
-      id: "homestead_1",
-      buttonText: "Check the corral for horses",
-      successText: "Two sound horses, abandoned and half-wild. Your wrangler ropes them clean.",
-      failureText: "A longhorn kicks your wrangler. You gain nothing and lose morale.",
-      riskChance: 0.15,
-      rewards: { horses: 2, morale: 3 },
-      penalties: { morale: -3, herdCondition: -2 }
-    },
-    {
-      id: "homestead_2",
-      buttonText: "Pry open the root cellar",
-      successText: "You find salt pork, dried beans, and coffee. The camp has enough food again.",
-      failureText: "The door was wedged for a reason — a rattlesnake den. One cowboy bitten before you slam it shut.",
-      riskChance: 0.40,
-      rewards: { supplies: 12, morale: 8 },
-      penalties: { crew: -1, morale: -6 }
-    },
-    {
-      id: "homestead_3",
-      buttonText: "Search the house itself",
-      successText: "A hidden strongbox under the floorboards. Gold coins, a Winchester, and a letter that'll never reach anyone. Fortune favors the bold.",
-      failureText: "The floor gives way. A cowboy falls through into a collapsed cellar. Broken leg, broken morale, broken everything.",
-      riskChance: 0.70,
-      rewards: { supplies: 8, morale: 15, herd: 5 },
-      penalties: { crew: -1, horses: -1, morale: -12, herdCondition: -8 }
-    }
-  ]
-}
-];
 
 // ═══════════════════════════════════════════════════════════════
 // CONSTANTS & HELPERS
 // ═══════════════════════════════════════════════════════════════
 
-const TOTAL_DAYS=125,DAYS_PER_TURN=5,TOTAL_DISTANCE=800;
-const INIT_R:Resources={herd:2500,crew:12,horses:60,supplies:65,morale:55,herdCondition:60,wagonCondition:72,cash:250};
-const PACES=[
-  {id:"easy",label:"Easy",desc:"5 mi/day \u00b7 Herd fattens",mpd:5,fx:{herdCondition:2,morale:1,supplies:-1}as Resources},
-  {id:"normal",label:"Normal",desc:"7 mi/day \u00b7 Standard",mpd:7,fx:{herdCondition:-1,morale:-1,supplies:-2}as Resources},
-  {id:"push",label:"Push",desc:"10 mi/day \u00b7 Brutal",mpd:10,fx:{herdCondition:-5,morale:-4,supplies:-3}as Resources},
-];
-function getPhrase(p:number):string{
-  if(p<0.15)return"Eight hundred miles of dust and trouble ahead.";
-  if(p<0.3)return"Days blur. Dust, cattle, sky. Repeat.";
-  if(p<0.5)return"Indian Territory looms. Crew gets quiet.";
-  if(p<0.7)return"Past halfway. Kansas might be real.";
-  if(p<0.85)return"Grass is changing. Cooler nights.";
-  if(p<0.95)return"Scout says he can smell Abilene.";
-  return"The railhead is close.";
-}
-function getGrade(h:number,s:boolean):string{if(!s)return"F";const p=h/2500;if(p>=0.95)return"A";if(p>=0.88)return"B";if(p>=0.80)return"C";if(p>=0.70)return"D";return"F";}
 function getGrade2(h:number,started:number,s:boolean):string{if(!s)return"F";const p=h/started;if(p>=0.95)return"A";if(p>=0.88)return"B";if(p>=0.80)return"C";if(p>=0.70)return"D";return"F";}
-function getTrailGrade(survived: boolean, herdPct: number, historicalKnowledge: number): string {
-  if (!survived) return herdPct > 0.5 ? "D" : "F";
-  const herdScore = Math.min(herdPct / 0.95, 1) * 50;
-  const survivalScore = 20;
-  const knowledgeScore = Math.min(historicalKnowledge / 30, 1) * 30;
-  const total = herdScore + survivalScore + knowledgeScore;
-  if (total >= 85) return "A+";
-  if (total >= 75) return "A";
-  if (total >= 65) return "B";
-  if (total >= 50) return "C";
-  return "D";
-}
 const GC:Record<string,string>={"A+":"text-amber-300",A:"text-emerald-400",B:"text-blue-400",C:"text-yellow-400",D:"text-orange-400",F:"text-red-500"};
-
-function buildTrailFeedEntries(resources: Resources, paceId: string, hardPaceStreak: number, distanceGain: number, day: number): string[] {
-  const notes: string[] = [];
-  notes.push(`Day ${day}: ${Math.round(distanceGain)} miles covered at ${paceId} pace.`);
-
-  if (resources.supplies < 15) notes.push("Supplies are running thin. The cook asks for careful rationing.");
-  else if (resources.supplies < 30) notes.push("Salt pork is shrinking faster than expected.");
-
-  if (resources.morale < 20) notes.push("Camp is quieter tonight, and spirits are low.");
-  else if (resources.morale < 35) notes.push("Several riders look worn after the long days.");
-
-  if (resources.wagonCondition <= 0) notes.push("The chuck wagon is lost. Travel is now much harder.");
-  else if (resources.wagonCondition < 20) notes.push("The rear axle sounds rough. Repairs are urgent.");
-  else if (resources.wagonCondition < 40) notes.push("The wagon frame is strained. A hard crossing could break it.");
-
-  if ((resources.spareParts || 0) <= 0) notes.push("No spare parts remain. Another breakdown could end the drive.");
-  if (resources.crew <= 7) notes.push("Too few hands are riding. Herd control is slipping.");
-  if (resources.herdCondition < 30) notes.push("A few cattle need closer watching on the trail.");
-  if (hardPaceStreak >= 2) notes.push("Back-to-back hard days are tiring horses and crew.");
-
-  if (notes.length < 2) notes.push("The outfit stays steady today, but caution still matters.");
-  return notes.slice(0, 3);
-}
-
 const DEFAULT_OUTFIT: OutfitConfig = { herd: 2500, crew: 12, horses: 60, supplies: 65, guns: 4, spareParts: 3, medicalGear: 2, horseQuality: 2, wages: "standard", budgetSpent: 0, startingCash: 0 };
 const makeInit=():GameState=>({day:1,turn:0,resources:{...INIT_R},phase:"intro",pace:"normal",distance:0,currentEvent:null,resultText:"",decisions:[],gameOver:false,survived:false,earlySale:false,outfit:{...DEFAULT_OUTFIT},historicalKnowledge:0,knowledgeLog:[],triviaCounter:0,currentTrivia:null,usedTriviaIds:new Set(),triviaStreak:0,insight:1,objectives:[],routeState:{currentNodeId:"start"},routeTag:"SAFE",riskHintsOn:false,pendingChoiceIndex:null,pendingEventQuestion:null,objectiveNotice:"",sageIndex:0,currentSage:null,sagesMet:[],trailFeed:["Spring 1867: the outfit gathers in San Antonio and checks the wagon."],hardPaceStreak:0});
 
@@ -538,11 +315,6 @@ export default function App(){
   const { floats, spawn: spawnFloat } = useFloatingNumbers();
   const { shakeClass, shake } = useScreenShake();
   const { pulses, pulse } = useStatPulse();
-
-  const RESOURCE_LABELS: Record<string, string> = {
-    herd: "herd", crew: "crew", horses: "horses", ammo: "ammo",
-    supplies: "supplies", morale: "morale", herdCondition: "cond", wagonCondition: "wagon",
-  };
 
   const onDelta = useCallback((key: string, delta: number) => {
     const label = RESOURCE_LABELS[key];
@@ -974,14 +746,7 @@ export default function App(){
     return "LOW";
   });
   console.log(`[RENDER] Phase: ${state.phase} | TriviaCounter: ${state.triviaCounter} | HasTrivia: ${!!state.currentTrivia}`);
-  const partyMembers=[
-    {id:"boss",role:"Boss",label:gf(FACES.boss,r.morale).label,health:r.morale},
-    {id:"scout",role:"Scout",label:gf(FACES.scout,r.morale).label,health:r.morale},
-    {id:"cook",role:"Cook",label:gf(FACES.cook,r.supplies).label,health:r.supplies},
-    {id:"wrangler",role:"Wrangler",label:gf(FACES.wrangler,r.herdCondition).label,health:r.herdCondition},
-    {id:"point",role:"Point",label:gf(FACES.point,r.herdCondition).label,health:r.herdCondition},
-    {id:"hand",role:"Hands",label:gf(FACES.hand,Math.min(r.crew/18*100,100)).label,health:Math.min(r.crew/18*100,100)},
-  ];
+  const partyMembers = getPartyMembers(r);
 
   if(campaign==="silkroad")return <SilkRoad onBack={backToMenu}/>;
 
@@ -1113,7 +878,7 @@ export default function App(){
 
       {/* ── Map Sidebar ──────────────────────────────────── */}
       <div className="hidden md:flex w-[360px] lg:w-[430px] xl:w-[520px] 2xl:w-[580px] flex-shrink-0">
-        <TrailMap progress={progress} day={state.day} totalDays={TOTAL_DAYS} trailPath={TRAIL_PATH} trailStops={STOPS} mapImage={MAP_IMAGE} totalDistance={CHISHOLM_DISTANCE} />
+        <TrailMap progress={progress} day={state.day} totalDays={TOTAL_DAYS} trailPath={TRAIL_PATH} trailStops={STOPS} mapImage={MAP_IMAGE} totalDistance={TOTAL_DISTANCE} />
       </div>
 
 
