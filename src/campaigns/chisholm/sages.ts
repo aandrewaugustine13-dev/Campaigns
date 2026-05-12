@@ -1,43 +1,11 @@
+import type { SageEncounterData } from "../types";
+
 // ═══════════════════════════════════════════════════════════════
 // SAGE ENCOUNTERS — guaranteed historical figure meetings
 // Each fires once at a trail % threshold, always triggers, never skipped
 // ═══════════════════════════════════════════════════════════════
 
-export interface SageQuestion {
-  question: string;
-  choices: string[];
-  correctIndex: number;
-  explanation: string;  // shown after answering (correct or wrong)
-  teksRef: string;      // TEKS standard reference
-}
-
-export interface SageEncounterData {
-  id: string;
-  name: string;
-  title: string;        // role/description line under name
-  portrait: string;     // path to portrait image (placeholder until art exists)
-  threshold: number;    // trail % where this fires (0-100)
-  bio: string;          // 2-3 sentence mini biography
-  greeting: string;     // what they say when they appear
-  advice: string;       // situational trail advice
-  question: SageQuestion;
-  reward: {
-    correct: Record<string, number>;   // resource effects on correct answer
-    wrong: Record<string, number>;     // resource effects on wrong answer (less but never punishing)
-    knowledgeCorrect: number;
-    knowledgeWrong: number;
-  };
-}
-
-// ── PORTRAIT PLACEHOLDERS ────────────────────────────────────
-// Replace these paths when real art is ready.
-// Recommended: 512x512 portrait, illustrated style matching the map.
-// File location: public/faces/sage_<id>.png
 const PORTRAIT = (id: string) => `/faces/sage_${id}.png`;
-
-// ═══════════════════════════════════════════════════════════════
-// THE FIVE SAGES
-// ═══════════════════════════════════════════════════════════════
 
 export const SAGES: SageEncounterData[] = [
 
@@ -199,17 +167,11 @@ export const SAGES: SageEncounterData[] = [
 export function getNextSage(
   progress: number,
   prevProgress: number,
-  sageIndex: number
+  sageIndex: number,
 ): SageEncounterData | null {
   if (sageIndex >= SAGES.length) return null;
   const sage = SAGES[sageIndex];
-  // Fire if we've crossed or passed the threshold this turn
-  if (progress >= sage.threshold && prevProgress < sage.threshold) {
-    return sage;
-  }
-  // Also fire if we somehow jumped past it (push pace)
-  if (progress >= sage.threshold && sageIndex < SAGES.length) {
-    return sage;
-  }
+  if (progress >= sage.threshold && prevProgress < sage.threshold) return sage;
+  if (progress >= sage.threshold && sageIndex < SAGES.length) return sage;
   return null;
 }

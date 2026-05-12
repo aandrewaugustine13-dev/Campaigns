@@ -4,20 +4,21 @@ import PortraitDebugPanel from "./PortraitDebugPanel";
 import VisualNovelEngine from "./VisualNovelEngine";
 import PushYourLuckEngine from "./PushYourLuckEngine";
 import SilkRoad from "./SilkRoad";
-import ChisholmTriviaEngine, { pickTriviaQuestion, type TriviaQuestion } from "./ChisholmTrivia";
+import ChisholmTriviaEngine, { pickTriviaQuestion, type TriviaQuestion } from "./campaigns/chisholm/trivia";
 import type { Objective, RouteState, EventGateQuestion } from "./gameModels";
 import { generateObjective, tickObjectives, findNode } from "./gameLogic";
-import { CHISHOLM_ROUTE } from "./routes";
-import { CHISHOLM_EVENT_TRIVIA } from "./trivia";
+import { CHISHOLM_ROUTE } from "./campaigns/chisholm/routes";
+import { CHISHOLM_EVENT_TRIVIA } from "./campaigns/chisholm/eventTrivia";
 import {
   useFloatingNumbers, FloatingNumbers,
   useScreenShake, useStatPulse, useResourceTracker,
   StatBox, ResourceBar, StreakFlash,
 } from "./GameJuice";
 import TrailMap, { getRegionFlavor, isNearSupplyTown } from "./TrailMap";
-import { SAGES, type SageEncounterData } from "./Sages";
+import { SAGES } from "./campaigns/chisholm/sages";
+import type { SageEncounterData } from "./campaigns/types";
 import SageEncounter from "./SageEncounter";
-import ChisholmParallaxBackground from "./ChisholmParallaxBackground";
+import ChisholmParallaxBackground from "./campaigns/chisholm/parallax";
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES

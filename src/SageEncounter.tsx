@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { SageEncounterData } from "./Sages";
+import type { SageEncounterData } from "./campaigns/types";
 
 // ═══════════════════════════════════════════════════════════════
 // SAGE ENCOUNTER — full encounter flow

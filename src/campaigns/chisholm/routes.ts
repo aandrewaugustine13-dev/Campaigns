@@ -1,4 +1,4 @@
-import type { RouteNode } from "./gameModels";
+import type { RouteNode } from "../../gameModels";
 
 export const CHISHOLM_ROUTE: RouteNode[] = [
   {

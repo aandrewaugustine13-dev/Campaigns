@@ -1,4 +1,4 @@
-import type { EventGateQuestion } from "./gameModels";
+import type { EventGateQuestion } from "../../gameModels";
 
 export const CHISHOLM_EVENT_TRIVIA: EventGateQuestion[] = [
   {
