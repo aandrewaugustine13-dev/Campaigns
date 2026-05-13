@@ -4,6 +4,7 @@ import PortraitDebugPanel from "./PortraitDebugPanel";
 import VisualNovelEngine from "./VisualNovelEngine";
 import PushYourLuckEngine from "./PushYourLuckEngine";
 import SilkRoad from "./SilkRoad";
+import Crusades from "./Crusades";
 import ChisholmTriviaEngine, { pickTriviaQuestion, type TriviaQuestion } from "./campaigns/chisholm/trivia";
 import type { Objective, RouteState, EventGateQuestion } from "./gameModels";
 import { generateObjective, tickObjectives, findNode } from "./gameLogic";
@@ -750,6 +751,7 @@ export default function App(){
   const partyMembers = getPartyMembers(r);
 
   if(campaignId==="silkroad")return <SilkRoad onBack={backToMenu}/>;
+  if(campaignId==="crusades")return <Crusades onBack={backToMenu}/>;
 
   if(!campaignId)return(
     <div className="h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center" style={{fontFamily:"'Georgia', serif"}}>
@@ -761,6 +763,9 @@ export default function App(){
         </button>
         <button onClick={()=>setCampaignId("silkroad")} className="w-full py-3 bg-indigo-900 hover:bg-indigo-800 rounded font-bold transition-colors">
           🐫 Silk Road — 130 BCE<br/><span className="text-xs font-normal text-indigo-300">Chang'an to Constantinople</span>
+        </button>
+        <button onClick={()=>setCampaignId("crusades")} className="w-full py-3 bg-red-900 hover:bg-red-800 rounded font-bold transition-colors">
+          ✝ Third Crusade — 1190<br/><span className="text-xs font-normal text-red-300">Warwick to Jerusalem</span>
         </button>
       </div>
     </div>
