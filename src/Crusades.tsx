@@ -1,8 +1,8 @@
 import { useState } from "react";
 import DoomHUD from "./DoomHUD";
-import SageEncounter from "./SageEncounter";
+import SageEncounterV2 from "./SageEncounterV2";
 import { CrusadesCampaign, CRUSADES_INITIAL_FLAGS } from "./campaigns/crusades/index";
-import { SAGES } from "./campaigns/crusades/sages";
+import { getNextSage, type Sage } from "./campaigns/crusades/sageEncounters";
 import { EVENTS } from "./campaigns/crusades/events";
 import CrusadesParallaxBackground from "./campaigns/crusades/parallax";
 
@@ -22,7 +22,7 @@ type Phase =
   | "prologue"            // cold-open: Hugh in his hall
   | "refusalCinematic"    // coerced=true short cinematic stub
   | "firstEvent"          // empty first event with HUD wired
-  | "sageEleanor";        // Eleanor sage stub (~15% threshold)
+  | "sageEncounter";      // active sage encounter (any sage from SAGES)
 
 interface CrusadesProps { onBack: () => void; }
 
@@ -33,9 +33,17 @@ export default function Crusades({ onBack }: CrusadesProps) {
   // will read from it. Today it does not branch content.
   const [coerced, setCoerced] = useState<boolean>(CRUSADES_INITIAL_FLAGS.coerced);
 
+  // ── Sage encounter state (persists across all sages in this campaign) ──
+  const [streak, setStreak] = useState<number>(0);
+  const [sagePoints, setSagePoints] = useState<number>(0);
+  const [completedSageIds, setCompletedSageIds] = useState<Set<string>>(() => new Set());
+  const [activeSage, setActiveSage] = useState<Sage | null>(null);
+
   const partyMembers = CrusadesCampaign.getPartyMembers(CrusadesCampaign.initialResources);
-  const eleanor = SAGES.find((s) => s.id === "eleanor")!;
   const firstEvent = EVENTS[0];
+  // DEV: no real progress engine yet — pass 1.0 so any uncompleted sage is
+  // eligible. Real engine wiring will pass actual journey progress.
+  const nextSage = getNextSage(1.0, completedSageIds);
 
   // ── Cold-open prologue ─────────────────────────────────────
   if (phase === "prologue") {
@@ -147,15 +155,29 @@ export default function Crusades({ onBack }: CrusadesProps) {
     );
   }
 
-  // ── Eleanor sage stub ──────────────────────────────────────
-  if (phase === "sageEleanor") {
+  // ── Sage encounter (any sage from getNextSage) ─────────────
+  if (phase === "sageEncounter" && activeSage) {
+    const sageInFlight = activeSage; // local capture for closure-narrowed type
     return (
       <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-4 space-y-3">
-          <p className="text-xs text-amber-400 uppercase tracking-wider">Sage Encounter · ~15% · before the fleet sails</p>
-          <SageEncounter
-            sage={eleanor}
-            onComplete={() => setPhase("firstEvent")}
+          <p className="text-xs text-amber-400 uppercase tracking-wider">
+            Sage Encounter · threshold {Math.round(sageInFlight.threshold * 100)}%
+          </p>
+          <SageEncounterV2
+            sage={sageInFlight}
+            currentStreak={streak}
+            onComplete={(result) => {
+              setStreak(result.newStreak);
+              setSagePoints((p) => p + result.totalPoints);
+              setCompletedSageIds((prev) => {
+                const next = new Set(prev);
+                next.add(sageInFlight.id);
+                return next;
+              });
+              setActiveSage(null);
+              setPhase("firstEvent");
+            }}
           />
           <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
         </div>
@@ -195,13 +217,24 @@ export default function Crusades({ onBack }: CrusadesProps) {
             </div>
           </div>
 
-          <button
-            onClick={() => setPhase("sageEleanor")}
-            className="w-full py-2 bg-amber-900 hover:bg-amber-800 rounded text-sm font-bold transition-colors"
-          >
-            {/* DEV ONLY: jump to Eleanor sage slot. Real trigger will fire at ~15% progress. */}
-            DEV · trigger Eleanor sage stub
-          </button>
+          {/* DEV trigger + observability. Real trigger will come from the progress engine. */}
+          <div className="space-y-1.5">
+            <button
+              onClick={() => {
+                if (nextSage) {
+                  setActiveSage(nextSage);
+                  setPhase("sageEncounter");
+                }
+              }}
+              disabled={!nextSage}
+              className="w-full py-2 bg-amber-900 hover:bg-amber-800 disabled:bg-stone-800 disabled:text-stone-500 disabled:cursor-not-allowed rounded text-sm font-bold transition-colors"
+            >
+              {nextSage ? `DEV · trigger next sage: ${nextSage.name}` : "DEV · all sages encountered"}
+            </button>
+            <p className="text-[10px] text-stone-500 text-center font-mono">
+              streak: {streak} · points: {sagePoints} · completed: {completedSageIds.size === 0 ? "none" : Array.from(completedSageIds).join(", ")}
+            </p>
+          </div>
 
           <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors">← Back to Campaigns</button>
         </div>
