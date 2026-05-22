@@ -1,6 +1,24 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { Sage, AnswerOutcome } from "./campaigns/crusades/sageEncounters";
 import { resolveQuestion } from "./campaigns/crusades/sageEncounters";
+
+// Fisher–Yates: returns the shuffled choices plus the new index of the
+// originally-correct answer. Used to randomize answer positions per
+// question so the correct answer isn't always slot A.
+function shuffleChoices(
+  choices: string[],
+  correctIndex: number,
+): { choices: string[]; correctIndex: number } {
+  const indices = choices.map((_, i) => i);
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  return {
+    choices: indices.map((i) => choices[i]),
+    correctIndex: indices.indexOf(correctIndex),
+  };
+}
 
 // ═══════════════════════════════════════════════════════════════
 // SAGE ENCOUNTER V2 — two-question, two-attempt resolution flow
@@ -29,12 +47,12 @@ interface Props {
   onComplete: (result: EncounterResult) => void;
 }
 
-type LocalPhase = "ask" | "outcome";
+type LocalPhase = "intro" | "ask" | "outcome";
 
 export default function SageEncounterV2({ sage, currentStreak, onComplete }: Props) {
   const [questionIndex, setQuestionIndex] = useState<0 | 1>(0);
   const [attempt, setAttempt] = useState<1 | 2>(1);
-  const [localPhase, setLocalPhase] = useState<LocalPhase>("ask");
+  const [localPhase, setLocalPhase] = useState<LocalPhase>("intro");
   const [wrongFirstChoice, setWrongFirstChoice] = useState<number | null>(null);
   const [firstOutcome, setFirstOutcome] = useState<AnswerOutcome | null>(null);
   const [lastOutcome, setLastOutcome] = useState<AnswerOutcome | null>(null);
@@ -43,9 +61,15 @@ export default function SageEncounterV2({ sage, currentStreak, onComplete }: Pro
   const [liveStreak, setLiveStreak] = useState<number>(currentStreak);
 
   const question = sage.questions[questionIndex];
+  // Shuffle once per (sage, question). Stable across the two attempts so
+  // the disabled wrong-answer slot stays put. Re-shuffles on replay.
+  const shuffled = useMemo(
+    () => shuffleChoices(question.choices, question.correctIndex),
+    [question],
+  );
 
   const handleAnswer = (choiceIndex: number) => {
-    const correct = choiceIndex === question.correctIndex;
+    const correct = choiceIndex === shuffled.correctIndex;
 
     // First-try wrong: silently advance to attempt 2 (do not resolve yet).
     if (attempt === 1 && !correct) {
@@ -101,10 +125,32 @@ export default function SageEncounterV2({ sage, currentStreak, onComplete }: Pro
         </h2>
         <p className="text-xs text-amber-600 font-bold uppercase tracking-wider">
           {sage.register === "parley" ? "Parley" : "Personal Audience"}
-          {" · "}Question {questionIndex + 1} of 2
-          {" · "}streak {liveStreak}
+          {localPhase !== "intro" && (
+            <>
+              {" · "}Question {questionIndex + 1} of 2
+              {" · "}streak {liveStreak}
+            </>
+          )}
         </p>
       </div>
+
+      {/* ── Phase: Intro — scene-setter shown once before Q1 ── */}
+      {localPhase === "intro" && (
+        <div className="space-y-3">
+          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+            <p className="text-stone-300 text-sm leading-relaxed italic">
+              {sage.intro}
+            </p>
+          </div>
+          <button
+            onClick={() => setLocalPhase("ask")}
+            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+            style={{ fontFamily: "'Georgia', serif" }}
+          >
+            Continue
+          </button>
+        </div>
+      )}
 
       {/* ── Phase: Ask ──────────────────────────────────────── */}
       {localPhase === "ask" && (
@@ -119,7 +165,7 @@ export default function SageEncounterV2({ sage, currentStreak, onComplete }: Pro
             {question.prompt}
           </p>
           <div className="space-y-2">
-            {question.choices.map((choice, i) => {
+            {shuffled.choices.map((choice, i) => {
               const isDisabled = attempt === 2 && wrongFirstChoice === i;
               return (
                 <button
