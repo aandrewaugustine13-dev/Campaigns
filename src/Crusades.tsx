@@ -1,22 +1,21 @@
-import { useState } from "react";
-import DoomHUD from "./DoomHUD";
-import SageEncounterV2 from "./SageEncounterV2";
+import { useMemo, useState } from "react";
+import SageEncounterV2, { shuffleChoices } from "./SageEncounterV2";
 import { CrusadesCampaign, CRUSADES_INITIAL_FLAGS } from "./campaigns/crusades/index";
 import { getNextSage, type Sage } from "./campaigns/crusades/sageEncounters";
-import { EVENTS } from "./campaigns/crusades/events";
-import CrusadesParallaxBackground from "./campaigns/crusades/parallax";
+import { useFloatingNumbers, useScreenShake, FloatingNumbers } from "./GameJuice";
 
 // ═══════════════════════════════════════════════════════════════
 // THIRD CRUSADE — top-level campaign wrapper
 //
-// Opening sequence is a motion-comic click-through:
-//   opening (4 panels) → banner (two-button choice) → goodbye →
-//   firstEvent → sageEncounter
+// Flow:
+//   opening (4 panels) → banner (choice) → goodbye →
+//   quota (decide → [history → forcedChoice?] → outcome) →
+//   sageEncounter → interlude → …
 //
-// Banner choice sets `coerced` and routes to one of two goodbyes.
-// `coerced` persists across the session so downstream narration
-// can read it. The game does not branch on `coerced` — it only
-// flavours later beats.
+// `coerced` set by the banner choice; persists for downstream
+// narration. competence/honor/favor are the moral meters the
+// quota event (and future events) move. CrusadesCampaign and
+// the existing sage system are unchanged.
 // ═══════════════════════════════════════════════════════════════
 
 type Phase =
@@ -24,8 +23,9 @@ type Phase =
   | "banner"            // panel 5: two-button choice, NOT tap-to-advance
   | "goodbyeWilling"    // post-accept goodbye, tap-to-advance
   | "goodbyeCoerced"    // post-refuse goodbye, tap-to-advance
-  | "firstEvent"        // empty first event with HUD wired
-  | "sageEncounter";    // active sage encounter (any sage from SAGES)
+  | "quota"             // The Quota — three-path moral decision
+  | "sageEncounter"     // active sage encounter (any sage from SAGES)
+  | "interlude";        // placeholder between events (post-sage)
 
 interface CrusadesProps { onBack: () => void; }
 
@@ -75,6 +75,119 @@ const GOODBYE_COERCED_PANELS: { src: string; text: string }[] = [
   },
 ];
 
+// ═══════════════════════════════════════════════════════════════
+// "THE QUOTA" — France, 1190 (first heavy decision)
+// All deltas, narration, and shake intensities are tunable below.
+// ═══════════════════════════════════════════════════════════════
+
+type MeterDeltas = { competence?: number; honor?: number; favor?: number };
+
+const QUOTA_DELTAS: Record<
+  "refuse" | "comply" | "elderRight" | "elderWrongInit" | "elderHardball" | "elderWalkAway",
+  MeterDeltas
+> = {
+  refuse:         { honor:  3, favor: -3, competence:  0 },
+  comply:         { honor: -3, favor:  2, competence:  2 },
+  elderRight:     { honor:  2, favor:  2, competence:  2 },
+  elderWrongInit: {                       competence: -2 }, // applied on landing in forcedChoice
+  elderHardball:  { honor: -3, favor:  2                  }, // stacks on top of elderWrongInit
+  elderWalkAway: {             favor: -2, competence: -2  }, // stacks on top of elderWrongInit
+};
+
+// Heavier shake on the cruel paths; restrained on moral/clean ones.
+const QUOTA_SHAKE: Record<
+  "refuse" | "comply" | "elderRight" | "elderWrongInit" | "elderHardball" | "elderWalkAway",
+  "light" | "medium" | "heavy"
+> = {
+  refuse:         "light",
+  comply:         "heavy",
+  elderRight:     "light",
+  elderWrongInit: "light",
+  elderHardball:  "heavy",
+  elderWalkAway:  "medium",
+};
+
+// The recurring marshal — unnamed-but-consistent figure who reads
+// Hugh's standing back to him after every assignment.
+const MARSHAL_LINES = {
+  pleased:   "Five men, and no fuss worth hearing about. The King values a man who delivers.",
+  cold:      "Empty-handed. I'll remember that, hedge knight. So will the men above me.",
+  surprised: "Five, and the village didn't even riot. You've a head on you, for a hedge knight.",
+} as const;
+
+type OutcomeId = "refuse" | "comply" | "elderRight" | "elderHardball" | "elderWalkAway";
+
+const QUOTA_OUTCOMES: Record<OutcomeId, { narration: string; marshal: keyof typeof MARSHAL_LINES }> = {
+  refuse: {
+    narration:
+      "You ride out empty-handed. Word reaches Richard's officers that the hedge knight would not fill his quota. You have made an enemy of the men who keep the King's favor — and you do not yet know how long that memory will last. But you can still look at your own hands.",
+    marshal: "cold",
+  },
+  comply: {
+    narration:
+      "You take the strong ones. A woman claws at your stirrup; you ride through her. Five men, roped at the wrists, stumble behind your horse as the village wails. The quota is met. Richard's officers will hear you are dependable. You try not to think of a doorway, and a candle, and an arm flung out toward you.",
+    marshal: "pleased",
+  },
+  elderRight: {
+    narration:
+      "The elder studies you, then nods slowly. \"You understand.\" Together you find them — a blacksmith's restless second son, a man drowning in debt, two youths who have dreamed of nothing but the Holy Land. They come willingly. No family is broken. You ride out with five men who chose this, the village unbowed behind you, and a quota met clean. You did not know a man could do this job without leaving wreckage. Today you learned he can — if he knows what he's doing.",
+    marshal: "surprised",
+  },
+  elderHardball: {
+    narration:
+      "You do the ugly thing, and you do it badly — grabbing men at random, the town now openly hostile because you came as a friend and turned. Richard's officers get their five. They will not hear how it went, only that it was done. But you will remember that you tried to be better, and weren't sharp enough to manage it.",
+    marshal: "pleased",
+  },
+  elderWalkAway: {
+    narration:
+      "You leave with nothing. No men, no goodwill, no quota — just a village that watched you fail and a long ride to explain yourself. Richard's officers do not forgive a man who comes back empty and foolish both.",
+    marshal: "cold",
+  },
+};
+
+const QUOTA_HOOK =
+  "Your commander hands you a number. This village owes the King five men for the holy war, and it falls to you to choose them. The mothers already know why you have come. They watch you from their doorways.";
+
+const QUOTA_DECIDE_BUTTONS: { id: "refuse" | "comply" | "elder"; label: string; line: string }[] = [
+  {
+    id: "refuse",
+    label: "Refuse",
+    line: "\"These are not soldiers. They are farmers, and fathers, and I will not do to them what was done to me.\"",
+  },
+  {
+    id: "comply",
+    label: "Comply without mercy",
+    line: "\"The King commands it. I take the five strongest and I do not look back.\"",
+  },
+  {
+    id: "elder",
+    label: "Meet the elder",
+    line: "\"Every village has men who would go gladly. Let me find them.\"",
+  },
+];
+
+const QUOTA_HISTORY_QUESTION = {
+  prompt:
+    "The elder is wary. To win his trust, you must show you understand why men take the cross. He tests you — what truly drives men to this war?",
+  choices: [
+    "Younger sons with no land to inherit, men in debt seeking relief, and those promised their sins washed clean.",
+    "Only the most devout, who care nothing for worldly reward.",
+    "Men forced at swordpoint, as there is no other reason to go.",
+    "Knights seeking glory in tournament and single combat.",
+  ],
+  correctIndex: 0,
+} as const;
+
+const QUOTA_FORCED_SETUP =
+  "The elder's face closes. You have shown him nothing but ignorance, and he will not help a man who does not understand his own war. The five men must still come from somewhere.";
+
+const QUOTA_FORCED_BUTTONS: { id: "hardball" | "walkAway"; label: string }[] = [
+  { id: "hardball", label: "Hardball — take them anyway" },
+  { id: "walkAway", label: "Walk away" },
+];
+
+type QuotaStep = "decide" | "history" | "forcedChoice" | "outcome";
+
 // ── Opening panel: <img> with a visibly labeled gray fallback
 // when the asset is missing. Designed so missing art is obvious,
 // not silently hidden behind a gradient.
@@ -100,11 +213,36 @@ function OpeningPanel({ src, alt }: { src: string; alt: string }) {
   );
 }
 
+// ── Compact meter readout. Used as a header on quota + interlude. ─
+function MeterReadout({ competence, honor, favor }: { competence: number; honor: number; favor: number }) {
+  const fmt = (v: number) => (v >= 0 ? `+${v}` : `${v}`);
+  const tone = (v: number) =>
+    v > 0 ? "text-emerald-400" : v < 0 ? "text-red-400" : "text-stone-400";
+  return (
+    <span className="font-mono text-xs">
+      <span className="text-stone-500">comp </span><span className={tone(competence)}>{fmt(competence)}</span>
+      <span className="text-stone-600"> · </span>
+      <span className="text-stone-500">honor </span><span className={tone(honor)}>{fmt(honor)}</span>
+      <span className="text-stone-600"> · </span>
+      <span className="text-stone-500">favor </span><span className={tone(favor)}>{fmt(favor)}</span>
+    </span>
+  );
+}
+
 export default function Crusades({ onBack }: CrusadesProps) {
   const [phase, setPhase] = useState<Phase>("opening");
   const [coerced, setCoerced] = useState<boolean>(CRUSADES_INITIAL_FLAGS.coerced);
-  // Panel cursor for the click-through phases. Reset on phase entry.
+  // Panel cursor for click-through phases. Reset on phase entry.
   const [panelIndex, setPanelIndex] = useState<number>(0);
+
+  // ── Moral meters. Moved by quota; future events will also move them. ─
+  const [competence, setCompetence] = useState<number>(0);
+  const [honor, setHonor] = useState<number>(0);
+  const [favor, setFavor] = useState<number>(0);
+
+  // ── Quota event internal sub-state ─────────────────────────
+  const [quotaStep, setQuotaStep] = useState<QuotaStep>("decide");
+  const [outcomeId, setOutcomeId] = useState<OutcomeId | null>(null);
 
   // ── Sage encounter state (persists across all sages) ───────
   const [streak, setStreak] = useState<number>(0);
@@ -112,11 +250,71 @@ export default function Crusades({ onBack }: CrusadesProps) {
   const [completedSageIds, setCompletedSageIds] = useState<Set<string>>(() => new Set());
   const [activeSage, setActiveSage] = useState<Sage | null>(null);
 
-  const partyMembers = CrusadesCampaign.getPartyMembers(CrusadesCampaign.initialResources);
-  const firstEvent = EVENTS[0];
+  // ── Existing GameJuice: floating numbers + screen shake ────
+  const { floats, spawn } = useFloatingNumbers();
+  const { shakeClass, shake } = useScreenShake();
+
   // DEV: no real progress engine yet — pass 1.0 so any uncompleted sage is
   // eligible. Real engine wiring will pass actual journey progress.
   const nextSage = getNextSage(1.0, completedSageIds);
+
+  // Shuffle the history question once per component mount.
+  const shuffledHistory = useMemo(
+    () => shuffleChoices([...QUOTA_HISTORY_QUESTION.choices], QUOTA_HISTORY_QUESTION.correctIndex),
+    [],
+  );
+
+  // ── Apply a delta set + fire GameJuice (float per nonzero, shake). ─
+  const applyMeters = (d: MeterDeltas, sh: "light" | "medium" | "heavy") => {
+    if (d.competence) { setCompetence((v) => v + d.competence!); spawn(d.competence, "competence"); }
+    if (d.honor)      { setHonor((v) => v + d.honor!);          spawn(d.honor,      "honor"); }
+    if (d.favor)      { setFavor((v) => v + d.favor!);          spawn(d.favor,      "favor"); }
+    shake(sh);
+  };
+
+  // ── Quota handlers ─────────────────────────────────────────
+  const handleQuotaDecide = (id: "refuse" | "comply" | "elder") => {
+    if (id === "refuse") {
+      applyMeters(QUOTA_DELTAS.refuse, QUOTA_SHAKE.refuse);
+      setOutcomeId("refuse"); setQuotaStep("outcome");
+    } else if (id === "comply") {
+      applyMeters(QUOTA_DELTAS.comply, QUOTA_SHAKE.comply);
+      setOutcomeId("comply"); setQuotaStep("outcome");
+    } else {
+      setQuotaStep("history");
+    }
+  };
+
+  const handleHistoryAnswer = (i: number) => {
+    if (i === shuffledHistory.correctIndex) {
+      applyMeters(QUOTA_DELTAS.elderRight, QUOTA_SHAKE.elderRight);
+      setOutcomeId("elderRight"); setQuotaStep("outcome");
+    } else {
+      // Immediate competence dock; then forced second choice.
+      applyMeters(QUOTA_DELTAS.elderWrongInit, QUOTA_SHAKE.elderWrongInit);
+      setQuotaStep("forcedChoice");
+    }
+  };
+
+  const handleForcedChoice = (id: "hardball" | "walkAway") => {
+    if (id === "hardball") {
+      applyMeters(QUOTA_DELTAS.elderHardball, QUOTA_SHAKE.elderHardball);
+      setOutcomeId("elderHardball");
+    } else {
+      applyMeters(QUOTA_DELTAS.elderWalkAway, QUOTA_SHAKE.elderWalkAway);
+      setOutcomeId("elderWalkAway");
+    }
+    setQuotaStep("outcome");
+  };
+
+  const handleQuotaContinue = () => {
+    if (nextSage) {
+      setActiveSage(nextSage);
+      setPhase("sageEncounter");
+    } else {
+      setPhase("interlude");
+    }
+  };
 
   // ── Opening (panels 1–4, tap-to-advance) ───────────────────
   if (phase === "opening") {
@@ -194,7 +392,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
           <button
             type="button"
             onClick={() => {
-              if (isLast) { setPanelIndex(0); setPhase("firstEvent"); }
+              if (isLast) { setPanelIndex(0); setPhase("quota"); }
               else setPanelIndex((i) => i + 1);
             }}
             className="block w-full text-left space-y-3 focus:outline-none focus:ring-2 focus:ring-amber-700/40 rounded-lg p-1 -m-1"
@@ -208,6 +406,125 @@ export default function Crusades({ onBack }: CrusadesProps) {
             </p>
           </button>
           <button onClick={onBack} className="block w-full text-stone-500 hover:text-stone-300 text-xs mt-3">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── The Quota (decide → [history → forcedChoice?] → outcome) ─
+  if (phase === "quota") {
+    const outcome = outcomeId ? QUOTA_OUTCOMES[outcomeId] : null;
+    return (
+      <div
+        className={`h-screen bg-stone-900 text-stone-100 overflow-y-auto ${shakeClass}`}
+        style={{ fontFamily: "'Georgia', serif" }}
+      >
+        {/* Floating numbers overlay — fixed center, pointer-events-none, z-50. */}
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 pointer-events-none z-50">
+          <FloatingNumbers floats={floats} />
+        </div>
+
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          {/* Header: location stamp + live meter readout */}
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-amber-400 uppercase tracking-wider">France, 1190 · The Quota</p>
+            <MeterReadout competence={competence} honor={honor} favor={favor} />
+          </div>
+
+          {/* ── Decide step ── */}
+          {quotaStep === "decide" && (
+            <>
+              <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+                <p className="text-stone-300 text-sm leading-relaxed italic">{QUOTA_HOOK}</p>
+              </div>
+              <div className="border border-indigo-700/60 rounded-lg p-3 bg-indigo-950/40 space-y-2">
+                {QUOTA_DECIDE_BUTTONS.map((b, i) => (
+                  <button
+                    key={b.id}
+                    onClick={() => handleQuotaDecide(b.id)}
+                    className="w-full text-left text-sm px-3 py-2.5 rounded-lg border bg-indigo-900/60 hover:bg-indigo-800/80 border-indigo-700/40 hover:border-indigo-600/60 transition-all"
+                    style={{ fontFamily: "'Georgia', serif" }}
+                  >
+                    <span className="text-indigo-300 font-bold mr-2">{String.fromCharCode(65 + i)}.</span>
+                    <span className="font-bold text-stone-200">{b.label}</span>
+                    <span className="block text-stone-400 italic mt-1 ml-5">{b.line}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* ── History step (path C only) ── */}
+          {quotaStep === "history" && (
+            <>
+              <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+                <p className="text-stone-300 text-sm leading-relaxed italic">{QUOTA_HISTORY_QUESTION.prompt}</p>
+              </div>
+              <div className="border border-indigo-700/60 rounded-lg p-3 bg-indigo-950/40">
+                <p className="text-xs text-indigo-300 font-bold uppercase tracking-wider mb-3">📜 Recall</p>
+                <div className="space-y-2">
+                  {shuffledHistory.choices.map((c, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleHistoryAnswer(i)}
+                      className="w-full text-left text-sm px-3 py-2.5 rounded-lg border bg-indigo-900/60 hover:bg-indigo-800/80 border-indigo-700/40 hover:border-indigo-600/60 transition-all"
+                      style={{ fontFamily: "'Georgia', serif" }}
+                    >
+                      <span className="text-indigo-300 font-bold mr-2">{String.fromCharCode(65 + i)}.</span>
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ── Forced-choice step (wrong history answer fallback) ── */}
+          {quotaStep === "forcedChoice" && (
+            <>
+              <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+                <p className="text-stone-300 text-sm leading-relaxed italic">{QUOTA_FORCED_SETUP}</p>
+              </div>
+              <div className="border border-indigo-700/60 rounded-lg p-3 bg-indigo-950/40 space-y-2">
+                {QUOTA_FORCED_BUTTONS.map((b, i) => (
+                  <button
+                    key={b.id}
+                    onClick={() => handleForcedChoice(b.id)}
+                    className="w-full text-left text-sm px-3 py-2.5 rounded-lg border bg-indigo-900/60 hover:bg-indigo-800/80 border-indigo-700/40 hover:border-indigo-600/60 transition-all"
+                    style={{ fontFamily: "'Georgia', serif" }}
+                  >
+                    <span className="text-indigo-300 font-bold mr-2">{String.fromCharCode(65 + i)}.</span>
+                    <span className="font-bold text-stone-200">{b.label}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* ── Outcome step: narration beat + marshal's report-back ── */}
+          {quotaStep === "outcome" && outcome && (
+            <>
+              <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+                <p className="text-stone-300 text-sm leading-relaxed italic">{outcome.narration}</p>
+              </div>
+              <div className="border border-stone-600 rounded-lg p-3 bg-stone-800/60">
+                <p className="text-xs text-stone-400 font-bold uppercase tracking-wider mb-1">The King's Marshal</p>
+                <p className="text-stone-200 text-sm leading-relaxed italic">"{MARSHAL_LINES[outcome.marshal]}"</p>
+              </div>
+              <button
+                onClick={handleQuotaContinue}
+                className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+                style={{ fontFamily: "'Georgia', serif" }}
+              >
+                Continue
+              </button>
+            </>
+          )}
+
+          <p className="text-[10px] text-stone-500 text-center font-mono">
+            coerced: {coerced ? "true" : "false"} · campaign: {CrusadesCampaign.id}
+          </p>
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
         </div>
       </div>
     );
@@ -234,7 +551,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
                 return next;
               });
               setActiveSage(null);
-              setPhase("firstEvent");
+              setPhase("interlude");
             }}
           />
           <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
@@ -243,62 +560,41 @@ export default function Crusades({ onBack }: CrusadesProps) {
     );
   }
 
-  // ── First event (placeholder) with DoomHUD wired ───────────
+  // ── Interlude (post-sage placeholder; next event lands here) ─
   return (
-    <div className="h-screen bg-stone-900 text-stone-100 flex flex-col" style={{ fontFamily: "'Georgia', serif" }}>
-      <div className="flex-shrink-0">
-        <CrusadesParallaxBackground progress={2} pace="normal" height={150} />
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4">
-        <div className="max-w-2xl mx-auto space-y-3">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold text-amber-400">{firstEvent.title}</h1>
-            <span className="text-[10px] text-stone-500 uppercase tracking-wider">
-              coerced: {coerced ? "true" : "false"}
-            </span>
-          </div>
-
-          <div className="bg-stone-800 border border-stone-700 rounded p-4 space-y-3">
-            <p className="text-stone-300 text-sm leading-relaxed">{firstEvent.text}</p>
-            {/* TODO[content]: replace placeholder choices with the real opening event flow. */}
-            <div className="space-y-2 pt-1">
-              {firstEvent.choices?.map((c, i) => (
-                <button
-                  key={i}
-                  onClick={() => { /* TODO[engine]: resolve choice effects/results once engine is wired */ }}
-                  className="w-full text-left px-3 py-2 bg-stone-700 hover:bg-stone-600 rounded text-sm transition-colors"
-                >
-                  {c.text}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* DEV trigger + observability. Real trigger will come from the progress engine. */}
-          <div className="space-y-1.5">
-            <button
-              onClick={() => {
-                if (nextSage) {
-                  setActiveSage(nextSage);
-                  setPhase("sageEncounter");
-                }
-              }}
-              disabled={!nextSage}
-              className="w-full py-2 bg-amber-900 hover:bg-amber-800 disabled:bg-stone-800 disabled:text-stone-500 disabled:cursor-not-allowed rounded text-sm font-bold transition-colors"
-            >
-              {nextSage ? `DEV · trigger next sage: ${nextSage.name}` : "DEV · all sages encountered"}
-            </button>
-            <p className="text-[10px] text-stone-500 text-center font-mono">
-              streak: {streak} · points: {sagePoints} · completed: {completedSageIds.size === 0 ? "none" : Array.from(completedSageIds).join(", ")}
-            </p>
-          </div>
-
-          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors">← Back to Campaigns</button>
+    <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="max-w-2xl mx-auto p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-amber-400 uppercase tracking-wider">The Road Continues</p>
+          <MeterReadout competence={competence} honor={honor} favor={favor} />
         </div>
-      </div>
+        <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+          <p className="text-stone-400 text-sm leading-relaxed italic">
+            The column moves on. Days pass without event worth recording.
+          </p>
+        </div>
 
-      <DoomHUD members={partyMembers} />
+        {/* DEV trigger + observability. Real engine will replace this. */}
+        <div className="space-y-1.5">
+          <button
+            onClick={() => {
+              if (nextSage) {
+                setActiveSage(nextSage);
+                setPhase("sageEncounter");
+              }
+            }}
+            disabled={!nextSage}
+            className="w-full py-2 bg-amber-900 hover:bg-amber-800 disabled:bg-stone-800 disabled:text-stone-500 disabled:cursor-not-allowed rounded text-sm font-bold transition-colors"
+          >
+            {nextSage ? `DEV · trigger next sage: ${nextSage.name}` : "DEV · all sages encountered"}
+          </button>
+          <p className="text-[10px] text-stone-500 text-center font-mono">
+            streak: {streak} · sage points: {sagePoints} · coerced: {coerced ? "true" : "false"} · completed: {completedSageIds.size === 0 ? "none" : Array.from(completedSageIds).join(", ")}
+          </p>
+        </div>
+
+        <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors">← Back to Campaigns</button>
+      </div>
     </div>
   );
 }

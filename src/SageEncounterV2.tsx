@@ -5,7 +5,7 @@ import { resolveQuestion } from "./campaigns/crusades/sageEncounters";
 // Fisher–Yates: returns the shuffled choices plus the new index of the
 // originally-correct answer. Used to randomize answer positions per
 // question so the correct answer isn't always slot A.
-function shuffleChoices(
+export function shuffleChoices(
   choices: string[],
   correctIndex: number,
 ): { choices: string[]; correctIndex: number } {
