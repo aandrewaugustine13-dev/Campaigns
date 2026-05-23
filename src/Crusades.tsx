@@ -9,31 +9,104 @@ import CrusadesParallaxBackground from "./campaigns/crusades/parallax";
 // ═══════════════════════════════════════════════════════════════
 // THIRD CRUSADE — top-level campaign wrapper
 //
-// SCAFFOLD ONLY. Mirrors the SilkRoad.tsx self-contained pattern.
-// Real engine wiring (resource updates, day ticks, route walking,
-// event resolution, end screen) lands in a later commit.
+// Opening sequence is a motion-comic click-through:
+//   opening (4 panels) → banner (two-button choice) → goodbye →
+//   firstEvent → sageEncounter
 //
-// This commit boots the campaign end-to-end:
-//   prologue → (Take the cross | Refuse → cinematic) → first event
-// with DoomHUD and the Eleanor sage slot wired.
+// Banner choice sets `coerced` and routes to one of two goodbyes.
+// `coerced` persists across the session so downstream narration
+// can read it. The game does not branch on `coerced` — it only
+// flavours later beats.
 // ═══════════════════════════════════════════════════════════════
 
 type Phase =
-  | "prologue"            // cold-open: Hugh in his hall
-  | "refusalCinematic"    // coerced=true short cinematic stub
-  | "firstEvent"          // empty first event with HUD wired
-  | "sageEncounter";      // active sage encounter (any sage from SAGES)
+  | "opening"           // 4 narrative panels, tap-to-advance
+  | "banner"            // panel 5: two-button choice, NOT tap-to-advance
+  | "goodbyeWilling"    // post-accept goodbye, tap-to-advance
+  | "goodbyeCoerced"    // post-refuse goodbye, tap-to-advance
+  | "firstEvent"        // empty first event with HUD wired
+  | "sageEncounter";    // active sage encounter (any sage from SAGES)
 
 interface CrusadesProps { onBack: () => void; }
 
-export default function Crusades({ onBack }: CrusadesProps) {
-  const [phase, setPhase] = useState<Phase>("prologue");
-  // `coerced` flag lives on the campaign state, defaulting to false.
-  // The cold-open prologue sets it. Later narration substitutions
-  // will read from it. Today it does not branch content.
-  const [coerced, setCoerced] = useState<boolean>(CRUSADES_INITIAL_FLAGS.coerced);
+// ── Panel content. Text is locked — do not paraphrase. ────────
+const OPENING_PANELS: { src: string; text: string }[] = [
+  {
+    src: "/backgrounds/crusades/opening/panel_01.png",
+    text: "The year of our Lord 1187. Jerusalem has fallen. The Holy City — taken in the First Crusade with rivers of blood, held for eighty-eight years — is gone. Saladin's banners fly over its walls. Word of it crosses the sea like a sickness, and everywhere it lands, the same silence falls.",
+  },
+  {
+    src: "/backgrounds/crusades/opening/panel_02.png",
+    text: "In Rome, one man already knows the answer he will give them. He will not tell them it was politics, or poor generalship. He will tell them it was sin. Their sin. And that the only road back to grace runs through the desert, sword in hand.",
+  },
+  {
+    src: "/backgrounds/crusades/opening/panel_03.png",
+    text: "Children of Christ. The Holy City weeps. The tomb of our Lord is held by those who deny Him — and I ask you: how, but that we earned it? We grew soft. We turned our blades on each other. The loss of Jerusalem is not God's failure. It is ours. But our God is merciful. To every man who takes the cross, I promise this: every sin of your life, washed away. And to those who would stay home while Christ's tomb lies in heathen hands? Ask what answer you will give, on the last day, when He asks where you were.",
+  },
+  {
+    src: "/backgrounds/crusades/opening/panel_04.png",
+    text: "He lets it land. He has given them heaven, and he has given them dread, and he knows — as he has always known — which of the two will fill the ships. Far from Rome, the call rolls downhill. Past the great houses. Down to the small men who have always known: when great men speak of holy war, it is the low men who fill the graves. In a crowd, a hedge knight stands very still. He holds no land. He has a sword, a horse, and three reasons asleep at home he has never wished to leave. He does not yet know they are already coming for him.",
+  },
+];
 
-  // ── Sage encounter state (persists across all sages in this campaign) ──
+const GOODBYE_WILLING_PANELS: { src: string; text: string }[] = [
+  {
+    src: "/backgrounds/crusades/opening/goodbye_willing_01.png",
+    text: "[Final dawn farewell. His wife Alyse, cold, says aloud:] \"Look at them. Look at your children. And tell me which one of them is worth less to you than a city you have never seen.\"",
+  },
+  {
+    src: "/backgrounds/crusades/opening/goodbye_willing_02.png",
+    text: "[Hugh says nothing — the truth would only frighten her.] \"I cannot defend this house, Hugh. When winter comes and the stores run thin and there is no man at this door, it will be me and three small children and whatever mercy the world decides to show us. You are not going to save Jerusalem. You are leaving us to save yourself a worse goodbye.\"",
+  },
+  {
+    src: "/backgrounds/crusades/opening/goodbye_willing_03.png",
+    text: "[His daughter reaches for him. His wife does not. He goes anyway.]",
+  },
+];
+
+const GOODBYE_COERCED_PANELS: { src: string; text: string }[] = [
+  {
+    src: "/backgrounds/crusades/opening/goodbye_coerced_01.png",
+    text: "[He said no. Before dawn, the door comes off its hinges. The King's men take him from his bed. Alyse screaming, the children awake, his son making a sound he'll hear forever. No goodbye — that's what they steal. One look back: Alyse in the doorway, candlelit, white with terror and rage, arm flung toward him. The dark swallows his daughter calling his name.]",
+  },
+  {
+    src: "/backgrounds/crusades/opening/goodbye_coerced_02.png",
+    text: "Whatever else this war makes of you, it began like this: with you telling the truth, and the truth meaning nothing at all.",
+  },
+];
+
+// ── Opening panel: <img> with a visibly labeled gray fallback
+// when the asset is missing. Designed so missing art is obvious,
+// not silently hidden behind a gradient.
+function OpeningPanel({ src, alt }: { src: string; alt: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <div className="w-full h-48 rounded border-2 border-dashed border-stone-600 bg-stone-800 flex items-center justify-center">
+        <div className="text-center px-3">
+          <div className="text-stone-400 text-xs font-bold uppercase tracking-wider">Missing art</div>
+          <div className="text-stone-500 text-[10px] font-mono mt-1 break-all">{src}</div>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt={alt}
+      onError={() => setFailed(true)}
+      className="w-full h-48 object-cover rounded border border-stone-700 bg-stone-950"
+    />
+  );
+}
+
+export default function Crusades({ onBack }: CrusadesProps) {
+  const [phase, setPhase] = useState<Phase>("opening");
+  const [coerced, setCoerced] = useState<boolean>(CRUSADES_INITIAL_FLAGS.coerced);
+  // Panel cursor for the click-through phases. Reset on phase entry.
+  const [panelIndex, setPanelIndex] = useState<number>(0);
+
+  // ── Sage encounter state (persists across all sages) ───────
   const [streak, setStreak] = useState<number>(0);
   const [sagePoints, setSagePoints] = useState<number>(0);
   const [completedSageIds, setCompletedSageIds] = useState<Set<string>>(() => new Set());
@@ -45,59 +118,62 @@ export default function Crusades({ onBack }: CrusadesProps) {
   // eligible. Real engine wiring will pass actual journey progress.
   const nextSage = getNextSage(1.0, completedSageIds);
 
-  // ── Cold-open prologue ─────────────────────────────────────
-  if (phase === "prologue") {
+  // ── Opening (panels 1–4, tap-to-advance) ───────────────────
+  if (phase === "opening") {
+    const panel = OPENING_PANELS[panelIndex];
+    const isLast = panelIndex === OPENING_PANELS.length - 1;
     return (
       <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-6 space-y-4">
-          <h1 className="text-2xl font-bold text-amber-400">{CrusadesCampaign.title}</h1>
-          <p className="text-stone-400 text-sm italic">{CrusadesCampaign.subtitle}</p>
-
-          {/* TODO[art]: hero/prologue still at /backgrounds/crusades/prologue_hall.png */}
-          <div
-            className="w-full h-48 rounded border border-stone-700 flex items-center justify-center"
-            style={{
-              background: "linear-gradient(135deg, #2a1f15, #1a1208)",
-              backgroundImage: "url(/backgrounds/crusades/prologue_hall.png)",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
+          <button
+            type="button"
+            onClick={() => {
+              if (isLast) { setPanelIndex(0); setPhase("banner"); }
+              else setPanelIndex((i) => i + 1);
             }}
+            className="block w-full text-left space-y-3 focus:outline-none focus:ring-2 focus:ring-amber-700/40 rounded-lg p-1 -m-1"
           >
-            <span className="text-stone-500 text-xs">{/* TODO[art]: prologue hall scene */}</span>
-          </div>
-
-          <div className="bg-stone-800 border border-stone-700 rounded p-4 space-y-3">
-            <h2 className="text-amber-300 font-bold uppercase tracking-wide text-sm">The Hall at Warwick</h2>
-            {/* TODO[content]: real prologue text — Hugh in his hall when the news arrives. */}
-            <p className="text-stone-300 text-sm leading-relaxed">
-              The fire is low. The wine is poor. A rider from the south arrives muddy to the
-              knees with news that has already crossed half the kingdom: Baron de Beaumont has
-              taken the cross with King Richard, and every household sworn to him is expected
-              to follow.
+            <OpeningPanel src={panel.src} alt={`Opening panel ${panelIndex + 1}`} />
+            <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+              <p className="text-stone-200 text-sm leading-relaxed italic">{panel.text}</p>
+            </div>
+            <p className="text-center text-stone-500 text-xs italic">
+              tap to continue · {panelIndex + 1} / {OPENING_PANELS.length}
             </p>
-            <p className="text-stone-400 text-sm leading-relaxed italic">
-              {/* TODO[content]: Hugh's wife's name, the children, the harvest — establishing detail. */}
-              Your wife is somewhere in the house. The dogs are asleep. The rider waits for an answer.
-            </p>
-          </div>
+          </button>
+          <button onClick={onBack} className="block w-full text-stone-500 hover:text-stone-300 text-xs mt-3">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
 
+  // ── The Banner (panel 5; two-button choice, NOT tap-to-advance) ─
+  if (phase === "banner") {
+    return (
+      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-6 space-y-4">
+          <h1 className="text-2xl font-bold text-amber-400">The Banner</h1>
+          <OpeningPanel src="/backgrounds/crusades/opening/panel_05.png" alt="The Banner" />
+          {/* Reused amber/stone two-button block from the original prologue.
+              Tapping anywhere else on the screen does NOT advance — only these
+              two buttons resolve the choice. */}
           <div className="space-y-2 pt-1">
             <button
-              onClick={() => { setCoerced(false); setPhase("firstEvent"); }}
+              onClick={() => { setCoerced(false); setPanelIndex(0); setPhase("goodbyeWilling"); }}
               className="w-full py-3 bg-amber-800 hover:bg-amber-700 rounded font-bold transition-colors text-left px-4"
             >
               Take the cross.
               <div className="text-xs font-normal text-amber-300 mt-1">
-                You go willingly. The household rides at first light.
+                Hugh accepts, plainly, not begrudging.
               </div>
             </button>
             <button
-              onClick={() => { setCoerced(true); setPhase("refusalCinematic"); }}
+              onClick={() => { setCoerced(true); setPanelIndex(0); setPhase("goodbyeCoerced"); }}
               className="w-full py-3 bg-stone-700 hover:bg-stone-600 rounded font-bold transition-colors text-left px-4"
             >
               Refuse.
               <div className="text-xs font-normal text-stone-300 mt-1">
-                Beaumont will not take refusal. {/* TODO[content]: hint of consequence */}
+                "I will not go."
               </div>
             </button>
             <button onClick={onBack} className="block w-full text-stone-500 hover:text-stone-300 text-xs mt-3">← Back to Campaigns</button>
@@ -107,49 +183,31 @@ export default function Crusades({ onBack }: CrusadesProps) {
     );
   }
 
-  // ── Forced-recruitment cinematic stub (coerced=true) ───────
-  if (phase === "refusalCinematic") {
+  // ── Goodbye flows (tap-to-advance, either willing or coerced) ─
+  if (phase === "goodbyeWilling" || phase === "goodbyeCoerced") {
+    const panels = phase === "goodbyeWilling" ? GOODBYE_WILLING_PANELS : GOODBYE_COERCED_PANELS;
+    const panel = panels[panelIndex];
+    const isLast = panelIndex === panels.length - 1;
     return (
       <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-6 space-y-4">
-          <h1 className="text-xl font-bold text-red-400">The Baron's Men</h1>
-
-          {/* TODO[art]: cinematic still at /backgrounds/crusades/forced_recruitment.png */}
-          <div
-            className="w-full h-48 rounded border border-stone-700 flex items-center justify-center"
-            style={{
-              background: "linear-gradient(135deg, #2a1208, #1a0a05)",
-              backgroundImage: "url(/backgrounds/crusades/forced_recruitment.png)",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-          >
-            <span className="text-stone-500 text-xs">{/* TODO[art]: forced recruitment cinematic */}</span>
-          </div>
-
-          <div className="bg-stone-800 border border-stone-700 rounded p-4 space-y-3">
-            {/* TODO[content]: write the real cinematic. Three or four beats — the door, the
-                seal, the road. Quiet, not melodramatic. Establish that Hugh is going either way. */}
-            <p className="text-stone-300 text-sm leading-relaxed">
-              They come at dawn. Not many — they do not need many. Beaumont's seal is shown.
-              Your wife is told to be brave. The horses are saddled by men who are not yours.
-            </p>
-            <p className="text-stone-300 text-sm leading-relaxed">
-              By midday you are on the road south with your household, your banner, and a guard
-              from the baron riding at your shoulder. The cross is sewn to your surcoat by
-              someone else's hand.
-            </p>
-            <p className="text-stone-500 text-xs italic">
-              You are going to Jerusalem. The question of whether you wanted to is no longer being asked.
-            </p>
-          </div>
-
           <button
-            onClick={() => setPhase("firstEvent")}
-            className="w-full py-3 bg-amber-800 hover:bg-amber-700 rounded font-bold transition-colors"
+            type="button"
+            onClick={() => {
+              if (isLast) { setPanelIndex(0); setPhase("firstEvent"); }
+              else setPanelIndex((i) => i + 1);
+            }}
+            className="block w-full text-left space-y-3 focus:outline-none focus:ring-2 focus:ring-amber-700/40 rounded-lg p-1 -m-1"
           >
-            South to Vézelay.
+            <OpeningPanel src={panel.src} alt={`Goodbye panel ${panelIndex + 1}`} />
+            <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+              <p className="text-stone-200 text-sm leading-relaxed italic">{panel.text}</p>
+            </div>
+            <p className="text-center text-stone-500 text-xs italic">
+              tap to continue · {panelIndex + 1} / {panels.length}
+            </p>
           </button>
+          <button onClick={onBack} className="block w-full text-stone-500 hover:text-stone-300 text-xs mt-3">← Back to Campaigns</button>
         </div>
       </div>
     );
