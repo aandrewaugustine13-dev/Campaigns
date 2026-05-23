@@ -45,11 +45,16 @@ interface Props {
   sage: Sage;
   currentStreak: number;
   onComplete: (result: EncounterResult) => void;
+  // When set, replaces sage.intro in the intro phase. Used to tint a
+  // sage's opening based on upstream story state (e.g. Eleanor's
+  // warm-or-worried variant keyed off "The Letter"). Other phases
+  // are unaffected.
+  introOverride?: string;
 }
 
 type LocalPhase = "intro" | "ask" | "outcome";
 
-export default function SageEncounterV2({ sage, currentStreak, onComplete }: Props) {
+export default function SageEncounterV2({ sage, currentStreak, onComplete, introOverride }: Props) {
   const [questionIndex, setQuestionIndex] = useState<0 | 1>(0);
   const [attempt, setAttempt] = useState<1 | 2>(1);
   const [localPhase, setLocalPhase] = useState<LocalPhase>("intro");
@@ -139,7 +144,7 @@ export default function SageEncounterV2({ sage, currentStreak, onComplete }: Pro
         <div className="space-y-3">
           <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
             <p className="text-stone-300 text-sm leading-relaxed italic">
-              {sage.intro}
+              {introOverride ?? sage.intro}
             </p>
           </div>
           <button

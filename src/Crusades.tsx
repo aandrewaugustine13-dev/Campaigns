@@ -24,6 +24,7 @@ type Phase =
   | "goodbyeWilling"    // post-accept goodbye, tap-to-advance
   | "goodbyeCoerced"    // post-refuse goodbye, tap-to-advance
   | "quota"             // The Quota — three-path moral decision
+  | "letter"            // The Letter — breather event between quota and Eleanor
   | "sageEncounter"     // active sage encounter (any sage from SAGES)
   | "interlude";        // placeholder between events (post-sage)
 
@@ -188,6 +189,66 @@ const QUOTA_FORCED_BUTTONS: { id: "hardball" | "walkAway"; label: string }[] = [
 
 type QuotaStep = "decide" | "history" | "forcedChoice" | "outcome";
 
+// ═══════════════════════════════════════════════════════════════
+// "THE LETTER" — France, on the march (small breather event)
+// One choice, two options. helpedTheBoy tints Eleanor's intro only.
+// ═══════════════════════════════════════════════════════════════
+
+const LETTER_DELTAS: Record<"help" | "push", MeterDeltas> = {
+  help: { honor: 2, favor: -1 },
+  push: {},
+};
+
+// null = no shake (no meter movement, no need for feedback).
+const LETTER_SHAKE: Record<"help" | "push", "light" | "medium" | "heavy" | null> = {
+  help: "light",
+  push: null,
+};
+
+const LETTER_HOOK =
+  "The column has slowed. Ahead, a boy — no older than fifteen, a conscript's tunic too big for him — sits in the mud with a scrap of parchment and a stick of charcoal, weeping. He cannot write. He is trying to send something home before the sea takes them all, and he does not have the letters to do it.";
+
+const LETTER_BOY_LINE =
+  "Please, ser. I only want my mother to have my words. If I don't come back — I want her to have something that's mine.";
+
+const LETTER_BUTTONS: { id: "help" | "push"; label: string; line: string }[] = [
+  {
+    id: "help",
+    label: "Help him",
+    line: "\"Give me the charcoal, lad. Tell me what to say.\"",
+  },
+  {
+    id: "push",
+    label: "Push on",
+    line: "\"Keep moving, lad. We all have people. The sea won't wait.\"",
+  },
+];
+
+// Help-outcome is rendered as three blocks: lead-in narration, the
+// in-world letter set apart as an artifact, then aftermath narration.
+const LETTER_HELP_OUTCOME = {
+  lead:
+    "You kneel in the mud beside him and take the charcoal. He speaks haltingly, and you write it down in a hand not much better than his would be:",
+  letter:
+    "Mother. I am well. The food is poor and the marching is long but I am well. Do not sell the goat. I will come home and we will be as we were. Pray for me. Your son—",
+  aftermath:
+    "He cannot finish the last word. He just nods, and you write his name, and he holds the parchment to his chest like it is the only warm thing in France.\n\nBehind you, one of the King's marshals watches, and says nothing, and his silence is its own verdict. A knight who stops in the mud for a crying boy is a knight they will count on a little less. You find you do not care. Somewhere, a letter is going home. That is enough for today.",
+};
+
+const LETTER_PUSH_OUTCOME =
+  "You ride past. It is the disciplined thing, the soldier's thing — the column cannot stop for every frightened boy, and there will be a thousand frightened boys before this is over. You tell yourself this. The boy's weeping falls away behind you, swallowed by the sound of ten thousand men marching toward the sea. You do not look back. You are getting better at not looking back. You do not yet know that this is something a man can lose, and not get returned to him.";
+
+// Eleanor intro tints — replace her base intro when set. Written as
+// dialogue (wrap in quotes at render time, matching her questions).
+const ELEANOR_INTRO_OVERRIDES = {
+  warm:
+    "I heard what you did on the road, ser Hugh — that you stopped to give a frightened boy his words. Sit. Sit by me.",
+  worried:
+    "I am told you did not stop for the boy on the road. No — don't defend it, it was the soldier's choice, the sensible one. That is what worries me. You are a man with people of your own, and you are already learning not to look back. I have buried sons, ser Hugh. Let an old woman tell you what that costs a man, before you pay it.",
+} as const;
+
+type LetterStep = "decide" | "outcome";
+
 // ── Opening panel: <img> with a visibly labeled gray fallback
 // when the asset is missing. Designed so missing art is obvious,
 // not silently hidden behind a gradient.
@@ -243,6 +304,13 @@ export default function Crusades({ onBack }: CrusadesProps) {
   // ── Quota event internal sub-state ─────────────────────────
   const [quotaStep, setQuotaStep] = useState<QuotaStep>("decide");
   const [outcomeId, setOutcomeId] = useState<OutcomeId | null>(null);
+
+  // ── Letter event internal sub-state ────────────────────────
+  const [letterStep, setLetterStep] = useState<LetterStep>("decide");
+  const [letterChoice, setLetterChoice] = useState<"help" | "push" | null>(null);
+  // null = letter not yet seen → use Eleanor's base intro. After the
+  // letter resolves it's true/false → drives the warm/worried override.
+  const [helpedTheBoy, setHelpedTheBoy] = useState<boolean | null>(null);
 
   // ── Sage encounter state (persists across all sages) ───────
   const [streak, setStreak] = useState<number>(0);
@@ -308,6 +376,22 @@ export default function Crusades({ onBack }: CrusadesProps) {
   };
 
   const handleQuotaContinue = () => {
+    // Always route through the letter event next — it's the on-ramp
+    // that explains how Eleanor comes to know Hugh.
+    setPhase("letter");
+  };
+
+  // ── Letter handlers ────────────────────────────────────────
+  const handleLetterDecide = (id: "help" | "push") => {
+    const deltas = LETTER_DELTAS[id];
+    const sh = LETTER_SHAKE[id];
+    if (sh) applyMeters(deltas, sh);
+    setLetterChoice(id);
+    setHelpedTheBoy(id === "help");
+    setLetterStep("outcome");
+  };
+
+  const handleLetterContinue = () => {
     if (nextSage) {
       setActiveSage(nextSage);
       setPhase("sageEncounter");
@@ -315,6 +399,15 @@ export default function Crusades({ onBack }: CrusadesProps) {
       setPhase("interlude");
     }
   };
+
+  // Pass an Eleanor intro override when the letter has been resolved.
+  // Other sages get no override; null helpedTheBoy keeps the base intro.
+  const eleanorIntroOverride =
+    activeSage?.id === "eleanor" && helpedTheBoy !== null
+      ? helpedTheBoy
+        ? `"${ELEANOR_INTRO_OVERRIDES.warm}"`
+        : `"${ELEANOR_INTRO_OVERRIDES.worried}"`
+      : undefined;
 
   // ── Opening (panels 1–4, tap-to-advance) ───────────────────
   if (phase === "opening") {
@@ -530,6 +623,100 @@ export default function Crusades({ onBack }: CrusadesProps) {
     );
   }
 
+  // ── The Letter (breather between quota and Eleanor) ────────
+  if (phase === "letter") {
+    return (
+      <div
+        className={`h-screen bg-stone-900 text-stone-100 overflow-y-auto ${shakeClass}`}
+        style={{ fontFamily: "'Georgia', serif" }}
+      >
+        {/* Floating numbers overlay — fixed center, pointer-events-none, z-50. */}
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 pointer-events-none z-50">
+          <FloatingNumbers floats={floats} />
+        </div>
+
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          {/* Header: location stamp + live meter readout */}
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-amber-400 uppercase tracking-wider">France · On the March</p>
+            <MeterReadout competence={competence} honor={honor} favor={favor} />
+          </div>
+
+          {/* ── Decide step ── */}
+          {letterStep === "decide" && (
+            <>
+              <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+                <p className="text-stone-300 text-sm leading-relaxed italic">{LETTER_HOOK}</p>
+              </div>
+              {/* Boy's line — small italic dialogue beat between the hook and the choices. */}
+              <div className="pl-4 border-l-2 border-stone-700">
+                <p className="text-stone-300 text-sm leading-relaxed italic">"{LETTER_BOY_LINE}"</p>
+              </div>
+              <div className="border border-indigo-700/60 rounded-lg p-3 bg-indigo-950/40 space-y-2">
+                {LETTER_BUTTONS.map((b, i) => (
+                  <button
+                    key={b.id}
+                    onClick={() => handleLetterDecide(b.id)}
+                    className="w-full text-left text-sm px-3 py-2.5 rounded-lg border bg-indigo-900/60 hover:bg-indigo-800/80 border-indigo-700/40 hover:border-indigo-600/60 transition-all"
+                    style={{ fontFamily: "'Georgia', serif" }}
+                  >
+                    <span className="text-indigo-300 font-bold mr-2">{String.fromCharCode(65 + i)}.</span>
+                    <span className="font-bold text-stone-200">{b.label}</span>
+                    <span className="block text-stone-400 italic mt-1 ml-5">{b.line}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* ── Outcome step ── */}
+          {letterStep === "outcome" && letterChoice === "help" && (
+            <>
+              <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+                <p className="text-stone-300 text-sm leading-relaxed italic">{LETTER_HELP_OUTCOME.lead}</p>
+              </div>
+              {/* The in-world letter, set apart as an artifact. */}
+              <div className="border-l-4 border-amber-700/40 bg-amber-100/5 pl-4 py-3 pr-3">
+                <p className="text-stone-100 text-sm leading-relaxed italic" style={{ fontFamily: "'Georgia', serif" }}>
+                  {LETTER_HELP_OUTCOME.letter}
+                </p>
+              </div>
+              <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+                {LETTER_HELP_OUTCOME.aftermath.split("\n\n").map((para, i) => (
+                  <p key={i} className={`text-stone-300 text-sm leading-relaxed italic ${i > 0 ? "mt-3" : ""}`}>{para}</p>
+                ))}
+              </div>
+              <button
+                onClick={handleLetterContinue}
+                className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+                style={{ fontFamily: "'Georgia', serif" }}
+              >
+                Continue
+              </button>
+            </>
+          )}
+
+          {letterStep === "outcome" && letterChoice === "push" && (
+            <>
+              <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+                <p className="text-stone-300 text-sm leading-relaxed italic">{LETTER_PUSH_OUTCOME}</p>
+              </div>
+              <button
+                onClick={handleLetterContinue}
+                className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+                style={{ fontFamily: "'Georgia', serif" }}
+              >
+                Continue
+              </button>
+            </>
+          )}
+
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
   // ── Sage encounter (any sage from getNextSage) ─────────────
   if (phase === "sageEncounter" && activeSage) {
     const sageInFlight = activeSage; // local capture for closure-narrowed type
@@ -542,6 +729,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
           <SageEncounterV2
             sage={sageInFlight}
             currentStreak={streak}
+            introOverride={eleanorIntroOverride}
             onComplete={(result) => {
               setStreak(result.newStreak);
               setSagePoints((p) => p + result.totalPoints);
