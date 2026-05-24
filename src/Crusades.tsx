@@ -29,6 +29,7 @@ type Phase =
   | "messina"           // Messina — three-path decision before Barbarossa
   | "sageEncounter"     // active sage encounter (any sage from SAGES)
   | "barbarossaWarning" // Barbarossa's planted warning after a clean encounter
+  | "richardEnvoy"      // Richard assigns Hugh to the envoy after his sage
   | "interlude";        // placeholder between events (post-sage)
 
 interface CrusadesProps { onBack: () => void; }
@@ -389,6 +390,58 @@ const BARBAROSSA_INTRO_OVERRIDES = {
 const BARBAROSSA_WARNING_TEXT =
   "Hear me, for I paid in full for what I know. The enemy you fear is not the enemy that kills you. I was the mightiest of the three kings, and no Saracen felled me — a river did, and my own certainty. When you reach the great siege, the men will clamor to attack, to spend themselves on the walls. Do not. The walls are not your enemy. Hunger is. Sickness is. The waiting is. Guard your strength and your stores, keep the camp clean, hold your discipline when others throw theirs away — and you will live to see the city fall while better men rot in the mud. Remember: at the siege, patience is the sword.";
 
+// ═══════════════════════════════════════════════════════════════
+// "RICHARD I" — post-Acre, on the march to Jaffa with Arsuf
+// looming. Greeting and envoy line are both tinted by Hugh's
+// standing; the tier is locked when the sage encounter begins
+// so the +2/+2 reward can't flip the envoy line mid-encounter.
+// ═══════════════════════════════════════════════════════════════
+
+type RichardTier = "impressed" | "cold" | "read";
+
+// Tunable thresholds. Order in computeRichardTier is:
+// impressed → cold → read (default). Adjust if a tier feels off in play.
+//
+// TODO: once an Acre clean-run flag exists (analogous to
+// barbarossaWarningHeard), key IMPRESSED off that flag instead of
+// (or in addition to) competence — Hugh's Acre conduct is the
+// signal Richard's greeting actually references.
+const RICHARD_TINT_THRESHOLDS = {
+  impressedCompetence: 3,
+  coldFavor: 3,
+  coldMaxHonor: 0,
+} as const;
+
+const RICHARD_CORRECT_DELTAS: MeterDeltas = { competence: 2, favor: 2 };
+
+const RICHARD_GREETINGS: Record<RichardTier, string> = {
+  impressed:
+    "You. The hedge knight. I'm told that while my well-born captains were screaming for an assault on Acre's walls, you were the one keeping your men fed and clean and alive through the rot. That you understood the siege before the siege understood you. I have a great many brave fools, ser Hugh. I have very few who think. Walk with me.",
+  cold:
+    "You're the one they call reliable. The one who does what's asked and doesn't trouble himself with the why of it. Good. I have no use for a conscience just now — I have use for a man who follows an order into a hard place and comes back. That's you, isn't it? Don't answer. I already know.",
+  read:
+    "You. Can you read? Truly read, not just squint at your own name? — Good. Christ's blood, half the men I knighted can't tell a treaty from a tavern slate. That makes you rarer than courage out here. Come here. I have a use for a literate man, and it isn't a flattering one.",
+};
+
+const RICHARD_ENVOY_LINES: Record<RichardTier, string> = {
+  impressed:
+    "I'm sending men to Saladin's camp under truce. I want eyes there that can think — tell me what you see, not what you're told to see. Go.",
+  cold:
+    "You'll carry my terms to Saladin. You'll keep your face still and your mouth shut and you'll remember every word said. That's all I need of you.",
+  read:
+    "You'll go to Saladin's camp with the envoy. Someone has to read the terms and carry the reply, and it might as well be the one man here who won't need it read to him. Don't embarrass me.",
+};
+
+function computeRichardTier(
+  competence: number,
+  honor: number,
+  favor: number,
+): RichardTier {
+  if (competence >= RICHARD_TINT_THRESHOLDS.impressedCompetence) return "impressed";
+  if (favor >= RICHARD_TINT_THRESHOLDS.coldFavor && honor <= RICHARD_TINT_THRESHOLDS.coldMaxHonor) return "cold";
+  return "read";
+}
+
 // ── Opening panel: <img> with a visibly labeled gray fallback
 // when the asset is missing. Designed so missing art is obvious,
 // not silently hidden behind a gradient.
@@ -466,6 +519,11 @@ export default function Crusades({ onBack }: CrusadesProps) {
   // set only on a clean (no-fail) encounter. Future Acre beat reads
   // this to decide whether the player has the prophecy in hand.
   const [barbarossaWarningHeard, setBarbarossaWarningHeard] = useState<boolean>(false);
+
+  // ── Richard tier: locked when his sage encounter begins so the ─
+  // greeting and envoy line stay matched even though the +2/+2
+  // correct-answer reward fires between them. null until locked.
+  const [richardTier, setRichardTier] = useState<RichardTier | null>(null);
 
   // ── Sage encounter state (persists across all sages) ───────
   const [streak, setStreak] = useState<number>(0);
@@ -552,8 +610,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
 
   const handleLetterContinue = () => {
     if (nextSage) {
-      setActiveSage(nextSage);
-      setPhase("sageEncounter");
+      enterSage(nextSage);
     } else {
       setPhase("interlude");
     }
@@ -603,15 +660,15 @@ export default function Crusades({ onBack }: CrusadesProps) {
 
   const handleMessinaContinue = () => {
     if (nextSage) {
-      setActiveSage(nextSage);
-      setPhase("sageEncounter");
+      enterSage(nextSage);
     } else {
       setPhase("interlude");
     }
   };
 
   // Per-sage intro tinting. Eleanor reads helpedTheBoy; Barbarossa
-  // reads messinaResult. Other sages get no override.
+  // reads messinaResult; Richard reads the locked richardTier.
+  // Other sages get no override.
   let sageIntroOverride: string | undefined;
   if (activeSage?.id === "eleanor" && helpedTheBoy !== null) {
     sageIntroOverride = helpedTheBoy
@@ -621,7 +678,20 @@ export default function Crusades({ onBack }: CrusadesProps) {
     sageIntroOverride = messinaResult === "plundered"
       ? `"${BARBAROSSA_INTRO_OVERRIDES.plundered}"`
       : `"${BARBAROSSA_INTRO_OVERRIDES.spared}"`;
+  } else if (activeSage?.id === "richard" && richardTier !== null) {
+    sageIntroOverride = `"${RICHARD_GREETINGS[richardTier]}"`;
   }
+
+  // Lock per-sage state at sage entry. For Richard, captures the tier
+  // synchronously so the greeting (computed on the first render after
+  // entry) matches the envoy line shown after the +2/+2 reward.
+  const enterSage = (sage: Sage) => {
+    if (sage.id === "richard") {
+      setRichardTier(computeRichardTier(competence, honor, favor));
+    }
+    setActiveSage(sage);
+    setPhase("sageEncounter");
+  };
 
   // ── Opening (panels 1–4, tap-to-advance) ───────────────────
   if (phase === "opening") {
@@ -1113,6 +1183,15 @@ export default function Crusades({ onBack }: CrusadesProps) {
                 } else {
                   setPhase("interlude");
                 }
+              } else if (sageInFlight.id === "richard") {
+                // Q2 ("winning isn't holding") — meter reward fires on
+                // any non-failed correct answer. The envoy assignment
+                // fires regardless of right/wrong.
+                const q2 = result.outcomes[1];
+                if (q2.result === "firstTry" || q2.result === "secondTry") {
+                  applyMeters(RICHARD_CORRECT_DELTAS, "light");
+                }
+                setPhase("richardEnvoy");
               } else {
                 setPhase("interlude");
               }
@@ -1149,6 +1228,33 @@ export default function Crusades({ onBack }: CrusadesProps) {
     );
   }
 
+  // ── Richard's envoy assignment (fires after his sage; always) ─
+  if (phase === "richardEnvoy") {
+    return (
+      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-amber-400 uppercase tracking-wider">Richard I · The Envoy</p>
+            <MeterReadout competence={competence} honor={honor} favor={favor} />
+          </div>
+          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+            <p className="text-stone-200 text-sm leading-relaxed italic">
+              {richardTier !== null ? `"${RICHARD_ENVOY_LINES[richardTier]}"` : ""}
+            </p>
+          </div>
+          <button
+            onClick={() => setPhase("interlude")}
+            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+            style={{ fontFamily: "'Georgia', serif" }}
+          >
+            Continue
+          </button>
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
   // ── Interlude (post-sage placeholder; next event lands here) ─
   return (
     <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
@@ -1168,8 +1274,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
           <button
             onClick={() => {
               if (nextSage) {
-                setActiveSage(nextSage);
-                setPhase("sageEncounter");
+                enterSage(nextSage);
               }
             }}
             disabled={!nextSage}
@@ -1178,7 +1283,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
             {nextSage ? `DEV · trigger next sage: ${nextSage.name}` : "DEV · all sages encountered"}
           </button>
           <p className="text-[10px] text-stone-500 text-center font-mono">
-            streak: {streak} · sage points: {sagePoints} · coerced: {coerced ? "true" : "false"} · messina: {messinaResult ?? "none"} · barbarossaWarningHeard: {barbarossaWarningHeard ? "true" : "false"} · completed: {completedSageIds.size === 0 ? "none" : Array.from(completedSageIds).join(", ")}
+            streak: {streak} · sage points: {sagePoints} · coerced: {coerced ? "true" : "false"} · messina: {messinaResult ?? "none"} · barbarossaWarningHeard: {barbarossaWarningHeard ? "true" : "false"} · richardTier: {richardTier ?? "none"} · completed: {completedSageIds.size === 0 ? "none" : Array.from(completedSageIds).join(", ")}
           </p>
         </div>
 

@@ -195,7 +195,7 @@ export const SAGES: Sage[] = [
     register: 'personal',
     penaltyWeight: 40,
     intro:
-      'A broad-shouldered man in a battle-stained surcoat looks you over. This is King Richard the Lionheart of England, leader of the crusade. He is choosing men he can trust, and his eyes have settled on you.',
+      "The army marches south toward Jaffa. Saladin's horse-archers harass the flanks; a great battle waits on the road ahead. Richard moves among his men as they ride. He stops at you.",
     questions: [
       {
         prompt:
@@ -211,19 +211,19 @@ export const SAGES: Sage[] = [
       },
       {
         prompt:
-          '"Saladin and I are enemies, and yet I am about to send messengers to his camp to bargain with him. Even at war, kings do this. What is the purpose of sending such messengers?"',
+          '"They\'ll sing that I\'m the Lionheart, that I never lost to Saladin. And it will be true — I\'ll beat him at every turn. So tell me, since you\'re the thinking sort: if I win every battle I fight, what\'s to stop me taking Jerusalem and keeping it?"',
         type: 'significance',
         choices: [
-          'To make a deal both sides can accept',
-          'To surrender the army',
-          'To start a bigger war',
-          'To spy and then attack',
+          "Winning a battle is not holding a kingdom. Jerusalem sits far from the sea and your supplies, surrounded by Saladin's lands. You could take it — and never hold it, so far from home, with an army that wants to go back.",
+          'Nothing, sire. With God\'s favor and your sword, the city is as good as yours.',
+          'Only Saladin\'s army stands in the way, and you have already proven you can break it.',
+          'The walls of Jerusalem are too strong for any army to breach.',
         ],
         correctIndex: 0,
         responses: {
-          approve: '"Just so. Steel settles some things. Words settle the rest." He nods. "You will carry my words to him. Do not embarrass me."',
-          scold:   '"To bargain, man. To make terms. Not every matter is won by the sword, even between enemies."',
-          fail:    '"Surrender? No." Richard barks a laugh. "To make a deal. War and talk are two hands of the same body."',
+          approve: '"Just so. I\'ll beat him at Arsuf, and at Jaffa, and on every field he picks — and at the end of it I\'ll turn for home with that city still in his hand. A man who takes what he cannot hold is not a conqueror, ser Hugh. He is a thief with better tailoring."',
+          scold:   '"Holding, man. Not winning. Even I, who will lose no battle to Saladin, will leave Jerusalem in his keeping — because I cannot hold it from across a sea. Mark that, before the songs catch you."',
+          fail:    '"Walls? Favor?" He shakes his head. "It is the holding, ser. I\'ll win every fight and still not take the city, because I cannot keep it once taken. That is the war you do not yet see."',
         },
       },
     ],
