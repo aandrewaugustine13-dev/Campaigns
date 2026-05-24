@@ -195,7 +195,7 @@ export const SAGES: Sage[] = [
     register: 'personal',
     penaltyWeight: 40,
     intro:
-      "The army marches south toward Jaffa. Saladin's horse-archers harass the flanks; a great battle waits on the road ahead. Richard moves among his men as they ride. He stops at you.",
+      "The march has stopped for the night. You are sitting in the dirt with a bowl of what the cooks insist is food — gray, lukewarm, more water than barley. Your feet are ruined. Your back is one long ache. You are too tired to even complain about the gruel, so you just eat it, staring at nothing.\n\nYou hear men scrambling to their feet around you. You don't look up. Probably an officer. You keep eating.\n\nThen a shadow falls across your bowl, and a voice you have heard only from a great distance — shouted across battlefields, roared over the heads of thousands — says, quietly, right above you:\n\n'Don't get up.'\n\nYou look up. And nearly choke on your barley.\n\nIt is the King. Richard himself. Standing over you. Looking at you the way a man looks at a horse he is thinking about buying.\n\nYou manage to not die of it. Barely.",
     questions: [
       {
         prompt:

@@ -143,9 +143,14 @@ export default function SageEncounterV2({ sage, currentStreak, onComplete, intro
       {localPhase === "intro" && (
         <div className="space-y-3">
           <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
-            <p className="text-stone-300 text-sm leading-relaxed italic">
-              {introOverride ?? sage.intro}
-            </p>
+            {(introOverride ?? sage.intro).split("\n\n").map((para, i) => (
+              <p
+                key={i}
+                className={`text-stone-300 text-sm leading-relaxed italic ${i > 0 ? "mt-3" : ""}`}
+              >
+                {para}
+              </p>
+            ))}
           </div>
           <button
             onClick={() => setLocalPhase("ask")}

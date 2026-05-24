@@ -679,7 +679,10 @@ export default function Crusades({ onBack }: CrusadesProps) {
       ? `"${BARBAROSSA_INTRO_OVERRIDES.plundered}"`
       : `"${BARBAROSSA_INTRO_OVERRIDES.spared}"`;
   } else if (activeSage?.id === "richard" && richardTier !== null) {
-    sageIntroOverride = `"${RICHARD_GREETINGS[richardTier]}"`;
+    // Richard-only: keep the base intro (the barley moment) and append
+    // the tinted greeting, so both land in one continuous panel. Eleanor
+    // and Barbarossa overrides remain pure replacements by design.
+    sageIntroOverride = `${activeSage.intro}\n\n"${RICHARD_GREETINGS[richardTier]}"`;
   }
 
   // Lock per-sage state at sage entry. For Richard, captures the tier
