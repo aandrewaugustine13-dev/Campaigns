@@ -25,7 +25,10 @@ type Phase =
   | "goodbyeCoerced"    // post-refuse goodbye, tap-to-advance
   | "quota"             // The Quota — three-path moral decision
   | "letter"            // The Letter — breather event between quota and Eleanor
+  | "sicily"            // The Sicily Crossing — 3-card click-through after Eleanor
+  | "messina"           // Messina — three-path decision before Barbarossa
   | "sageEncounter"     // active sage encounter (any sage from SAGES)
+  | "barbarossaWarning" // Barbarossa's planted warning after a clean encounter
   | "interlude";        // placeholder between events (post-sage)
 
 interface CrusadesProps { onBack: () => void; }
@@ -73,6 +76,27 @@ const GOODBYE_COERCED_PANELS: { src: string; text: string }[] = [
   {
     src: "/backgrounds/crusades/opening/goodbye_coerced_02.png",
     text: "Whatever else this war makes of you, it began like this: with you telling the truth, and the truth meaning nothing at all.",
+  },
+];
+
+// ═══════════════════════════════════════════════════════════════
+// "THE SICILY CROSSING" — 3-card click-through, between Eleanor
+// and Messina. Educational; no choice. Teaches the real history
+// the player will then act on at Messina.
+// ═══════════════════════════════════════════════════════════════
+
+const SICILY_PANELS: { src: string; text: string }[] = [
+  {
+    src: "/backgrounds/crusades/sicily/panel_01.png",
+    text: "Richard's army did not march to the Holy Land. They sailed — south through France to the sea, then onto a fleet bound for the Mediterranean. The crossing was its own war: storms, sickness, and the slow grinding boredom of men packed onto ships with nowhere to go.",
+  },
+  {
+    src: "/backgrounds/crusades/sicily/panel_02.png",
+    text: "They wintered on the island of Sicily, and the winter was long. More crusaders would die on this journey of disease and hunger than ever fell to a Saracen blade. The French and the English, supposedly allies, eyed each other across the camp like rival dogs.",
+  },
+  {
+    src: "/backgrounds/crusades/sicily/panel_03.png",
+    text: "And then came the first true test of what this holy war actually was. The first city Richard's army would storm was not held by Saladin. It was Messina — a Christian city. A dispute over money, a slighted sister, a local king who would not pay. The cross had not yet met the crescent, and already the swords were out.",
   },
 ];
 
@@ -249,6 +273,122 @@ const ELEANOR_INTRO_OVERRIDES = {
 
 type LetterStep = "decide" | "outcome";
 
+// ═══════════════════════════════════════════════════════════════
+// "MESSINA" — Sicily, 1190 (first storming, against Christians)
+// Structural clone of The Quota: decide → [history → forced?] →
+// outcome. Deltas, narration, and shake intensities tunable below.
+// Narration absorbs the marshal beat (no separate callout block).
+// ═══════════════════════════════════════════════════════════════
+
+const MESSINA_DELTAS: Record<
+  "plunder" | "refuse" | "gateRight" | "gateWrongInit" | "gateHardball" | "gatePullBack",
+  MeterDeltas
+> = {
+  plunder:        { favor:  2, competence:  2, honor: -3 },
+  refuse:         { honor:  3, favor: -2, competence:  0 },
+  gateRight:      { honor:  0, favor:  2, competence:  2 },
+  gateWrongInit:  {                       competence: -2 }, // applied on landing in forcedChoice
+  gateHardball:   { favor:  2, honor: -3                  }, // stacks on top of gateWrongInit
+  gatePullBack:   { favor: -2, competence: -2             }, // stacks on top of gateWrongInit
+};
+
+const MESSINA_SHAKE: Record<
+  "plunder" | "refuse" | "gateRight" | "gateWrongInit" | "gateHardball" | "gatePullBack",
+  "light" | "medium" | "heavy"
+> = {
+  plunder:        "heavy",
+  refuse:         "light",
+  gateRight:      "light",
+  gateWrongInit:  "light",
+  gateHardball:   "heavy",
+  gatePullBack:   "medium",
+};
+
+type MessinaOutcomeId = "plunder" | "refuse" | "gateRight" | "gateHardball" | "gatePullBack";
+
+const MESSINA_OUTCOMES: Record<MessinaOutcomeId, { narration: string }> = {
+  plunder: {
+    narration:
+      "You take what the city offers. Silver, grain, whatever isn't nailed down and some that is. Your men eat well tonight and the marshals mark you willing. You tell yourself a soldier follows orders. You do not let yourself think the word 'Christian,' because the word does not pay.",
+  },
+  refuse: {
+    narration:
+      "You hold your men back, and you stand between a few terrified families and the worst of it. It costs you. The other captains feast and you do not; the marshals note, again, that the hedge knight has a tender conscience. But the families you shielded will remember a knight who did not.",
+  },
+  gateRight: {
+    narration:
+      "You understand it's leverage, not holy war. You direct your men to seize the stores and the treasury — Tancred's debt made good — and spare the homes and the families. Richard gets his payment, your men get their share, and Messina is not put to the torch. The marshals notice a man who can get the King paid without making a massacre of it.",
+  },
+  gateHardball: {
+    narration:
+      "You misjudged it. With nothing else to show, you wave your men into the houses and take what they can carry. The city burns the same as it would have. Your share comes with it, and the marshals are pleased — but you know you tried for the better road and could not find it.",
+  },
+  gatePullBack: {
+    narration:
+      "You misjudged it, then pulled your men out rather than join the worst of it. Richard gets less than he wanted from your sector. The marshals do not credit a captain who fumbles the question and then walks away from the answer. You come out of Messina with neither the silver nor the standing.",
+  },
+};
+
+const MESSINA_HOOK =
+  "Messina burns. Richard has given the order — the city that mocked him will be taken and stripped. Your men look to you. The gates are open, the houses are full, and these are Christians, same as you. What do you do?";
+
+const MESSINA_DECIDE_BUTTONS: { id: "plunder" | "refuse" | "gate"; label: string; line: string }[] = [
+  {
+    id: "plunder",
+    label: "Join the plunder",
+    line: "\"The King commands it. The city is ours to take.\"",
+  },
+  {
+    id: "refuse",
+    label: "Refuse / protect civilians",
+    line: "\"I did not take the cross to rob fellow Christians. I'll have no part in it.\"",
+  },
+  {
+    id: "gate",
+    label: "The third door",
+    line: "\"There's a smarter way to profit here than burning it all.\"",
+  },
+];
+
+const MESSINA_HISTORY_QUESTION = {
+  prompt:
+    "You know why Richard truly turned on Messina. It was not faith. If you understand his real reason, you can take what he wants without the worst of the cruelty. Why did Richard sack a Christian city?",
+  choices: [
+    "Politics and money — a dispute over his sister's dowry and the local king Tancred's refusal to pay what was owed.",
+    "The people of Messina had secretly converted to Islam.",
+    "God commanded him to purify all cities along the route.",
+    "Saladin's spies were hiding within the city walls.",
+  ],
+  correctIndex: 0,
+} as const;
+
+const MESSINA_FORCED_SETUP =
+  "You read it wrong. There is no clever play here, only the ugly one. The men are already moving on the houses. You can join the take, or you can call yours off — but the city falls either way.";
+
+const MESSINA_FORCED_BUTTONS: { id: "hardball" | "pullBack"; label: string }[] = [
+  { id: "hardball", label: "Join the plunder" },
+  { id: "pullBack", label: "Pull back" },
+];
+
+type MessinaStep = "decide" | "history" | "forcedChoice" | "outcome";
+
+// ═══════════════════════════════════════════════════════════════
+// "BARBAROSSA'S WARNING" — the planted prophecy. Intro tints are
+// per-Messina-path; the warning text on the post-encounter phase
+// is the seed for a later Acre beat, so its language must stay
+// preserved exactly.
+// ═══════════════════════════════════════════════════════════════
+
+const BARBAROSSA_INTRO_OVERRIDES = {
+  plundered:
+    "I see Messina on you, boy. The first stain is always a Christian one. No — I do not judge. I am dead; judgment is above my rank now. But I marked the same road you walk.",
+  spared:
+    "You kept your hands clean at Messina. Good. It will get harder than that. Sit, and listen to a dead man who learned too late.",
+} as const;
+
+const BARBAROSSA_WARNING_TEXT =
+  "Hear me, for I paid in full for what I know. The enemy you fear is not the enemy that kills you. I was the mightiest of the three kings, and no Saracen felled me — a river did, and my own certainty. When you reach the great siege, the men will clamor to attack, to spend themselves on the walls. Do not. The walls are not your enemy. Hunger is. Sickness is. The waiting is. Guard your strength and your stores, keep the camp clean, hold your discipline when others throw theirs away — and you will live to see the city fall while better men rot in the mud. Remember: at the siege, patience is the sword.";
+
 // ── Opening panel: <img> with a visibly labeled gray fallback
 // when the asset is missing. Designed so missing art is obvious,
 // not silently hidden behind a gradient.
@@ -312,6 +452,21 @@ export default function Crusades({ onBack }: CrusadesProps) {
   // letter resolves it's true/false → drives the warm/worried override.
   const [helpedTheBoy, setHelpedTheBoy] = useState<boolean | null>(null);
 
+  // ── Messina event internal sub-state ───────────────────────
+  const [messinaStep, setMessinaStep] = useState<MessinaStep>("decide");
+  const [messinaOutcomeId, setMessinaOutcomeId] = useState<MessinaOutcomeId | null>(null);
+  // null = Messina not yet resolved → no Barbarossa intro tint. After
+  // resolution: 'plundered' (path A, gate-wrong→hardball) tints him
+  // grave; 'spared' (path B, clean gate, gate-wrong→pull-back) tints
+  // him approving. Pull-back is grouped with spared because Hugh did
+  // not actually plunder.
+  const [messinaResult, setMessinaResult] = useState<"plundered" | "spared" | null>(null);
+
+  // ── Barbarossa warning flag: persists for the rest of the run, ─
+  // set only on a clean (no-fail) encounter. Future Acre beat reads
+  // this to decide whether the player has the prophecy in hand.
+  const [barbarossaWarningHeard, setBarbarossaWarningHeard] = useState<boolean>(false);
+
   // ── Sage encounter state (persists across all sages) ───────
   const [streak, setStreak] = useState<number>(0);
   const [sagePoints, setSagePoints] = useState<number>(0);
@@ -329,6 +484,10 @@ export default function Crusades({ onBack }: CrusadesProps) {
   // Shuffle the history question once per component mount.
   const shuffledHistory = useMemo(
     () => shuffleChoices([...QUOTA_HISTORY_QUESTION.choices], QUOTA_HISTORY_QUESTION.correctIndex),
+    [],
+  );
+  const shuffledMessinaHistory = useMemo(
+    () => shuffleChoices([...MESSINA_HISTORY_QUESTION.choices], MESSINA_HISTORY_QUESTION.correctIndex),
     [],
   );
 
@@ -400,14 +559,69 @@ export default function Crusades({ onBack }: CrusadesProps) {
     }
   };
 
-  // Pass an Eleanor intro override when the letter has been resolved.
-  // Other sages get no override; null helpedTheBoy keeps the base intro.
-  const eleanorIntroOverride =
-    activeSage?.id === "eleanor" && helpedTheBoy !== null
-      ? helpedTheBoy
-        ? `"${ELEANOR_INTRO_OVERRIDES.warm}"`
-        : `"${ELEANOR_INTRO_OVERRIDES.worried}"`
-      : undefined;
+  // ── Messina handlers ───────────────────────────────────────
+  const handleMessinaDecide = (id: "plunder" | "refuse" | "gate") => {
+    if (id === "plunder") {
+      applyMeters(MESSINA_DELTAS.plunder, MESSINA_SHAKE.plunder);
+      setMessinaOutcomeId("plunder");
+      setMessinaResult("plundered");
+      setMessinaStep("outcome");
+    } else if (id === "refuse") {
+      applyMeters(MESSINA_DELTAS.refuse, MESSINA_SHAKE.refuse);
+      setMessinaOutcomeId("refuse");
+      setMessinaResult("spared");
+      setMessinaStep("outcome");
+    } else {
+      setMessinaStep("history");
+    }
+  };
+
+  const handleMessinaHistoryAnswer = (i: number) => {
+    if (i === shuffledMessinaHistory.correctIndex) {
+      applyMeters(MESSINA_DELTAS.gateRight, MESSINA_SHAKE.gateRight);
+      setMessinaOutcomeId("gateRight");
+      setMessinaResult("spared");
+      setMessinaStep("outcome");
+    } else {
+      applyMeters(MESSINA_DELTAS.gateWrongInit, MESSINA_SHAKE.gateWrongInit);
+      setMessinaStep("forcedChoice");
+    }
+  };
+
+  const handleMessinaForcedChoice = (id: "hardball" | "pullBack") => {
+    if (id === "hardball") {
+      applyMeters(MESSINA_DELTAS.gateHardball, MESSINA_SHAKE.gateHardball);
+      setMessinaOutcomeId("gateHardball");
+      setMessinaResult("plundered");
+    } else {
+      applyMeters(MESSINA_DELTAS.gatePullBack, MESSINA_SHAKE.gatePullBack);
+      setMessinaOutcomeId("gatePullBack");
+      setMessinaResult("spared");
+    }
+    setMessinaStep("outcome");
+  };
+
+  const handleMessinaContinue = () => {
+    if (nextSage) {
+      setActiveSage(nextSage);
+      setPhase("sageEncounter");
+    } else {
+      setPhase("interlude");
+    }
+  };
+
+  // Per-sage intro tinting. Eleanor reads helpedTheBoy; Barbarossa
+  // reads messinaResult. Other sages get no override.
+  let sageIntroOverride: string | undefined;
+  if (activeSage?.id === "eleanor" && helpedTheBoy !== null) {
+    sageIntroOverride = helpedTheBoy
+      ? `"${ELEANOR_INTRO_OVERRIDES.warm}"`
+      : `"${ELEANOR_INTRO_OVERRIDES.worried}"`;
+  } else if (activeSage?.id === "barbarossa" && messinaResult !== null) {
+    sageIntroOverride = messinaResult === "plundered"
+      ? `"${BARBAROSSA_INTRO_OVERRIDES.plundered}"`
+      : `"${BARBAROSSA_INTRO_OVERRIDES.spared}"`;
+  }
 
   // ── Opening (panels 1–4, tap-to-advance) ───────────────────
   if (phase === "opening") {
@@ -717,6 +931,148 @@ export default function Crusades({ onBack }: CrusadesProps) {
     );
   }
 
+  // ── Messina (decide → [history → forcedChoice?] → outcome) ─
+  if (phase === "messina") {
+    const outcome = messinaOutcomeId ? MESSINA_OUTCOMES[messinaOutcomeId] : null;
+    return (
+      <div
+        className={`h-screen bg-stone-900 text-stone-100 overflow-y-auto ${shakeClass}`}
+        style={{ fontFamily: "'Georgia', serif" }}
+      >
+        {/* Floating numbers overlay — fixed center, pointer-events-none, z-50. */}
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 pointer-events-none z-50">
+          <FloatingNumbers floats={floats} />
+        </div>
+
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          {/* Header: location stamp + live meter readout */}
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-amber-400 uppercase tracking-wider">Sicily, 1190 · Messina</p>
+            <MeterReadout competence={competence} honor={honor} favor={favor} />
+          </div>
+
+          {/* ── Decide step ── */}
+          {messinaStep === "decide" && (
+            <>
+              <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+                <p className="text-stone-300 text-sm leading-relaxed italic">{MESSINA_HOOK}</p>
+              </div>
+              <div className="border border-indigo-700/60 rounded-lg p-3 bg-indigo-950/40 space-y-2">
+                {MESSINA_DECIDE_BUTTONS.map((b, i) => (
+                  <button
+                    key={b.id}
+                    onClick={() => handleMessinaDecide(b.id)}
+                    className="w-full text-left text-sm px-3 py-2.5 rounded-lg border bg-indigo-900/60 hover:bg-indigo-800/80 border-indigo-700/40 hover:border-indigo-600/60 transition-all"
+                    style={{ fontFamily: "'Georgia', serif" }}
+                  >
+                    <span className="text-indigo-300 font-bold mr-2">{String.fromCharCode(65 + i)}.</span>
+                    <span className="font-bold text-stone-200">{b.label}</span>
+                    <span className="block text-stone-400 italic mt-1 ml-5">{b.line}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* ── History step (path C only) ── */}
+          {messinaStep === "history" && (
+            <>
+              <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+                <p className="text-stone-300 text-sm leading-relaxed italic">{MESSINA_HISTORY_QUESTION.prompt}</p>
+              </div>
+              <div className="border border-indigo-700/60 rounded-lg p-3 bg-indigo-950/40">
+                <p className="text-xs text-indigo-300 font-bold uppercase tracking-wider mb-3">📜 Recall</p>
+                <div className="space-y-2">
+                  {shuffledMessinaHistory.choices.map((c, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleMessinaHistoryAnswer(i)}
+                      className="w-full text-left text-sm px-3 py-2.5 rounded-lg border bg-indigo-900/60 hover:bg-indigo-800/80 border-indigo-700/40 hover:border-indigo-600/60 transition-all"
+                      style={{ fontFamily: "'Georgia', serif" }}
+                    >
+                      <span className="text-indigo-300 font-bold mr-2">{String.fromCharCode(65 + i)}.</span>
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ── Forced-choice step (wrong history answer fallback) ── */}
+          {messinaStep === "forcedChoice" && (
+            <>
+              <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+                <p className="text-stone-300 text-sm leading-relaxed italic">{MESSINA_FORCED_SETUP}</p>
+              </div>
+              <div className="border border-indigo-700/60 rounded-lg p-3 bg-indigo-950/40 space-y-2">
+                {MESSINA_FORCED_BUTTONS.map((b, i) => (
+                  <button
+                    key={b.id}
+                    onClick={() => handleMessinaForcedChoice(b.id)}
+                    className="w-full text-left text-sm px-3 py-2.5 rounded-lg border bg-indigo-900/60 hover:bg-indigo-800/80 border-indigo-700/40 hover:border-indigo-600/60 transition-all"
+                    style={{ fontFamily: "'Georgia', serif" }}
+                  >
+                    <span className="text-indigo-300 font-bold mr-2">{String.fromCharCode(65 + i)}.</span>
+                    <span className="font-bold text-stone-200">{b.label}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* ── Outcome step: narration only (marshal reaction baked in). ── */}
+          {messinaStep === "outcome" && outcome && (
+            <>
+              <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+                <p className="text-stone-300 text-sm leading-relaxed italic">{outcome.narration}</p>
+              </div>
+              <button
+                onClick={handleMessinaContinue}
+                className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+                style={{ fontFamily: "'Georgia', serif" }}
+              >
+                Continue
+              </button>
+            </>
+          )}
+
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── The Sicily Crossing (3-card click-through; no choice) ─
+  if (phase === "sicily") {
+    const panel = SICILY_PANELS[panelIndex];
+    const isLast = panelIndex === SICILY_PANELS.length - 1;
+    return (
+      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-6 space-y-4">
+          <p className="text-xs text-amber-400 uppercase tracking-wider">The Sicily Crossing</p>
+          <button
+            type="button"
+            onClick={() => {
+              if (isLast) { setPanelIndex(0); setPhase("messina"); }
+              else setPanelIndex((i) => i + 1);
+            }}
+            className="block w-full text-left space-y-3 focus:outline-none focus:ring-2 focus:ring-amber-700/40 rounded-lg p-1 -m-1"
+          >
+            <OpeningPanel src={panel.src} alt={`Sicily panel ${panelIndex + 1}`} />
+            <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+              <p className="text-stone-200 text-sm leading-relaxed italic">{panel.text}</p>
+            </div>
+            <p className="text-center text-stone-500 text-xs italic">
+              tap to continue · {panelIndex + 1} / {SICILY_PANELS.length}
+            </p>
+          </button>
+          <button onClick={onBack} className="block w-full text-stone-500 hover:text-stone-300 text-xs mt-3">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
   // ── Sage encounter (any sage from getNextSage) ─────────────
   if (phase === "sageEncounter" && activeSage) {
     const sageInFlight = activeSage; // local capture for closure-narrowed type
@@ -729,7 +1085,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
           <SageEncounterV2
             sage={sageInFlight}
             currentStreak={streak}
-            introOverride={eleanorIntroOverride}
+            introOverride={sageIntroOverride}
             onComplete={(result) => {
               setStreak(result.newStreak);
               setSagePoints((p) => p + result.totalPoints);
@@ -739,9 +1095,54 @@ export default function Crusades({ onBack }: CrusadesProps) {
                 return next;
               });
               setActiveSage(null);
-              setPhase("interlude");
+
+              // Per-sage post-encounter routing.
+              if (sageInFlight.id === "eleanor") {
+                setPanelIndex(0);
+                setPhase("sicily");
+              } else if (sageInFlight.id === "barbarossa") {
+                // Warning only fires when both questions resolved correctly
+                // (firstTry or secondTry). On any failure his existing
+                // scold/fail strings already carry the teaching beat.
+                const cleanRun = result.outcomes.every(
+                  (o) => o.result === "firstTry" || o.result === "secondTry",
+                );
+                if (cleanRun) {
+                  setBarbarossaWarningHeard(true);
+                  setPhase("barbarossaWarning");
+                } else {
+                  setPhase("interlude");
+                }
+              } else {
+                setPhase("interlude");
+              }
             }}
           />
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Barbarossa's warning (fires only on a clean encounter) ─
+  if (phase === "barbarossaWarning") {
+    return (
+      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-amber-400 uppercase tracking-wider">Frederick Barbarossa · A Final Word</p>
+            <MeterReadout competence={competence} honor={honor} favor={favor} />
+          </div>
+          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+            <p className="text-stone-200 text-sm leading-relaxed italic">"{BARBAROSSA_WARNING_TEXT}"</p>
+          </div>
+          <button
+            onClick={() => setPhase("interlude")}
+            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+            style={{ fontFamily: "'Georgia', serif" }}
+          >
+            Continue
+          </button>
           <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
         </div>
       </div>
@@ -777,7 +1178,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
             {nextSage ? `DEV · trigger next sage: ${nextSage.name}` : "DEV · all sages encountered"}
           </button>
           <p className="text-[10px] text-stone-500 text-center font-mono">
-            streak: {streak} · sage points: {sagePoints} · coerced: {coerced ? "true" : "false"} · completed: {completedSageIds.size === 0 ? "none" : Array.from(completedSageIds).join(", ")}
+            streak: {streak} · sage points: {sagePoints} · coerced: {coerced ? "true" : "false"} · messina: {messinaResult ?? "none"} · barbarossaWarningHeard: {barbarossaWarningHeard ? "true" : "false"} · completed: {completedSageIds.size === 0 ? "none" : Array.from(completedSageIds).join(", ")}
           </p>
         </div>
 
