@@ -29,6 +29,7 @@ type Phase =
   | "messina"           // Messina — three-path decision before Barbarossa
   | "sageEncounter"     // active sage encounter (any sage from SAGES)
   | "barbarossaWarning" // Barbarossa's planted warning after a clean encounter
+  | "acre"              // The Acre siege decision — payoff to barbarossaWarning
   | "richardEnvoy"      // Richard assigns Hugh to the envoy after his sage
   | "interlude";        // placeholder between events (post-sage)
 
@@ -391,6 +392,79 @@ const BARBAROSSA_WARNING_TEXT =
   "Hear me, for I paid in full for what I know. The enemy you fear is not the enemy that kills you. I was the mightiest of the three kings, and no Saracen felled me — a river did, and my own certainty. When you reach the great siege, the men will clamor to attack, to spend themselves on the walls. Do not. The walls are not your enemy. Hunger is. Sickness is. The waiting is. Guard your strength and your stores, keep the camp clean, hold your discipline when others throw theirs away — and you will live to see the city fall while better men rot in the mud. Remember: at the siege, patience is the sword.";
 
 // ═══════════════════════════════════════════════════════════════
+// "ACRE" — the great siege (standalone decision; not a sage).
+// Payoff to barbarossaWarningHeard: path B forks on the flag —
+// the player who heard Barbarossa's prophecy gets the strategic
+// clarity that earns a full clean-run reward; the player who
+// didn't merely guesses right and gets a thinner payoff. Path A
+// is what Barbarossa explicitly warned against.
+// ═══════════════════════════════════════════════════════════════
+
+const ACRE_DELTAS: Record<
+  "assault" | "holdWith" | "holdWithout" | "split",
+  MeterDeltas
+> = {
+  assault:     { favor:  1, competence: -2 },
+  holdWith:    { competence:  3 },
+  holdWithout: { competence:  1 },
+  split:       {},
+};
+
+const ACRE_SHAKE: Record<
+  "assault" | "holdWith" | "holdWithout" | "split",
+  "light" | "medium" | "heavy"
+> = {
+  assault:     "heavy",
+  holdWith:    "light",
+  holdWithout: "light",
+  split:       "light",
+};
+
+type AcreOutcomeId = "assault" | "holdWith" | "holdWithout" | "split";
+
+const ACRE_OUTCOMES: Record<AcreOutcomeId, { narration: string }> = {
+  assault: {
+    narration:
+      "The assault is everything the captains promised — loud, brave, and useless. You lose good men on the walls and gain nothing but a day's distraction from the dying. The flux does not care how bravely you charged. By morning the camp is sicker than before, and the city still stands.",
+  },
+  holdWith: {
+    narration:
+      "A dead emperor told you patience is the sword — that the siege kills more men than the enemy ever could, and discipline is the only shield. He paid for that knowledge with his life. You will not waste it. You hold the line, keep the camp clean, ration hard, and wait. The sickness that guts the other companies barely touches yours. When the city finally falls, your men are among the few who can still stand. Word of it travels further than you know.",
+  },
+  holdWithout: {
+    narration:
+      "Something tells you to wait — you couldn't say what, only that throwing tired, sick men at stone walls feels like a way to die for nothing. You hold. It helps, some. Your company fares a little better than most. But you are guessing, and you know it, and the guessing costs you men you might have saved if you'd truly understood what this siege was.",
+  },
+  split: {
+    narration:
+      "You hedge. A cautious probe, the bulk of your men held back. It is neither the disaster of a full assault nor the discipline that saves an army. You lose a little, gain a little, and the siege grinds on indifferent to your caution.",
+  },
+};
+
+const ACRE_HOOK =
+  "The siege has become a graveyard. Not from Saracen arrows — from the camp itself. Men die of the flux and the fever faster than any sword could manage, and the rot and hunger grind on with no end in sight. The other captains are done waiting. They want to throw everything at the walls in one great assault. Glory or death, they say, but at least an end. Your men look to you. What do you do?";
+
+const ACRE_DECIDE_BUTTONS: { id: "assault" | "hold" | "split"; label: string; line: string }[] = [
+  {
+    id: "assault",
+    label: "Join the assault",
+    line: "\"The men want to fight. Better to die on the walls than rot in this mud. We attack.\"",
+  },
+  {
+    id: "hold",
+    label: "Hold, fortify, wait",
+    line: "\"No. We hold. Clean the camp, guard the stores, keep discipline, and let the city starve before we do. We wait.\"",
+  },
+  {
+    id: "split",
+    label: "Split the difference",
+    line: "\"We probe the walls but hold our main strength in reserve.\"",
+  },
+];
+
+type AcreStep = "decide" | "outcome";
+
+// ═══════════════════════════════════════════════════════════════
 // "RICHARD I" — post-Acre, on the march to Jaffa with Arsuf
 // looming. Greeting and envoy line are both tinted by Hugh's
 // standing; the tier is locked when the sage encounter begins
@@ -401,13 +475,9 @@ type RichardTier = "impressed" | "cold" | "read";
 
 // Tunable thresholds. Order in computeRichardTier is:
 // impressed → cold → read (default). Adjust if a tier feels off in play.
-//
-// TODO: once an Acre clean-run flag exists (analogous to
-// barbarossaWarningHeard), key IMPRESSED off that flag instead of
-// (or in addition to) competence — Hugh's Acre conduct is the
-// signal Richard's greeting actually references.
+// IMPRESSED is gated solely on acreCleanRun — the IMPRESSED greeting
+// references Acre conduct directly, so that flag is the real signal.
 const RICHARD_TINT_THRESHOLDS = {
-  impressedCompetence: 3,
   coldFavor: 3,
   coldMaxHonor: 0,
 } as const;
@@ -433,11 +503,11 @@ const RICHARD_ENVOY_LINES: Record<RichardTier, string> = {
 };
 
 function computeRichardTier(
-  competence: number,
+  acreCleanRun: boolean,
   honor: number,
   favor: number,
 ): RichardTier {
-  if (competence >= RICHARD_TINT_THRESHOLDS.impressedCompetence) return "impressed";
+  if (acreCleanRun) return "impressed";
   if (favor >= RICHARD_TINT_THRESHOLDS.coldFavor && honor <= RICHARD_TINT_THRESHOLDS.coldMaxHonor) return "cold";
   return "read";
 }
@@ -516,9 +586,18 @@ export default function Crusades({ onBack }: CrusadesProps) {
   const [messinaResult, setMessinaResult] = useState<"plundered" | "spared" | null>(null);
 
   // ── Barbarossa warning flag: persists for the rest of the run, ─
-  // set only on a clean (no-fail) encounter. Future Acre beat reads
+  // set only on a clean (no-fail) encounter. The Acre beat reads
   // this to decide whether the player has the prophecy in hand.
   const [barbarossaWarningHeard, setBarbarossaWarningHeard] = useState<boolean>(false);
+
+  // ── Acre event internal sub-state ──────────────────────────
+  const [acreStep, setAcreStep] = useState<AcreStep>("decide");
+  const [acreOutcomeId, setAcreOutcomeId] = useState<AcreOutcomeId | null>(null);
+
+  // ── Acre clean-run flag: set only on the "hold" path AND only
+  // when the player heard Barbarossa's warning. Persists for the
+  // rest of the run and drives Richard's IMPRESSED greeting tier.
+  const [acreCleanRun, setAcreCleanRun] = useState<boolean>(false);
 
   // ── Richard tier: locked when his sage encounter begins so the ─
   // greeting and envoy line stay matched even though the +2/+2
@@ -666,6 +745,34 @@ export default function Crusades({ onBack }: CrusadesProps) {
     }
   };
 
+  // ── Acre handlers ──────────────────────────────────────────
+  const handleAcreDecide = (id: "assault" | "hold" | "split") => {
+    if (id === "assault") {
+      applyMeters(ACRE_DELTAS.assault, ACRE_SHAKE.assault);
+      setAcreOutcomeId("assault");
+    } else if (id === "split") {
+      applyMeters(ACRE_DELTAS.split, ACRE_SHAKE.split);
+      setAcreOutcomeId("split");
+    } else {
+      // hold — forks on barbarossaWarningHeard. With the warning the
+      // player knows what they're doing → bigger reward + clean-run
+      // flag. Without it, they guess right but pay for the guessing.
+      if (barbarossaWarningHeard) {
+        applyMeters(ACRE_DELTAS.holdWith, ACRE_SHAKE.holdWith);
+        setAcreCleanRun(true);
+        setAcreOutcomeId("holdWith");
+      } else {
+        applyMeters(ACRE_DELTAS.holdWithout, ACRE_SHAKE.holdWithout);
+        setAcreOutcomeId("holdWithout");
+      }
+    }
+    setAcreStep("outcome");
+  };
+
+  const handleAcreContinue = () => {
+    setPhase("interlude");
+  };
+
   // Per-sage intro tinting. Eleanor reads helpedTheBoy; Barbarossa
   // reads messinaResult; Richard reads the locked richardTier.
   // Other sages get no override.
@@ -690,7 +797,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   // entry) matches the envoy line shown after the +2/+2 reward.
   const enterSage = (sage: Sage) => {
     if (sage.id === "richard") {
-      setRichardTier(computeRichardTier(competence, honor, favor));
+      setRichardTier(computeRichardTier(acreCleanRun, honor, favor));
     }
     setActiveSage(sage);
     setPhase("sageEncounter");
@@ -1177,6 +1284,8 @@ export default function Crusades({ onBack }: CrusadesProps) {
                 // Warning only fires when both questions resolved correctly
                 // (firstTry or secondTry). On any failure his existing
                 // scold/fail strings already carry the teaching beat.
+                // Either way the next phase is Acre — the warning is just
+                // an extra panel on the clean path.
                 const cleanRun = result.outcomes.every(
                   (o) => o.result === "firstTry" || o.result === "secondTry",
                 );
@@ -1184,7 +1293,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
                   setBarbarossaWarningHeard(true);
                   setPhase("barbarossaWarning");
                 } else {
-                  setPhase("interlude");
+                  setPhase("acre");
                 }
               } else if (sageInFlight.id === "richard") {
                 // Q2 ("winning isn't holding") — meter reward fires on
@@ -1219,12 +1328,77 @@ export default function Crusades({ onBack }: CrusadesProps) {
             <p className="text-stone-200 text-sm leading-relaxed italic">"{BARBAROSSA_WARNING_TEXT}"</p>
           </div>
           <button
-            onClick={() => setPhase("interlude")}
+            onClick={() => setPhase("acre")}
             className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
             style={{ fontFamily: "'Georgia', serif" }}
           >
             Continue
           </button>
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── The Acre siege (standalone decision; payoff to barbarossa) ─
+  if (phase === "acre") {
+    const outcome = acreOutcomeId ? ACRE_OUTCOMES[acreOutcomeId] : null;
+    return (
+      <div
+        className={`h-screen bg-stone-900 text-stone-100 overflow-y-auto ${shakeClass}`}
+        style={{ fontFamily: "'Georgia', serif" }}
+      >
+        {/* Floating numbers overlay — fixed center, pointer-events-none, z-50. */}
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 pointer-events-none z-50">
+          <FloatingNumbers floats={floats} />
+        </div>
+
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          {/* Header: location stamp + live meter readout */}
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-amber-400 uppercase tracking-wider">Acre, 1191 · The Siege</p>
+            <MeterReadout competence={competence} honor={honor} favor={favor} />
+          </div>
+
+          {/* ── Decide step ── */}
+          {acreStep === "decide" && (
+            <>
+              <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+                <p className="text-stone-300 text-sm leading-relaxed italic">{ACRE_HOOK}</p>
+              </div>
+              <div className="border border-indigo-700/60 rounded-lg p-3 bg-indigo-950/40 space-y-2">
+                {ACRE_DECIDE_BUTTONS.map((b, i) => (
+                  <button
+                    key={b.id}
+                    onClick={() => handleAcreDecide(b.id)}
+                    className="w-full text-left text-sm px-3 py-2.5 rounded-lg border bg-indigo-900/60 hover:bg-indigo-800/80 border-indigo-700/40 hover:border-indigo-600/60 transition-all"
+                    style={{ fontFamily: "'Georgia', serif" }}
+                  >
+                    <span className="text-indigo-300 font-bold mr-2">{String.fromCharCode(65 + i)}.</span>
+                    <span className="font-bold text-stone-200">{b.label}</span>
+                    <span className="block text-stone-400 italic mt-1 ml-5">{b.line}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* ── Outcome step: narration only (casualties land in prose). ── */}
+          {acreStep === "outcome" && outcome && (
+            <>
+              <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+                <p className="text-stone-300 text-sm leading-relaxed italic">{outcome.narration}</p>
+              </div>
+              <button
+                onClick={handleAcreContinue}
+                className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+                style={{ fontFamily: "'Georgia', serif" }}
+              >
+                Continue
+              </button>
+            </>
+          )}
+
           <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
         </div>
       </div>
@@ -1286,7 +1460,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
             {nextSage ? `DEV · trigger next sage: ${nextSage.name}` : "DEV · all sages encountered"}
           </button>
           <p className="text-[10px] text-stone-500 text-center font-mono">
-            streak: {streak} · sage points: {sagePoints} · coerced: {coerced ? "true" : "false"} · messina: {messinaResult ?? "none"} · barbarossaWarningHeard: {barbarossaWarningHeard ? "true" : "false"} · richardTier: {richardTier ?? "none"} · completed: {completedSageIds.size === 0 ? "none" : Array.from(completedSageIds).join(", ")}
+            streak: {streak} · sage points: {sagePoints} · coerced: {coerced ? "true" : "false"} · messina: {messinaResult ?? "none"} · barbarossaWarningHeard: {barbarossaWarningHeard ? "true" : "false"} · acreCleanRun: {acreCleanRun ? "true" : "false"} · richardTier: {richardTier ?? "none"} · completed: {completedSageIds.size === 0 ? "none" : Array.from(completedSageIds).join(", ")}
           </p>
         </div>
 
