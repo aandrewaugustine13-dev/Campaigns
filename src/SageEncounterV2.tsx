@@ -50,11 +50,15 @@ interface Props {
   // warm-or-worried variant keyed off "The Letter"). Other phases
   // are unaffected.
   introOverride?: string;
+  // Optional italic lead-in sentence shown above each question's prompt.
+  // Tuple positions correspond to questionIndex (0 = recall, 1 = significance).
+  // A position left undefined renders no lead-in for that question.
+  questionLeadIns?: [string?, string?];
 }
 
 type LocalPhase = "intro" | "ask" | "outcome";
 
-export default function SageEncounterV2({ sage, currentStreak, onComplete, introOverride }: Props) {
+export default function SageEncounterV2({ sage, currentStreak, onComplete, introOverride, questionLeadIns }: Props) {
   const [questionIndex, setQuestionIndex] = useState<0 | 1>(0);
   const [attempt, setAttempt] = useState<1 | 2>(1);
   const [localPhase, setLocalPhase] = useState<LocalPhase>("intro");
@@ -171,6 +175,11 @@ export default function SageEncounterV2({ sage, currentStreak, onComplete, intro
               <span className="ml-2 text-amber-400">· Second attempt</span>
             )}
           </p>
+          {questionLeadIns?.[questionIndex] && (
+            <p className="text-stone-400 text-sm leading-relaxed italic">
+              {questionLeadIns[questionIndex]}
+            </p>
+          )}
           <p className="text-stone-200 text-sm leading-relaxed">
             {question.prompt}
           </p>

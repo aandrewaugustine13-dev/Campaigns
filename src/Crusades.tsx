@@ -31,6 +31,8 @@ type Phase =
   | "barbarossaWarning" // Barbarossa's planted warning after a clean encounter
   | "acre"              // The Acre siege decision — payoff to barbarossaWarning
   | "richardEnvoy"      // Richard assigns Hugh to the envoy after his sage
+  | "saladinBearing"    // Pre-encounter bearing choice that tints Saladin's frame
+  | "saladinClosing"    // Post-encounter ride-back beat; pivot to the homecoming arc
   | "interlude";        // placeholder between events (post-sage)
 
 interface CrusadesProps { onBack: () => void; }
@@ -512,6 +514,75 @@ function computeRichardTier(
   return "read";
 }
 
+// ═══════════════════════════════════════════════════════════════
+// "SALADIN" encounter frame — a pre-question bearing choice that
+// tints how he addresses Hugh. His Q1 (the three faiths) and Q2
+// (the mercy at Jerusalem) are untouched in sageEncounters.ts;
+// only the framing/warmth shifts. Saladin's dignity is constant
+// across both paths — it's Hugh's ability to see it that changes.
+// ═══════════════════════════════════════════════════════════════
+
+type BearingTier = "hammer" | "respect";
+
+const SALADIN_BEARING_DELTAS: Record<BearingTier, MeterDeltas> = {
+  hammer:  { favor:  2, honor: -2 },
+  respect: { honor:  3, favor: -1 },
+};
+
+const SALADIN_BEARING_SHAKE: Record<BearingTier, "light" | "medium" | "heavy"> = {
+  hammer:  "medium",
+  respect: "light",
+};
+
+const SALADIN_SCENE_SETTER =
+  "You ride into Saladin's camp under the white flag of a messenger. You feel the hatred before you see it — the eyes of his soldiers follow you, hands resting on hilts, faces tight with contempt. You are the enemy, riding into their home. But not one of them touches you. They know the law: you do not kill a messenger. Whatever else this army is, it is disciplined, and it is held to a code.\n\nYou are brought before the Sultan himself. Salah ad-Din — the man your whole world has taught you to call a monster. He rises. He greets you with a courtesy you did not expect and have rarely been shown by your own lords. He offers you the chance to deliver your king's terms.\n\nHow do you carry yourself?";
+
+const SALADIN_BEARING_BUTTONS: { id: BearingTier; label: string; line: string }[] = [
+  {
+    id: "hammer",
+    label: "The King's hammer",
+    line: "\"I am the envoy of Richard of England, and I'll not bow or scrape before the enemy of Christ. I deliver my king's terms standing, and I look this man in the eye as what he is: an enemy.\"",
+  },
+  {
+    id: "respect",
+    label: "Respect and humility",
+    line: "You take in the camp, the discipline, the bearing of the man before you, and something shifts. This is no savage from the East. This is a great leader of men — perhaps the equal of any you have met. You deliver your king's terms plainly, with the respect one honorable man owes another.",
+  },
+];
+
+// The "beat after choosing" — Saladin's reaction to Hugh's bearing.
+// Used as the sage's intro override (replaces Saladin's stock intro,
+// which is redundant with the bearing scene-setter that just played).
+const SALADIN_INTRO_OVERRIDES: Record<BearingTier, string> = {
+  hammer:
+    "Saladin listens to your cold words without flinching. He does not rise to your contempt, does not match it, does not punish it. He simply regards you with a calm that makes your hardness feel suddenly small — the steadiness of a man who has nothing to prove to you. 'You serve your king well,' he says, and means it, and somehow that is worse than if he'd been angry.",
+  respect:
+    "Saladin notices. Of course he notices — he has spent his life reading men. He inclines his head, and calls for water and dates to be brought to you, a tired messenger far from home. 'Sit,' he says. 'We are enemies today. That does not mean we must be less than men.' For the length of one cup of water, the war is somewhere else.",
+};
+
+// Closing beats — the ride back from Saladin's camp. Tinted by
+// bearingTier. This is the pivot from the outward journey to the
+// homecoming arc; the road turns home after this.
+const SALADIN_CLOSING_BEATS: Record<BearingTier, string> = {
+  hammer:
+    "You carry Saladin's reply back across the lines, and you tell yourself you did your duty. You stood proud. You showed the enemy no weakness. Your king would approve.\n\nBut the sultan's calm follows you out of the tent and will not leave. He had every reason to match your contempt, and he did not. He simply looked at you, and was greater than you, and let you go.\n\nYou ride back toward your own army, and you are thinking — though you try not to — of home. Of a doorway. Of the man you were when you left it, and the man you are becoming out here. The war is not over. But you are beginning to wonder what, exactly, you will be carrying back through that door.",
+  respect:
+    "You carry Saladin's reply back across the lines, and the camp of your own army feels different when you return to it — louder, coarser, smaller. You have stood in the presence of two kings and an emperor's ghost, and a sultan your whole world called a monster treated you with more grace than any of them.\n\nYou do not have the words for what shifted in that tent. Only that you went in certain of who the enemy was, and came out less certain of everything.\n\nAnd somewhere in the certainty you lost, you find you are thinking of home. Of a doorway. Of faces you have not seen in longer than you can stand to count. The war is not over. But for the first time, you let yourself believe there might be a road back.",
+};
+
+// One-line italic lead-ins above each question's prompt. Saladin's
+// dignity is constant — these only tint the warmth of his framing.
+const SALADIN_QUESTION_LEAD_INS: Record<BearingTier, [string, string]> = {
+  hammer: [
+    "He gives no sign of having noticed your hardness. He simply begins, as though you had been courteous:",
+    "Your coldness costs him nothing. He goes on, patient as stone:",
+  ],
+  respect: [
+    "He sets his cup down and turns to you as a man addresses a guest he wishes to know:",
+    "He weighs his next words, addressing you as one might a student he hopes will understand:",
+  ],
+};
+
 // ── Opening panel: <img> with a visibly labeled gray fallback
 // when the asset is missing. Designed so missing art is obvious,
 // not silently hidden behind a gradient.
@@ -603,6 +674,12 @@ export default function Crusades({ onBack }: CrusadesProps) {
   // greeting and envoy line stay matched even though the +2/+2
   // correct-answer reward fires between them. null until locked.
   const [richardTier, setRichardTier] = useState<RichardTier | null>(null);
+
+  // ── Saladin bearing: set by player choice in saladinBearing, then
+  // locked. Drives Saladin's intro override and per-question lead-ins.
+  const [bearingTier, setBearingTier] = useState<BearingTier | null>(null);
+  // Persistent flag for the homecoming reveal (TBD). True iff path B.
+  const [honoredSaladin, setHonoredSaladin] = useState<boolean>(false);
 
   // ── Sage encounter state (persists across all sages) ───────
   const [streak, setStreak] = useState<number>(0);
@@ -773,6 +850,15 @@ export default function Crusades({ onBack }: CrusadesProps) {
     setPhase("interlude");
   };
 
+  // ── Saladin bearing handler ────────────────────────────────
+  const handleSaladinBearing = (tier: BearingTier) => {
+    applyMeters(SALADIN_BEARING_DELTAS[tier], SALADIN_BEARING_SHAKE[tier]);
+    setBearingTier(tier);
+    if (tier === "respect") setHonoredSaladin(true);
+    // Hand off to the sage encounter with the tier locked.
+    setPhase("sageEncounter");
+  };
+
   // Per-sage intro tinting. Eleanor reads helpedTheBoy; Barbarossa
   // reads messinaResult; Richard reads the locked richardTier.
   // Other sages get no override.
@@ -790,7 +876,19 @@ export default function Crusades({ onBack }: CrusadesProps) {
     // the tinted greeting, so both land in one continuous panel. Eleanor
     // and Barbarossa overrides remain pure replacements by design.
     sageIntroOverride = `${activeSage.intro}\n\n"${RICHARD_GREETINGS[richardTier]}"`;
+  } else if (activeSage?.id === "saladin" && bearingTier !== null) {
+    // Replace Saladin's stock intro with the post-bearing "beat after
+    // choosing" — the bearing scene-setter (in saladinBearing) already
+    // covers entering the camp, so the stock intro would duplicate.
+    sageIntroOverride = SALADIN_INTRO_OVERRIDES[bearingTier];
   }
+
+  // Per-question lead-ins (currently Saladin only). Lookup keyed on
+  // active sage; null when no tinted lead-ins apply.
+  const sageQuestionLeadIns: [string?, string?] | undefined =
+    activeSage?.id === "saladin" && bearingTier !== null
+      ? SALADIN_QUESTION_LEAD_INS[bearingTier]
+      : undefined;
 
   // Lock per-sage state at sage entry. For Richard, captures the tier
   // synchronously so the greeting (computed on the first render after
@@ -800,7 +898,10 @@ export default function Crusades({ onBack }: CrusadesProps) {
       setRichardTier(computeRichardTier(acreCleanRun, honor, favor));
     }
     setActiveSage(sage);
-    setPhase("sageEncounter");
+    // Saladin routes to the bearing choice first; everyone else goes
+    // directly to the question flow. bearingTier is set inside that
+    // phase before sageEncounter renders.
+    setPhase(sage.id === "saladin" ? "saladinBearing" : "sageEncounter");
   };
 
   // ── Opening (panels 1–4, tap-to-advance) ───────────────────
@@ -1266,6 +1367,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
             sage={sageInFlight}
             currentStreak={streak}
             introOverride={sageIntroOverride}
+            questionLeadIns={sageQuestionLeadIns}
             onComplete={(result) => {
               setStreak(result.newStreak);
               setSagePoints((p) => p + result.totalPoints);
@@ -1304,6 +1406,10 @@ export default function Crusades({ onBack }: CrusadesProps) {
                   applyMeters(RICHARD_CORRECT_DELTAS, "light");
                 }
                 setPhase("richardEnvoy");
+              } else if (sageInFlight.id === "saladin") {
+                // Ride-back beat fires regardless of question outcomes;
+                // it's the pivot from outward arc to the homecoming arc.
+                setPhase("saladinClosing");
               } else {
                 setPhase("interlude");
               }
@@ -1432,6 +1538,88 @@ export default function Crusades({ onBack }: CrusadesProps) {
     );
   }
 
+  // ── Saladin closing beat (post-encounter; pivots to homecoming) ─
+  if (phase === "saladinClosing") {
+    const text = bearingTier !== null ? SALADIN_CLOSING_BEATS[bearingTier] : "";
+    return (
+      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-amber-400 uppercase tracking-wider">The Ride Back · Toward Home</p>
+            <MeterReadout competence={competence} honor={honor} favor={favor} />
+          </div>
+          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+            {text.split("\n\n").map((para, i) => (
+              <p
+                key={i}
+                className={`text-stone-200 text-sm leading-relaxed italic ${i > 0 ? "mt-3" : ""}`}
+              >
+                {para}
+              </p>
+            ))}
+          </div>
+          <button
+            onClick={() => setPhase("interlude")}
+            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+            style={{ fontFamily: "'Georgia', serif" }}
+          >
+            Continue
+          </button>
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Saladin bearing choice (pre-encounter; tints Saladin's frame) ─
+  if (phase === "saladinBearing") {
+    return (
+      <div
+        className={`h-screen bg-stone-900 text-stone-100 overflow-y-auto ${shakeClass}`}
+        style={{ fontFamily: "'Georgia', serif" }}
+      >
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 pointer-events-none z-50">
+          <FloatingNumbers floats={floats} />
+        </div>
+
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-amber-400 uppercase tracking-wider">Saladin's Camp · Under the White Flag</p>
+            <MeterReadout competence={competence} honor={honor} favor={favor} />
+          </div>
+
+          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+            {SALADIN_SCENE_SETTER.split("\n\n").map((para, i) => (
+              <p
+                key={i}
+                className={`text-stone-300 text-sm leading-relaxed italic ${i > 0 ? "mt-3" : ""}`}
+              >
+                {para}
+              </p>
+            ))}
+          </div>
+
+          <div className="border border-indigo-700/60 rounded-lg p-3 bg-indigo-950/40 space-y-2">
+            {SALADIN_BEARING_BUTTONS.map((b, i) => (
+              <button
+                key={b.id}
+                onClick={() => handleSaladinBearing(b.id)}
+                className="w-full text-left text-sm px-3 py-2.5 rounded-lg border bg-indigo-900/60 hover:bg-indigo-800/80 border-indigo-700/40 hover:border-indigo-600/60 transition-all"
+                style={{ fontFamily: "'Georgia', serif" }}
+              >
+                <span className="text-indigo-300 font-bold mr-2">{String.fromCharCode(65 + i)}.</span>
+                <span className="font-bold text-stone-200">{b.label}</span>
+                <span className="block text-stone-400 italic mt-1 ml-5">{b.line}</span>
+              </button>
+            ))}
+          </div>
+
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
   // ── Interlude (post-sage placeholder; next event lands here) ─
   return (
     <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
@@ -1460,7 +1648,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
             {nextSage ? `DEV · trigger next sage: ${nextSage.name}` : "DEV · all sages encountered"}
           </button>
           <p className="text-[10px] text-stone-500 text-center font-mono">
-            streak: {streak} · sage points: {sagePoints} · coerced: {coerced ? "true" : "false"} · messina: {messinaResult ?? "none"} · barbarossaWarningHeard: {barbarossaWarningHeard ? "true" : "false"} · acreCleanRun: {acreCleanRun ? "true" : "false"} · richardTier: {richardTier ?? "none"} · completed: {completedSageIds.size === 0 ? "none" : Array.from(completedSageIds).join(", ")}
+            streak: {streak} · sage points: {sagePoints} · coerced: {coerced ? "true" : "false"} · messina: {messinaResult ?? "none"} · barbarossaWarningHeard: {barbarossaWarningHeard ? "true" : "false"} · acreCleanRun: {acreCleanRun ? "true" : "false"} · richardTier: {richardTier ?? "none"} · bearingTier: {bearingTier ?? "none"} · honoredSaladin: {honoredSaladin ? "true" : "false"} · completed: {completedSageIds.size === 0 ? "none" : Array.from(completedSageIds).join(", ")}
           </p>
         </div>
 
