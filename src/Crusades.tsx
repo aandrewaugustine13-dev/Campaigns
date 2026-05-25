@@ -53,45 +53,49 @@ interface CrusadesProps { onBack: () => void; }
 // ── Panel content. Text is locked — do not paraphrase. ────────
 const OPENING_PANELS: { src: string; text: string }[] = [
   {
-    src: "/backgrounds/crusades/opening/panel_01.png",
+    src: "/assets/Tapestries/01_pope_fallen_city.png",
     text: "The year of our Lord 1187. Jerusalem has fallen. The Holy City — taken in the First Crusade with rivers of blood, held for eighty-eight years — is gone. Saladin's banners fly over its walls. Word of it crosses the sea like a sickness, and everywhere it lands, the same silence falls.",
   },
   {
-    src: "/backgrounds/crusades/opening/panel_02.png",
+    src: "/assets/Tapestries/01_pope_cathedral.png",
     text: "In Rome, one man already knows the answer he will give them. He will not tell them it was politics, or poor generalship. He will tell them it was sin. Their sin. And that the only road back to grace runs through the desert, sword in hand.",
   },
   {
-    src: "/backgrounds/crusades/opening/panel_03.png",
+    src: "/assets/Tapestries/01_pope_sermon.png",
     text: "Children of Christ. The Holy City weeps. The tomb of our Lord is held by those who deny Him — and I ask you: how, but that we earned it? We grew soft. We turned our blades on each other. The loss of Jerusalem is not God's failure. It is ours. But our God is merciful. To every man who takes the cross, I promise this: every sin of your life, washed away. And to those who would stay home while Christ's tomb lies in heathen hands? Ask what answer you will give, on the last day, when He asks where you were.",
   },
   {
-    src: "/backgrounds/crusades/opening/panel_04.png",
-    text: "He lets it land. He has given them heaven, and he has given them dread, and he knows — as he has always known — which of the two will fill the ships. Far from Rome, the call rolls downhill. Past the great houses. Down to the small men who have always known: when great men speak of holy war, it is the low men who fill the graves. In a crowd, a hedge knight stands very still. He holds no land. He has a sword, a horse, and three reasons asleep at home he has never wished to leave. He does not yet know they are already coming for him.",
+    src: "/assets/Tapestries/01_pope_face.png",
+    text: "He lets it land. He has given them heaven, and he has given them dread, and he knows — as he has always known — which of the two will fill the ships.",
+  },
+  {
+    src: "/assets/Tapestries/01_pope_crowd_hugh.png",
+    text: "Far from Rome, the call rolls downhill. Past the great houses. Down to the small men who have always known: when great men speak of holy war, it is the low men who fill the graves. In a crowd, a hedge knight stands very still. He holds no land. He has a sword, a horse, and three reasons asleep at home he has never wished to leave. He does not yet know they are already coming for him.",
   },
 ];
 
 const GOODBYE_WILLING_PANELS: { src: string; text: string }[] = [
   {
-    src: "/backgrounds/crusades/opening/goodbye_willing_01.png",
+    src: "/assets/Tapestries/02_goodbye_willing.png",
     text: "[Final dawn farewell. His wife Alyse, cold, says aloud:] \"Look at them. Look at your children. And tell me which one of them is worth less to you than a city you have never seen.\"",
   },
   {
-    src: "/backgrounds/crusades/opening/goodbye_willing_02.png",
+    src: "/assets/Tapestries/02_goodbye_willing.png",
     text: "[Hugh says nothing — the truth would only frighten her.] \"I cannot defend this house, Hugh. When winter comes and the stores run thin and there is no man at this door, it will be me and three small children and whatever mercy the world decides to show us. You are not going to save Jerusalem. You are leaving us to save yourself a worse goodbye.\"",
   },
   {
-    src: "/backgrounds/crusades/opening/goodbye_willing_03.png",
+    src: "/assets/Tapestries/02_goodbye_willing.png",
     text: "[His daughter reaches for him. His wife does not. He goes anyway.]",
   },
 ];
 
 const GOODBYE_COERCED_PANELS: { src: string; text: string }[] = [
   {
-    src: "/backgrounds/crusades/opening/goodbye_coerced_01.png",
+    src: "/assets/Tapestries/02_goodbye_coerced.png",
     text: "[He said no. Before dawn, the door comes off its hinges. The King's men take him from his bed. Alyse screaming, the children awake, his son making a sound he'll hear forever. No goodbye — that's what they steal. One look back: Alyse in the doorway, candlelit, white with terror and rage, arm flung toward him. The dark swallows his daughter calling his name.]",
   },
   {
-    src: "/backgrounds/crusades/opening/goodbye_coerced_02.png",
+    src: "/assets/Tapestries/02_goodbye_coerced.png",
     text: "Whatever else this war makes of you, it began like this: with you telling the truth, and the truth meaning nothing at all.",
   },
 ];
@@ -1204,7 +1208,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
       <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-6 space-y-4">
           <h1 className="text-2xl font-bold text-amber-400">The Banner</h1>
-          <OpeningPanel src="/backgrounds/crusades/opening/panel_05.png" alt="The Banner" />
+          <OpeningPanel src="/assets/Tapestries/02_banner.png" alt="The Banner" />
           {/* Reused amber/stone two-button block from the original prologue.
               Tapping anywhere else on the screen does NOT advance — only these
               two buttons resolve the choice. */}
@@ -1287,6 +1291,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
           {/* ── Decide step ── */}
           {quotaStep === "decide" && (
             <>
+              <OpeningPanel src="/assets/Tapestries/03_quota_village.png" alt="The village" />
               <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
                 <p className="text-stone-300 text-sm leading-relaxed italic">{QUOTA_HOOK}</p>
               </div>
@@ -1310,6 +1315,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
           {/* ── History step (path C only) ── */}
           {quotaStep === "history" && (
             <>
+              <OpeningPanel src="/assets/Tapestries/03_quota_elder.png" alt="The elder" />
               <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
                 <p className="text-stone-300 text-sm leading-relaxed italic">{QUOTA_HISTORY_QUESTION.prompt}</p>
               </div>
@@ -1335,6 +1341,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
           {/* ── Forced-choice step (wrong history answer fallback) ── */}
           {quotaStep === "forcedChoice" && (
             <>
+              <OpeningPanel src="/assets/Tapestries/03_quota_elder.png" alt="The elder" />
               <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
                 <p className="text-stone-300 text-sm leading-relaxed italic">{QUOTA_FORCED_SETUP}</p>
               </div>
@@ -1357,6 +1364,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
           {/* ── Outcome step: narration beat + marshal's report-back ── */}
           {quotaStep === "outcome" && outcome && (
             <>
+              <OpeningPanel src="/assets/Tapestries/03_quota_marshal.png" alt="The marshal" />
               <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
                 <p className="text-stone-300 text-sm leading-relaxed italic">{outcome.narration}</p>
               </div>
@@ -1405,6 +1413,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
           {/* ── Decide step ── */}
           {letterStep === "decide" && (
             <>
+              <OpeningPanel src="/assets/Tapestries/04_letter_boy.png" alt="The boy in the mud" />
               <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
                 <p className="text-stone-300 text-sm leading-relaxed italic">{LETTER_HOOK}</p>
               </div>
@@ -1432,6 +1441,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
           {/* ── Outcome step ── */}
           {letterStep === "outcome" && letterChoice === "help" && (
             <>
+              <OpeningPanel src="/assets/Tapestries/04_letter_boy_help.png" alt="Writing the letter" />
               <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
                 <p className="text-stone-300 text-sm leading-relaxed italic">{LETTER_HELP_OUTCOME.lead}</p>
               </div>
@@ -1458,6 +1468,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
 
           {letterStep === "outcome" && letterChoice === "push" && (
             <>
+              <OpeningPanel src="/assets/Tapestries/04_letter_boy.png" alt="The boy left behind" />
               <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
                 <p className="text-stone-300 text-sm leading-relaxed italic">{LETTER_PUSH_OUTCOME}</p>
               </div>
@@ -1628,6 +1639,9 @@ export default function Crusades({ onBack }: CrusadesProps) {
           <p className="text-xs text-amber-400 uppercase tracking-wider">
             Sage Encounter · threshold {Math.round(sageInFlight.threshold * 100)}%
           </p>
+          {sageInFlight.id === "eleanor" && (
+            <OpeningPanel src="/assets/Tapestries/05_eleanor_hall.png" alt="Eleanor's hall" />
+          )}
           <SageEncounterV2
             key={sageInFlight.id}
             sage={sageInFlight}
@@ -2166,6 +2180,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
       <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-4 space-y-3">
           <p className="text-xs text-amber-400 uppercase tracking-wider">France · The Queen's Summons</p>
+          <OpeningPanel src="/assets/Tapestries/05_eleanor_gate.png" alt="Eleanor's gate" />
           <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
             <p className="text-stone-200 text-sm leading-relaxed italic">{text}</p>
           </div>
