@@ -33,6 +33,7 @@ type Phase =
   | "richardEnvoy"      // Richard assigns Hugh to the envoy after his sage
   | "saladinBearing"    // Pre-encounter bearing choice that tints Saladin's frame
   | "saladinClosing"    // Post-encounter ride-back beat; pivot to the homecoming arc
+  | "imadClosing"       // Post-Imad closing monologue; final sage before battle climax
   | "interlude";        // placeholder between events (post-sage)
 
 interface CrusadesProps { onBack: () => void; }
@@ -583,6 +584,19 @@ const SALADIN_QUESTION_LEAD_INS: Record<BearingTier, [string, string]> = {
   ],
 };
 
+// ═══════════════════════════════════════════════════════════════
+// "IMAD AD-DIN AL-ISFAHANI" — the quiet think-beat. No bearing
+// choice, no meter-moving decision — standard sage flow. The
+// handoff narration from Saladin replaces Imad's stock intro;
+// the closing monologue fires after Q2 regardless of outcome.
+// ═══════════════════════════════════════════════════════════════
+
+const IMAD_INTRO_HANDOFF =
+  "You rise to carry the Sultan's reply back to your king. But Saladin lifts a hand.\n\n'Before you go — there is a man you should meet. My secretary. He keeps the record of this war, and of much else besides.' A faint smile. 'Your kings believe this war will be remembered as they fought it. He will show you how it is actually remembered — and by whom. Go to him. Then carry what you learn back to Richard, and see if he is wise enough to hear it.'\n\nYou are led deeper into the camp, to a tent lit with oil lamps and stacked, floor to ceiling, with books. More books than you have seen in your life. A thin, sharp-eyed man looks up from his writing.";
+
+const IMAD_CLOSING_TEXT =
+  "Imad sets down his pen. 'You came here to deliver a king's terms. You will leave with something your king does not have: the truth of his own war.\n\nYour Richard is a great soldier. He will win his battles. He may even reach the walls of the Holy City. But he will not hold it. Jerusalem sits far from his sea and his supplies, ringed by our lands, defended by a people who will never stop coming. He can take it for a season. He cannot keep it. The wise thing — the only thing — is peace. A truce that lets his pilgrims pray and lets the city stand. Whether he is wise enough for that, you will soon learn.'\n\nHe returns to his writing. 'And one more thing, messenger, since you will carry stories home. Every man believes he writes his own legend. He does not. Others write it — chroniclers like me, kings like yours, and the people who knew him. You will be remembered exactly as those who outlive you choose to remember you. Remember that, when you finally go home.'\n\nYou ride back toward Richard's camp with more than a reply. You carry the shape of the whole war, and a question you cannot put down: not how Richard will be remembered — but how you will be.";
+
 // ── Opening panel: <img> with a visibly labeled gray fallback
 // when the asset is missing. Designed so missing art is obvious,
 // not silently hidden behind a gradient.
@@ -881,6 +895,11 @@ export default function Crusades({ onBack }: CrusadesProps) {
     // choosing" — the bearing scene-setter (in saladinBearing) already
     // covers entering the camp, so the stock intro would duplicate.
     sageIntroOverride = SALADIN_INTRO_OVERRIDES[bearingTier];
+  } else if (activeSage?.id === "imad") {
+    // Saladin's handoff narration replaces Imad's stock intro — it
+    // leads Hugh deeper into the camp and ends with him arriving at
+    // Imad's tent of books. The stock intro is now redundant.
+    sageIntroOverride = IMAD_INTRO_HANDOFF;
   }
 
   // Per-question lead-ins (currently Saladin only). Lookup keyed on
@@ -1410,6 +1429,10 @@ export default function Crusades({ onBack }: CrusadesProps) {
                 // Ride-back beat fires regardless of question outcomes;
                 // it's the pivot from outward arc to the homecoming arc.
                 setPhase("saladinClosing");
+              } else if (sageInFlight.id === "imad") {
+                // Imad's closing monologue — the final sage beat before
+                // the battle climax / journey home arc (TBD).
+                setPhase("imadClosing");
               } else {
                 setPhase("interlude");
               }
@@ -1538,7 +1561,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
     );
   }
 
-  // ── Saladin closing beat (post-encounter; pivots to homecoming) ─
+  // ── Saladin closing beat (post-encounter; hands off to Imad) ──
   if (phase === "saladinClosing") {
     const text = bearingTier !== null ? SALADIN_CLOSING_BEATS[bearingTier] : "";
     return (
@@ -1550,6 +1573,43 @@ export default function Crusades({ onBack }: CrusadesProps) {
           </div>
           <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
             {text.split("\n\n").map((para, i) => (
+              <p
+                key={i}
+                className={`text-stone-200 text-sm leading-relaxed italic ${i > 0 ? "mt-3" : ""}`}
+              >
+                {para}
+              </p>
+            ))}
+          </div>
+          <button
+            onClick={() => {
+              // Hands off to Imad (the next sage by threshold) rather
+              // than dropping back to interlude.
+              if (nextSage) enterSage(nextSage);
+              else setPhase("interlude");
+            }}
+            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+            style={{ fontFamily: "'Georgia', serif" }}
+          >
+            Continue
+          </button>
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Imad closing monologue (post-encounter; final sage before TBD) ─
+  if (phase === "imadClosing") {
+    return (
+      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-amber-400 uppercase tracking-wider">Imad ad-Din · The Shape of the War</p>
+            <MeterReadout competence={competence} honor={honor} favor={favor} />
+          </div>
+          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+            {IMAD_CLOSING_TEXT.split("\n\n").map((para, i) => (
               <p
                 key={i}
                 className={`text-stone-200 text-sm leading-relaxed italic ${i > 0 ? "mt-3" : ""}`}
