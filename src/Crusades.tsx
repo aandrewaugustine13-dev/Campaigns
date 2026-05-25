@@ -23,14 +23,22 @@ type Phase =
   | "banner"            // panel 5: two-button choice, NOT tap-to-advance
   | "goodbyeWilling"    // post-accept goodbye, tap-to-advance
   | "goodbyeCoerced"    // post-refuse goodbye, tap-to-advance
+  | "bridgeRoad"        // Goodbye → Quota: Hugh joins the march
   | "quota"             // The Quota — three-path moral decision
+  | "bridgeMarch"       // Quota → Letter: the column moves on
   | "letter"            // The Letter — breather event between quota and Eleanor
+  | "bridgeEleanor"     // Letter → Eleanor: why a hedge knight meets a queen
+  | "bridgeShips"       // Eleanor → Sicily: the army takes ship
   | "sicily"            // The Sicily Crossing — 3-card click-through after Eleanor
   | "messina"           // Messina — three-path decision before Barbarossa
+  | "bridgeDream"       // Messina → Barbarossa: the dream transition
   | "sageEncounter"     // active sage encounter (any sage from SAGES)
   | "barbarossaWarning" // Barbarossa's planted warning after a clean encounter
+  | "bridgeAcre"        // Barbarossa → Acre: wake and sail east
   | "acre"              // The Acre siege decision — payoff to barbarossaWarning
+  | "bridgeRichard"     // Acre → Richard: the army marches south
   | "richardEnvoy"      // Richard assigns Hugh to the envoy after his sage
+  | "bridgeSaladin"     // Richard → Saladin: ride across the lines
   | "saladinBearing"    // Pre-encounter bearing choice that tints Saladin's frame
   | "imadClosing"       // Post-Imad closing monologue; final sage before battle climax
   | "jaffaSetup"        // 3-card click-through bridging Imad → Jaffa decision
@@ -84,6 +92,48 @@ const GOODBYE_COERCED_PANELS: { src: string; text: string }[] = [
     text: "Whatever else this war makes of you, it began like this: with you telling the truth, and the truth meaning nothing at all.",
   },
 ];
+
+// ═══════════════════════════════════════════════════════════════
+// BRIDGE NARRATION — connective tissue between beats. Each bridge
+// is one paragraph that answers "why is Hugh here now?" before the
+// next beat begins. Three are flag-tinted.
+// ═══════════════════════════════════════════════════════════════
+
+const BRIDGE_ROAD_TEXT =
+  "The leaving is the easy part. It is over in a morning. What comes after is the long grind of it — weeks on the road, the sea ahead, an army swelling around you as it crawls south through France. You are a soldier now, whether you chose it or not. And an army on the march is a hungry thing. It must be fed, and it must be filled. Which is how you come to be standing, one grey morning, in a village that is not your own — with an order in your hand and five families watching you from their doorways.";
+
+const BRIDGE_MARCH_TEXT =
+  "The column moves on. It always moves on. The land changes, the faces in the ranks change, but the marching does not. Days blur. And then, one afternoon, the line slows ahead of you, and you see a boy sitting in the mud.";
+
+const BRIDGE_ELEANOR_TEXT = {
+  helped:
+    "The army's road south runs through the lands of the great. And the greatest of them all, in these parts, is the old Queen — Eleanor of Aquitaine, mother to King Richard himself, who has come to see her son's army on its way. When the column halts near her household, a steward moves down the ranks, asking after a knight who stopped on the road to write a frightened boy's letter home. He stops at you. 'The Queen will see you,' he says. You do not get to say no to a queen.",
+  pushed:
+    "The army's road south runs through the lands of the great. And the greatest of them all, in these parts, is the old Queen — Eleanor of Aquitaine, mother to King Richard himself, who has come to see her son's army on its way. When the column halts near her household, a steward moves down the ranks, pulling men from the line for the Queen to look over. He stops at you. 'The Queen will see you,' he says. You do not get to say no to a queen.",
+} as const;
+
+const BRIDGE_SHIPS_TEXT =
+  "Eleanor sends you back to the ranks with a blessing, or a warning, or both — you are no longer sure there is a difference. And then the marching ends, because the land does. The army has reached the sea. Whatever Jerusalem is, it is on the far side of all that water. You board the ships.";
+
+const BRIDGE_DREAM_TEXT = {
+  plundered:
+    "That night — your first night after Messina — you sleep badly, the way a man sleeps when the day has put something on his conscience. And in the grey country between sleeping and waking, someone is there with you. A figure of water and reed and faded gold. A drowned emperor.",
+  spared:
+    "That night — your first night after Messina — you sleep badly, the way a man sleeps when the waiting has worn him thin. And in the grey country between sleeping and waking, someone is there with you. A figure of water and reed and faded gold. A drowned emperor.",
+} as const;
+
+const BRIDGE_ACRE_TEXT = {
+  warned:
+    "You wake to the sound of the camp, and the emperor's words stay with you longer than a dream should. Patience is the sword. You do not yet know what he meant. You will. The ships carry the army on, east and east again, until at last it stops before the walls of a city on the coast. Acre. And here the army does not move for a very long time.",
+  unwarned:
+    "You wake to the sound of the camp, and the emperor's words stay with you longer than a dream should. The ships carry the army on, east and east again, until at last it stops before the walls of a city on the coast. Acre. And here the army does not move for a very long time.",
+} as const;
+
+const BRIDGE_RICHARD_TEXT =
+  "Acre falls at last. The army does not rest on it — there is no time. It forms up and marches south down the coast, Saladin's horsemen shadowing the flanks, everyone knowing a real battle is coming. And on one of those nights on the road south...";
+
+const BRIDGE_SALADIN_TEXT =
+  "You ride out the next morning under a white flag, two other envoys beside you and your heart in your throat. The crusader camp falls away behind you. Ahead, across the scorched no-man's-land between two armies, lies the camp of the man your whole world has taught you to fear. You have never been so afraid, or so curious.";
 
 // ═══════════════════════════════════════════════════════════════
 // "THE SICILY CROSSING" — 3-card click-through, between Eleanor
@@ -847,9 +897,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   };
 
   const handleQuotaContinue = () => {
-    // Always route through the letter event next — it's the on-ramp
-    // that explains how Eleanor comes to know Hugh.
-    setPhase("letter");
+    setPhase("bridgeMarch");
   };
 
   // ── Letter handlers ────────────────────────────────────────
@@ -863,11 +911,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   };
 
   const handleLetterContinue = () => {
-    if (nextSage) {
-      enterSage(nextSage);
-    } else {
-      setPhase("interlude");
-    }
+    setPhase("bridgeEleanor");
   };
 
   // ── Messina handlers ───────────────────────────────────────
@@ -913,11 +957,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   };
 
   const handleMessinaContinue = () => {
-    if (nextSage) {
-      enterSage(nextSage);
-    } else {
-      setPhase("interlude");
-    }
+    setPhase("bridgeDream");
   };
 
   // ── Acre handlers ──────────────────────────────────────────
@@ -945,7 +985,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   };
 
   const handleAcreContinue = () => {
-    setPhase("interlude");
+    setPhase("bridgeRichard");
   };
 
   // ── Jaffa handlers ─────────────────────────────────────────
@@ -1104,7 +1144,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
           <button
             type="button"
             onClick={() => {
-              if (isLast) { setPanelIndex(0); setPhase("quota"); }
+              if (isLast) { setPhase("bridgeRoad"); }
               else setPanelIndex((i) => i + 1);
             }}
             className="block w-full text-left space-y-3 focus:outline-none focus:ring-2 focus:ring-amber-700/40 rounded-lg p-1 -m-1"
@@ -1505,8 +1545,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
 
               // Per-sage post-encounter routing.
               if (sageInFlight.id === "eleanor") {
-                setPanelIndex(0);
-                setPhase("sicily");
+                setPhase("bridgeShips");
               } else if (sageInFlight.id === "barbarossa") {
                 // Warning only fires when both questions resolved correctly
                 // (firstTry or secondTry). On any failure his existing
@@ -1520,7 +1559,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
                   setBarbarossaWarningHeard(true);
                   setPhase("barbarossaWarning");
                 } else {
-                  setPhase("acre");
+                  setPhase("bridgeAcre");
                 }
               } else if (sageInFlight.id === "richard") {
                 // Q2 ("winning isn't holding") — meter reward fires on
@@ -1568,7 +1607,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
             <p className="text-stone-200 text-sm leading-relaxed italic">"{BARBAROSSA_WARNING_TEXT}"</p>
           </div>
           <button
-            onClick={() => setPhase("acre")}
+            onClick={() => setPhase("bridgeAcre")}
             className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
             style={{ fontFamily: "'Georgia', serif" }}
           >
@@ -1660,7 +1699,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
             </p>
           </div>
           <button
-            onClick={() => setPhase("interlude")}
+            onClick={() => setPhase("bridgeSaladin")}
             className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
             style={{ fontFamily: "'Georgia', serif" }}
           >
@@ -1840,6 +1879,190 @@ export default function Crusades({ onBack }: CrusadesProps) {
             ))}
           </div>
 
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // BRIDGE PHASES — one paragraph each, same styling, tap-to-advance.
+  // Three are flag-tinted; the rest are static.
+  // ═══════════════════════════════════════════════════════════════
+
+  // ── Bridge 1: Goodbye → Quota ─────────────────────────────
+  if (phase === "bridgeRoad") {
+    return (
+      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          <p className="text-xs text-amber-400 uppercase tracking-wider">France · On the Road</p>
+          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+            <p className="text-stone-200 text-sm leading-relaxed italic">{BRIDGE_ROAD_TEXT}</p>
+          </div>
+          <button
+            onClick={() => setPhase("quota")}
+            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+            style={{ fontFamily: "'Georgia', serif" }}
+          >
+            Continue
+          </button>
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Bridge 2: Quota → Letter ──────────────────────────────
+  if (phase === "bridgeMarch") {
+    return (
+      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          <p className="text-xs text-amber-400 uppercase tracking-wider">France · The March</p>
+          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+            <p className="text-stone-200 text-sm leading-relaxed italic">{BRIDGE_MARCH_TEXT}</p>
+          </div>
+          <button
+            onClick={() => setPhase("letter")}
+            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+            style={{ fontFamily: "'Georgia', serif" }}
+          >
+            Continue
+          </button>
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Bridge 3: Letter → Eleanor (tinted by helpedTheBoy) ───
+  if (phase === "bridgeEleanor") {
+    const text = helpedTheBoy ? BRIDGE_ELEANOR_TEXT.helped : BRIDGE_ELEANOR_TEXT.pushed;
+    return (
+      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          <p className="text-xs text-amber-400 uppercase tracking-wider">France · The Queen's Summons</p>
+          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+            <p className="text-stone-200 text-sm leading-relaxed italic">{text}</p>
+          </div>
+          <button
+            onClick={() => { if (nextSage) enterSage(nextSage); else setPhase("interlude"); }}
+            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+            style={{ fontFamily: "'Georgia', serif" }}
+          >
+            Continue
+          </button>
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Bridge 4: Eleanor → Sicily ────────────────────────────
+  if (phase === "bridgeShips") {
+    return (
+      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          <p className="text-xs text-amber-400 uppercase tracking-wider">The Coast · Boarding the Ships</p>
+          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+            <p className="text-stone-200 text-sm leading-relaxed italic">{BRIDGE_SHIPS_TEXT}</p>
+          </div>
+          <button
+            onClick={() => { setPanelIndex(0); setPhase("sicily"); }}
+            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+            style={{ fontFamily: "'Georgia', serif" }}
+          >
+            Continue
+          </button>
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Bridge 5: Messina → Barbarossa (tinted by messinaResult) ─
+  if (phase === "bridgeDream") {
+    const text = messinaResult === "plundered" ? BRIDGE_DREAM_TEXT.plundered : BRIDGE_DREAM_TEXT.spared;
+    return (
+      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          <p className="text-xs text-amber-400 uppercase tracking-wider">Sicily · That Night</p>
+          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+            <p className="text-stone-200 text-sm leading-relaxed italic">{text}</p>
+          </div>
+          <button
+            onClick={() => { if (nextSage) enterSage(nextSage); else setPhase("interlude"); }}
+            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+            style={{ fontFamily: "'Georgia', serif" }}
+          >
+            Continue
+          </button>
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Bridge 6: Barbarossa → Acre (tinted by barbarossaWarningHeard) ─
+  if (phase === "bridgeAcre") {
+    const text = barbarossaWarningHeard ? BRIDGE_ACRE_TEXT.warned : BRIDGE_ACRE_TEXT.unwarned;
+    return (
+      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          <p className="text-xs text-amber-400 uppercase tracking-wider">The Eastern Mediterranean · Toward Acre</p>
+          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+            <p className="text-stone-200 text-sm leading-relaxed italic">{text}</p>
+          </div>
+          <button
+            onClick={() => setPhase("acre")}
+            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+            style={{ fontFamily: "'Georgia', serif" }}
+          >
+            Continue
+          </button>
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Bridge 7: Acre → Richard ──────────────────────────────
+  if (phase === "bridgeRichard") {
+    return (
+      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          <p className="text-xs text-amber-400 uppercase tracking-wider">The Coast Road · Marching South</p>
+          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+            <p className="text-stone-200 text-sm leading-relaxed italic">{BRIDGE_RICHARD_TEXT}</p>
+          </div>
+          <button
+            onClick={() => { if (nextSage) enterSage(nextSage); else setPhase("interlude"); }}
+            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+            style={{ fontFamily: "'Georgia', serif" }}
+          >
+            Continue
+          </button>
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Bridge 8: Richard → Saladin ───────────────────────────
+  if (phase === "bridgeSaladin") {
+    return (
+      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          <p className="text-xs text-amber-400 uppercase tracking-wider">No-Man's-Land · Under the White Flag</p>
+          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+            <p className="text-stone-200 text-sm leading-relaxed italic">{BRIDGE_SALADIN_TEXT}</p>
+          </div>
+          <button
+            onClick={() => { if (nextSage) enterSage(nextSage); else setPhase("interlude"); }}
+            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+            style={{ fontFamily: "'Georgia', serif" }}
+          >
+            Continue
+          </button>
           <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
         </div>
       </div>
