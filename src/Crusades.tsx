@@ -33,6 +33,7 @@ type Phase =
   | "richardEnvoy"      // Richard assigns Hugh to the envoy after his sage
   | "saladinBearing"    // Pre-encounter bearing choice that tints Saladin's frame
   | "imadClosing"       // Post-Imad closing monologue; final sage before battle climax
+  | "jaffaSetup"        // 3-card click-through bridging Imad → Jaffa decision
   | "jaffa"             // Jaffa mercy-under-fire — last heavy meter-mover
   | "interlude";        // placeholder between events (post-sage)
 
@@ -586,6 +587,27 @@ const IMAD_INTRO_HANDOFF =
 
 const IMAD_CLOSING_TEXT =
   "Imad sets down his pen. 'You came here to deliver a king's terms. You will leave with something your king does not have: the truth of his own war.\n\nYour Richard is a great soldier. He will win his battles. He may even reach the walls of the Holy City. But he will not hold it. Jerusalem sits far from his sea and his supplies, ringed by our lands, defended by a people who will never stop coming. He can take it for a season. He cannot keep it. The wise thing — the only thing — is peace. A truce that lets his pilgrims pray and lets the city stand. Whether he is wise enough for that, you will soon learn.'\n\nHe returns to his writing. 'And one more thing, messenger, since you will carry stories home. Every man believes he writes his own legend. He does not. Others write it — chroniclers like me, kings like yours, and the people who knew him. You will be remembered exactly as those who outlive you choose to remember you. Remember that, when you finally go home.'\n\nYou ride back toward Richard's camp with more than a reply. You carry the shape of the whole war, and a question you cannot put down: not how Richard will be remembered — but how you will be.";
+
+// ═══════════════════════════════════════════════════════════════
+// "JAFFA SETUP" — 3-card educational click-through bridging Imad's
+// closing and the Jaffa mercy decision. Teaches how the truce
+// negotiations led to Saladin's strike and Richard's counterattack.
+// ═══════════════════════════════════════════════════════════════
+
+const JAFFA_SETUP_PANELS: { src: string; text: string }[] = [
+  {
+    src: "/backgrounds/crusades/jaffa/panel_01.png",
+    text: "You carry Saladin's reply and Imad's hard truth back to Richard. And the King — for all his pride — proves wise enough to hear it. He knows now what you know: that Jerusalem can be taken but never held. So instead of a doomed assault, both sides edge toward a truce. The war that cannot be won is grinding, slowly, toward an end.",
+  },
+  {
+    src: "/backgrounds/crusades/jaffa/panel_02.png",
+    text: "But a truce is not peace, and Saladin sees an opening. While Richard's main army is away to the north, the Sultan strikes the coastal city of Jaffa — Richard's own supply base — and storms its walls. The small garrison left behind is overwhelmed. Only the citadel holds, its defenders trapped and praying, as Muslim banners rise over the town.",
+  },
+  {
+    src: "/backgrounds/crusades/jaffa/panel_03.png",
+    text: "Word reaches Richard up the coast. He does not wait. He loads a handful of knights and crossbowmen onto ships and races south. When he arrives, the town looks lost — until a defender swims out to his ship and tells him the citadel still stands. Richard leaps into the surf in his sailor's shoes, axe in hand, and charges the beach. The suddenness of it shatters Saladin's army. They break. They run. And that is where you find yourself now — in the middle of a rout, with a fleeing enemy at your horse's feet.",
+  },
+];
 
 // ═══════════════════════════════════════════════════════════════
 // "JAFFA" — mercy under fire (standalone decision). The final
@@ -1670,13 +1692,43 @@ export default function Crusades({ onBack }: CrusadesProps) {
             ))}
           </div>
           <button
-            onClick={() => setPhase("jaffa")}
+            onClick={() => { setPanelIndex(0); setPhase("jaffaSetup"); }}
             className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
             style={{ fontFamily: "'Georgia', serif" }}
           >
             Continue
           </button>
           <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Jaffa setup (3-card click-through; bridges Imad → Jaffa) ─
+  if (phase === "jaffaSetup") {
+    const panel = JAFFA_SETUP_PANELS[panelIndex];
+    const isLast = panelIndex === JAFFA_SETUP_PANELS.length - 1;
+    return (
+      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-6 space-y-4">
+          <p className="text-xs text-amber-400 uppercase tracking-wider">The Road to Jaffa</p>
+          <button
+            type="button"
+            onClick={() => {
+              if (isLast) { setPanelIndex(0); setPhase("jaffa"); }
+              else setPanelIndex((i) => i + 1);
+            }}
+            className="block w-full text-left space-y-3 focus:outline-none focus:ring-2 focus:ring-amber-700/40 rounded-lg p-1 -m-1"
+          >
+            <OpeningPanel src={panel.src} alt={`Jaffa setup panel ${panelIndex + 1}`} />
+            <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+              <p className="text-stone-200 text-sm leading-relaxed italic">{panel.text}</p>
+            </div>
+            <p className="text-center text-stone-500 text-xs italic">
+              tap to continue · {panelIndex + 1} / {JAFFA_SETUP_PANELS.length}
+            </p>
+          </button>
+          <button onClick={onBack} className="block w-full text-stone-500 hover:text-stone-300 text-xs mt-3">← Back to Campaigns</button>
         </div>
       </div>
     );
