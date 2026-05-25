@@ -33,6 +33,7 @@ type Phase =
   | "richardEnvoy"      // Richard assigns Hugh to the envoy after his sage
   | "saladinBearing"    // Pre-encounter bearing choice that tints Saladin's frame
   | "imadClosing"       // Post-Imad closing monologue; final sage before battle climax
+  | "jaffa"             // Jaffa mercy-under-fire — last heavy meter-mover
   | "interlude";        // placeholder between events (post-sage)
 
 interface CrusadesProps { onBack: () => void; }
@@ -586,6 +587,74 @@ const IMAD_INTRO_HANDOFF =
 const IMAD_CLOSING_TEXT =
   "Imad sets down his pen. 'You came here to deliver a king's terms. You will leave with something your king does not have: the truth of his own war.\n\nYour Richard is a great soldier. He will win his battles. He may even reach the walls of the Holy City. But he will not hold it. Jerusalem sits far from his sea and his supplies, ringed by our lands, defended by a people who will never stop coming. He can take it for a season. He cannot keep it. The wise thing — the only thing — is peace. A truce that lets his pilgrims pray and lets the city stand. Whether he is wise enough for that, you will soon learn.'\n\nHe returns to his writing. 'And one more thing, messenger, since you will carry stories home. Every man believes he writes his own legend. He does not. Others write it — chroniclers like me, kings like yours, and the people who knew him. You will be remembered exactly as those who outlive you choose to remember you. Remember that, when you finally go home.'\n\nYou ride back toward Richard's camp with more than a reply. You carry the shape of the whole war, and a question you cannot put down: not how Richard will be remembered — but how you will be.";
 
+// ═══════════════════════════════════════════════════════════════
+// "JAFFA" — mercy under fire (standalone decision). The final
+// heavy meter-mover before the homecoming verdict locks. Deltas
+// are intentionally large (±4 on honor) as the closing argument.
+// ═══════════════════════════════════════════════════════════════
+
+const JAFFA_DELTAS: Record<
+  "cutDown" | "letGo" | "prisoner",
+  MeterDeltas
+> = {
+  cutDown:  { favor:  2, competence:  1, honor: -4 },
+  letGo:    { honor:  4, favor: -1 },
+  prisoner: { honor:  2, competence:  2 },
+};
+
+const JAFFA_SHAKE: Record<
+  "cutDown" | "letGo" | "prisoner",
+  "light" | "medium" | "heavy"
+> = {
+  cutDown:  "heavy",
+  letGo:    "light",
+  prisoner: "light",
+};
+
+type JaffaOutcomeId = "cutDown" | "letGoHonored" | "letGoPlain" | "prisoner";
+
+const JAFFA_OUTCOMES: Record<JaffaOutcomeId, { narration: string }> = {
+  cutDown: {
+    narration:
+      "You do your work. The army does not blink — this is what soldiers do to a broken enemy. You tell yourself it is war. You tell yourself everyone is doing it. Both things are true. Neither one helps, after. (And somewhere on this same field, Saladin's own brother — seeing King Richard's horse cut down beneath him — is sending the King a fresh mount, an act of grace in the middle of the slaughter. The enemy is being chivalrous while you are being this. You will think about that for a long time.)",
+  },
+  letGoHonored: {
+    narration:
+      "You think of a tent, and water, and dates, and a man who had every reason to be cruel and chose not to be. You let the soldier run. Whatever else this war made of you, it did not make you that. Saladin would know the choice you just made. You think he would not be surprised.",
+  },
+  letGoPlain: {
+    narration:
+      "You lower your sword. The soldier scrambles up and runs, and you let him. It costs you nothing to kill him and nothing to spare him — except that one of those choices you could live with. You let him run.",
+  },
+  prisoner: {
+    narration:
+      "Not every mercy is soft. You take him alive — for ransom, for exchange, for whatever use the King finds. You keep your hands clean and your head about you both. There are worse ways to be good than to be useful about it.",
+  },
+};
+
+const JAFFA_HOOK =
+  "The battle is won. Richard waded ashore with an axe and the Muslim army broke before him, and now Saladin's soldiers are running — pouring out of Jaffa in a panicked flood, throwing down their weapons, fleeing for the hills. The crusaders are running them down. This is not a battle anymore. It is a harvest. Ahead of you, a knot of fleeing soldiers, exhausted and unarmed. One stumbles and falls almost at your horse's feet. He looks up at you. He has no sword. He has only his hands, raised. What do you do?";
+
+const JAFFA_DECIDE_BUTTONS: { id: "cutDown" | "letGo" | "prisoner"; label: string; line: string }[] = [
+  {
+    id: "cutDown",
+    label: "Cut him down",
+    line: "\"He is the enemy. Mercy is for after the war. I do my work.\"",
+  },
+  {
+    id: "letGo",
+    label: "Let him go",
+    line: "\"Enough. I have seen enough of this war to know a defenseless man when I see one. I lower my sword and let him run.\"",
+  },
+  {
+    id: "prisoner",
+    label: "Take him prisoner",
+    line: "\"Drop him. Bind him. He's worth more alive — and I'll not have his blood on me.\"",
+  },
+];
+
+type JaffaStep = "decide" | "outcome";
+
 // ── Opening panel: <img> with a visibly labeled gray fallback
 // when the asset is missing. Designed so missing art is obvious,
 // not silently hidden behind a gradient.
@@ -672,6 +741,10 @@ export default function Crusades({ onBack }: CrusadesProps) {
   // when the player heard Barbarossa's warning. Persists for the
   // rest of the run and drives Richard's IMPRESSED greeting tier.
   const [acreCleanRun, setAcreCleanRun] = useState<boolean>(false);
+
+  // ── Jaffa event internal sub-state ─────────────────────────
+  const [jaffaStep, setJaffaStep] = useState<JaffaStep>("decide");
+  const [jaffaOutcomeId, setJaffaOutcomeId] = useState<JaffaOutcomeId | null>(null);
 
   // ── Richard tier: locked when his sage encounter begins so the ─
   // greeting and envoy line stay matched even though the +2/+2
@@ -850,6 +923,27 @@ export default function Crusades({ onBack }: CrusadesProps) {
   };
 
   const handleAcreContinue = () => {
+    setPhase("interlude");
+  };
+
+  // ── Jaffa handlers ─────────────────────────────────────────
+  const handleJaffaDecide = (id: "cutDown" | "letGo" | "prisoner") => {
+    if (id === "cutDown") {
+      applyMeters(JAFFA_DELTAS.cutDown, JAFFA_SHAKE.cutDown);
+      setJaffaOutcomeId("cutDown");
+    } else if (id === "letGo") {
+      applyMeters(JAFFA_DELTAS.letGo, JAFFA_SHAKE.letGo);
+      // honoredSaladin tints the outcome narration only — deltas
+      // are the same regardless of the flag.
+      setJaffaOutcomeId(honoredSaladin ? "letGoHonored" : "letGoPlain");
+    } else {
+      applyMeters(JAFFA_DELTAS.prisoner, JAFFA_SHAKE.prisoner);
+      setJaffaOutcomeId("prisoner");
+    }
+    setJaffaStep("outcome");
+  };
+
+  const handleJaffaContinue = () => {
     setPhase("interlude");
   };
 
@@ -1575,12 +1669,75 @@ export default function Crusades({ onBack }: CrusadesProps) {
             ))}
           </div>
           <button
-            onClick={() => setPhase("interlude")}
+            onClick={() => setPhase("jaffa")}
             className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
             style={{ fontFamily: "'Georgia', serif" }}
           >
             Continue
           </button>
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Jaffa — mercy under fire (final heavy meter-mover) ────
+  if (phase === "jaffa") {
+    const outcome = jaffaOutcomeId ? JAFFA_OUTCOMES[jaffaOutcomeId] : null;
+    return (
+      <div
+        className={`h-screen bg-stone-900 text-stone-100 overflow-y-auto ${shakeClass}`}
+        style={{ fontFamily: "'Georgia', serif" }}
+      >
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 pointer-events-none z-50">
+          <FloatingNumbers floats={floats} />
+        </div>
+
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-amber-400 uppercase tracking-wider">Jaffa, 1192 · Mercy Under Fire</p>
+            <MeterReadout competence={competence} honor={honor} favor={favor} />
+          </div>
+
+          {/* ── Decide step ── */}
+          {jaffaStep === "decide" && (
+            <>
+              <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+                <p className="text-stone-300 text-sm leading-relaxed italic">{JAFFA_HOOK}</p>
+              </div>
+              <div className="border border-indigo-700/60 rounded-lg p-3 bg-indigo-950/40 space-y-2">
+                {JAFFA_DECIDE_BUTTONS.map((b, i) => (
+                  <button
+                    key={b.id}
+                    onClick={() => handleJaffaDecide(b.id)}
+                    className="w-full text-left text-sm px-3 py-2.5 rounded-lg border bg-indigo-900/60 hover:bg-indigo-800/80 border-indigo-700/40 hover:border-indigo-600/60 transition-all"
+                    style={{ fontFamily: "'Georgia', serif" }}
+                  >
+                    <span className="text-indigo-300 font-bold mr-2">{String.fromCharCode(65 + i)}.</span>
+                    <span className="font-bold text-stone-200">{b.label}</span>
+                    <span className="block text-stone-400 italic mt-1 ml-5">{b.line}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* ── Outcome step ── */}
+          {jaffaStep === "outcome" && outcome && (
+            <>
+              <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+                <p className="text-stone-300 text-sm leading-relaxed italic">{outcome.narration}</p>
+              </div>
+              <button
+                onClick={handleJaffaContinue}
+                className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+                style={{ fontFamily: "'Georgia', serif" }}
+              >
+                Continue
+              </button>
+            </>
+          )}
+
           <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
         </div>
       </div>
