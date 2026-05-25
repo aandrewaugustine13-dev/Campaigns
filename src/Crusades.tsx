@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import SageEncounterV2, { shuffleChoices } from "./SageEncounterV2";
 import { CrusadesCampaign, CRUSADES_INITIAL_FLAGS } from "./campaigns/crusades/index";
-import { getNextSage, type Sage } from "./campaigns/crusades/sageEncounters";
+import { getNextSage, SAGES, type Sage } from "./campaigns/crusades/sageEncounters";
 import { useFloatingNumbers, useScreenShake, FloatingNumbers } from "./GameJuice";
 
 // ═══════════════════════════════════════════════════════════════
@@ -32,7 +32,6 @@ type Phase =
   | "acre"              // The Acre siege decision — payoff to barbarossaWarning
   | "richardEnvoy"      // Richard assigns Hugh to the envoy after his sage
   | "saladinBearing"    // Pre-encounter bearing choice that tints Saladin's frame
-  | "saladinClosing"    // Post-encounter ride-back beat; pivot to the homecoming arc
   | "imadClosing"       // Post-Imad closing monologue; final sage before battle climax
   | "interlude";        // placeholder between events (post-sage)
 
@@ -559,16 +558,6 @@ const SALADIN_INTRO_OVERRIDES: Record<BearingTier, string> = {
     "Saladin listens to your cold words without flinching. He does not rise to your contempt, does not match it, does not punish it. He simply regards you with a calm that makes your hardness feel suddenly small — the steadiness of a man who has nothing to prove to you. 'You serve your king well,' he says, and means it, and somehow that is worse than if he'd been angry.",
   respect:
     "Saladin notices. Of course he notices — he has spent his life reading men. He inclines his head, and calls for water and dates to be brought to you, a tired messenger far from home. 'Sit,' he says. 'We are enemies today. That does not mean we must be less than men.' For the length of one cup of water, the war is somewhere else.",
-};
-
-// Closing beats — the ride back from Saladin's camp. Tinted by
-// bearingTier. This is the pivot from the outward journey to the
-// homecoming arc; the road turns home after this.
-const SALADIN_CLOSING_BEATS: Record<BearingTier, string> = {
-  hammer:
-    "You carry Saladin's reply back across the lines, and you tell yourself you did your duty. You stood proud. You showed the enemy no weakness. Your king would approve.\n\nBut the sultan's calm follows you out of the tent and will not leave. He had every reason to match your contempt, and he did not. He simply looked at you, and was greater than you, and let you go.\n\nYou ride back toward your own army, and you are thinking — though you try not to — of home. Of a doorway. Of the man you were when you left it, and the man you are becoming out here. The war is not over. But you are beginning to wonder what, exactly, you will be carrying back through that door.",
-  respect:
-    "You carry Saladin's reply back across the lines, and the camp of your own army feels different when you return to it — louder, coarser, smaller. You have stood in the presence of two kings and an emperor's ghost, and a sultan your whole world called a monster treated you with more grace than any of them.\n\nYou do not have the words for what shifted in that tent. Only that you went in certain of who the enemy was, and came out less certain of everything.\n\nAnd somewhere in the certainty you lost, you find you are thinking of home. Of a doorway. Of faces you have not seen in longer than you can stand to count. The war is not over. But for the first time, you let yourself believe there might be a road back.",
 };
 
 // One-line italic lead-ins above each question's prompt. Saladin's
@@ -1426,9 +1415,14 @@ export default function Crusades({ onBack }: CrusadesProps) {
                 }
                 setPhase("richardEnvoy");
               } else if (sageInFlight.id === "saladin") {
-                // Ride-back beat fires regardless of question outcomes;
-                // it's the pivot from outward arc to the homecoming arc.
-                setPhase("saladinClosing");
+                // Saladin hands Hugh directly to Imad — the handoff
+                // narration lives in Imad's intro override.
+                const imadSage = SAGES.find((s) => s.id === "imad");
+                if (imadSage) {
+                  enterSage(imadSage);
+                } else {
+                  setPhase("interlude");
+                }
               } else if (sageInFlight.id === "imad") {
                 // Imad's closing monologue — the final sage beat before
                 // the battle climax / journey home arc (TBD).
@@ -1550,44 +1544,6 @@ export default function Crusades({ onBack }: CrusadesProps) {
           </div>
           <button
             onClick={() => setPhase("interlude")}
-            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
-            style={{ fontFamily: "'Georgia', serif" }}
-          >
-            Continue
-          </button>
-          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Saladin closing beat (post-encounter; hands off to Imad) ──
-  if (phase === "saladinClosing") {
-    const text = bearingTier !== null ? SALADIN_CLOSING_BEATS[bearingTier] : "";
-    return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
-        <div className="max-w-2xl mx-auto p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-amber-400 uppercase tracking-wider">The Ride Back · Toward Home</p>
-            <MeterReadout competence={competence} honor={honor} favor={favor} />
-          </div>
-          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
-            {text.split("\n\n").map((para, i) => (
-              <p
-                key={i}
-                className={`text-stone-200 text-sm leading-relaxed italic ${i > 0 ? "mt-3" : ""}`}
-              >
-                {para}
-              </p>
-            ))}
-          </div>
-          <button
-            onClick={() => {
-              // Hands off to Imad (the next sage by threshold) rather
-              // than dropping back to interlude.
-              if (nextSage) enterSage(nextSage);
-              else setPhase("interlude");
-            }}
             className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
             style={{ fontFamily: "'Georgia', serif" }}
           >
