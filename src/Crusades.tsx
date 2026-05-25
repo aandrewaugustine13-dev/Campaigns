@@ -1466,6 +1466,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
             Sage Encounter · threshold {Math.round(sageInFlight.threshold * 100)}%
           </p>
           <SageEncounterV2
+            key={sageInFlight.id}
             sage={sageInFlight}
             currentStreak={streak}
             introOverride={sageIntroOverride}
