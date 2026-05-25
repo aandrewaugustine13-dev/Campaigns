@@ -43,6 +43,9 @@ type Phase =
   | "imadClosing"       // Post-Imad closing monologue; final sage before battle climax
   | "jaffaSetup"        // 3-card click-through bridging Imad → Jaffa decision
   | "jaffa"             // Jaffa mercy-under-fire — last heavy meter-mover
+  | "hopefulMarch"      // Bridge: Jaffa → turning-away (the army marches on Jerusalem)
+  | "turningAway"       // The turning-away — Richard halts in sight of Jerusalem
+  | "bridgeHome"        // Bridge: turning-away → onward (the war ends, Hugh goes home)
   | "interlude";        // placeholder between events (post-sage)
 
 interface CrusadesProps { onBack: () => void; }
@@ -727,6 +730,82 @@ const JAFFA_DECIDE_BUTTONS: { id: "cutDown" | "letGo" | "prisoner"; label: strin
 
 type JaffaStep = "decide" | "outcome";
 
+// ═══════════════════════════════════════════════════════════════
+// "THE TURNING-AWAY" — the emotional climax. Richard halts in
+// sight of Jerusalem and asks Hugh for counsel. History is FIXED:
+// Richard turns away on every path. The choice changes the meaning
+// and the meters, never the outcome. Standing is locked before
+// the choice so the deltas can't flip the tier.
+// ═══════════════════════════════════════════════════════════════
+
+const HOPEFUL_MARCH_TEXT =
+  "The battle is won, and for a few wild days it feels like more than that. Like the tide has turned. Like the Holy City itself might finally be in reach. The army forms up and marches inland, toward Jerusalem, and the men sing as they go.\n\nYou have come a long way from the hedge knight who was dragged — or walked — from his own door. Richard knows your name now. He keeps you close; the literate man who kept his head at Acre, who he sent into Saladin's own tent and got back something worth having. You ride near the King's banner now. And you let yourself hope with the rest of them. You have almost forgotten what the chronicler told you in his tent of books. You are about to remember.";
+
+type TurningStanding = "high" | "low";
+
+const TURNING_STANDING_THRESHOLDS = {
+  honorFloor: 5,
+  competenceFloor: 3,
+} as const;
+
+function computeTurningStanding(
+  acreCleanRun: boolean,
+  honor: number,
+  competence: number,
+): TurningStanding {
+  if (acreCleanRun) return "high";
+  if (honor >= TURNING_STANDING_THRESHOLDS.honorFloor && competence >= TURNING_STANDING_THRESHOLDS.competenceFloor) return "high";
+  return "low";
+}
+
+const TURNING_SCENE_SETTER =
+  "And then there it is. Over the last rise, across the dust and the heat-shimmer — Jerusalem. The domes and the walls and the goal of three years and ten thousand deaths, close enough that the men weep at the sight of it. The army surges with the need to take it. Now. While it is right there.\n\nRichard reins in beside you. He does not look like a man about to seize his prize. He looks tired, and old, and he turns to you — his trusted man, the one who sat with Saladin, the one who carries the chronicler's truth — and he asks you, quietly, so the men cannot hear:\n\n'Tell me true, since you are one of the few who will. Do we take it?'";
+
+const TURNING_DELTAS: Record<"attack" | "truth", MeterDeltas> = {
+  attack: { favor:  1, competence: -2 },
+  truth:  { honor:  3, competence:  3 },
+};
+
+const TURNING_SHAKE: Record<"attack" | "truth", "light" | "medium" | "heavy"> = {
+  attack: "medium",
+  truth:  "light",
+};
+
+const TURNING_DECIDE_BUTTONS: { id: "attack" | "truth"; label: string; line: string }[] = [
+  {
+    id: "attack",
+    label: "Counsel the attack",
+    line: "\"Take it, sire. It is right there. The men's hearts are on fire — God has carried us this far. We may never be this close again.\"",
+  },
+  {
+    id: "truth",
+    label: "Counsel the truth",
+    line: "\"We cannot, sire. We could take it in a week and lose it in a season — too far from the sea, ringed by Saladin's lands, defended by a people who will never stop coming. To take Jerusalem is to bury this army in it. The wise road — the only road — is home, and a peace that lets our pilgrims pray.\"",
+  },
+];
+
+type TurningOutcomeId = "highTruth" | "highAttack" | "low";
+
+const TURNING_OUTCOMES: Record<TurningOutcomeId, { narration: string }> = {
+  highTruth: {
+    narration:
+      "Richard holds your gaze a long moment. Then he nods — slowly, the nod of a man hearing his own hardest thought spoken aloud by someone he trusts. 'Aye,' he says. 'You see it too. God help me, I had hoped you would tell me otherwise.' He turns his horse. The order goes down the line: we turn back. The men do not understand. They will curse him, and you, for the rest of their lives. But you and the King know the truth, and you carry it together. It is the loneliest thing you have ever done, and the wisest.",
+  },
+  highAttack: {
+    narration:
+      "Richard almost smiles, but it does not reach his eyes. 'No,' he says, gently, the way you correct a man you respect. 'You let your heart speak, and I love you for it. But a king cannot. We would take it and we could not hold it, and I will not bury this army in a city we must abandon.' He turns his horse and gives the order to withdraw. You realize, with a sick lurch, that the King saw clearly what you did not. You had the truth handed to you in a tent of books, and in the moment it mattered, you forgot it.",
+  },
+  low: {
+    narration:
+      "Richard's eyes pass over you without stopping. Whatever you say, he has already decided, and he does not need counsel from a man like you. The order comes down the line: we turn back. You stand in the ranks with the rest of the confused, betrayed army, watching the Holy City shrink behind you, and you do not understand why. You were in Saladin's camp. You heard the chronicler. The answer was placed in your hands — but you spent yourself on other things, and you never learned to hold it. You go home as ignorant of this war's truth as the lowest foot soldier.",
+  },
+};
+
+type TurningStep = "decide" | "outcome";
+
+const BRIDGE_HOME_TEXT =
+  "The war is over. Not won. Not lost. Ended — in a truce between two men who spent three years trying to kill each other and came, somehow, to respect each other more than their own allies. Jerusalem stays Saladin's. Christian pilgrims may pray there. And you are going home. The long road back to a door you have not seen in longer than you can stand to count.";
+
 // ── Opening panel: <img> with a visibly labeled gray fallback
 // when the asset is missing. Designed so missing art is obvious,
 // not silently hidden behind a gradient.
@@ -817,6 +896,13 @@ export default function Crusades({ onBack }: CrusadesProps) {
   // ── Jaffa event internal sub-state ─────────────────────────
   const [jaffaStep, setJaffaStep] = useState<JaffaStep>("decide");
   const [jaffaOutcomeId, setJaffaOutcomeId] = useState<JaffaOutcomeId | null>(null);
+
+  // ── Turning-away event internal sub-state ──────────────────
+  const [turningStep, setTurningStep] = useState<TurningStep>("decide");
+  const [turningOutcomeId, setTurningOutcomeId] = useState<TurningOutcomeId | null>(null);
+  // Locked when entering turningAway so the choice deltas can't
+  // flip the standing mid-encounter.
+  const [turningStanding, setTurningStanding] = useState<TurningStanding | null>(null);
 
   // ── Richard tier: locked when his sage encounter begins so the ─
   // greeting and envoy line stay matched even though the +2/+2
@@ -1006,7 +1092,22 @@ export default function Crusades({ onBack }: CrusadesProps) {
   };
 
   const handleJaffaContinue = () => {
-    setPhase("interlude");
+    setPhase("hopefulMarch");
+  };
+
+  // ── Turning-away handlers ────────────────────────────────
+  const handleTurningDecide = (id: "attack" | "truth") => {
+    applyMeters(TURNING_DELTAS[id], TURNING_SHAKE[id]);
+    if (turningStanding === "low") {
+      setTurningOutcomeId("low");
+    } else {
+      setTurningOutcomeId(id === "truth" ? "highTruth" : "highAttack");
+    }
+    setTurningStep("outcome");
+  };
+
+  const handleTurningContinue = () => {
+    setPhase("bridgeHome");
   };
 
   // ── Saladin bearing handler ────────────────────────────────
@@ -1879,6 +1980,130 @@ export default function Crusades({ onBack }: CrusadesProps) {
             ))}
           </div>
 
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Hopeful March (bridge: Jaffa → turning-away) ────────────
+  if (phase === "hopefulMarch") {
+    return (
+      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          <p className="text-xs text-amber-400 uppercase tracking-wider">The Road Inland · Toward Jerusalem</p>
+          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+            {HOPEFUL_MARCH_TEXT.split("\n\n").map((para, i) => (
+              <p
+                key={i}
+                className={`text-stone-200 text-sm leading-relaxed italic ${i > 0 ? "mt-3" : ""}`}
+              >
+                {para}
+              </p>
+            ))}
+          </div>
+          <button
+            onClick={() => {
+              setTurningStanding(computeTurningStanding(acreCleanRun, honor, competence));
+              setPhase("turningAway");
+            }}
+            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+            style={{ fontFamily: "'Georgia', serif" }}
+          >
+            Continue
+          </button>
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── The Turning-Away (standalone decision — the climax) ────
+  if (phase === "turningAway") {
+    const outcome = turningOutcomeId ? TURNING_OUTCOMES[turningOutcomeId] : null;
+    return (
+      <div
+        className={`h-screen bg-stone-900 text-stone-100 overflow-y-auto ${shakeClass}`}
+        style={{ fontFamily: "'Georgia', serif" }}
+      >
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 pointer-events-none z-50">
+          <FloatingNumbers floats={floats} />
+        </div>
+
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-amber-400 uppercase tracking-wider">In Sight of Jerusalem</p>
+            <MeterReadout competence={competence} honor={honor} favor={favor} />
+          </div>
+
+          {/* ── Decide step ── */}
+          {turningStep === "decide" && (
+            <>
+              <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+                {TURNING_SCENE_SETTER.split("\n\n").map((para, i) => (
+                  <p
+                    key={i}
+                    className={`text-stone-300 text-sm leading-relaxed italic ${i > 0 ? "mt-3" : ""}`}
+                  >
+                    {para}
+                  </p>
+                ))}
+              </div>
+              <div className="border border-indigo-700/60 rounded-lg p-3 bg-indigo-950/40 space-y-2">
+                {TURNING_DECIDE_BUTTONS.map((b, i) => (
+                  <button
+                    key={b.id}
+                    onClick={() => handleTurningDecide(b.id)}
+                    className="w-full text-left text-sm px-3 py-2.5 rounded-lg border bg-indigo-900/60 hover:bg-indigo-800/80 border-indigo-700/40 hover:border-indigo-600/60 transition-all"
+                    style={{ fontFamily: "'Georgia', serif" }}
+                  >
+                    <span className="text-indigo-300 font-bold mr-2">{String.fromCharCode(65 + i)}.</span>
+                    <span className="font-bold text-stone-200">{b.label}</span>
+                    <span className="block text-stone-400 italic mt-1 ml-5">{b.line}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* ── Outcome step ── */}
+          {turningStep === "outcome" && outcome && (
+            <>
+              <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+                <p className="text-stone-300 text-sm leading-relaxed italic">{outcome.narration}</p>
+              </div>
+              <button
+                onClick={handleTurningContinue}
+                className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+                style={{ fontFamily: "'Georgia', serif" }}
+              >
+                Continue
+              </button>
+            </>
+          )}
+
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Bridge Home (turning-away → onward) ───────────────────
+  if (phase === "bridgeHome") {
+    return (
+      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          <p className="text-xs text-amber-400 uppercase tracking-wider">The Road Home</p>
+          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+            <p className="text-stone-200 text-sm leading-relaxed italic">{BRIDGE_HOME_TEXT}</p>
+          </div>
+          <button
+            onClick={() => setPhase("interlude")}
+            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+            style={{ fontFamily: "'Georgia', serif" }}
+          >
+            Continue
+          </button>
           <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
         </div>
       </div>
