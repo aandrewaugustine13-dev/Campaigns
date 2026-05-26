@@ -2,7 +2,14 @@ import { useMemo, useState } from "react";
 import SageEncounterV2, { shuffleChoices } from "./SageEncounterV2";
 import { CrusadesCampaign, CRUSADES_INITIAL_FLAGS } from "./campaigns/crusades/index";
 import { getNextSage, SAGES, type Sage } from "./campaigns/crusades/sageEncounters";
-import { getHomecomingEnding, crusadeSummaryText, finalCheckQuestion } from "./campaigns/crusades/crusadesActFour";
+import {
+  JOURNEY_HOME_TEXT, getJourneyHomeTintedParagraph, JOURNEY_HOME_CLOSING,
+  BARBAROSSA_FINAL_INTRO, BARBAROSSA_FINAL_QUESTION, BARBAROSSA_FINAL_CORRECT, BARBAROSSA_FINAL_TEACHING, BARBAROSSA_FINAL_DREAD,
+  computeHomecomingTier, HOMECOMING_SHARED_OPENING, HOMECOMING_BRANCHES,
+  FINAL_QUIZ_QUESTIONS, type QuizQuestion,
+  EPILOGUE_TEXT, IMPORTANCE_TEXT,
+  getQuotaLine, getSaladinLine, getJaffaLine, getVerdictSummary, SCORE_OUTRO,
+} from "./campaigns/crusades/crusadesActFour";
 import { useFloatingNumbers, useScreenShake, FloatingNumbers } from "./GameJuice";
 
 // ═══════════════════════════════════════════════════════════════
@@ -47,8 +54,12 @@ type Phase =
   | "hopefulMarch"      // Bridge: Jaffa → turning-away (the army marches on Jerusalem)
   | "turningAway"       // The turning-away — Richard halts in sight of Jerusalem
   | "bridgeHome"        // Bridge: turning-away → onward (the war ends, Hugh goes home)
-  | "finale"            // Homecoming ending — personalized narrative conclusion
-  | "epilogue"          // Historical context + final TEKS assessment
+  | "barbarossaFinal"   // Barbarossa's final visit — dread + TEKS legacy question
+  | "homecoming"        // The homecoming reveal — three tinted branches, pure narrative
+  | "finalQuiz"         // The check for understanding — 5 TEKS questions
+  | "trueHistory"       // The epilogue — what truly happened
+  | "importance"        // Why it mattered — contextual importance
+  | "scoreExplanation"  // How you were remembered — choices → fate
   | "interlude";        // placeholder between events (post-sage)
 
 interface CrusadesProps { onBack: () => void; }
@@ -810,8 +821,6 @@ const TURNING_OUTCOMES: Record<TurningOutcomeId, { narration: string }> = {
 
 type TurningStep = "decide" | "outcome";
 
-const BRIDGE_HOME_TEXT =
-  "The war is over. Not won. Not lost. Ended — in a truce between two men who spent three years trying to kill each other and came, somehow, to respect each other more than their own allies. Jerusalem stays Saladin's. Christian pilgrims may pray there. And you are going home. The long road back to a door you have not seen in longer than you can stand to count.";
 
 // ── Opening panel: <img> with a visibly labeled gray fallback
 // when the asset is missing. Designed so missing art is obvious,
@@ -927,7 +936,13 @@ export default function Crusades({ onBack }: CrusadesProps) {
   const [sagePoints, setSagePoints] = useState<number>(0);
   const [completedSageIds, setCompletedSageIds] = useState<Set<string>>(() => new Set());
   const [activeSage, setActiveSage] = useState<Sage | null>(null);
-  const [finalCheckCorrect, setFinalCheckCorrect] = useState<boolean>(false);
+
+  // ── Act IV ending state ────────────────────────────────────
+  const [barbarossaFinalStep, setBarbarossaFinalStep] = useState<"intro" | "question" | "response" | "dread">("intro");
+  const [barbarossaFinalCorrect, setBarbarossaFinalCorrect] = useState<boolean | null>(null);
+  const [quizIndex, setQuizIndex] = useState<number>(0);
+  const [quizCorrect, setQuizCorrect] = useState<boolean[]>([]);
+  const [quizAnswered, setQuizAnswered] = useState<boolean>(false);
 
   // ── Existing GameJuice: floating numbers + screen shake ────
   const { floats, spawn } = useFloatingNumbers();
@@ -944,6 +959,14 @@ export default function Crusades({ onBack }: CrusadesProps) {
   );
   const shuffledMessinaHistory = useMemo(
     () => shuffleChoices([...MESSINA_HISTORY_QUESTION.choices], MESSINA_HISTORY_QUESTION.correctIndex),
+    [],
+  );
+  const shuffledBarbarossaFinal = useMemo(
+    () => shuffleChoices([...BARBAROSSA_FINAL_QUESTION.choices], BARBAROSSA_FINAL_QUESTION.correctIndex),
+    [],
+  );
+  const shuffledQuiz = useMemo(
+    () => FINAL_QUIZ_QUESTIONS.map((q) => shuffleChoices([...q.choices], q.correctIndex)),
     [],
   );
 
@@ -2106,17 +2129,22 @@ export default function Crusades({ onBack }: CrusadesProps) {
     );
   }
 
-  // ── Bridge Home (turning-away → onward) ───────────────────
+  // ── Beat 1: The Journey Home (bridge) ───────────────────────
   if (phase === "bridgeHome") {
+    const standing = honor > 5 ? "high" : honor < 2 ? "low" : "mid" as const;
     return (
       <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-4 space-y-3">
-          <p className="text-xs text-amber-400 uppercase tracking-wider">The Road Home</p>
-          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
-            <p className="text-stone-200 text-sm leading-relaxed italic">{BRIDGE_HOME_TEXT}</p>
+          <p className="text-xs text-amber-400 uppercase tracking-wider">The Long Road Home</p>
+          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20 space-y-3">
+            {JOURNEY_HOME_TEXT.split("\n\n").map((para, i) => (
+              <p key={i} className="text-stone-200 text-sm leading-relaxed italic">{para}</p>
+            ))}
+            <p className="text-stone-200 text-sm leading-relaxed italic">{getJourneyHomeTintedParagraph(standing)}</p>
+            <p className="text-stone-200 text-sm leading-relaxed italic">{JOURNEY_HOME_CLOSING}</p>
           </div>
           <button
-            onClick={() => setPhase("finale")}
+            onClick={() => { setBarbarossaFinalStep("intro"); setPhase("barbarossaFinal"); }}
             className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
             style={{ fontFamily: "'Georgia', serif" }}
           >
@@ -2313,19 +2341,117 @@ export default function Crusades({ onBack }: CrusadesProps) {
     );
   }
 
-  // ── The Finale (Homecoming) ──────────────────────────────
-  if (phase === "finale") {
-    const ending = getHomecomingEnding(honor, competence, favor);
+  // ── Beat 2: Barbarossa's Final Visit ────────────────────────
+  if (phase === "barbarossaFinal") {
+    return (
+      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-4 space-y-3">
+          <p className="text-xs text-amber-400 uppercase tracking-wider">Frederick Barbarossa · The Last Night</p>
+
+          {barbarossaFinalStep === "intro" && (
+            <>
+              <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20 space-y-3">
+                {BARBAROSSA_FINAL_INTRO.split("\n\n").map((para, i) => (
+                  <p key={i} className="text-stone-200 text-sm leading-relaxed italic">{para}</p>
+                ))}
+              </div>
+              <button
+                onClick={() => setBarbarossaFinalStep("question")}
+                className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+                style={{ fontFamily: "'Georgia', serif" }}
+              >
+                Continue
+              </button>
+            </>
+          )}
+
+          {barbarossaFinalStep === "question" && (
+            <>
+              <div className="border border-indigo-700/60 rounded-lg p-4 bg-indigo-950/20 space-y-4">
+                <p className="text-stone-200 text-sm font-bold leading-relaxed italic">
+                  "{BARBAROSSA_FINAL_QUESTION.prompt}"
+                </p>
+                <div className="space-y-2">
+                  {shuffledBarbarossaFinal.choices.map((choice, i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        const correct = i === shuffledBarbarossaFinal.correctIndex;
+                        setBarbarossaFinalCorrect(correct);
+                        setBarbarossaFinalStep("response");
+                        shake(correct ? "light" : "medium");
+                      }}
+                      className="w-full text-left text-sm px-3 py-2.5 rounded-lg border bg-indigo-900/60 hover:bg-indigo-800/80 border-indigo-700/40 hover:border-indigo-600/60 transition-all"
+                      style={{ fontFamily: "'Georgia', serif" }}
+                    >
+                      <span className="text-indigo-300 font-bold mr-2">{String.fromCharCode(65 + i)}.</span>
+                      {choice}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {barbarossaFinalStep === "response" && (
+            <>
+              <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+                <p className="text-stone-200 text-sm leading-relaxed italic">
+                  {barbarossaFinalCorrect ? BARBAROSSA_FINAL_CORRECT : BARBAROSSA_FINAL_TEACHING}
+                </p>
+              </div>
+              <button
+                onClick={() => setBarbarossaFinalStep("dread")}
+                className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+                style={{ fontFamily: "'Georgia', serif" }}
+              >
+                Continue
+              </button>
+            </>
+          )}
+
+          {barbarossaFinalStep === "dread" && (
+            <>
+              <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20 space-y-3">
+                {BARBAROSSA_FINAL_DREAD.split("\n\n").map((para, i) => (
+                  <p key={i} className="text-stone-200 text-sm leading-relaxed italic">{para}</p>
+                ))}
+              </div>
+              <button
+                onClick={() => setPhase("homecoming")}
+                className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+                style={{ fontFamily: "'Georgia', serif" }}
+              >
+                Continue
+              </button>
+            </>
+          )}
+
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Beat 3: The Homecoming Reveal ─────────────────────────────
+  if (phase === "homecoming") {
+    const tier = computeHomecomingTier(honor, competence, honoredSaladin, jaffaOutcomeId);
     return (
       <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-6 space-y-4">
-          <p className="text-xs text-amber-400 uppercase tracking-wider">Homecoming</p>
-          <OpeningPanel src={`/assets/Tapestries/${ending.tapestry}`} alt="Homecoming" />
-          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
-            <p className="text-stone-200 text-sm leading-relaxed italic">{ending.text}</p>
+          <p className="text-xs text-amber-400 uppercase tracking-wider">Home</p>
+          <div className="border border-amber-800/40 rounded-lg p-4 bg-amber-950/20 space-y-3">
+            {HOMECOMING_SHARED_OPENING.split("\n\n").map((para, i) => (
+              <p key={i} className="text-stone-200 text-sm leading-relaxed italic">{para}</p>
+            ))}
+          </div>
+          <div className="border border-amber-800/40 rounded-lg p-4 bg-amber-950/20 space-y-3">
+            {HOMECOMING_BRANCHES[tier].split("\n\n").map((para, i) => (
+              <p key={i} className="text-stone-200 text-sm leading-relaxed italic">{para}</p>
+            ))}
           </div>
           <button
-            onClick={() => setPhase("epilogue")}
+            onClick={() => { setQuizIndex(0); setQuizCorrect([]); setQuizAnswered(false); setPhase("finalQuiz"); }}
             className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
             style={{ fontFamily: "'Georgia', serif" }}
           >
@@ -2337,54 +2463,46 @@ export default function Crusades({ onBack }: CrusadesProps) {
     );
   }
 
-  // ── The Epilogue (Exposition + Context + Final Check) ─────
-  if (phase === "epilogue") {
-    const ending = getHomecomingEnding(honor, competence, favor);
+  // ── Beat 4: The Check for Understanding (5 TEKS questions) ────
+  if (phase === "finalQuiz") {
+    const currentQ = FINAL_QUIZ_QUESTIONS[quizIndex];
+    const shuffled = shuffledQuiz[quizIndex];
+    const done = quizIndex >= FINAL_QUIZ_QUESTIONS.length;
     return (
-      <div className="h-screen bg-stone-950 text-stone-200 overflow-y-auto pb-12" style={{ fontFamily: "'Georgia', serif" }}>
-        <div className="max-w-2xl mx-auto p-6 space-y-8">
-          {/* 1. Exposition */}
-          <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <h2 className="text-amber-500 text-xs font-bold uppercase tracking-widest border-b border-amber-900/40 pb-2">The Aftermath</h2>
-            <p className="text-lg leading-relaxed text-stone-300 italic">
-              {ending.exposition}
-            </p>
-          </section>
-
-          {/* 2. Historical Context */}
-          <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300">
-            <h2 className="text-amber-500 text-xs font-bold uppercase tracking-widest border-b border-amber-900/40 pb-2">Historical Context</h2>
-            <div className="bg-stone-900/50 border border-stone-800 rounded-lg p-4">
-              <p className="text-sm leading-relaxed text-stone-400">
-                {crusadeSummaryText}
+      <div className={`h-screen bg-stone-900 text-stone-100 overflow-y-auto ${shakeClass}`} style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-6 space-y-4">
+          <p className="text-xs text-amber-400 uppercase tracking-wider">The Reckoning of What You Learned</p>
+          {quizIndex === 0 && !quizAnswered && quizCorrect.length === 0 && (
+            <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+              <p className="text-stone-300 text-sm leading-relaxed italic">
+                Sir Hugh's story is over. But the history is real, and it is worth knowing. Answer these, and see what you carried home from the Third Crusade.
               </p>
             </div>
-          </section>
+          )}
 
-          {/* 3. Final TEKS Trivia */}
-          <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
-            <h2 className="text-amber-500 text-xs font-bold uppercase tracking-widest border-b border-amber-900/40 pb-2">Final Assessment</h2>
+          {!done && (
             <div className="border border-indigo-700/60 rounded-lg p-4 bg-indigo-950/20 space-y-4">
+              <p className="text-stone-400 text-[10px] uppercase tracking-widest font-bold">
+                Question {quizIndex + 1} of {FINAL_QUIZ_QUESTIONS.length}
+              </p>
               <p className="text-stone-200 text-sm font-bold leading-relaxed">
-                {finalCheckQuestion.prompt}
+                {currentQ.prompt}
               </p>
               <div className="space-y-2">
-                {finalCheckQuestion.choices.map((choice, i) => (
+                {shuffled.choices.map((choice, i) => (
                   <button
                     key={i}
-                    disabled={finalCheckCorrect}
+                    disabled={quizAnswered}
                     onClick={() => {
-                      if (i === finalCheckQuestion.correctIndex) {
-                        setFinalCheckCorrect(true);
-                        shake("light");
-                      } else {
-                        shake("medium");
-                      }
+                      const correct = i === shuffled.correctIndex;
+                      setQuizCorrect((prev) => [...prev, correct]);
+                      setQuizAnswered(true);
+                      shake(correct ? "light" : "medium");
                     }}
                     className={`w-full text-left text-sm px-4 py-3 rounded-lg border transition-all ${
-                      finalCheckCorrect && i === finalCheckQuestion.correctIndex
+                      quizAnswered && i === shuffled.correctIndex
                         ? "bg-emerald-900/40 border-emerald-500/50 text-emerald-200"
-                        : finalCheckCorrect
+                        : quizAnswered
                         ? "bg-stone-900/40 border-stone-800 text-stone-500 opacity-50"
                         : "bg-indigo-900/40 hover:bg-indigo-800/60 border-indigo-700/30 hover:border-indigo-500/50"
                     }`}
@@ -2394,23 +2512,124 @@ export default function Crusades({ onBack }: CrusadesProps) {
                   </button>
                 ))}
               </div>
-              {finalCheckCorrect && (
-                <p className="text-emerald-400 text-xs font-bold animate-in zoom-in duration-300">
-                  ✓ Correct. You have completed the Third Crusade.
-                </p>
+              {quizAnswered && (
+                <button
+                  onClick={() => {
+                    if (quizIndex + 1 >= FINAL_QUIZ_QUESTIONS.length) {
+                      setPhase("trueHistory");
+                    } else {
+                      setQuizIndex((prev) => prev + 1);
+                      setQuizAnswered(false);
+                    }
+                  }}
+                  className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+                  style={{ fontFamily: "'Georgia', serif" }}
+                >
+                  {quizIndex + 1 >= FINAL_QUIZ_QUESTIONS.length ? "Continue" : "Next Question"}
+                </button>
               )}
             </div>
-          </section>
-
-          {/* 4. Return to Campaigns */}
-          {finalCheckCorrect && (
-            <button
-              onClick={onBack}
-              className="w-full py-4 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold shadow-lg shadow-amber-900/20 transition-all animate-in fade-in slide-in-from-bottom-2 duration-500"
-            >
-              Return to Campaigns
-            </button>
           )}
+
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Beat 5: The Epilogue (true history) ──────────────────��────
+  if (phase === "trueHistory") {
+    return (
+      <div className="h-screen bg-stone-950 text-stone-200 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-6 space-y-4">
+          <p className="text-xs text-amber-400 uppercase tracking-wider">What Truly Happened</p>
+          <div className="border border-amber-800/40 rounded-lg p-4 bg-amber-950/20 space-y-3">
+            {EPILOGUE_TEXT.split("\n\n").map((para, i) => (
+              <p key={i} className="text-stone-300 text-sm leading-relaxed">{para}</p>
+            ))}
+          </div>
+          <button
+            onClick={() => setPhase("importance")}
+            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+            style={{ fontFamily: "'Georgia', serif" }}
+          >
+            Continue
+          </button>
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Beat 6: The Contextual Importance ─────────────────────────
+  if (phase === "importance") {
+    return (
+      <div className="h-screen bg-stone-950 text-stone-200 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-6 space-y-4">
+          <p className="text-xs text-amber-400 uppercase tracking-wider">Why It Mattered</p>
+          <div className="border border-amber-800/40 rounded-lg p-4 bg-amber-950/20 space-y-3">
+            {IMPORTANCE_TEXT.split("\n\n").map((para, i) => (
+              <p key={i} className="text-stone-300 text-sm leading-relaxed">{para}</p>
+            ))}
+          </div>
+          <button
+            onClick={() => setPhase("scoreExplanation")}
+            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+            style={{ fontFamily: "'Georgia', serif" }}
+          >
+            Continue
+          </button>
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Beat 7: The Score Explanation ─────────────────────────────
+  if (phase === "scoreExplanation") {
+    const tier = computeHomecomingTier(honor, competence, honoredSaladin, jaffaOutcomeId);
+    const choiceLines = [
+      getQuotaLine(outcomeId),
+      getSaladinLine(honoredSaladin),
+      getJaffaLine(jaffaOutcomeId),
+    ].filter(Boolean);
+    return (
+      <div className="h-screen bg-stone-950 text-stone-200 overflow-y-auto pb-12" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-6 space-y-6">
+          <p className="text-xs text-amber-400 uppercase tracking-wider">How You Were Remembered</p>
+
+          <div className="border border-amber-800/40 rounded-lg p-4 bg-amber-950/20 space-y-3">
+            <p className="text-stone-300 text-sm leading-relaxed italic">
+              Hugh's homecoming was not chance. It was the sum of every choice you made.
+            </p>
+            {choiceLines.map((line, i) => (
+              <p key={i} className="text-stone-400 text-sm leading-relaxed">
+                {line}
+              </p>
+            ))}
+          </div>
+
+          <div className="border border-stone-700/60 rounded-lg p-4 bg-stone-900/40 space-y-2">
+            <p className="text-stone-200 text-sm font-bold leading-relaxed">
+              {getVerdictSummary(tier)}
+            </p>
+            <p className="text-stone-400 text-xs font-mono">
+              Honor: {honor} · Competence: {competence} · The King's favor: {favor}
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {SCORE_OUTRO.split("\n\n").map((para, i) => (
+              <p key={i} className="text-stone-300 text-sm leading-relaxed italic">{para}</p>
+            ))}
+          </div>
+
+          <button
+            onClick={onBack}
+            className="w-full py-4 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold shadow-lg shadow-amber-900/20 transition-all"
+          >
+            Return to Campaigns
+          </button>
         </div>
       </div>
     );
