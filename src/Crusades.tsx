@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import SageEncounterV2, { shuffleChoices } from "./SageEncounterV2";
 import { CrusadesCampaign, CRUSADES_INITIAL_FLAGS } from "./campaigns/crusades/index";
 import { getNextSage, SAGES, type Sage } from "./campaigns/crusades/sageEncounters";
+import { getHomecomingEnding, crusadeSummaryText, finalCheckQuestion } from "./campaigns/crusades/crusadesActFour";
 import { useFloatingNumbers, useScreenShake, FloatingNumbers } from "./GameJuice";
 
 // ═══════════════════════════════════════════════════════════════
@@ -46,6 +47,8 @@ type Phase =
   | "hopefulMarch"      // Bridge: Jaffa → turning-away (the army marches on Jerusalem)
   | "turningAway"       // The turning-away — Richard halts in sight of Jerusalem
   | "bridgeHome"        // Bridge: turning-away → onward (the war ends, Hugh goes home)
+  | "finale"            // Homecoming ending — personalized narrative conclusion
+  | "epilogue"          // Historical context + final TEKS assessment
   | "interlude";        // placeholder between events (post-sage)
 
 interface CrusadesProps { onBack: () => void; }
@@ -924,6 +927,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   const [sagePoints, setSagePoints] = useState<number>(0);
   const [completedSageIds, setCompletedSageIds] = useState<Set<string>>(() => new Set());
   const [activeSage, setActiveSage] = useState<Sage | null>(null);
+  const [finalCheckCorrect, setFinalCheckCorrect] = useState<boolean>(false);
 
   // ── Existing GameJuice: floating numbers + screen shake ────
   const { floats, spawn } = useFloatingNumbers();
@@ -2441,15 +2445,6 @@ export default function Crusades({ onBack }: CrusadesProps) {
           </button>
           <p className="text-[10px] text-stone-500 text-center font-mono">
             streak: {streak} · sage points: {sagePoints} · coerced: {coerced ? "true" : "false"} · messina: {messinaResult ?? "none"} · barbarossaWarningHeard: {barbarossaWarningHeard ? "true" : "false"} · acreCleanRun: {acreCleanRun ? "true" : "false"} · richardTier: {richardTier ?? "none"} · bearingTier: {bearingTier ?? "none"} · honoredSaladin: {honoredSaladin ? "true" : "false"} · completed: {completedSageIds.size === 0 ? "none" : Array.from(completedSageIds).join(", ")}
-          </p>
-        </div>
-
-        <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors">← Back to Campaigns</button>
-      </div>
-    </div>
-  );
-}
-geIds).join(", ")}
           </p>
         </div>
 

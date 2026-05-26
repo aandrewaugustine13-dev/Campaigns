@@ -27,6 +27,7 @@ export interface SageQuestion {
   type: QuestionType;
   choices: string[];
   correctIndex: number;
+  explanation?: string;
   responses: {
     approve: string;   // first-try correct
     scold: string;     // second-try correct, the teaching beat
