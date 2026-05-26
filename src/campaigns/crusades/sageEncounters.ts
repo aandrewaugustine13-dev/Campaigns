@@ -152,19 +152,20 @@ export const SAGES: Sage[] = [
     questions: [
       {
         prompt:
-          '"I crossed a thousand miles with the mightiest army of all. Yet I died before I ever saw the Holy Land, and not in battle. I fell while crossing a river. How did I die?"',
+          '"My army was the mightiest in the world, yet the journey itself unmade us. Tell me, hedge knight: why did so many Crusaders perish before ever seeing the walls of the Holy Land?"',
         type: 'recall',
         choices: [
-          'He drowned',
-          'He was poisoned',
-          'He fell from his horse',
-          'He died of old age in his tent',
+          'The immense logistical challenge of moving massive armies across hostile terrain without secure supply lines.',
+          "They were constantly ambushed by Saladin's assassins while marching through Europe.",
+          'The Mediterranean Sea swallowed their massive fleets in winter storms.',
+          'The men refused to forage or eat local food for religious reasons.',
         ],
         correctIndex: 0,
+        explanation: "Moving tens of thousands of men across Europe and Anatolia required massive supply chains. Disease, starvation, and exposure killed vastly more Crusaders than combat ever did.",
         responses: {
-          approve: '"Drowned. An emperor, felled by a river, not a sword." The shade laughs bitterly. "The road east kills more than any enemy blade."',
-          scold:   '"I drowned, boy. I told you, in a river. The journey itself is the enemy you forget."',
-          fail:    '"Poison? A fall?" The ghost shakes its head. "I drowned. I said as much. Listen better, or the road takes you too."',
+          approve: '"Correct. Logistics, not the enemy, was our undoing." The ghost nods solemnly. "Even the mightiest host cannot fight hunger and disease."',
+          scold:   '"It was the logistics, child. The sheer weight of moving an army unmade us. The journey itself is an enemy that never sleeps."',
+          fail:    '"No. It was the logistics. The challenge of supply and disease unmade us long before we reached the field of battle."',
         },
       },
       {

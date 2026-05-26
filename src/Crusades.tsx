@@ -450,7 +450,7 @@ const BARBAROSSA_INTRO_OVERRIDES = {
 } as const;
 
 const BARBAROSSA_WARNING_TEXT =
-  "Hear me, for I paid in full for what I know. The enemy you fear is not the enemy that kills you. I was the mightiest of the three kings, and no Saracen felled me — a river did, and my own certainty. When you reach the great siege, the men will clamor to attack, to spend themselves on the walls. Do not. The walls are not your enemy. Hunger is. Sickness is. The waiting is. Guard your strength and your stores, keep the camp clean, hold your discipline when others throw theirs away — and you will live to see the city fall while better men rot in the mud. Remember: at the siege, patience is the sword.";
+  "Hear me, for I paid in full for what I know. The man you were when you left your home is gone. Drowned in the sand and the blood of this holy war. You cannot get him back. When you finally reach your door, the reception from your family will tell you exactly the man you have become. Guard your soul, knight. Patience is the sword.";
 
 // ═══════════════════════════════════════════════════════════════
 // "ACRE" — the great siege (standalone decision; not a sage).
@@ -2112,7 +2112,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
             <p className="text-stone-200 text-sm leading-relaxed italic">{BRIDGE_HOME_TEXT}</p>
           </div>
           <button
-            onClick={() => setPhase("interlude")}
+            onClick={() => setPhase("finale")}
             className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
             style={{ fontFamily: "'Georgia', serif" }}
           >
@@ -2309,6 +2309,109 @@ export default function Crusades({ onBack }: CrusadesProps) {
     );
   }
 
+  // ── The Finale (Homecoming) ──────────────────────────────
+  if (phase === "finale") {
+    const ending = getHomecomingEnding(honor, competence, favor);
+    return (
+      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-6 space-y-4">
+          <p className="text-xs text-amber-400 uppercase tracking-wider">Homecoming</p>
+          <OpeningPanel src={`/assets/Tapestries/${ending.tapestry}`} alt="Homecoming" />
+          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+            <p className="text-stone-200 text-sm leading-relaxed italic">{ending.text}</p>
+          </div>
+          <button
+            onClick={() => setPhase("epilogue")}
+            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
+            style={{ fontFamily: "'Georgia', serif" }}
+          >
+            Continue
+          </button>
+          <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors mt-2">← Back to Campaigns</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── The Epilogue (Exposition + Context + Final Check) ─────
+  if (phase === "epilogue") {
+    const ending = getHomecomingEnding(honor, competence, favor);
+    return (
+      <div className="h-screen bg-stone-950 text-stone-200 overflow-y-auto pb-12" style={{ fontFamily: "'Georgia', serif" }}>
+        <div className="max-w-2xl mx-auto p-6 space-y-8">
+          {/* 1. Exposition */}
+          <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <h2 className="text-amber-500 text-xs font-bold uppercase tracking-widest border-b border-amber-900/40 pb-2">The Aftermath</h2>
+            <p className="text-lg leading-relaxed text-stone-300 italic">
+              {ending.exposition}
+            </p>
+          </section>
+
+          {/* 2. Historical Context */}
+          <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300">
+            <h2 className="text-amber-500 text-xs font-bold uppercase tracking-widest border-b border-amber-900/40 pb-2">Historical Context</h2>
+            <div className="bg-stone-900/50 border border-stone-800 rounded-lg p-4">
+              <p className="text-sm leading-relaxed text-stone-400">
+                {crusadeSummaryText}
+              </p>
+            </div>
+          </section>
+
+          {/* 3. Final TEKS Trivia */}
+          <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
+            <h2 className="text-amber-500 text-xs font-bold uppercase tracking-widest border-b border-amber-900/40 pb-2">Final Assessment</h2>
+            <div className="border border-indigo-700/60 rounded-lg p-4 bg-indigo-950/20 space-y-4">
+              <p className="text-stone-200 text-sm font-bold leading-relaxed">
+                {finalCheckQuestion.prompt}
+              </p>
+              <div className="space-y-2">
+                {finalCheckQuestion.choices.map((choice, i) => (
+                  <button
+                    key={i}
+                    disabled={finalCheckCorrect}
+                    onClick={() => {
+                      if (i === finalCheckQuestion.correctIndex) {
+                        setFinalCheckCorrect(true);
+                        shake("light");
+                      } else {
+                        shake("medium");
+                      }
+                    }}
+                    className={`w-full text-left text-sm px-4 py-3 rounded-lg border transition-all ${
+                      finalCheckCorrect && i === finalCheckQuestion.correctIndex
+                        ? "bg-emerald-900/40 border-emerald-500/50 text-emerald-200"
+                        : finalCheckCorrect
+                        ? "bg-stone-900/40 border-stone-800 text-stone-500 opacity-50"
+                        : "bg-indigo-900/40 hover:bg-indigo-800/60 border-indigo-700/30 hover:border-indigo-500/50"
+                    }`}
+                  >
+                    <span className="text-indigo-400 font-bold mr-3">{String.fromCharCode(65 + i)}.</span>
+                    {choice}
+                  </button>
+                ))}
+              </div>
+              {finalCheckCorrect && (
+                <p className="text-emerald-400 text-xs font-bold animate-in zoom-in duration-300">
+                  ✓ Correct. You have completed the Third Crusade.
+                </p>
+              )}
+            </div>
+          </section>
+
+          {/* 4. Return to Campaigns */}
+          {finalCheckCorrect && (
+            <button
+              onClick={onBack}
+              className="w-full py-4 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold shadow-lg shadow-amber-900/20 transition-all animate-in fade-in slide-in-from-bottom-2 duration-500"
+            >
+              Return to Campaigns
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   // ── Interlude (post-sage placeholder; next event lands here) ─
   return (
     <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
@@ -2338,6 +2441,15 @@ export default function Crusades({ onBack }: CrusadesProps) {
           </button>
           <p className="text-[10px] text-stone-500 text-center font-mono">
             streak: {streak} · sage points: {sagePoints} · coerced: {coerced ? "true" : "false"} · messina: {messinaResult ?? "none"} · barbarossaWarningHeard: {barbarossaWarningHeard ? "true" : "false"} · acreCleanRun: {acreCleanRun ? "true" : "false"} · richardTier: {richardTier ?? "none"} · bearingTier: {bearingTier ?? "none"} · honoredSaladin: {honoredSaladin ? "true" : "false"} · completed: {completedSageIds.size === 0 ? "none" : Array.from(completedSageIds).join(", ")}
+          </p>
+        </div>
+
+        <button onClick={onBack} className="block mx-auto text-xs text-stone-500 hover:text-stone-300 transition-colors">← Back to Campaigns</button>
+      </div>
+    </div>
+  );
+}
+geIds).join(", ")}
           </p>
         </div>
 

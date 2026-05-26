@@ -256,10 +256,16 @@ export default function SageEncounterV2({ sage, currentStreak, onComplete, intro
           </div>
 
           {/* The response string — the narration beat */}
-          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
+          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20 space-y-2">
             <p className="text-stone-300 text-sm leading-relaxed italic">
               {lastOutcome.response}
             </p>
+            {question.explanation && (
+              <p className="text-stone-400 text-xs leading-relaxed border-t border-amber-800/20 pt-2">
+                <span className="text-amber-600/80 font-bold uppercase tracking-widest mr-2 text-[10px]">Context</span>
+                {question.explanation}
+              </p>
+            )}
           </div>
 
           <button
