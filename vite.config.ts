@@ -11,21 +11,9 @@ function generatorApiPlugin(): Plugin {
       loadEnv({ path: resolve(__dirname, '.env.local') });
 
       server.middlewares.use('/api/generate', async (req, res) => {
-        console.log(`[generator-api] ${req.method} ${req.url}`);
-
-        if (req.method === 'OPTIONS') {
-          res.statusCode = 204;
-          res.setHeader('Access-Control-Allow-Origin', '*');
-          res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-          res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-          res.end();
-          return;
-        }
-
         if (req.method !== 'POST') {
           res.statusCode = 405;
-          res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ error: `Method ${req.method} not allowed` }));
+          res.end(JSON.stringify({ error: 'Method not allowed' }));
           return;
         }
 
