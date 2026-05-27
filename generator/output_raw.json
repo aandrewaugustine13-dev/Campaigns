@@ -1,0 +1,833 @@
+{
+  "id": "lewisclark",
+  "title": "LEWIS & CLARK EXPEDITION",
+  "subtitle": "Corps of Discovery, 1804-1806",
+  "introBody": "Spring 1804. St. Louis, Missouri. President Jefferson has sent you to explore the Louisiana Purchase. You must reach the Pacific Ocean, map the land, and return with knowledge that will shape America's future.",
+  "trailFeedOpener": "May 14, 1804: The Corps of Discovery departs Camp Dubois with high hopes.",
+  "totalDays": 863,
+  "daysPerTurn": 7,
+  "totalDistance": 8000,
+  "distanceUnit": "miles",
+  "initialResources": {
+    "supplies": 85,
+    "health": 75,
+    "morale": 70,
+    "boats": 3,
+    "ammunition": 60,
+    "trade_goods": 50,
+    "scientific_specimens": 0,
+    "maps": 25
+  },
+  "resourceCaps": {
+    "supplies": 120,
+    "health": 100,
+    "morale": 100,
+    "boats": 5,
+    "ammunition": 100,
+    "trade_goods": 80,
+    "scientific_specimens": 100,
+    "maps": 100
+  },
+  "resourceLabels": {
+    "supplies": "supplies",
+    "health": "health",
+    "morale": "morale",
+    "boats": "boats",
+    "ammunition": "ammo",
+    "trade_goods": "trade",
+    "scientific_specimens": "specimens",
+    "maps": "maps"
+  },
+  "paces": [
+    {
+      "id": "cautious",
+      "label": "Cautious",
+      "desc": "8 mi/day · Map carefully",
+      "mpd": 8,
+      "fx": {
+        "health": 1,
+        "maps": 2,
+        "supplies": -2,
+        "morale": -1
+      }
+    },
+    {
+      "id": "steady",
+      "label": "Steady",
+      "desc": "12 mi/day · Balanced progress",
+      "mpd": 12,
+      "fx": {
+        "health": -1,
+        "supplies": -3,
+        "morale": 1
+      }
+    },
+    {
+      "id": "urgent",
+      "label": "Urgent",
+      "desc": "18 mi/day · Push hard",
+      "mpd": 18,
+      "fx": {
+        "health": -4,
+        "morale": -3,
+        "supplies": -4,
+        "maps": -1
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "great_falls",
+      "phase_min": 0.25,
+      "phase_max": 0.35,
+      "weight": 8,
+      "title": "Great Falls of the Missouri",
+      "text": "The roaring falls block your river route. You must portage around them - a back-breaking task that could take weeks.",
+      "trivia": [
+        "The Great Falls portage took the expedition 18 days to complete.",
+        "The men had to carry boats and supplies across 18 miles of rough terrain."
+      ],
+      "sageAdvice": [
+        {
+          "name": "Clark",
+          "role": "Co-leader",
+          "line": "We must scout the best route before we begin moving supplies."
+        },
+        {
+          "name": "Drouillard",
+          "role": "Hunter",
+          "line": "Game is scarce here. We need to preserve our strength."
+        }
+      ],
+      "choices": [
+        {
+          "text": "Take time to scout the safest route",
+          "outcomes": [
+            {
+              "weight": 7,
+              "effects": {
+                "supplies": -8,
+                "health": -3,
+                "maps": 4
+              },
+              "result": "The careful scouting pays off. You find the best path and complete the portage safely."
+            },
+            {
+              "weight": 3,
+              "effects": {
+                "supplies": -12,
+                "health": -6,
+                "morale": -4
+              },
+              "result": "Even with scouting, the portage is brutal. Several men are injured on the rocky terrain."
+            }
+          ]
+        },
+        {
+          "text": "Start the portage immediately",
+          "outcomes": [
+            {
+              "weight": 4,
+              "effects": {
+                "supplies": -6,
+                "health": -8,
+                "boats": -1
+              },
+              "result": "Haste leads to disaster. A boat is damaged badly on the rocks."
+            },
+            {
+              "weight": 6,
+              "effects": {
+                "supplies": -5,
+                "health": -4,
+                "morale": 2
+              },
+              "result": "The men work with determination and complete the portage quickly."
+            }
+          ]
+        },
+        {
+          "text": "Build wheels to move the boats",
+          "effects": {
+            "supplies": -10,
+            "health": -2,
+            "morale": 3,
+            "maps": 2
+          },
+          "result": "The wheeled contraption works! This innovation makes the portage much easier."
+        }
+      ]
+    },
+    {
+      "id": "shoshone_meeting",
+      "phase_min": 0.45,
+      "phase_max": 0.55,
+      "weight": 9,
+      "title": "Meeting the Shoshone",
+      "text": "You encounter Shoshone people in the mountains. Sacagawea recognizes her brother among them. This meeting could be crucial for getting horses.",
+      "trivia": [
+        "Sacagawea's reunion with her brother Cameahwait helped secure horses for the expedition.",
+        "The Shoshone provided critical information about mountain passes to the Pacific."
+      ],
+      "choices": [
+        {
+          "text": "Offer trade goods for horses and guides",
+          "outcomes": [
+            {
+              "weight": 8,
+              "effects": {
+                "trade_goods": -15,
+                "morale": 5,
+                "health": 3,
+                "maps": 6
+              },
+              "result": "The trade is successful. The Shoshone provide horses and valuable information about the trail ahead."
+            },
+            {
+              "weight": 2,
+              "effects": {
+                "trade_goods": -8,
+                "morale": -2
+              },
+              "result": "The negotiations go poorly. You get few horses and little help."
+            }
+          ]
+        },
+        {
+          "text": "Ask for help without offering trade",
+          "effects": {
+            "morale": -4,
+            "maps": 1
+          },
+          "result": "The Shoshone are polite but offer little assistance without fair trade."
+        },
+        {
+          "text": "Demonstrate your peaceful intentions with gifts",
+          "effects": {
+            "trade_goods": -5,
+            "morale": 8,
+            "health": 2,
+            "maps": 4
+          },
+          "result": "Your gifts and respectful approach win their trust. They share crucial knowledge about the mountains."
+        }
+      ]
+    },
+    {
+      "id": "winter_fort",
+      "phase_min": 0.15,
+      "phase_max": 0.25,
+      "weight": 7,
+      "title": "Winter with the Mandan",
+      "text": "Winter approaches as you reach Mandan villages. You must decide how to survive the harsh Dakota winter.",
+      "trivia": [
+        "Fort Mandan was built near present-day Bismarck, North Dakota.",
+        "The expedition spent five months with the Mandan people during winter 1804-1805."
+      ],
+      "choices": [
+        {
+          "text": "Build a fort and trade with the Mandan",
+          "effects": {
+            "supplies": -15,
+            "health": 2,
+            "morale": 4,
+            "trade_goods": -8,
+            "maps": 5
+          },
+          "result": "Fort Mandan provides good shelter. Trade with the Mandan helps you learn about the land ahead."
+        },
+        {
+          "text": "Try to continue traveling in winter",
+          "outcomes": [
+            {
+              "weight": 3,
+              "effects": {
+                "health": -12,
+                "morale": -8,
+                "supplies": -10
+              },
+              "result": "The winter travel is devastating. Frostbite and exhaustion nearly destroy the expedition."
+            },
+            {
+              "weight": 7,
+              "effects": {
+                "health": -6,
+                "morale": -4,
+                "supplies": -8
+              },
+              "result": "You make slow progress but at great cost to the men's health and spirits."
+            }
+          ]
+        },
+        {
+          "text": "Focus on gathering information and specimens",
+          "effects": {
+            "supplies": -12,
+            "scientific_specimens": 8,
+            "maps": 8,
+            "morale": 2
+          },
+          "result": "The winter is productive for science. You document plants, animals, and Native cultures."
+        }
+      ]
+    },
+    {
+      "id": "pacific_ocean",
+      "phase_min": 0.75,
+      "phase_max": 0.85,
+      "weight": 10,
+      "title": "First Sight of the Pacific",
+      "text": "After months of struggle, you finally see the Pacific Ocean. The expedition's main goal is achieved, but winter approaches quickly.",
+      "trivia": [
+        "Clark wrote in his journal: 'Great joy in camp we are in view of the Ocian.'",
+        "The expedition built Fort Clatsop near present-day Astoria, Oregon for winter shelter."
+      ],
+      "choices": [
+        {
+          "text": "Celebrate and document this historic moment",
+          "effects": {
+            "morale": 12,
+            "scientific_specimens": 5,
+            "maps": 6,
+            "supplies": -3
+          },
+          "result": "The men's spirits soar. You carefully document reaching the Pacific for posterity."
+        },
+        {
+          "text": "Immediately start preparing winter shelter",
+          "effects": {
+            "health": 3,
+            "morale": 5,
+            "supplies": -8
+          },
+          "result": "Practical thinking. You build solid shelter before the Pacific winter storms hit."
+        },
+        {
+          "text": "Search for a ship to take you home",
+          "outcomes": [
+            {
+              "weight": 2,
+              "effects": {
+                "morale": 15,
+                "supplies": 10
+              },
+              "result": "Incredible luck! A trading ship agrees to resupply you.",
+              "earlyEnd": true
+            },
+            {
+              "weight": 8,
+              "effects": {
+                "morale": -3,
+                "health": -2,
+                "supplies": -5
+              },
+              "result": "No ships appear. You've wasted valuable time and energy searching."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dangerous_rapids",
+      "phase_min": 0.6,
+      "phase_max": 0.75,
+      "weight": 6,
+      "title": "Columbia River Rapids",
+      "text": "The Columbia River churns through dangerous rapids ahead. Your boats and supplies are at risk, but portaging will cost precious time.",
+      "trivia": [
+        "The Columbia River rapids were among the most dangerous parts of the journey.",
+        "Many expedition supplies were damaged or lost in the rough waters."
+      ],
+      "choices": [
+        {
+          "text": "Run the rapids with experienced river men",
+          "outcomes": [
+            {
+              "weight": 6,
+              "effects": {
+                "morale": 4,
+                "supplies": -3,
+                "scientific_specimens": -2
+              },
+              "result": "Skilled navigation gets you through with only minor losses."
+            },
+            {
+              "weight": 4,
+              "effects": {
+                "boats": -1,
+                "supplies": -8,
+                "health": -4,
+                "morale": -5
+              },
+              "result": "A boat is wrecked in the rapids. Valuable supplies are lost to the river."
+            }
+          ]
+        },
+        {
+          "text": "Portage around the most dangerous sections",
+          "effects": {
+            "health": -3,
+            "supplies": -5,
+            "morale": -2,
+            "maps": 2
+          },
+          "result": "The careful portage saves your boats but exhausts the men."
+        },
+        {
+          "text": "Get local Native guides to help",
+          "outcomes": [
+            {
+              "weight": 7,
+              "effects": {
+                "trade_goods": -6,
+                "morale": 3,
+                "maps": 4
+              },
+              "result": "Local knowledge proves invaluable. You navigate safely with expert guidance."
+            },
+            {
+              "weight": 3,
+              "effects": {
+                "trade_goods": -4,
+                "morale": -1
+              },
+              "result": "The guides are helpful but cannot prevent all dangers of the rapids."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "sages": [
+    {
+      "id": "sacagawea",
+      "name": "Sacagawea",
+      "title": "Shoshone Guide & Interpreter",
+      "portrait": "/faces/sage_sacagawea.png",
+      "threshold": 20,
+      "bio": "Sacagawea was a Shoshone woman who served as an interpreter and guide for Lewis and Clark. Kidnapped as a child, she was living among the Hidatsa when she joined the expedition. Her presence showed Native peoples that the expedition came in peace.",
+      "greeting": "Your Shoshone guide Sacagawea points to landmarks ahead. Her knowledge of the land and ability to communicate with tribes has already proven invaluable to the expedition.",
+      "advice": "\"The presence of a woman and baby shows we travel in peace. Warriors do not bring families to war. Trust this truth when you meet new peoples on the trail ahead.\"",
+      "question": {
+        "question": "What important role did Sacagawea play in the Lewis and Clark expedition?",
+        "choices": [
+          "She was the expedition's cook and doctor",
+          "She served as guide and interpreter, helping communicate with Native peoples",
+          "She was the expedition's official map maker",
+          "She commanded one of the boats on the Missouri River"
+        ],
+        "correctIndex": 1,
+        "explanation": "Sacagawea served as both guide and interpreter for the expedition. She helped the explorers communicate with Native peoples, find food and paths, and her presence as a woman with a baby showed that the expedition came in peace, not for war.",
+        "teksRef": "5.1(B) — Analyze the role of Sacagawea in the success of the Lewis and Clark expedition"
+      },
+      "reward": {
+        "correct": {
+          "morale": 6,
+          "maps": 4,
+          "trade_goods": 3
+        },
+        "wrong": {
+          "morale": 2,
+          "maps": 1
+        },
+        "knowledgeCorrect": 4,
+        "knowledgeWrong": 1
+      }
+    },
+    {
+      "id": "clark",
+      "name": "William Clark",
+      "title": "Co-leader & Cartographer",
+      "portrait": "/faces/sage_clark.png",
+      "threshold": 50,
+      "bio": "William Clark was chosen by Meriwether Lewis to co-lead the Corps of Discovery. A skilled frontiersman and soldier, Clark proved to be an excellent map maker and leader of men. His detailed maps would guide future westward expansion.",
+      "greeting": "Captain Clark spreads his maps on a wooden crate, comparing his careful drawings with the landscape around you. His attention to detail has created the most accurate maps of this territory ever made.",
+      "advice": "\"Every river, every mountain pass we map opens the door for those who follow. We are not just exploring - we are building the future of American expansion into these lands.\"",
+      "question": {
+        "question": "Why was mapping the western territory so important to the Lewis and Clark expedition?",
+        "choices": [
+          "Maps were required by French law in the Louisiana Territory",
+          "Accurate maps would help future settlers and traders find routes west",
+          "The expedition needed maps to find gold deposits",
+          "Maps were needed to claim land from Native peoples"
+        ],
+        "correctIndex": 1,
+        "explanation": "Creating accurate maps was crucial because they would help future settlers, traders, and explorers find safe routes to the West. The expedition's maps opened up westward expansion by showing rivers, mountain passes, and other important geographic features.",
+        "teksRef": "5.1(A) — Explain the significance of the Louisiana Purchase and the Lewis and Clark expedition"
+      },
+      "reward": {
+        "correct": {
+          "maps": 8,
+          "scientific_specimens": 4,
+          "morale": 4
+        },
+        "wrong": {
+          "maps": 3,
+          "morale": 1
+        },
+        "knowledgeCorrect": 5,
+        "knowledgeWrong": 2
+      }
+    },
+    {
+      "id": "jefferson",
+      "name": "Thomas Jefferson",
+      "title": "President of the United States",
+      "portrait": "/faces/sage_jefferson.png",
+      "threshold": 85,
+      "bio": "President Thomas Jefferson organized and funded the Lewis and Clark expedition. A lover of science and learning, Jefferson wanted to map the Louisiana Purchase, find a water route to the Pacific, and establish trade with Native peoples.",
+      "greeting": "As you near the end of your journey, you recall President Jefferson's final instructions before departure. His vision of American expansion guided every mile of your incredible journey.",
+      "advice": "\"You have accomplished what I dreamed - opening a path to the Pacific and proving the continent can be crossed. Your discoveries will shape America's destiny for generations to come.\"",
+      "question": {
+        "question": "What was President Jefferson's main goal for the Lewis and Clark expedition?",
+        "choices": [
+          "To find gold and silver mines in the western mountains",
+          "To establish military forts along the Missouri River",
+          "To explore the Louisiana Purchase and find a route to the Pacific Ocean",
+          "To remove Native peoples from the newly purchased territory"
+        ],
+        "correctIndex": 2,
+        "explanation": "President Jefferson's primary goal was to explore the vast Louisiana Purchase territory and find a practical route to the Pacific Ocean. He wanted to map the region, study its plants and animals, and establish peaceful relations with Native peoples for future trade.",
+        "teksRef": "5.1(A) — Explain the significance of the Louisiana Purchase and the Lewis and Clark expedition"
+      },
+      "reward": {
+        "correct": {
+          "morale": 10,
+          "scientific_specimens": 6,
+          "maps": 6
+        },
+        "wrong": {
+          "morale": 4,
+          "scientific_specimens": 2
+        },
+        "knowledgeCorrect": 6,
+        "knowledgeWrong": 2
+      }
+    }
+  ],
+  "route": [
+    {
+      "id": "start",
+      "title": "Camp Dubois",
+      "description": "Your winter training camp near St. Louis.",
+      "edges": [
+        {
+          "to": "missouri_river",
+          "tag": "SAFE",
+          "label": "Follow the Missouri carefully"
+        },
+        {
+          "to": "overland_route",
+          "tag": "FAST",
+          "label": "Try a more direct overland path"
+        }
+      ]
+    },
+    {
+      "id": "missouri_river",
+      "title": "Missouri River Route",
+      "description": "Following the great river upstream.",
+      "edges": [
+        {
+          "to": "mandan_villages",
+          "tag": "PROFIT",
+          "label": "Stop at Mandan villages for trade"
+        },
+        {
+          "to": "rocky_mountains",
+          "tag": "FAST",
+          "label": "Push toward the mountains"
+        }
+      ]
+    },
+    {
+      "id": "overland_route",
+      "title": "Overland Trail",
+      "description": "A challenging but potentially faster route.",
+      "edges": [
+        {
+          "to": "rocky_mountains",
+          "tag": "FAST",
+          "label": "Head straight for the mountains"
+        }
+      ]
+    },
+    {
+      "id": "mandan_villages",
+      "title": "Mandan Villages",
+      "description": "Friendly Native settlements for winter shelter.",
+      "edges": [
+        {
+          "to": "rocky_mountains",
+          "tag": "SAFE",
+          "label": "Continue west in spring"
+        }
+      ]
+    },
+    {
+      "id": "rocky_mountains",
+      "title": "Rocky Mountains",
+      "description": "The great continental divide.",
+      "edges": [
+        {
+          "to": "columbia_river",
+          "tag": "SAFE",
+          "label": "Find the Columbia River"
+        }
+      ]
+    },
+    {
+      "id": "columbia_river",
+      "title": "Columbia River",
+      "description": "The river route to the Pacific.",
+      "edges": [
+        {
+          "to": "pacific_ocean",
+          "tag": "PROFIT",
+          "label": "Follow the river to the sea"
+        }
+      ]
+    },
+    {
+      "id": "pacific_ocean",
+      "title": "Pacific Ocean",
+      "description": "The western edge of the continent.",
+      "edges": []
+    }
+  ],
+  "eventTrivia": [
+    {
+      "id": "t1",
+      "question": "Why was it important for the Lewis and Clark expedition to make friends with Native peoples?",
+      "choices": [
+        "To get help with directions and supplies",
+        "To teach them English",
+        "To sell them weapons"
+      ],
+      "correctIndex": 0,
+      "fact": "Native peoples provided crucial guidance, food, and knowledge about the land ahead."
+    },
+    {
+      "id": "t2",
+      "question": "What did Lewis and Clark bring back from their expedition?",
+      "choices": [
+        "Gold and silver",
+        "Maps and scientific specimens",
+        "Lumber and furs"
+      ],
+      "correctIndex": 1,
+      "fact": "The expedition returned with detailed maps, plant and animal specimens, and knowledge about the western territory."
+    },
+    {
+      "id": "t3",
+      "question": "How long did the Lewis and Clark expedition take?",
+      "choices": [
+        "Six months",
+        "Over two years",
+        "Five years"
+      ],
+      "correctIndex": 1,
+      "fact": "The expedition lasted from 1804 to 1806, covering over 8,000 miles in about two and a half years."
+    }
+  ],
+  "trailPath": [
+    [15, 85],
+    [18, 83],
+    [22, 81],
+    [26, 79],
+    [30, 77],
+    [34, 75],
+    [38, 73],
+    [42, 71],
+    [46, 69],
+    [50, 67],
+    [54, 65],
+    [58, 63],
+    [62, 61],
+    [66, 59],
+    [70, 57],
+    [74, 55],
+    [78, 53],
+    [82, 51],
+    [86, 49],
+    [88, 47],
+    [86, 45],
+    [84, 43],
+    [82, 41],
+    [80, 39],
+    [78, 37],
+    [76, 35],
+    [74, 33],
+    [72, 31],
+    [70, 29],
+    [68, 27],
+    [66, 25],
+    [64, 23],
+    [62, 21],
+    [60, 19],
+    [58, 17],
+    [56, 15],
+    [54, 13],
+    [52, 11],
+    [50, 9],
+    [48, 7],
+    [46, 5],
+    [44, 3],
+    [42, 1]
+  ],
+  "trailStops": [
+    {
+      "id": "camp_dubois",
+      "name": "Camp Dubois",
+      "pathIndex": 0,
+      "pct": 0,
+      "supply": true
+    },
+    {
+      "id": "st_charles",
+      "name": "St. Charles",
+      "pathIndex": 4,
+      "pct": 8,
+      "supply": true
+    },
+    {
+      "id": "kansas_river",
+      "name": "Kansas River",
+      "pathIndex": 10,
+      "pct": 23,
+      "supply": false
+    },
+    {
+      "id": "platte_river",
+      "name": "Platte River",
+      "pathIndex": 15,
+      "pct": 35,
+      "supply": false
+    },
+    {
+      "id": "fort_mandan",
+      "name": "Fort Mandan",
+      "pathIndex": 20,
+      "pct": 47,
+      "supply": true
+    },
+    {
+      "id": "great_falls",
+      "name": "Great Falls",
+      "pathIndex": 25,
+      "pct": 58,
+      "supply": false
+    },
+    {
+      "id": "continental_divide",
+      "name": "Continental Divide",
+      "pathIndex": 30,
+      "pct": 70,
+      "supply": false
+    },
+    {
+      "id": "columbia_river",
+      "name": "Columbia River",
+      "pathIndex": 35,
+      "pct": 82,
+      "supply": false
+    },
+    {
+      "id": "pacific_ocean",
+      "name": "Pacific Ocean",
+      "pathIndex": 42,
+      "pct": 100,
+      "supply": true
+    }
+  ],
+  "mapImage": "/faces/map_lewisclark.png",
+  "outfitConfig": {
+    "budget": 2500,
+    "baseCrew": 25,
+    "baseHorses": 8,
+    "baseSupplies": 60,
+    "costs": {
+      "soldier": 80,
+      "boat": 200,
+      "scientific_gear": 150,
+      "trade_goods": 15,
+      "ammunition": 25,
+      "medical_supplies": 120,
+      "surveying_tools": 180
+    },
+    "wageCosts": {
+      "low": 0,
+      "standard": 200,
+      "good": 400
+    },
+    "wageMorale": {
+      "low": 45,
+      "standard": 60,
+      "good": 75
+    },
+    "herdOptions": [1, 2, 3, 4, 5]
+  },
+  "primaryResourceKey": "scientific_specimens",
+  "primaryResourceStart": 0,
+  "revenuePerUnit": 50,
+  "historicalContext": "The Lewis and Clark expedition (1804-1806) was the first official U.S. exploration of the western territory acquired in the Louisiana Purchase. Led by Meriwether Lewis and William Clark, the Corps of Discovery traveled over 8,000 miles to map the territory, study its natural resources, and establish relations with Native peoples. Their detailed journals and maps provided crucial knowledge that enabled American westward expansion and shaped the nation's understanding of the continent's geography, plants, animals, and peoples.",
+  "pixelColors": {
+    "skin": "#D4A574",
+    "hair_brown": "#8B4513",
+    "hair_black": "#2F1B14",
+    "eyes": "#4A4A4A",
+    "uniform": "#1E3A8A",
+    "leather": "#8B4513"
+  },
+  "pixelFaces": {
+    "explorer": [
+      {
+        "threshold": 0,
+        "sprite": "explorer_sick",
+        "label": "Sick"
+      },
+      {
+        "threshold": 25,
+        "sprite": "explorer_tired",
+        "label": "Tired"
+      },
+      {
+        "threshold": 50,
+        "sprite": "explorer_fair",
+        "label": "Fair"
+      },
+      {
+        "threshold": 75,
+        "sprite": "explorer_good",
+        "label": "Good"
+      },
+      {
+        "threshold": 90,
+        "sprite": "explorer_excellent",
+        "label": "Excellent"
+      }
+    ],
+    "guide": [
+      {
+        "threshold": 0,
+        "sprite": "guide_poor",
+        "label": "Lost"
+      },
+      {
+        "threshold": 30,
+        "sprite": "guide_fair",
+        "label": "Uncertain"
+      },
+      {
+        "threshold": 60,
+        "sprite": "guide_good",
+        "label": "Confident"
+      },
+      {
+        "threshold": 85,
+        "sprite": "guide_excellent",
+        "label": "Expert"
+      }
+    ]
+  }
+}

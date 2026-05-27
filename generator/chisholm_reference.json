@@ -1,0 +1,1898 @@
+{
+  "id": "chisholm",
+  "title": "CHISHOLM TRAIL",
+  "subtitle": "San Antonio to Abilene, 1867",
+  "introBody": "Spring, 1867. San Antonio, Texas. You have $2,000 and a reputation. Every outfit choice matters now — weak crews and wagons break on the trail.",
+  "trailFeedOpener": "Spring 1867: the outfit gathers in San Antonio and checks the wagon.",
+  "totalDays": 125,
+  "daysPerTurn": 5,
+  "totalDistance": 800,
+  "distanceUnit": "miles",
+  "initialResources": {
+    "herd": 2500,
+    "crew": 12,
+    "horses": 60,
+    "supplies": 65,
+    "morale": 55,
+    "herdCondition": 60,
+    "wagonCondition": 72,
+    "cash": 250
+  },
+  "resourceCaps": {
+    "herd": 3500,
+    "crew": 24,
+    "horses": 70,
+    "ammo": 240,
+    "spareParts": 12,
+    "wagonCondition": 100,
+    "cash": 5000
+  },
+  "resourceLabels": {
+    "herd": "herd",
+    "crew": "crew",
+    "horses": "horses",
+    "ammo": "ammo",
+    "supplies": "supplies",
+    "morale": "morale",
+    "herdCondition": "cond",
+    "wagonCondition": "wagon"
+  },
+  "paces": [
+    {
+      "id": "easy",
+      "label": "Easy",
+      "desc": "5 mi/day · Herd fattens",
+      "mpd": 5,
+      "fx": {
+        "herdCondition": 2,
+        "morale": 1,
+        "supplies": -1
+      }
+    },
+    {
+      "id": "normal",
+      "label": "Normal",
+      "desc": "7 mi/day · Standard",
+      "mpd": 7,
+      "fx": {
+        "herdCondition": -1,
+        "morale": -1,
+        "supplies": -2
+      }
+    },
+    {
+      "id": "push",
+      "label": "Push",
+      "desc": "10 mi/day · Brutal",
+      "mpd": 10,
+      "fx": {
+        "herdCondition": -5,
+        "morale": -4,
+        "supplies": -3
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "river_crossing_early",
+      "phase_min": 0,
+      "phase_max": 0.3,
+      "weight": 5,
+      "title": "River Crossing — The Brazos",
+      "text": "You reach the flooded Brazos River. A bad crossing can drown cattle, lose horses, and slow your drive.",
+      "trivia": [
+        "Trail drives often paused at rivers because one bad crossing could scatter a herd.",
+        "Historians think scouts tested water depth on horseback before moving cattle."
+      ],
+      "sageAdvice": [
+        {
+          "name": "Nina",
+          "role": "Trail scout",
+          "line": "Watch the current first. Fast water can pull calves away from the herd."
+        },
+        {
+          "name": "Mr. Redford",
+          "role": "Old trail hand",
+          "line": "A slower crossing can save many cattle. Patience is a trail skill."
+        }
+      ],
+      "choices": [
+        {
+          "text": "Take the wide ford. Half a day lost but safer.",
+          "outcomes": [
+            {
+              "weight": 6,
+              "effects": {
+                "herdCondition": -2
+              },
+              "result": "The wide ford works. Water up to the cattle’s bellies but they cross steady. Boring success — the best kind."
+            },
+            {
+              "weight": 4,
+              "effects": {
+                "herd": -30,
+                "herdCondition": -4,
+                "horses": -2
+              },
+              "result": "The ‘safe’ ford has a sinkhole. Thirty head drown. Two horses go down."
+            }
+          ]
+        },
+        {
+          "text": "Cross here. Deep but narrow — fast.",
+          "outcomes": [
+            {
+              "weight": 5,
+              "effects": {
+                "herd": -60,
+                "morale": -6,
+                "horses": -3
+              },
+              "result": "Too deep. Current catches the middle of the herd. Sixty head gone."
+            },
+            {
+              "weight": 5,
+              "effects": {
+                "herd": -8,
+                "morale": 4
+              },
+              "result": "Your lead steer walks straight in and the herd follows. Eight head swept away."
+            }
+          ]
+        },
+        {
+          "text": "Wait a day. Let the river drop.",
+          "outcomes": [
+            {
+              "weight": 5,
+              "effects": {
+                "supplies": -4,
+                "herdCondition": 3,
+                "herd": -5
+              },
+              "result": "River drops overnight. Easy crossing. Patience pays."
+            },
+            {
+              "weight": 5,
+              "effects": {
+                "supplies": -4,
+                "herd": -80,
+                "morale": -8
+              },
+              "result": "It rains again. River rises. Eighty head gone."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stampede_night",
+      "phase_min": 0,
+      "phase_max": 0.8,
+      "weight": 5,
+      "title": "Stampede — Lightning",
+      "text": "Lightning hits near camp at night. If the herd stampedes, you can lose cattle, riders, and distance.",
+      "choices": [
+        {
+          "text": "Ride to the front. Turn the leaders.",
+          "outcomes": [
+            {
+              "weight": 5,
+              "effects": {
+                "herd": -40,
+                "horses": -2,
+                "morale": -3
+              },
+              "result": "You turn them into a wide circle by dawn. Forty head over a bluff."
+            },
+            {
+              "weight": 3,
+              "effects": {
+                "herd": -15,
+                "morale": 5,
+                "herdCondition": -3
+              },
+              "result": "Your best rider turns the lead steer hard. Fifteen scattered. The crew cheers loudly."
+            },
+            {
+              "weight": 2,
+              "effects": {
+                "herd": -20,
+                "crew": -1,
+                "morale": -10,
+                "horses": -1
+              },
+              "result": "A horse hits a prairie dog hole at full gallop in the dark. Horse and rider go down."
+            }
+          ]
+        },
+        {
+          "text": "Hold position. Protect the camp.",
+          "effects": {
+            "herd": -150,
+            "morale": -5
+          },
+          "result": "You let them run. A hundred fifty head just gone."
+        },
+        {
+          "text": "Get every rider out singing.",
+          "outcomes": [
+            {
+              "weight": 4,
+              "effects": {
+                "herd": -20,
+                "morale": 3,
+                "herdCondition": -2
+              },
+              "result": "Cowboys singing ‘Lorena’ in a thunderstorm. Twenty head gone but the herd settles."
+            },
+            {
+              "weight": 6,
+              "effects": {
+                "herd": -100,
+                "morale": -6,
+                "herdCondition": -5
+              },
+              "result": "Too far gone. Herd splits three ways. A hundred head scattered."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "water_scarce",
+      "phase_min": 0.2,
+      "phase_max": 0.7,
+      "weight": 5,
+      "title": "Dry Country",
+      "text": "You have gone two days without water. If you guess wrong now, cattle and horses can die fast.",
+      "choices": [
+        {
+          "text": "Push through fast.",
+          "outcomes": [
+            {
+              "weight": 5,
+              "effects": {
+                "herd": -50,
+                "herdCondition": -8,
+                "morale": -4,
+                "horses": -3
+              },
+              "result": "Cattle stagger. Calves drop. Fifty head didn’t make it."
+            },
+            {
+              "weight": 5,
+              "effects": {
+                "herd": -20,
+                "herdCondition": -4,
+                "morale": 3
+              },
+              "result": "Scout signals river ahead by evening. Twenty lost to heat. The rest drink."
+            }
+          ]
+        },
+        {
+          "text": "Slow down. Look for water.",
+          "outcomes": [
+            {
+              "weight": 4,
+              "effects": {
+                "supplies": -6,
+                "herd": -30,
+                "herdCondition": -3,
+                "morale": -5
+              },
+              "result": "Extra day of suffering. Thirty dead."
+            },
+            {
+              "weight": 6,
+              "effects": {
+                "herdCondition": -2,
+                "supplies": -3,
+                "herd": -8,
+                "morale": 4
+              },
+              "result": "Scout finds an underground seep. Eight head lost."
+            }
+          ]
+        },
+        {
+          "text": "Night drive. Move in the cool.",
+          "outcomes": [
+            {
+              "weight": 5,
+              "effects": {
+                "herd": -25,
+                "morale": -5,
+                "herdCondition": -3
+              },
+              "result": "Twenty-five walk off a cutbank in the dark."
+            },
+            {
+              "weight": 5,
+              "effects": {
+                "herd": -10,
+                "morale": 2,
+                "herdCondition": 1,
+                "horses": -1
+              },
+              "result": "It works. By dawn you see trees — water."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rustlers",
+      "phase_min": 0.3,
+      "phase_max": 0.8,
+      "weight": 4,
+      "title": "Riders on the Ridge",
+      "text": "Unknown riders shadow your herd. If trouble starts, you may lose cattle, gear, or crew health.",
+      "choices": [
+        {
+          "text": "Arm up and ride out.",
+          "outcomes": [
+            {
+              "weight": 5,
+              "effects": {
+                "morale": 5,
+                "herdCondition": -2
+              },
+              "result": "They are another trail crew, not rustlers. Morale rises."
+            },
+            {
+              "weight": 5,
+              "effects": {
+                "morale": -3,
+                "crew": -1,
+                "supplies": -2
+              },
+              "result": "They scatter but one puts a rifle shot through your flank rider’s shoulder."
+            }
+          ]
+        },
+        {
+          "text": "Circle tight and post guards.",
+          "effects": {
+            "herdCondition": -4,
+            "morale": -3,
+            "supplies": -2
+          },
+          "result": "They disappear at sundown. You’ll never know what they were."
+        },
+        {
+          "text": "Ignore them. Keep driving.",
+          "outcomes": [
+            {
+              "weight": 4,
+              "effects": {
+                "herd": -200,
+                "morale": -12,
+                "horses": -4
+              },
+              "result": "They hit at dawn. 200 head gone."
+            },
+            {
+              "weight": 6,
+              "effects": {
+                "morale": 2
+              },
+              "result": "They drift away by evening, and danger passes."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "crew_quit",
+      "phase_min": 0.3,
+      "phase_max": 0.7,
+      "weight": 4,
+      "title": "Two Hands Give Notice",
+      "text": "Two hands want to quit before dawn. Fewer riders means slower travel and weaker herd control.",
+      "choices": [
+        {
+          "text": "Let them go.",
+          "effects": {
+            "crew": -2,
+            "morale": -3
+          },
+          "result": "They ride out at dawn."
+        },
+        {
+          "text": "Offer double wages.",
+          "outcomes": [
+            {
+              "weight": 6,
+              "effects": {
+                "supplies": -5,
+                "morale": 3
+              },
+              "result": "Double pay keeps them."
+            },
+            {
+              "weight": 4,
+              "effects": {
+                "crew": -2,
+                "morale": -6
+              },
+              "result": "‘It is not about money.’"
+            }
+          ]
+        },
+        {
+          "text": "Remind them they signed a contract.",
+          "effects": {
+            "morale": -8
+          },
+          "result": "They stay, but morale drops and teamwork suffers."
+        }
+      ]
+    },
+    {
+      "id": "indian_territory",
+      "phase_min": 0.4,
+      "phase_max": 0.7,
+      "weight": 5,
+      "title": "Indian Territory",
+      "text": "You enter Nations land and must pay a legal toll. The choice affects herd safety and supplies.",
+      "choices": [
+        {
+          "text": "Pay the toll. It’s their land.",
+          "effects": {
+            "morale": -3,
+            "herdCondition": 2,
+            "herd": -250
+          },
+          "result": "250 head equivalent. The toll bought intelligence and escort."
+        },
+        {
+          "text": "Negotiate. Offer five cents.",
+          "outcomes": [
+            {
+              "weight": 5,
+              "effects": {
+                "morale": 1,
+                "herdCondition": 1,
+                "herd": -175
+              },
+              "result": "Seven cents. 175 head. Fair."
+            },
+            {
+              "weight": 5,
+              "effects": {
+                "morale": -5,
+                "herdCondition": -3,
+                "herd": -50,
+                "supplies": -4
+              },
+              "result": "No escort. Bad crossing. The toll was cheaper than ignorance."
+            }
+          ]
+        },
+        {
+          "text": "Refuse. Push through.",
+          "outcomes": [
+            {
+              "weight": 3,
+              "effects": {
+                "morale": 4,
+                "herdCondition": -4
+              },
+              "result": "No attack comes, but your crew stays tense and tired."
+            },
+            {
+              "weight": 7,
+              "effects": {
+                "herd": -300,
+                "morale": -8,
+                "horses": -5,
+                "crew": -1,
+                "herdCondition": -6
+              },
+              "result": "Ambush at a river crossing. 300 head gone. A cowboy takes an arrow."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cook_wagon",
+      "phase_min": 0.1,
+      "phase_max": 0.6,
+      "weight": 4,
+      "title": "Busted Axle",
+      "text": "Your chuck wagon axle breaks. Without food and tools, morale drops and repairs cost time.",
+      "choices": [
+        {
+          "text": "Full stop. Repair. Whole day.",
+          "effects": {
+            "supplies": -3,
+            "herdCondition": -3,
+            "morale": 1
+          },
+          "result": "Cottonwood replacement axle. The cook makes coffee and the crew forgives."
+        },
+        {
+          "text": "Rig a temporary fix.",
+          "outcomes": [
+            {
+              "weight": 5,
+              "effects": {
+                "morale": -2,
+                "supplies": -2
+              },
+              "result": "Holds three days then fails in a creek. Half your flour ruined."
+            },
+            {
+              "weight": 5,
+              "effects": {
+                "morale": 2
+              },
+              "result": "Holds all the way. Sometimes the quick fix is the right fix."
+            }
+          ]
+        },
+        {
+          "text": "Abandon the wagon.",
+          "effects": {
+            "supplies": -15,
+            "morale": -10,
+            "horses": -3
+          },
+          "result": "Cold jerky and creek water for every meal. This is survival now."
+        }
+      ]
+    },
+    {
+      "id": "good_grass",
+      "phase_min": 0.1,
+      "phase_max": 0.8,
+      "weight": 3,
+      "title": "Paradise Valley",
+      "text": "Your scout finds rich grass and clean water. Resting helps herd health but costs precious days.",
+      "choices": [
+        {
+          "text": "Two days’ rest.",
+          "effects": {
+            "herdCondition": 10,
+            "morale": 6,
+            "supplies": -5,
+            "horses": 2
+          },
+          "result": "The herd recovers well, and the crew feels strong again."
+        },
+        {
+          "text": "One day.",
+          "effects": {
+            "herdCondition": 5,
+            "morale": 3,
+            "supplies": -3
+          },
+          "result": "Enough to take the edge off."
+        },
+        {
+          "text": "Keep moving.",
+          "outcomes": [
+            {
+              "weight": 5,
+              "effects": {
+                "morale": -6,
+                "herdCondition": -2
+              },
+              "result": "The crew is disappointed as you move on."
+            },
+            {
+              "weight": 5,
+              "effects": {
+                "morale": -3,
+                "herdCondition": -1
+              },
+              "result": "Soon after, a crossing appears and morale steadies."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "river_red",
+      "phase_min": 0.35,
+      "phase_max": 0.55,
+      "weight": 5,
+      "title": "The Red River",
+      "text": "You face the wide Red River. A poor plan can sweep cattle away and ruin your schedule.",
+      "choices": [
+        {
+          "text": "Scout downstream.",
+          "outcomes": [
+            {
+              "weight": 5,
+              "effects": {
+                "supplies": -4,
+                "herd": -15,
+                "herdCondition": -1
+              },
+              "result": "Better crossing found. Fifteen lost. Patience paid."
+            },
+            {
+              "weight": 5,
+              "effects": {
+                "supplies": -6,
+                "morale": -3,
+                "herd": -40
+              },
+              "result": "Nothing better. Forty head gone."
+            }
+          ]
+        },
+        {
+          "text": "Cross here and now.",
+          "outcomes": [
+            {
+              "weight": 4,
+              "effects": {
+                "herd": -80,
+                "morale": -6,
+                "horses": -4,
+                "crew": -1
+              },
+              "result": "The crossing turns chaotic. You lose eighty head and one rider."
+            },
+            {
+              "weight": 6,
+              "effects": {
+                "herd": -25,
+                "morale": 4
+              },
+              "result": "The lead steer holds course. You lose twenty-five head but cross safely."
+            }
+          ]
+        },
+        {
+          "text": "Wait for another outfit. Watch and learn.",
+          "outcomes": [
+            {
+              "weight": 5,
+              "effects": {
+                "supplies": -5,
+                "herd": -10,
+                "morale": 2
+              },
+              "result": "Watch their mistakes. Cross clean. Ten head — a miracle for the Red."
+            },
+            {
+              "weight": 5,
+              "effects": {
+                "supplies": -8,
+                "morale": -5,
+                "herdCondition": -3
+              },
+              "result": "No one arrives. You lose two days and supplies."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "snakebite",
+      "phase_min": 0,
+      "phase_max": 0.8,
+      "weight": 3,
+      "title": "Rattler",
+      "text": "A snake bites your best roper. Treatment choice affects crew health and herd control.",
+      "choices": [
+        {
+          "text": "Cut and suck.",
+          "outcomes": [
+            {
+              "weight": 5,
+              "effects": {
+                "morale": -3,
+                "crew": -1
+              },
+              "result": "The treatment fails, and you lose a crew member."
+            },
+            {
+              "weight": 5,
+              "effects": {
+                "morale": 2,
+                "herdCondition": -2
+              },
+              "result": "By day four, he can sit up and recover slowly."
+            }
+          ]
+        },
+        {
+          "text": "Send a rider for medicine.",
+          "effects": {
+            "crew": -1,
+            "morale": -2,
+            "herdCondition": -3,
+            "supplies": -4
+          },
+          "result": "You are short on riders, and the medicine comes too late."
+        },
+        {
+          "text": "Tourniquet, whiskey, chuck wagon.",
+          "effects": {
+            "morale": -1,
+            "herdCondition": -2
+          },
+          "result": "He makes it. Barely. He’ll tell this story for fifty years."
+        }
+      ]
+    },
+    {
+      "id": "tornado",
+      "phase_min": 0.2,
+      "phase_max": 0.7,
+      "weight": 3,
+      "title": "Green Sky",
+      "text": "Dark clouds spin on the horizon. You have minutes to protect crew, horses, and herd.",
+      "choices": [
+        {
+          "text": "Scatter the herd.",
+          "outcomes": [
+            {
+              "weight": 5,
+              "effects": {
+                "herd": -60,
+                "morale": -4,
+                "herdCondition": -5
+              },
+              "result": "Twister hits where the herd was. Sixty gone but the bulk survived."
+            },
+            {
+              "weight": 5,
+              "effects": {
+                "herd": -30,
+                "morale": 4
+              },
+              "result": "Misses by a mile. Too close."
+            }
+          ]
+        },
+        {
+          "text": "Hold tight. Low ground.",
+          "outcomes": [
+            {
+              "weight": 4,
+              "effects": {
+                "herd": -200,
+                "crew": -1,
+                "horses": -6,
+                "morale": -12
+              },
+              "result": "Direct hit. 200 gone. A cowboy thrown."
+            },
+            {
+              "weight": 6,
+              "effects": {
+                "herd": -20,
+                "morale": 2,
+                "herdCondition": -3
+              },
+              "result": "Low ground saves you. Twenty caught. Lucky everything."
+            }
+          ]
+        },
+        {
+          "text": "Ride south.",
+          "effects": {
+            "herd": -40,
+            "herdCondition": -6,
+            "morale": -5,
+            "supplies": -3
+          },
+          "result": "Cattle fight you every step. Forty scatter. But you’re alive."
+        }
+      ]
+    },
+    {
+      "id": "competition",
+      "phase_min": 0.3,
+      "phase_max": 0.8,
+      "weight": 3,
+      "title": "Competition",
+      "text": "A larger herd races toward Abilene. Arriving late could lower your sale price and final score.",
+      "choices": [
+        {
+          "text": "Push hard. Outpace them.",
+          "effects": {
+            "herdCondition": -8,
+            "morale": -3,
+            "supplies": -5,
+            "horses": -3
+          },
+          "result": "Cattle drop weight. But you pull ahead."
+        },
+        {
+          "text": "Hold pace. Fat cattle sell higher.",
+          "outcomes": [
+            {
+              "weight": 6,
+              "effects": {
+                "morale": -2
+              },
+              "result": "They pass you. But your cattle are fat."
+            },
+            {
+              "weight": 4,
+              "effects": {
+                "morale": 3
+              },
+              "result": "They push too hard. Stampede. Tortoise and the hare."
+            }
+          ]
+        },
+        {
+          "text": "Send a rider to lock in a price.",
+          "effects": {
+            "crew": -1,
+            "morale": 2
+          },
+          "result": "Sharpest man, fastest horse, letter of intent."
+        }
+      ]
+    },
+    {
+      "id": "prairie_fire",
+      "phase_min": 0.1,
+      "phase_max": 0.6,
+      "weight": 3,
+      "title": "Smoke on the Horizon",
+      "text": "A prairie fire moves toward your trail. Wrong timing can trap cattle in smoke and heat.",
+      "choices": [
+        {
+          "text": "Set a backfire.",
+          "outcomes": [
+            {
+              "weight": 6,
+              "effects": {
+                "herd": -20,
+                "herdCondition": -3,
+                "morale": 2
+              },
+              "result": "Scout burns a strip. Twenty bolt. Professional work."
+            },
+            {
+              "weight": 4,
+              "effects": {
+                "herd": -80,
+                "morale": -6,
+                "herdCondition": -5
+              },
+              "result": "Backfire gets away. Fire on TWO sides. Eighty gone."
+            }
+          ]
+        },
+        {
+          "text": "Drive east. Outflank it.",
+          "effects": {
+            "herdCondition": -5,
+            "morale": -3,
+            "supplies": -3,
+            "herd": -15
+          },
+          "result": "Fire slides past. Fifteen scatter."
+        },
+        {
+          "text": "Find water.",
+          "outcomes": [
+            {
+              "weight": 4,
+              "effects": {
+                "herd": -5,
+                "morale": 5,
+                "herdCondition": 2
+              },
+              "result": "Wide creek. Herd stands belly-deep while the world burns."
+            },
+            {
+              "weight": 6,
+              "effects": {
+                "herd": -40,
+                "morale": -4,
+                "herdCondition": -4
+              },
+              "result": "No creek. Forty head lost in the smoke."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "buyer",
+      "phase_min": 0.7,
+      "phase_max": 0.95,
+      "weight": 4,
+      "title": "A Buyer on the Trail",
+      "text": "A buyer offers cash today at a lower price. Waiting may earn more, but risk grows each day.",
+      "choices": [
+        {
+          "text": "Take the deal.",
+          "effects": {
+            "morale": 8
+          },
+          "result": "$30 a head. You left $25,000 on the table. But you’re done.",
+          "earlyEnd": true
+        },
+        {
+          "text": "Counter at $35.",
+          "outcomes": [
+            {
+              "weight": 5,
+              "effects": {
+                "morale": 6
+              },
+              "result": "‘$33.’ Done today.",
+              "earlyEnd": true
+            },
+            {
+              "weight": 5,
+              "effects": {
+                "morale": -2
+              },
+              "result": "‘$30 is the offer.’ He rides on."
+            }
+          ]
+        },
+        {
+          "text": "Refuse.",
+          "outcomes": [
+            {
+              "weight": 5,
+              "effects": {
+                "morale": 4
+              },
+              "result": "‘Your herd, your call.’"
+            },
+            {
+              "weight": 5,
+              "effects": {
+                "morale": -3
+              },
+              "result": "That night a hand says Abilene prices dropped to $28."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "horse_thief",
+      "phase_min": 0.2,
+      "phase_max": 0.6,
+      "weight": 3,
+      "title": "Missing Horses",
+      "text": "Eight horses are missing at dawn. Without mounts, scouts and guards cannot cover the herd.",
+      "choices": [
+        {
+          "text": "Send riders after them.",
+          "outcomes": [
+            {
+              "weight": 5,
+              "effects": {
+                "morale": 4,
+                "herdCondition": -3
+              },
+              "result": "Horses back. One cowboy shot in the arm."
+            },
+            {
+              "weight": 5,
+              "effects": {
+                "horses": -8,
+                "morale": -2,
+                "herdCondition": -4
+              },
+              "result": "Lost the trail. Eight horses gone."
+            }
+          ]
+        },
+        {
+          "text": "Let them go.",
+          "effects": {
+            "horses": -8,
+            "morale": -6
+          },
+          "result": "A trail boss who won’t fight for his remuda."
+        },
+        {
+          "text": "Double the watch.",
+          "effects": {
+            "horses": -8,
+            "morale": -4,
+            "herdCondition": -2
+          },
+          "result": "Horses are safer, but the crew grows very tired."
+        }
+      ]
+    },
+    {
+      "id": "fever",
+      "phase_min": 0.25,
+      "phase_max": 0.7,
+      "weight": 3,
+      "title": "Tick Fever",
+      "text": "Tick fever appears in your herd. Act now, or sickness spreads and many cattle die.",
+      "choices": [
+        {
+          "text": "Cut the sick ones.",
+          "effects": {
+            "herd": -36,
+            "morale": -2,
+            "herdCondition": 4
+          },
+          "result": "Thirty-six left standing. The fever stops."
+        },
+        {
+          "text": "Treat on the move.",
+          "outcomes": [
+            {
+              "weight": 5,
+              "effects": {
+                "herd": -100,
+                "herdCondition": -8,
+                "morale": -6,
+                "supplies": -4
+              },
+              "result": "The fever spreads. You lose one hundred head."
+            },
+            {
+              "weight": 5,
+              "effects": {
+                "herd": -15,
+                "herdCondition": -2,
+                "supplies": -4
+              },
+              "result": "The treatment helps some cattle, but fifteen are lost."
+            }
+          ]
+        },
+        {
+          "text": "Push hard. Outrun the ticks.",
+          "effects": {
+            "herdCondition": -6,
+            "herd": -50,
+            "morale": -4,
+            "horses": -2
+          },
+          "result": "The disease keeps spreading, and fifty cattle die."
+        }
+      ]
+    },
+    {
+      "id": "stray_longhorns",
+      "phase_min": 0.1,
+      "phase_max": 0.8,
+      "weight": 6,
+      "type": "push_luck",
+      "title": "Stray Longhorns in the Brush",
+      "text": "Scout spotted a dozen unbranded longhorns deep in a thicket of mesquite and prickly pear. Pulling them out will take time, and the brush is thick with rattlers and broken ground.",
+      "leaveText": "Leave them. We have enough trouble.",
+      "attempts": [
+        {
+          "id": "stray_1",
+          "buttonText": "Rope the easy ones on the edge",
+          "successText": "Got three head without much fuss. Added to the herd.",
+          "failureText": "A steer bolted and caught a horse in the ribs. Had to let them go.",
+          "riskChance": 0.1,
+          "rewards": {
+            "herd": 3,
+            "morale": 2
+          },
+          "penalties": {
+            "horses": -1,
+            "morale": -2
+          }
+        },
+        {
+          "id": "stray_2",
+          "buttonText": "Push deeper into the thicket",
+          "successText": "Hauled out five more. The crew is getting scratched to hell, but it's free money.",
+          "failureText": "Rattlesnake spooked a horse. Rider thrown into a cactus, horse lame. Total mess.",
+          "riskChance": 0.35,
+          "rewards": {
+            "herd": 5,
+            "morale": 5
+          },
+          "penalties": {
+            "horses": -1,
+            "herdCondition": -5,
+            "morale": -8
+          }
+        },
+        {
+          "id": "stray_3",
+          "buttonText": "Dismount and flush out the last few",
+          "successText": "Dragged the last four out by their horns. A perfect haul, worth an extra $160 in Abilene.",
+          "failureText": "Ambushed by a feral bull hiding in the brush. One cowboy gored, two horses scattered. A disaster.",
+          "riskChance": 0.65,
+          "rewards": {
+            "herd": 4,
+            "morale": 10
+          },
+          "penalties": {
+            "crew": -1,
+            "horses": -2,
+            "morale": -15,
+            "herdCondition": -10
+          }
+        }
+      ]
+    },
+    {
+      "id": "abandoned_homestead",
+      "phase_min": 0.2,
+      "phase_max": 0.7,
+      "weight": 5,
+      "type": "push_luck",
+      "title": "Abandoned Homestead",
+      "text": "Your scout found a homestead that's been empty since the war. The root cellar door is still shut, and there's a corral out back with what looks like a few stray horses. Could be supplies in there — could be trouble.",
+      "leaveText": "Leave it. Other men's property, other men's problems.",
+      "attempts": [
+        {
+          "id": "homestead_1",
+          "buttonText": "Check the corral for horses",
+          "successText": "Two sound horses, abandoned and half-wild. Your wrangler ropes them clean.",
+          "failureText": "A longhorn kicks your wrangler. You gain nothing and lose morale.",
+          "riskChance": 0.15,
+          "rewards": {
+            "horses": 2,
+            "morale": 3
+          },
+          "penalties": {
+            "morale": -3,
+            "herdCondition": -2
+          }
+        },
+        {
+          "id": "homestead_2",
+          "buttonText": "Pry open the root cellar",
+          "successText": "You find salt pork, dried beans, and coffee. The camp has enough food again.",
+          "failureText": "The door was wedged for a reason — a rattlesnake den. One cowboy bitten before you slam it shut.",
+          "riskChance": 0.4,
+          "rewards": {
+            "supplies": 12,
+            "morale": 8
+          },
+          "penalties": {
+            "crew": -1,
+            "morale": -6
+          }
+        },
+        {
+          "id": "homestead_3",
+          "buttonText": "Search the house itself",
+          "successText": "A hidden strongbox under the floorboards. Gold coins, a Winchester, and a letter that'll never reach anyone. Fortune favors the bold.",
+          "failureText": "The floor gives way. A cowboy falls through into a collapsed cellar. Broken leg, broken morale, broken everything.",
+          "riskChance": 0.7,
+          "rewards": {
+            "supplies": 8,
+            "morale": 15,
+            "herd": 5
+          },
+          "penalties": {
+            "crew": -1,
+            "horses": -1,
+            "morale": -12,
+            "herdCondition": -8
+          }
+        }
+      ]
+    }
+  ],
+  "sages": [
+    {
+      "id": "goodnight",
+      "name": "Charles Goodnight",
+      "title": "Cattleman & Trail Blazer",
+      "portrait": "/faces/sage_goodnight.png",
+      "threshold": 15,
+      "bio": "Charles Goodnight co-blazed the Goodnight-Loving Trail and invented the chuck wagon — the mobile kitchen that made long cattle drives possible. A Confederate veteran turned rancher, he became one of the most successful cattlemen in Texas history.",
+      "greeting": "Your outfit camps near a rival drive. The trail boss rides over — a hard-looking man with sun-cracked hands and sharp eyes. He introduces himself as Charles Goodnight.",
+      "advice": "\"Your cook's wagon is a mess. Let me show you something.\" He spends an hour reorganizing your chuck wagon, showing how to mount the water barrel and tool chest properly. \"A fed crew is a loyal crew. Lose the cook and you lose the drive.\"",
+      "question": {
+        "question": "Why did massive cattle drives from Texas begin after 1865?",
+        "choices": [
+          "Longhorns were brought to Texas for the first time from Mexico",
+          "Texas had millions of cattle but no railroad — drives connected ranches to Northern markets",
+          "The U.S. government paid cowboys to move cattle north as a jobs program",
+          "Gold was discovered in Kansas and cowboys drove cattle there to feed miners"
+        ],
+        "correctIndex": 1,
+        "explanation": "After the Civil War, Texas had an estimated 5 million longhorns but no railroads. Cattle worth $4 a head in Texas sold for $40 in Northern markets. The drives existed to bridge that gap — moving cattle on foot to railheads in Kansas where they could be shipped east by rail.",
+        "teksRef": "6.12(A) — Economic patterns of cattle ranching and the cattle drive era"
+      },
+      "reward": {
+        "correct": {
+          "supplies": 8,
+          "herdCondition": 5
+        },
+        "wrong": {
+          "supplies": 3
+        },
+        "knowledgeCorrect": 4,
+        "knowledgeWrong": 2
+      }
+    },
+    {
+      "id": "chisholm",
+      "name": "Jesse Chisholm",
+      "title": "Trader, Scout & Trail Namesake",
+      "portrait": "/faces/sage_chisholm.png",
+      "threshold": 40,
+      "bio": "Jesse Chisholm was half Cherokee and half Scottish. He spoke 14 languages and worked as a trader, interpreter, and guide across the Southern Plains. The trail that bears his name was originally his trading route between his post near Wichita and Texas — cattle drivers followed the path he'd already worn into the prairie.",
+      "greeting": "A trading party approaches from the north. Their leader is a wiry man with Cherokee features and a Scottish surname. Jesse Chisholm himself — the man whose wagon ruts you've been following for 300 miles.",
+      "advice": "\"You're on my trail because it follows water and avoids the worst crossings. That's not luck — I spent twenty years learning where the creeks run shallow.\" He marks your map with better fords ahead. \"The Washita will be high this time of year. Cross at the bend, not the narrows.\"",
+      "question": {
+        "question": "The Chisholm Trail was originally created as what?",
+        "choices": [
+          "A military road built by the U.S. Army to connect frontier forts",
+          "A trade route used by Jesse Chisholm to move goods between Indigenous nations and Texas",
+          "A cattle trail designed by Texas ranchers to reach Abilene",
+          "A stagecoach route connecting San Antonio to Kansas City"
+        ],
+        "correctIndex": 1,
+        "explanation": "Jesse Chisholm was a trader, not a cattleman. His trail was a trade route connecting his trading post near present-day Wichita to points south. Texas cattle drivers adopted his path because it was already proven — it followed water, avoided rough terrain, and was known to Indigenous nations along the route. Chisholm himself never drove cattle on it.",
+        "teksRef": "6.4(A) — Contributions of individuals to Texas economic development"
+      },
+      "reward": {
+        "correct": {
+          "insight": 2
+        },
+        "wrong": {
+          "insight": 1
+        },
+        "knowledgeCorrect": 5,
+        "knowledgeWrong": 2
+      }
+    },
+    {
+      "id": "quanah",
+      "name": "Quanah Parker",
+      "title": "Comanche War Chief",
+      "portrait": "/faces/sage_quanah.png",
+      "threshold": 55,
+      "bio": "Quanah Parker was the last chief of the Quahadi Comanche and the son of Chief Peta Nocona and Cynthia Ann Parker, a white captive who was adopted into Comanche life. He led the resistance against buffalo hunters and settlers at the Battle of Adobe Walls in 1874. After the Red River War, he became a statesman who navigated between Comanche traditions and the new reality of reservation life.",
+      "greeting": "A line of Comanche riders appears on a ridge overlooking your herd. Your crew reaches for their guns. The lead rider descends slowly — a powerful young warrior with braided hair and piercing eyes. He wants to talk, not fight.",
+      "advice": "\"You cross Comanche land. Every herd that passes kills more grass our buffalo need.\" He studies your outfit with calculating eyes. \"Move fast through the Territory. Don't let your cattle graze the creek bottoms — that grass feeds our horses. You'll have less trouble if you respect that.\"",
+      "question": {
+        "question": "What was the primary relationship between cattle drives and Plains Indian nations like the Comanche?",
+        "choices": [
+          "The drives had no impact on Indigenous peoples because they followed different routes",
+          "Cattle drives destroyed grazing land that buffalo herds depended on, threatening Indigenous ways of life",
+          "Plains Indians eagerly traded with cattle drivers and welcomed the economic opportunity",
+          "The U.S. government paid Indigenous nations to allow cattle drives through their territory"
+        ],
+        "correctIndex": 1,
+        "explanation": "Cattle drives were one of many forces destroying the buffalo-based economy of Plains nations. Millions of cattle trampled and overgrazed land that sustained buffalo herds. Combined with commercial buffalo hunting, railroad expansion, and military campaigns, the cattle drives contributed to the collapse of Indigenous independence on the Southern Plains. This wasn't accidental — it was part of a larger pattern of displacement.",
+        "teksRef": "6.2(B) — Impact of westward expansion on Indigenous peoples"
+      },
+      "reward": {
+        "correct": {
+          "morale": 8
+        },
+        "wrong": {
+          "morale": 3
+        },
+        "knowledgeCorrect": 5,
+        "knowledgeWrong": 3
+      }
+    },
+    {
+      "id": "reeves",
+      "name": "Bass Reeves",
+      "title": "Deputy U.S. Marshal",
+      "portrait": "/faces/sage_reeves.png",
+      "threshold": 72,
+      "bio": "Bass Reeves was born into slavery in 1838 and escaped to Indian Territory during the Civil War, where he lived among the Cherokee, Creek, and Seminole nations and learned their languages. After emancipation, he became one of the first Black deputy U.S. marshals west of the Mississippi. Over 32 years he arrested more than 3,000 felons and was never wounded — despite being shot at countless times.",
+      "greeting": "A tall man on a gray horse rides into your camp at dusk, a silver star on his chest. Your crew tenses — law in the Nations usually means trouble. But this man moves easy, speaks Muscogee to your Chickasaw guide, then switches to English without missing a beat. Deputy U.S. Marshal Bass Reeves.",
+      "advice": "\"Seen your dust cloud for two days. You're not the only ones who noticed — there's a band of horse thieves working this stretch.\" He checks his revolvers. \"Keep your remuda close tonight and post double watch. I'll be in the area.\" He glances at your Black cowboys and nods with something like recognition. \"Good crew you've got.\"",
+      "question": {
+        "question": "Historians estimate that what portion of working cowboys in the post-Civil War West were Black Americans?",
+        "choices": [
+          "Almost none — Black Americans were not allowed to work as cowboys",
+          "About 1 in 20 (5%)",
+          "About 1 in 4 (25%)",
+          "More than half (60%)"
+        ],
+        "correctIndex": 2,
+        "explanation": "Historians estimate that roughly one in four cowboys were Black Americans. After emancipation, cattle work was one of the few industries open to Black men in Texas. They served as trail hands, cooks, wranglers, and bronc busters — though they were rarely promoted to trail boss. Men like Bose Ikard, who rode for Charles Goodnight, and Bass Reeves, who became a legendary lawman, represent a chapter of Western history that was systematically erased from popular culture for over a century.",
+        "teksRef": "6.1(A) — Contributions of diverse groups to Texas culture and history"
+      },
+      "reward": {
+        "correct": {
+          "ammo": 15,
+          "morale": 5
+        },
+        "wrong": {
+          "ammo": 5
+        },
+        "knowledgeCorrect": 5,
+        "knowledgeWrong": 3
+      }
+    },
+    {
+      "id": "satanta",
+      "name": "Satanta",
+      "title": "Kiowa Chief — The Orator of the Plains",
+      "portrait": "/faces/sage_satanta.png",
+      "threshold": 84,
+      "bio": "Satanta (White Bear) was a Kiowa chief famous for his eloquence, his military leadership, and his defiant resistance to reservation confinement. He was known to U.S. officials as \"The Orator of the Plains\" for speeches that articulated the Kiowa position with devastating clarity. He was imprisoned at Huntsville, Texas, where he died in 1878 — officially by suicide, though the circumstances remain disputed.",
+      "greeting": "On a hill above the Kansas border, a Kiowa chief watches your herd pass. He's older than Quanah — battle-scarred, wearing a cavalry officer's coat taken as a trophy. He rides down not to threaten, but to speak. His reputation precedes him — this is Satanta, and he has something to say.",
+      "advice": "\"I have watched a hundred herds cross this grass. Each one leaves less for us. Your people build fences and call it progress. We call it the end of everything.\" He's not asking for payment. He's bearing witness. \"Remember that this land was not empty before your cattle came. Tell your children the truth about what was here.\"",
+      "question": {
+        "question": "How did the cattle drive era and westward expansion ultimately affect Plains Indian nations?",
+        "choices": [
+          "Plains nations adapted easily by becoming cattle ranchers themselves",
+          "The impact was temporary — Plains nations recovered their land within a decade",
+          "Destruction of buffalo herds, loss of grazing land, and military campaigns forced Plains nations onto reservations, ending their independent way of life",
+          "The U.S. government negotiated fair treaties that compensated Plains nations for lost land"
+        ],
+        "correctIndex": 2,
+        "explanation": "The cattle drive era was part of a larger catastrophe for Plains Indian nations. Commercial buffalo hunting killed an estimated 50 million buffalo by the 1880s. Cattle drives overgrazed land that sustained remaining herds. Military campaigns like the Red River War of 1874-75 forced the last free bands onto reservations. The treaties that existed were routinely broken. The entire Southern Plains way of life — built over thousands of years around the buffalo — was destroyed in less than two decades.",
+        "teksRef": "6.2(B) — Impact of westward expansion; 6.15(A) — Causes and effects of changing demographics"
+      },
+      "reward": {
+        "correct": {
+          "insight": 3
+        },
+        "wrong": {
+          "insight": 1
+        },
+        "knowledgeCorrect": 6,
+        "knowledgeWrong": 3
+      }
+    }
+  ],
+  "route": [
+    {
+      "id": "start",
+      "title": "Red River Camp",
+      "description": "You begin near the river camps.",
+      "edges": [
+        {
+          "to": "crossings",
+          "tag": "SAFE",
+          "label": "Scout known crossings"
+        },
+        {
+          "to": "open_plains",
+          "tag": "FAST",
+          "label": "Ride hard across plains"
+        }
+      ]
+    },
+    {
+      "id": "crossings",
+      "title": "River Crossings",
+      "description": "Safer water routes, slower travel.",
+      "edges": [
+        {
+          "to": "abilene_road",
+          "tag": "PROFIT",
+          "label": "Head to trade road"
+        },
+        {
+          "to": "high_grass",
+          "tag": "SAFE",
+          "label": "Stay with grass valleys"
+        }
+      ]
+    },
+    {
+      "id": "open_plains",
+      "title": "Open Plains",
+      "description": "Fast miles, rough weather.",
+      "edges": [
+        {
+          "to": "abilene_road",
+          "tag": "FAST",
+          "label": "Push toward Abilene"
+        },
+        {
+          "to": "high_grass",
+          "tag": "SAFE",
+          "label": "Slow down near creeks"
+        }
+      ]
+    },
+    {
+      "id": "high_grass",
+      "title": "High Grass Belt",
+      "description": "Good grazing and steady pace.",
+      "edges": [
+        {
+          "to": "finish",
+          "tag": "SAFE",
+          "label": "Take the steady final leg"
+        }
+      ]
+    },
+    {
+      "id": "abilene_road",
+      "title": "Abilene Road",
+      "description": "Busy trail with buyers nearby.",
+      "edges": [
+        {
+          "to": "finish",
+          "tag": "PROFIT",
+          "label": "Aim for the best market"
+        }
+      ]
+    },
+    {
+      "id": "finish",
+      "title": "Final Stretch",
+      "description": "The last miles to market.",
+      "edges": []
+    }
+  ],
+  "eventTrivia": [
+    {
+      "id": "c1",
+      "question": "Why did trail crews avoid deep river crossings when possible?",
+      "choices": [
+        "To save rope",
+        "To reduce cattle losses",
+        "To avoid maps"
+      ],
+      "correctIndex": 1,
+      "fact": "Deep crossings could scatter or drown cattle, so scouts searched for safer fords."
+    },
+    {
+      "id": "c2",
+      "question": "What did a chuck wagon carry on long drives?",
+      "choices": [
+        "Food and tools",
+        "Railroad parts",
+        "Gold bars"
+      ],
+      "correctIndex": 0,
+      "fact": "Chuck wagons carried food, tools, and medical supplies for the crew."
+    },
+    {
+      "id": "c3",
+      "question": "Why did crews rest cattle on good grass?",
+      "choices": [
+        "To train horses",
+        "To grow beards",
+        "To keep herd health up"
+      ],
+      "correctIndex": 2,
+      "fact": "Rest and grazing helped cattle keep weight before market."
+    },
+    {
+      "id": "c4",
+      "question": "What risk made night storms dangerous?",
+      "choices": [
+        "Stampedes",
+        "Fog only",
+        "Dry boots"
+      ],
+      "correctIndex": 0,
+      "fact": "Sudden noise and lightning could trigger a stampede."
+    },
+    {
+      "id": "c5",
+      "question": "Why pay legal tolls in Nations territory?",
+      "choices": [
+        "It was required for passage",
+        "It bought new wagons",
+        "It changed weather"
+      ],
+      "correctIndex": 0,
+      "fact": "Treaties gave Native Nations legal control over key routes."
+    }
+  ],
+  "trailPath": [
+    [
+      50,
+      91
+    ],
+    [
+      50,
+      88
+    ],
+    [
+      51,
+      85
+    ],
+    [
+      52,
+      82
+    ],
+    [
+      53,
+      80
+    ],
+    [
+      54,
+      78
+    ],
+    [
+      55,
+      75
+    ],
+    [
+      56,
+      72
+    ],
+    [
+      57,
+      69
+    ],
+    [
+      58,
+      66
+    ],
+    [
+      58,
+      64
+    ],
+    [
+      57,
+      61
+    ],
+    [
+      55,
+      58
+    ],
+    [
+      52,
+      56
+    ],
+    [
+      48,
+      54
+    ],
+    [
+      45,
+      53
+    ],
+    [
+      44,
+      51
+    ],
+    [
+      44,
+      49
+    ],
+    [
+      44,
+      47
+    ],
+    [
+      45,
+      45
+    ],
+    [
+      45,
+      43
+    ],
+    [
+      45,
+      41
+    ],
+    [
+      44,
+      39
+    ],
+    [
+      43,
+      37
+    ],
+    [
+      42,
+      35
+    ],
+    [
+      41,
+      33
+    ],
+    [
+      40,
+      31
+    ],
+    [
+      40,
+      29
+    ],
+    [
+      41,
+      27
+    ],
+    [
+      42,
+      25
+    ],
+    [
+      44,
+      23
+    ],
+    [
+      46,
+      21
+    ],
+    [
+      49,
+      19
+    ],
+    [
+      52,
+      18
+    ],
+    [
+      52,
+      16
+    ],
+    [
+      51,
+      14
+    ],
+    [
+      50,
+      12
+    ],
+    [
+      49,
+      10
+    ]
+  ],
+  "trailStops": [
+    {
+      "id": "sanantonio",
+      "name": "San Antonio",
+      "pathIndex": 0,
+      "pct": 0,
+      "supply": true
+    },
+    {
+      "id": "austin",
+      "name": "Austin",
+      "pathIndex": 5,
+      "pct": 12,
+      "supply": true
+    },
+    {
+      "id": "waco",
+      "name": "Waco",
+      "pathIndex": 10,
+      "pct": 25,
+      "supply": true
+    },
+    {
+      "id": "fortworth",
+      "name": "Fort Worth",
+      "pathIndex": 15,
+      "pct": 37,
+      "supply": true
+    },
+    {
+      "id": "redriver",
+      "name": "Red River",
+      "pathIndex": 20,
+      "pct": 50,
+      "supply": false
+    },
+    {
+      "id": "chisholm",
+      "name": "Chisholm's Post",
+      "pathIndex": 26,
+      "pct": 60,
+      "supply": true
+    },
+    {
+      "id": "wichita",
+      "name": "Wichita",
+      "pathIndex": 32,
+      "pct": 82,
+      "supply": true
+    },
+    {
+      "id": "abilene",
+      "name": "Abilene",
+      "pathIndex": 36,
+      "pct": 100,
+      "supply": true
+    }
+  ],
+  "mapImage": "/faces/map_chisholm.png",
+  "outfitConfig": {
+    "budget": 2000,
+    "baseCrew": 8,
+    "baseHorses": 30,
+    "baseSupplies": 35,
+    "costs": {
+      "cowboy": 120,
+      "horse": 40,
+      "supply": 6,
+      "gun": 35,
+      "spareParts": 65,
+      "medicalGear": 75,
+      "horseQuality": 90
+    },
+    "wageCosts": {
+      "low": 0,
+      "standard": 160,
+      "good": 360
+    },
+    "wageMorale": {
+      "low": 35,
+      "standard": 50,
+      "good": 68
+    },
+    "herdOptions": [
+      1500,
+      2000,
+      2500,
+      3000,
+      3500
+    ]
+  },
+  "primaryResourceKey": "herd",
+  "primaryResourceStart": 2500,
+  "revenuePerUnit": 40,
+  "historicalContext": "The Chisholm Trail operated from 1867 to roughly 1884. An estimated 5 million cattle and 1 million mustangs were driven north along this and other trails. The cattle drive era built the Texas economy after the Civil War, created the cowboy legend, and connected the frontier to the industrial East. Barbed wire, railroads, and quarantine laws ended the drives — but the culture they created defined Texas forever.",
+  "pixelColors": {
+    ".": "transparent",
+    "s": "#e8b796",
+    "d": "#c4896b",
+    "w": "#a0654d",
+    "H": "#5c3a1e",
+    "h": "#7a5230",
+    "B": "#d4a843",
+    "e": "#1a1a2e",
+    "W": "#f0e8dc",
+    "r": "#3d2512",
+    "m": "#8b3a3a",
+    "M": "#5c1e1e",
+    "g": "#4a6741",
+    "G": "#364d30",
+    "b": "#8b2020",
+    "n": "#6b1515",
+    "c": "#c9a84c",
+    "C": "#a08530",
+    "f": "#5c3a1e",
+    "F": "#3d2512",
+    "x": "#7a5570",
+    "k": "#8b3a3a",
+    "D": "#c4a882",
+    "t": "#b8d4e8"
+  },
+  "pixelFaces": {
+    "boss": [
+      {
+        "threshold": 70,
+        "sprite": "....HHHHHH........HhHHHHhH......HhHHHHHHhH.....BBBBBBBBBB......sssssssss.....sssssssssss....sWesssseWs.....ssesssssess....ssssddsssss....ssssddsssss....sfssmmssfs.....sffssmssff......sssssssss......dsssssssd.......ggggggg.......gGgggggGg...",
+        "label": "Confident"
+      },
+      {
+        "threshold": 45,
+        "sprite": "....HHHHHH........HhHHHHhH......HhHHHHHHhH.....BBBBBBBBBB......ddsssssdd.....sssssssssss....dWesssseWd.....ssesssssess....ssssddsssss....ssssddsssss....sfssmmssfs.....sffsssssff......sssssssss......dsssssssd.......ggggggg.......gGgggggGg...",
+        "label": "Wary"
+      },
+      {
+        "threshold": 20,
+        "sprite": "....HHHHHH........HhHHHHhH......HhHHHHHHhH.....BBBBBBBBBB......ddsssssdd.....ddsssssssdd....dWesssseWd.....ssesssssess....xsssddsssxs....ssssddsssss....sfsMMMssfs.....sffsssssff......sssssssss......wssssssswt......ggggggg.......gGgggggGg...",
+        "label": "Worried"
+      },
+      {
+        "threshold": 0,
+        "sprite": "....HHHHHH........HhHHHHhH......HhHHHHHHhH.....BBBBBBBBBB......xxsssssxx.....xxsssssssxx....xWesssseWx.....ssesssssess....xkssddssskx....ssssddsssss....sfMMMMMsfs.....sFfsssssFs......wswswswsw......wssssssswt......ggggggg.......gGgggggGg...",
+        "label": "Desperate"
+      }
+    ],
+    "scout": [
+      {
+        "threshold": 70,
+        "sprite": "....................rrrrrrr........rrrrrrrrr......rrrsssssrrr.....rrsssssssrr.....ssssssssssss....sWesssseWs.....ssesssssess....sssssssssss....ssssddsssss....ssssmmsssss....ssssssssss......bbbbbbbbb......bnbbbbbbn.......ggggggg.......gGgggggGg...",
+        "label": "Sharp"
+      },
+      {
+        "threshold": 45,
+        "sprite": "....................rrrrrrr........rrrrrrrrr......rrrsssssrrr.....rrsssssssrr.....ddsssssssdd....dWesssseWd.....ssesssssess....sssssssssss....ssssddsssss....ssssmmsssss....ssssssssss......bbbbbbbbb......bnbbbbbbn.......ggggggg.......gGgggggGg...",
+        "label": "Cautious"
+      },
+      {
+        "threshold": 20,
+        "sprite": "....................rrrrrrr........rrrrrrrrr......rrrsssssrrr.....rrdsssssdrrr....ddsssssssdd....dWesssseWd.....ssesssssess....xssssssssxs....ssssddsssss....sssMMMsssss....ssssssssss......bbbbbbbbb......bnbbbbbbn.......ggggggg.......gGgggggGg...",
+        "label": "Rattled"
+      },
+      {
+        "threshold": 0,
+        "sprite": "....................rrrrrrr........rrrrrrrrr......rrrxsssxrrr.....rrxsssssxrr.....xxsssssssxx....xWesssseWx.....ssesssssess....xkssssssskx....ssssddsssss....ssMMMMMssss....wsswssswss......bbbbbbbbb......bnbbbbbbn.......ggggggg.......gGgggggGg...",
+        "label": "Gone"
+      }
+    ],
+    "cook": [
+      {
+        "threshold": 60,
+        "sprite": "....................HHHHHH........HHHHHHHH......HHHHHHHHHH......sssssssss.....sssssssssss....sWesssseWs.....ssesssssess....ssssddsssss....sssssssssss....ssssmmsssss....sssssssssss......ccccccccc......cCcccccCc.......ccccccc.......cCcccccCc...",
+        "label": "Fed"
+      },
+      {
+        "threshold": 35,
+        "sprite": "....................HHHHHH........HHHHHHHH......HHHHHHHHHH......ddsssssdd.....sssssssssss....dWesssseWd.....ssesssssess....ssssddsssss....sssssssssss....ssssmmsssss....sssssssssss......ccccccccc......cCcccccCc.......ccccccc.......cCcccccCc...",
+        "label": "Scraping"
+      },
+      {
+        "threshold": 15,
+        "sprite": "....................HHHHHH........HHHHHHHH......HHHHHHHHHH......ddsssssdd.....ddsssssssdd....dWesssseWd.....ssesssssess....xsssddsssxs....sssssssssss....ssMMMMMssss....sssssssssss......ccccccccc......cCcccccCc.......ccccccc.......cCcccccCc...",
+        "label": "Empty"
+      },
+      {
+        "threshold": 0,
+        "sprite": "....................HHHHHH........HHHHHHHH......HHHHHHHHHH......xxsssssxx.....xxsssssssxx....xWesssseWx.....ssesssssess....xkssddssskx....sssssssssss....sMMMMMMMsss....wswswswsww......ccccccccc......cCcccccCc.......ccccccc.......cCcccccCc...",
+        "label": "Nothing"
+      }
+    ],
+    "wrangler": [
+      {
+        "threshold": 70,
+        "sprite": "...HHHHHHHHH.....HhHHHHHHhH.....HhHHHHHHhH.....BBBBBBBBBB......sssssssss.....sssssssssss....sWesssseWs.....ssesssssess....ssssddsssss....sssssssssss....ssssmmsssss....sssssssssss......sssssssss......dsssssssd.......ggggggg.......gGgggggGg...",
+        "label": "Strong"
+      },
+      {
+        "threshold": 45,
+        "sprite": "...HHHHHHHHH.....HhHHHHHHhH.....HhHHHHHHhH.....BBBBBBBBBB......ddsssssdd.....sssssssssss....dWesssseWd.....ssesssssess....ssssddsssss....sssssssssss....ssssmmsssss....sssssssssss......sssssssss......dsssssssd.......ggggggg.......gGgggggGg...",
+        "label": "Thin"
+      },
+      {
+        "threshold": 20,
+        "sprite": "...HHHHHHHHH.....HhHHHHHHhH.....HhHHHHHHhH.....BBBBBBBBBB......ddsssssdd.....ddsssssssdd....dWesssseWd.....ssesssssess....xsssddsssxs....sssssssssss....sssMMMsssss....sssssssssss......sssssssss......wssssssswt......ggggggg.......gGgggggGg...",
+        "label": "Lame"
+      },
+      {
+        "threshold": 0,
+        "sprite": "...HHHHHHHHH.....HhHHHHHHhH.....HhHHHHHHhH.....BBBBBBBBBB......xxsssssxx.....xxsssssssxx....xWesssseWx.....ssesssssess....xkssddssskx....sssssssssss....sMMMMMMMsss....wswswswsww......wswswswsw......wssssssswt......ggggggg.......gGgggggGg...",
+        "label": "Afoot"
+      }
+    ],
+    "point": [
+      {
+        "threshold": 70,
+        "sprite": "....HHHHHH........HhHHHHhH......HHHHHHHHHH.....BBBBBBBBBB......sssssssss.....sssssssssss....sWesssseWs.....ssesssssess....ssssddsssss....sssssssssss....ssssmmsssss.....sssssssss......bbbbbbbbb......bnbbbbbbn.......ggggggg.......gGgggggGg...",
+        "label": "Steady"
+      },
+      {
+        "threshold": 45,
+        "sprite": "....HHHHHH........HhHHHHhH......HHHHHHHHHH.....BBBBBBBBBB......DDsssssDD.....DDsssssssDD....DWesssseWD.....ssesssssess....ssssddsssss....sssssssssss....ssssmmsssss.....sssssssss......bbbbbbbbb......bnbbbbbbn.......ggggggg.......gGgggggGg...",
+        "label": "Dusty"
+      },
+      {
+        "threshold": 20,
+        "sprite": "....HHHHHH........HhHHHHhH......HHHHHHHHHH.....BBBBBBBBBB......DDdsssdDD.....DDdsssssdDD....DWesssseWD.....ssesssssess....bbbbbbbbbbb....bnbbbbbbbbn....bbbbbbbbbbb.....bbbbbbbbb......bbbbbbbbb......bnbbbbbbn.......ggggggg.......gGgggggGg...",
+        "label": "Masked"
+      },
+      {
+        "threshold": 0,
+        "sprite": "....HHHHHH........HhHHHHhH......HHHHHHHHHH.....BBBBBBBBBB......xxdsssdxx.....xxdsssssdxx....xWesssseWx.....ssesssssess....bbbbbbbbbbb....bnbbbbbbbbn....bbbbbbbbbbb.....bbbbbbbbb......bbbbbbbbb......bnbbbbbbn.......ggggggg.......gGgggggGg...",
+        "label": "Losing"
+      }
+    ],
+    "hand": [
+      {
+        "threshold": 80,
+        "sprite": "....................HHHHHH........HHHHHHHH......BBBBBBBBBB......sssssssss.....sssssssssss....sWesssseWs.....ssesssssess....ssssddsssss....sssssssssss....ssssmmsssss.....sssssssss......sssssssss......dsssssssd.......ggggggg.......gGgggggGg...",
+        "label": "Full crew"
+      },
+      {
+        "threshold": 55,
+        "sprite": "....................HHHHHH........HHHHHHHH......BBBBBBBBBB......ddsssssdd.....sssssssssss....dWesssseWd.....ssesssssess....ssssddsssss....sssssssssss....ssssmmsssss.....sssssssss......sssssssss......dsssssssd.......ggggggg.......gGgggggGg...",
+        "label": "Short"
+      },
+      {
+        "threshold": 30,
+        "sprite": "....................HHHHHH........HHHHHHHH......BBBBBBBBBB......ddsssssdd.....ddsssssssdd....dWesssseWd.....ssesssssess....xsssddsssxs....sssssssssss....sssMMMsssss.....wsswsswss......sssssssss......wssssssswt......ggggggg.......gGgggggGg...",
+        "label": "Skeleton"
+      },
+      {
+        "threshold": 0,
+        "sprite": "....................HHHHHH........HHHHHHHH......BBBBBBBBBB......xxsssssxx.....xxwssssswxx....xWesssseWx.....ssesssssess....xkwsddsxkxs....wsssssssssw....wMMMMMMMwww.....wswswswsw......wswswswsw......wssssssswt......ggggggg.......gGgggggGg...",
+        "label": "Bones"
+      }
+    ]
+  }
+}
