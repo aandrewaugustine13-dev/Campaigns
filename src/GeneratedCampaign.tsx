@@ -1,4 +1,25 @@
 import { useState, useCallback, useMemo } from "react";
+import { 
+  Backpack, Droplets, Utensils, Users, Crosshair, 
+  Shield, Coins, Heart, Smile, Zap, BookOpen, Map,
+  ChevronRight, ChevronDown, Package
+} from "lucide-react";
+
+function ResourceIcon({ label, className }: { label: string; className?: string }) {
+  const l = label.toLowerCase();
+  if (l.includes("water") || l.includes("hydration")) return <Droplets className={className} />;
+  if (l.includes("food") || l.includes("supply") || l.includes("ration")) return <Utensils className={className} />;
+  if (l.includes("men") || l.includes("crew") || l.includes("party") || l.includes("hand")) return <Users className={className} />;
+  if (l.includes("ammo") || l.includes("gun") || l.includes("bullet")) return <Crosshair className={className} />;
+  if (l.includes("defen") || l.includes("wall") || l.includes("fort") || l.includes("wagon")) return <Shield className={className} />;
+  if (l.includes("cash") || l.includes("money") || l.includes("silver") || l.includes("coin")) return <Coins className={className} />;
+  if (l.includes("health")) return <Heart className={className} />;
+  if (l.includes("morale")) return <Smile className={className} />;
+  if (l.includes("insight")) return <Zap className={className} />;
+  if (l.includes("knowledge")) return <BookOpen className={className} />;
+  if (l.includes("distance") || l.includes("progress")) return <Map className={className} />;
+  return <Package className={className} />;
+}
 import type { CampaignData } from "../generator/schema";
 import type { Objective, RouteState } from "./gameModels";
 import { generateObjective, tickObjectives, findNode } from "./gameLogic";
@@ -298,6 +319,7 @@ interface GameState {
   sagesMet: string[];
   trailFeed: string[];
   hardPaceStreak: number;
+  inventoryOpen: boolean;
 }
 
 // ═════════════════════════════════════════════════════════════════
@@ -356,6 +378,21 @@ function getGrade(survived: boolean, primaryPct: number, knowledge: number): str
   return "D";
 }
 
+function getAchievements(state: GameState, data: CampaignData): string[] {
+  const achievements: string[] = [];
+  if (state.survived) achievements.push("Successfully completed the expedition.");
+  if (state.historicalKnowledge >= 20) achievements.push("Achieved expert historical insight.");
+  else if (state.historicalKnowledge >= 10) achievements.push("Gained significant historical knowledge.");
+  if (state.triviaStreak >= 3) achievements.push(`${state.triviaStreak}-question knowledge streak!`);
+  const highResource = Object.entries(state.resources).find(([_, v]) => v >= 80);
+  if (highResource) {
+    achievements.push(`Maintained excellent ${data.resourceLabels[highResource[0]] ?? highResource[0]}.`);
+  }
+  if (state.decisions.length > 5) achievements.push("Navigated complex leadership challenges.");
+  if (achievements.length === 0) achievements.push("Survived the rigors of the trail.");
+  return achievements.slice(0, 3);
+}
+
 const GC: Record<string, string> = {
   "A+": "text-amber-300", A: "text-emerald-400", B: "text-blue-400",
   C: "text-yellow-400", D: "text-orange-400", F: "text-red-500",
@@ -381,6 +418,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     riskHintsOn: false, pendingChoiceIndex: null, pendingEventQuestion: null,
     objectiveNotice: "", sageIndex: 0, currentSage: null, sagesMet: [],
     trailFeed: [data.trailFeedOpener], hardPaceStreak: 0,
+    inventoryOpen: false,
   }), [data]);
 
   const [state, setState] = useState<GameState>(makeInit);
@@ -732,15 +770,24 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     const profit = revenue - cost;
     const grade = getGrade(state.survived, primaryPct, state.historicalKnowledge);
 
+    const isDefense = data.distanceUnit.toLowerCase().includes("level") ||
+      data.distanceUnit.toLowerCase().includes("wall") ||
+      data.distanceUnit.toLowerCase().includes("defen") ||
+      data.distanceUnit.toLowerCase().includes("fort") ||
+      data.title.toLowerCase().includes("siege") ||
+      data.title.toLowerCase().includes("defense");
+
     return (
       <div className="h-screen bg-stone-900 text-stone-100 p-4 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-lg mx-auto space-y-4">
           <h1 className={`text-2xl font-bold text-center ${state.survived ? "text-amber-400" : "text-red-500"}`}>
-            {state.survived ? "EXPEDITION COMPLETE" : "EXPEDITION FAILED"}
+            {state.survived ? (isDefense ? "SIEGE CONCLUDED" : "EXPEDITION COMPLETE") : "EXPEDITION FAILED"}
           </h1>
           <p className="text-center text-stone-300 text-sm">
             {state.survived
-              ? `${data.title} — the expedition reached its destination on day ${state.day}.`
+              ? isDefense
+                ? `${data.title} — the garrison held out for ${state.day} days.`
+                : `${data.title} — the expedition reached its destination on day ${state.day}.`
               : `Your expedition failed on day ${state.day}. The wilderness keeps what it takes.`}
           </p>
 
@@ -749,11 +796,11 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
               <h2 className="text-amber-300 font-bold uppercase tracking-wide text-center mb-1">Ledger</h2>
               <div className="flex justify-between text-stone-400"><span>Outfit Cost</span><span className="text-red-400">-${cost.toLocaleString()}</span></div>
               <div className="flex justify-between text-stone-400">
-                <span>{data.resourceLabels[primaryKey] ?? primaryKey} (start)</span>
+                <span className="capitalize">{data.resourceLabels[primaryKey] ?? primaryKey} (Start)</span>
                 <span className="text-stone-200">{primaryStart}</span>
               </div>
               <div className="flex justify-between text-stone-400">
-                <span>{data.resourceLabels[primaryKey] ?? primaryKey} (end)</span>
+                <span className="capitalize">{data.resourceLabels[primaryKey] ?? primaryKey} (End)</span>
                 <span className="text-stone-200">{primaryVal}</span>
               </div>
               {state.survived && (
@@ -792,15 +839,25 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
               <h2 className="text-amber-300 font-bold text-xs uppercase tracking-wide text-center">Expedition Stats</h2>
               {([
                 ["Days", `${state.day}`],
-                ["Distance", `${Math.round(state.distance)} ${data.distanceUnit}`],
+                [
+                  isDefense ? "Defenses" : "Distance",
+                  `${Math.round(state.distance)} ${data.distanceUnit}`
+                ],
                 ...Object.entries(r).slice(0, 4).map(([k, v]) => [data.resourceLabels[k] ?? k, `${Math.round(v)}`]),
-              ] as [string, string][]).map(([l, v]) => (
-                <div key={l} className="flex justify-between text-stone-400 text-xs"><span>{l}</span><span className="text-stone-200">{v}</span></div>
+              ] as [string, string][]).filter(([l]) => !(isDefense && l === "Distance")).map(([l, v]) => (
+                <div key={l} className="flex justify-between text-stone-400 text-xs">
+                  <span className="capitalize">{l}</span>
+                  <span className="text-stone-200">{v}</span>
+                </div>
               ))}
             </div>
             <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1">
-              <h2 className="text-blue-300 font-bold text-xs uppercase tracking-wide text-center">Context</h2>
-              <p className="text-stone-500 text-[10px] leading-relaxed">{data.historicalContext.slice(0, 250)}...</p>
+              <h2 className="text-blue-300 font-bold text-xs uppercase tracking-wide text-center">Achievements</h2>
+              <ul className="text-stone-500 text-[10px] leading-relaxed list-disc list-inside">
+                {getAchievements(state, data).map((a, i) => (
+                  <li key={i}>{a}</li>
+                ))}
+              </ul>
             </div>
           </div>
 
@@ -865,45 +922,74 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       {/* Main game column */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0 xl:px-4 2xl:px-8">
         <div className="flex-shrink-0 bg-stone-800">
-          <div className="max-w-xl xl:max-w-2xl mx-auto">
+          <div className="max-w-xl xl:max-w-2xl mx-auto flex flex-col">
             <GenericParallax progress={progress} pace={state.pace} title={data.title} />
+            {/* Context/Flavor Card at the top */}
+            <div className="bg-stone-900/60 border-b border-stone-700 p-3 shadow-inner">
+              <p className="text-stone-300 text-sm italic leading-relaxed font-serif">
+                "{getProgressPhrase(data, progress / 100)} {getRegionFlavor(data, progress)}"
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* HUD */}
-        <div className="flex-shrink-0 bg-stone-800 border-b border-stone-700 px-3 py-2">
+        {/* HUD - Collapsible Stats */}
+        <div className="flex-shrink-0 bg-stone-800 border-b border-stone-700 px-3 py-1.5">
           <div className="max-w-4xl mx-auto">
-            <div className="grid grid-cols-6 gap-2 text-xs mb-2">
-              {topResources.map(k => (
-                <StatBox key={k} icon="" label={data.resourceLabels[k] ?? k} value={Math.round(r[k] ?? 0)} pulseState={pulses[k] || ""} />
-              ))}
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5 bg-amber-950/30 border border-amber-900/50 rounded px-2 py-0.5">
+                  <ResourceIcon label="insight" className="w-3 h-3 text-amber-400" />
+                  <span className="text-amber-400 font-bold text-xs">{state.insight}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <ResourceIcon label="knowledge" className="w-3 h-3 text-stone-400" />
+                  <div className="w-24 bg-stone-700 rounded-full h-1.5">
+                    <div className="bg-amber-500 h-1.5 rounded-full transition-all" style={{ width: `${Math.min(state.historicalKnowledge / 30 * 100, 100)}%` }} />
+                  </div>
+                  <span className="text-stone-500 text-[10px]">{state.historicalKnowledge}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="text-stone-500 text-[10px] flex items-center gap-1">
+                  <Map className="w-3 h-3" />
+                  <span>Day {state.day} &middot; {Math.round(state.distance)} {data.distanceUnit}</span>
+                </div>
+                <button 
+                  onClick={() => setState(s => ({ ...s, inventoryOpen: !s.inventoryOpen }))}
+                  className="flex items-center gap-1 px-2 py-0.5 bg-stone-700 hover:bg-stone-600 rounded text-[10px] font-bold text-stone-300 transition-colors"
+                >
+                  <Backpack className="w-3 h-3" />
+                  Inventory
+                  {state.inventoryOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                </button>
+              </div>
             </div>
-            <div className="mb-2 bg-stone-700 rounded p-1.5 text-xs text-center">
-              <span className="text-stone-300">Insight:</span> <span className="text-amber-400 font-bold">{state.insight}</span>
-            </div>
+
+            {state.inventoryOpen && (
+              <div className="grid grid-cols-6 gap-2 mb-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                {topResources.map(k => (
+                  <div key={k} className="bg-stone-900/40 border border-stone-700 rounded p-1.5 flex flex-col items-center">
+                    <ResourceIcon label={data.resourceLabels[k] ?? k} className="w-3.5 h-3.5 text-stone-400 mb-0.5" />
+                    <span className="text-[10px] font-bold text-stone-200">{Math.round(r[k] ?? 0)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="space-y-1">
               {barResources.map(k => (
                 <ResourceBar
                   key={k}
                   label={data.resourceLabels[k] ?? k}
+                  icon={<ResourceIcon label={data.resourceLabels[k] ?? k} className="w-3 h-3" />}
                   value={Math.round(r[k] ?? 0)}
                   color={(r[k] ?? 0) / (data.resourceCaps[k] ?? 100) < 0.25 ? "bg-red-500" : "bg-emerald-500"}
                   pulseState={pulses[k] || ""}
                 />
               ))}
             </div>
-            <div className="flex items-center gap-2">
-              <span className="w-20 text-stone-400 text-xs">Knowledge</span>
-              <div className="flex-1 bg-stone-700 rounded-full h-2">
-                <div className="bg-amber-500 h-2 rounded-full transition-all" style={{ width: `${Math.min(state.historicalKnowledge / 30 * 100, 100)}%` }} />
-              </div>
-              <span className="text-stone-500 text-xs w-6 text-right">{state.historicalKnowledge}</span>
-            </div>
-            <div className="flex justify-between text-stone-500 text-xs mt-1">
-              <span>Day {state.day}/{data.totalDays}</span>
-              <span>{Math.round(state.distance)}/{data.totalDistance} {data.distanceUnit}</span>
-            </div>
-            {state.objectiveNotice && <p className="text-xs text-emerald-300 mt-1">{state.objectiveNotice}</p>}
+            {state.objectiveNotice && <p className="text-xs text-emerald-300 mt-0.5">{state.objectiveNotice}</p>}
           </div>
         </div>
 
@@ -916,12 +1002,15 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
               <div className="space-y-3">
                 {/* Route */}
                 <div className="border border-indigo-700 rounded p-2 bg-indigo-950/40">
-                  <p className="text-xs text-indigo-300 font-bold">Route: {currentRouteNode.title} ({state.routeTag})</p>
-                  <p className="text-xs text-stone-300">{currentRouteNode.description}</p>
+                  <p className="text-xs text-indigo-300 font-bold flex items-center gap-1.5">
+                    <Map className="w-3 h-3" />
+                    Route: {currentRouteNode.title} ({state.routeTag})
+                  </p>
+                  <p className="text-xs text-stone-300 mt-1">{currentRouteNode.description}</p>
                   {currentRouteNode.edges.length > 0 && (
                     <div className="mt-2 grid grid-cols-1 gap-1">
                       {currentRouteNode.edges.map(edge => (
-                        <button key={edge.to} onClick={() => chooseRoute(edge.to, edge.tag)} className="text-left text-xs px-2 py-1 rounded bg-indigo-900 hover:bg-indigo-800">
+                        <button key={edge.to} onClick={() => chooseRoute(edge.to, edge.tag)} className="text-left text-xs px-2 py-1 rounded bg-indigo-900 hover:bg-indigo-800 transition-colors">
                           {edge.label} <span className="text-indigo-300">[{edge.tag}]</span>
                         </button>
                       ))}
@@ -941,12 +1030,6 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                     ))}
                   </div>
                 )}
-
-                {/* Flavor */}
-                <div className="border border-stone-700 rounded p-3 bg-stone-800/80">
-                  <p className="text-stone-300 text-sm">{getProgressPhrase(data, progress / 100)}</p>
-                  <p className="text-stone-500 text-xs mt-1 italic">{getRegionFlavor(data, progress)}</p>
-                </div>
 
                 {/* Pace buttons */}
                 <div className="flex gap-2">

@@ -184,18 +184,22 @@ export function StatBox({
 
 export function ResourceBar({
   label,
+  icon,
   value,
   color,
   pulseState,
 }: {
   label: string;
+  icon?: React.ReactNode;
   value: number;
   color: string;
   pulseState: "gain" | "loss" | "";
 }) {
   return (
     <div className={`flex items-center gap-2 ${pulseState === "loss" ? "juice-flash-loss" : pulseState === "gain" ? "juice-flash-gain" : ""}`}>
-      <span className="w-20 text-stone-400 text-xs">{label}</span>
+      <span className="w-20 text-stone-400 text-xs flex items-center gap-1.5">
+        {icon ? icon : label}
+      </span>
       <div className="flex-1 bg-stone-700 rounded-full h-2 overflow-hidden border border-stone-600">
         <div
           className={`${color} h-2 rounded-full transition-all duration-500`}
