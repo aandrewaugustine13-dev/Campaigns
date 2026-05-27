@@ -101,6 +101,11 @@ export default function TrailMap({
                 alt="Trail Map"
                 className="absolute inset-0 w-full h-full object-fill"
                 draggable={false}
+                onError={(e) => {
+                  const el = e.target as HTMLImageElement;
+                  el.style.display = "none";
+                  el.parentElement!.style.background = "linear-gradient(135deg, #3d2a1a 0%, #2a1f15 50%, #1a1510 100%)";
+                }}
               />
 
               {/* Static camp markers */}

@@ -5,6 +5,8 @@ import VisualNovelEngine from "./VisualNovelEngine";
 import PushYourLuckEngine from "./PushYourLuckEngine";
 import SilkRoad from "./SilkRoad";
 import Crusades from "./Crusades";
+import GeneratedCampaign from "./GeneratedCampaign";
+import GeneratorUI from "./GeneratorUI";
 import ChisholmTriviaEngine, { pickTriviaQuestion, type TriviaQuestion } from "./campaigns/chisholm/trivia";
 import type { Objective, RouteState, EventGateQuestion } from "./gameModels";
 import { generateObjective, tickObjectives, findNode } from "./gameLogic";
@@ -752,6 +754,8 @@ export default function App(){
 
   if(campaignId==="silkroad")return <SilkRoad onBack={backToMenu}/>;
   if(campaignId==="crusades")return <Crusades onBack={backToMenu}/>;
+  if(campaignId==="lewisclark")return <GeneratedCampaign onBack={backToMenu}/>;
+  if(campaignId==="generator")return <GeneratorUI onBack={backToMenu}/>;
 
   if(!campaignId)return(
     <div className="h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center" style={{fontFamily:"'Georgia', serif"}}>
@@ -767,6 +771,14 @@ export default function App(){
         <button onClick={()=>setCampaignId("crusades")} className="w-full py-3 bg-red-900 hover:bg-red-800 rounded font-bold transition-colors">
           ✝ Third Crusade — 1190<br/><span className="text-xs font-normal text-red-300">Warwick to Jerusalem</span>
         </button>
+        <button onClick={()=>setCampaignId("lewisclark")} className="w-full py-3 bg-emerald-900 hover:bg-emerald-800 rounded font-bold transition-colors">
+          🧭 Lewis &amp; Clark — 1804<br/><span className="text-xs font-normal text-emerald-300">St. Louis to the Pacific</span>
+        </button>
+        <div className="border-t border-stone-700 pt-3 mt-1">
+          <button onClick={()=>setCampaignId("generator")} className="w-full py-3 bg-stone-800 border border-amber-700 hover:bg-stone-700 rounded font-bold text-amber-400 transition-colors">
+            + Create a Campaign
+          </button>
+        </div>
       </div>
     </div>
   );
