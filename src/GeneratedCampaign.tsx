@@ -155,30 +155,34 @@ function GenericTriviaEngine({
   streak,
   onComplete,
   primaryResourceKey,
+  theme = 'default',
 }: {
   question: { id: string; question: string; choices: string[]; correctIndex: number; fact?: string; explanation?: string };
   progress: number;
   streak: number;
   onComplete: (correct: boolean, effects: Record<string, number>) => void;
   primaryResourceKey: string;
+  theme?: string;
 }) {
   const [answered, setAnswered] = useState<number | null>(null);
   const correct = answered === question.correctIndex;
   const explanation = (question as Record<string, unknown>).explanation as string | undefined;
 
+  const isDark = theme === 'default';
+
   return (
-    <div className="border border-amber-700 rounded p-4 bg-amber-950/30 space-y-3">
-      <p className="text-xs text-amber-300 font-bold uppercase tracking-wide">
-        Knowledge Check {streak > 0 && <span className="text-emerald-400">(streak: {streak})</span>}
+    <div className={`border ${isDark ? 'border-amber-700 bg-amber-950/30' : 'border-stone-800 bg-white/40'} rounded p-4 space-y-3`}>
+      <p className={`text-xs ${isDark ? 'text-amber-300' : 'text-amber-900'} font-bold uppercase tracking-wide`}>
+        Knowledge Check {streak > 0 && <span className="text-emerald-500">(streak: {streak})</span>}
       </p>
-      <p className="text-sm text-stone-200">{question.question}</p>
+      <p className={`text-sm ${isDark ? 'text-stone-200' : 'text-stone-900'}`}>{question.question}</p>
       {answered === null ? (
         <div className="space-y-1">
           {question.choices.map((c, i) => (
             <button
               key={i}
               onClick={() => setAnswered(i)}
-              className="w-full text-left text-xs bg-amber-900/60 hover:bg-amber-800 rounded px-3 py-2 transition-colors"
+              className={`w-full text-left text-xs ${isDark ? 'bg-amber-900/60 hover:bg-amber-800' : 'bg-stone-200 hover:bg-stone-300'} rounded px-3 py-2 transition-colors`}
             >
               {c}
             </button>
@@ -190,11 +194,11 @@ function GenericTriviaEngine({
             {correct ? "Correct!" : "Not quite."}
           </p>
           {(explanation || question.fact) && (
-            <p className="text-xs text-stone-400">{explanation || question.fact}</p>
+            <p className={`text-xs ${isDark ? 'text-stone-400' : 'text-stone-600'}`}>{explanation || question.fact}</p>
           )}
           <button
             onClick={() => onComplete(correct, correct ? { [primaryResourceKey]: 5, morale: 3 } : {})}
-            className="w-full py-2 bg-amber-800 hover:bg-amber-700 rounded text-xs font-bold transition-colors"
+            className={`w-full py-2 ${isDark ? 'bg-amber-800 hover:bg-amber-700' : 'bg-stone-800 hover:bg-stone-700 text-white'} rounded text-xs font-bold transition-colors`}
           >
             Continue
           </button>
@@ -214,6 +218,9 @@ interface GenericOutfit {
 }
 
 function GenericOutfitScreen({ data, onDone }: { data: CampaignData; onDone: (outfit: GenericOutfit) => void }) {
+  const theme = data.theme || 'default';
+  const isDark = theme === 'default';
+
   const costKeys = Object.keys(data.outfitConfig.costs);
   const [allocs, setAllocs] = useState<Record<string, number>>(() => {
     const init: Record<string, number> = {};
@@ -224,16 +231,22 @@ function GenericOutfitScreen({ data, onDone }: { data: CampaignData; onDone: (ou
   const spent = costKeys.reduce((sum, k) => sum + allocs[k] * data.outfitConfig.costs[k], 0);
   const remaining = data.outfitConfig.budget - spent;
 
+  const containerClass = isDark ? "bg-stone-900 text-stone-100" : "bg-[#fcf5e5] text-stone-900";
+  const cardClass = isDark ? "bg-stone-800 border-stone-700" : "bg-white/40 border-stone-400";
+  const accentText = isDark ? "text-amber-400" : "text-amber-900";
+  const subtext = isDark ? "text-stone-400" : "text-stone-600";
+  const buttonClass = isDark ? "bg-amber-700 hover:bg-amber-600" : "bg-amber-800 hover:bg-amber-700 text-white";
+
   return (
-    <div className="h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden" style={{ fontFamily: "'Georgia', serif" }}>
+    <div className={`h-screen ${containerClass} flex flex-col overflow-hidden`} style={{ fontFamily: "'Georgia', serif" }}>
       <GenericParallax progress={0} pace="rest" title={data.title} />
       <div className="flex-1 min-h-0 overflow-y-auto p-3">
         <div className="max-w-lg mx-auto space-y-3">
           <div className="text-center">
-            <h1 className="text-xl font-bold text-amber-400">{data.title} — OUTFIT</h1>
-            <p className="text-stone-400 text-xs mt-0.5">
+            <h1 className={`text-xl font-bold ${accentText}`}>{data.title} — OUTFIT</h1>
+            <p className={`${subtext} text-xs mt-0.5`}>
               Prepare your expedition. Budget:{" "}
-              <span className={remaining >= 0 ? "text-emerald-400" : "text-red-500"}>
+              <span className={remaining >= 0 ? "text-emerald-500" : "text-red-500"}>
                 ${remaining.toLocaleString()}
               </span>{" "}
               of ${data.outfitConfig.budget.toLocaleString()}
@@ -241,11 +254,11 @@ function GenericOutfitScreen({ data, onDone }: { data: CampaignData; onDone: (ou
           </div>
 
           {costKeys.map(k => (
-            <div key={k} className="bg-stone-800 border border-stone-700 rounded p-2.5">
+            <div key={k} className={`${cardClass} border rounded p-2.5`}>
               <div className="flex justify-between items-center text-xs mb-1">
-                <span className="text-stone-300 font-bold">{k.replace(/_/g, " ")}</span>
-                <span className="font-mono text-amber-400">
-                  {allocs[k]} <span className="text-stone-500">(${data.outfitConfig.costs[k]}/ea)</span>
+                <span className={`${isDark ? 'text-stone-300' : 'text-stone-800'} font-bold`}>{k.replace(/_/g, " ")}</span>
+                <span className={`font-mono ${accentText}`}>
+                  {allocs[k]} <span className={subtext}>(${data.outfitConfig.costs[k]}/ea)</span>
                 </span>
               </div>
               <input
@@ -254,7 +267,7 @@ function GenericOutfitScreen({ data, onDone }: { data: CampaignData; onDone: (ou
                 max={10}
                 value={allocs[k]}
                 onChange={e => setAllocs(prev => ({ ...prev, [k]: +e.target.value }))}
-                className="w-full accent-amber-500 h-2"
+                className={`w-full ${isDark ? 'accent-amber-500' : 'accent-amber-800'} h-2`}
               />
             </div>
           ))}
@@ -262,7 +275,7 @@ function GenericOutfitScreen({ data, onDone }: { data: CampaignData; onDone: (ou
           <button
             onClick={() => remaining >= 0 && onDone({ allocations: allocs, budgetSpent: spent })}
             disabled={remaining < 0}
-            className="w-full py-3 bg-amber-700 hover:bg-amber-600 disabled:opacity-50 rounded font-bold transition-colors"
+            className={`w-full py-3 ${buttonClass} disabled:opacity-50 rounded font-bold transition-colors`}
           >
             {remaining < 0 ? "OVER BUDGET" : "BEGIN EXPEDITION"}
           </button>
@@ -404,6 +417,82 @@ const GC: Record<string, string> = {
 
 export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: () => void; data?: CampaignData }) {
   const data = dataProp ?? (defaultCampaignJson as unknown as CampaignData);
+
+  const theme = data.theme || 'default';
+  
+  const themeConfig = {
+    default: {
+      container: "bg-stone-900 text-stone-100",
+      sidebar: "bg-stone-900/80 border-stone-700",
+      hud: "bg-stone-800 border-stone-700",
+      feedItem: "bg-stone-800/60 border-stone-700",
+      feedItemActive: "bg-amber-950/20 border-amber-700",
+      parallaxBottom: "from-stone-800",
+      accent: "text-amber-300",
+      subtext: "text-stone-400",
+      card: "bg-stone-800 border-stone-700",
+      innerCard: "bg-stone-900/40 border-stone-700",
+      button: "bg-amber-700 hover:bg-amber-600",
+      routeCard: "border-indigo-700 bg-indigo-950/40",
+      routeText: "text-indigo-300",
+      routeButton: "bg-indigo-900 hover:bg-indigo-800",
+      questCard: "border-emerald-800 bg-emerald-950/30",
+      questText: "text-emerald-300",
+    },
+    frontier: {
+      container: "bg-[#e6d5b8] text-stone-900",
+      sidebar: "bg-[#d9c5a3]/80 border-[#b08d57]",
+      hud: "bg-[#d9c5a3] border-[#b08d57]",
+      feedItem: "bg-[#e6d5b8]/60 border-[#b08d57]",
+      feedItemActive: "bg-[#b08d57]/20 border-[#8c6d31]",
+      parallaxBottom: "from-[#d9c5a3]",
+      accent: "text-[#8c6d31]",
+      subtext: "text-[#5d4a26]",
+      card: "bg-[#d9c5a3] border-[#b08d57]",
+      innerCard: "bg-[#e6d5b8]/40 border-[#b08d57]",
+      button: "bg-[#b08d57] hover:bg-[#8c6d31] text-white",
+      routeCard: "border-[#8c6d31] bg-[#d9c5a3]",
+      routeText: "text-[#5d4a26] font-bold",
+      routeButton: "bg-[#e6d5b8] hover:bg-[#d9c5a3] border border-[#b08d57]",
+      questCard: "border-[#b08d57] bg-[#e6d5b8]",
+      questText: "text-emerald-800 font-bold",
+    },
+    parchment: {
+      container: "bg-[#fcf5e5] text-stone-900",
+      sidebar: "bg-[#f5ead2]/80 border-stone-900",
+      hud: "bg-[#f5ead2] border-stone-900",
+      feedItem: "bg-[#fcf5e5]/60 border-stone-900",
+      feedItemActive: "bg-[#d4c38d]/20 border-stone-900",
+      parallaxBottom: "from-[#f5ead2]",
+      accent: "text-amber-900",
+      subtext: "text-stone-700",
+      card: "bg-[#f5ead2] border-stone-900",
+      innerCard: "bg-white/40 border-stone-900",
+      button: "bg-stone-800 hover:bg-stone-700 text-white",
+      routeCard: "border-stone-900 bg-[#f5ead2]",
+      routeText: "text-stone-900 font-bold",
+      routeButton: "bg-white/40 hover:bg-white/60 border border-stone-900",
+      questCard: "border-stone-900 bg-white/40",
+      questText: "text-stone-900 font-bold",
+    }
+  }[theme as 'frontier' | 'parchment' | 'default'] || {
+    container: "bg-stone-900 text-stone-100",
+    sidebar: "bg-stone-900/80 border-stone-700",
+    hud: "bg-stone-800 border-stone-700",
+    feedItem: "bg-stone-800/60 border-stone-700",
+    feedItemActive: "bg-amber-950/20 border-amber-700",
+    parallaxBottom: "from-stone-800",
+    accent: "text-amber-300",
+    subtext: "text-stone-400",
+    card: "bg-stone-800 border-stone-700",
+    innerCard: "bg-stone-900/40 border-stone-700",
+    button: "bg-amber-700 hover:bg-amber-600",
+    routeCard: "border-indigo-700 bg-indigo-950/40",
+    routeText: "text-indigo-300",
+    routeButton: "bg-indigo-900 hover:bg-indigo-800",
+    questCard: "border-emerald-800 bg-emerald-950/30",
+    questText: "text-emerald-300",
+  };
 
   const makeInit = useCallback((): GameState => ({
     day: 1, turn: 0, resources: { ...data.initialResources },
@@ -747,13 +836,13 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   // ═══════════════════════════════════════════════════════════════
 
   if (state.phase === "intro") return (
-    <div className="h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center" style={{ fontFamily: "'Georgia', serif" }}>
+    <div className={`h-screen ${themeConfig.container} flex flex-col items-center justify-center`} style={{ fontFamily: "'Georgia', serif" }}>
       <div className="max-w-md text-center space-y-4 p-4">
-        <h1 className="text-3xl font-bold text-amber-400">{data.title}</h1>
-        <p className="text-stone-300">{data.subtitle}</p>
-        <p className="text-stone-400 text-sm">{data.introBody}</p>
-        <button onClick={start} className="px-8 py-3 bg-amber-700 hover:bg-amber-600 rounded font-bold transition-colors">BEGIN OUTFIT</button>
-        <button onClick={backToMenu} className="block w-full text-stone-500 hover:text-stone-300 text-xs mt-2">&larr; Back to Campaigns</button>
+        <h1 className={`text-3xl font-bold ${themeConfig.accent}`}>{data.title}</h1>
+        <p className={themeConfig.subtext}>{data.subtitle}</p>
+        <p className={`${themeConfig.subtext} text-sm`}>{data.introBody}</p>
+        <button onClick={start} className={`px-8 py-3 ${themeConfig.button} rounded font-bold transition-colors`}>BEGIN OUTFIT</button>
+        <button onClick={backToMenu} className={`block w-full ${themeConfig.subtext} opacity-60 hover:opacity-100 text-xs mt-2`}>&larr; Back to Campaigns</button>
       </div>
     </div>
   );
@@ -893,7 +982,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
 
   // ── Main game view ──
   return (
-    <div className={`west-app h-screen bg-stone-900 text-stone-100 flex overflow-hidden ${shakeClass}`} style={{ fontFamily: "'Georgia', serif" }}>
+    <div className={`west-app h-screen ${themeConfig.container} flex overflow-hidden ${shakeClass}`} style={{ fontFamily: "'Georgia', serif" }}>
       <StreakFlash streak={state.triviaStreak} />
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 pointer-events-none z-50">
         <FloatingNumbers floats={floats} />
@@ -905,15 +994,15 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       </div>
 
       {/* Trail feed sidebar */}
-      <aside className="hidden xl:flex w-72 2xl:w-80 flex-shrink-0 border-l border-stone-700 bg-stone-900/80 flex-col">
-        <div className="px-3 py-2 border-b border-stone-700">
-          <p className="text-xs font-bold uppercase tracking-wide text-amber-300">Expedition Log</p>
-          <p className="text-[11px] text-stone-400">Recent notes from the journey.</p>
+      <aside className={`hidden xl:flex w-72 2xl:w-80 flex-shrink-0 border-l ${themeConfig.sidebar} flex-col`}>
+        <div className={`px-3 py-2 border-b ${themeConfig.sidebar}`}>
+          <p className={`text-xs font-bold uppercase tracking-wide ${themeConfig.accent}`}>Expedition Log</p>
+          <p className={`text-[11px] ${themeConfig.subtext}`}>Recent notes from the journey.</p>
         </div>
         <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2">
           {[...state.trailFeed].slice(-12).reverse().map((entry, idx) => (
-            <div key={`${idx}-${entry.slice(0, 18)}`} className={`rounded border p-2 ${idx === 0 ? "border-amber-700 bg-amber-950/20" : "border-stone-700 bg-stone-800/60"}`}>
-              <p className="text-[11px] leading-relaxed text-stone-300">{entry}</p>
+            <div key={`${idx}-${entry.slice(0, 18)}`} className={`rounded border p-2 ${idx === 0 ? themeConfig.feedItemActive : themeConfig.feedItem}`}>
+              <p className={`text-[11px] leading-relaxed ${themeConfig.subtext}`}>{entry}</p>
             </div>
           ))}
         </div>
@@ -921,12 +1010,12 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
 
       {/* Main game column */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0 xl:px-4 2xl:px-8">
-        <div className="flex-shrink-0 bg-stone-800">
+        <div className={`flex-shrink-0 ${themeConfig.hud}`}>
           <div className="max-w-xl xl:max-w-2xl mx-auto flex flex-col">
             <GenericParallax progress={progress} pace={state.pace} title={data.title} />
             {/* Context/Flavor Card at the top */}
-            <div className="bg-stone-900/60 border-b border-stone-700 p-3 shadow-inner">
-              <p className="text-stone-300 text-sm italic leading-relaxed font-serif">
+            <div className={`${themeConfig.container} opacity-80 border-b ${themeConfig.sidebar} p-3 shadow-inner`}>
+              <p className={`${themeConfig.subtext} text-sm italic leading-relaxed font-serif`}>
                 "{getProgressPhrase(data, progress / 100)} {getRegionFlavor(data, progress)}"
               </p>
             </div>
@@ -934,30 +1023,30 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
         </div>
 
         {/* HUD - Collapsible Stats */}
-        <div className="flex-shrink-0 bg-stone-800 border-b border-stone-700 px-3 py-1.5">
+        <div className={`flex-shrink-0 ${themeConfig.hud} border-b p-3 py-1.5`}>
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1.5 bg-amber-950/30 border border-amber-900/50 rounded px-2 py-0.5">
-                  <ResourceIcon label="insight" className="w-3 h-3 text-amber-400" />
-                  <span className="text-amber-400 font-bold text-xs">{state.insight}</span>
+                <div className={`flex items-center gap-1.5 ${themeConfig.feedItemActive} border rounded px-2 py-0.5`}>
+                  <ResourceIcon label="insight" className={`w-3 h-3 ${themeConfig.accent}`} />
+                  <span className={`${themeConfig.accent} font-bold text-xs`}>{state.insight}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <ResourceIcon label="knowledge" className="w-3 h-3 text-stone-400" />
-                  <div className="w-24 bg-stone-700 rounded-full h-1.5">
+                  <ResourceIcon label="knowledge" className={`w-3 h-3 ${themeConfig.subtext}`} />
+                  <div className={`w-24 ${theme === 'default' ? "bg-stone-700" : "bg-stone-400"} rounded-full h-1.5`}>
                     <div className="bg-amber-500 h-1.5 rounded-full transition-all" style={{ width: `${Math.min(state.historicalKnowledge / 30 * 100, 100)}%` }} />
                   </div>
-                  <span className="text-stone-500 text-[10px]">{state.historicalKnowledge}</span>
+                  <span className={`${themeConfig.subtext} text-[10px]`}>{state.historicalKnowledge}</span>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="text-stone-500 text-[10px] flex items-center gap-1">
+                <div className={`${themeConfig.subtext} text-[10px] flex items-center gap-1`}>
                   <Map className="w-3 h-3" />
                   <span>Day {state.day} &middot; {Math.round(state.distance)} {data.distanceUnit}</span>
                 </div>
                 <button 
                   onClick={() => setState(s => ({ ...s, inventoryOpen: !s.inventoryOpen }))}
-                  className="flex items-center gap-1 px-2 py-0.5 bg-stone-700 hover:bg-stone-600 rounded text-[10px] font-bold text-stone-300 transition-colors"
+                  className={`flex items-center gap-1 px-2 py-0.5 ${theme === 'default' ? 'bg-stone-700 hover:bg-stone-600' : 'bg-stone-300 hover:bg-stone-400'} rounded text-[10px] font-bold ${theme === 'default' ? 'text-stone-300' : 'text-stone-800'} transition-colors`}
                 >
                   <Backpack className="w-3 h-3" />
                   Inventory
@@ -969,9 +1058,9 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
             {state.inventoryOpen && (
               <div className="grid grid-cols-6 gap-2 mb-2 animate-in fade-in slide-in-from-top-1 duration-200">
                 {topResources.map(k => (
-                  <div key={k} className="bg-stone-900/40 border border-stone-700 rounded p-1.5 flex flex-col items-center">
-                    <ResourceIcon label={data.resourceLabels[k] ?? k} className="w-3.5 h-3.5 text-stone-400 mb-0.5" />
-                    <span className="text-[10px] font-bold text-stone-200">{Math.round(r[k] ?? 0)}</span>
+                  <div key={k} className={`${themeConfig.innerCard} border rounded p-1.5 flex flex-col items-center`}>
+                    <ResourceIcon label={data.resourceLabels[k] ?? k} className={`w-3.5 h-3.5 ${themeConfig.subtext} mb-0.5`} />
+                    <span className="text-[10px] font-bold">{Math.round(r[k] ?? 0)}</span>
                   </div>
                 ))}
               </div>
@@ -993,7 +1082,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
           </div>
         </div>
 
-        <DoomHUD members={partyMembers} />
+        <DoomHUD members={partyMembers} theme={theme} campaignId={data.id} />
 
         <div className="flex-1 overflow-y-auto px-3 pb-3">
           <div className="max-w-4xl mx-auto space-y-3 mt-2">
@@ -1001,17 +1090,17 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
             {state.phase === "sailing" && (
               <div className="space-y-3">
                 {/* Route */}
-                <div className="border border-indigo-700 rounded p-2 bg-indigo-950/40">
-                  <p className="text-xs text-indigo-300 font-bold flex items-center gap-1.5">
+                <div className={`border ${themeConfig.routeCard} rounded p-2`}>
+                  <p className={`text-xs ${themeConfig.routeText} font-bold flex items-center gap-1.5`}>
                     <Map className="w-3 h-3" />
                     Route: {currentRouteNode.title} ({state.routeTag})
                   </p>
-                  <p className="text-xs text-stone-300 mt-1">{currentRouteNode.description}</p>
+                  <p className={`text-xs ${themeConfig.subtext} mt-1`}>{currentRouteNode.description}</p>
                   {currentRouteNode.edges.length > 0 && (
                     <div className="mt-2 grid grid-cols-1 gap-1">
                       {currentRouteNode.edges.map(edge => (
-                        <button key={edge.to} onClick={() => chooseRoute(edge.to, edge.tag)} className="text-left text-xs px-2 py-1 rounded bg-indigo-900 hover:bg-indigo-800 transition-colors">
-                          {edge.label} <span className="text-indigo-300">[{edge.tag}]</span>
+                        <button key={edge.to} onClick={() => chooseRoute(edge.to, edge.tag)} className={`text-left text-xs px-2 py-1 rounded ${themeConfig.routeButton} transition-colors`}>
+                          {edge.label} <span className={themeConfig.subtext}>[{edge.tag}]</span>
                         </button>
                       ))}
                     </div>
@@ -1022,10 +1111,10 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                 {state.objectives.length > 0 && (
                   <div className="space-y-2">
                     {state.objectives.map(obj => (
-                      <div key={obj.id} className="border border-emerald-800 rounded p-2 bg-emerald-950/30">
-                        <p className="text-xs font-bold text-emerald-300">Quest: {obj.title}</p>
-                        <p className="text-xs text-stone-300">{obj.description}</p>
-                        <p className="text-[11px] text-stone-400">Progress: {obj.progress}/{obj.target} &middot; {obj.expiresInTurns} turns left</p>
+                      <div key={obj.id} className={`border ${themeConfig.questCard} rounded p-2`}>
+                        <p className={`text-xs font-bold ${themeConfig.questText}`}>Quest: {obj.title}</p>
+                        <p className={`text-xs ${themeConfig.subtext}`}>{obj.description}</p>
+                        <p className={`text-[11px] ${themeConfig.subtext} opacity-80`}>Progress: {obj.progress}/{obj.target} &middot; {obj.expiresInTurns} turns left</p>
                       </div>
                     ))}
                   </div>
@@ -1038,12 +1127,12 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                       key={p.id}
                       onClick={() => { setState(prev => ({ ...prev, pace: p.id })); advanceTurn(); }}
                       className={`flex-1 py-2 rounded text-xs font-bold transition-colors ${
-                        p.id === data.paces[data.paces.length - 1]?.id ? "bg-red-900 hover:bg-red-800"
-                        : p.id === data.paces[0]?.id ? "bg-emerald-900 hover:bg-emerald-800"
-                        : "bg-stone-700 hover:bg-stone-600"
+                        p.id === data.paces[data.paces.length - 1]?.id ? "bg-red-900 hover:bg-red-800 text-white"
+                        : p.id === data.paces[0]?.id ? "bg-emerald-900 hover:bg-emerald-800 text-white"
+                        : themeConfig.button
                       }`}
                     >
-                      {p.label}<br /><span className="font-normal text-stone-400">{p.desc}</span>
+                      {p.label}<br /><span className={`font-normal ${theme === 'default' ? 'text-stone-400' : 'text-stone-100'} opacity-70`}>{p.desc}</span>
                     </button>
                   ))}
                 </div>
@@ -1072,17 +1161,17 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
             )}
 
             {state.phase === "event_trivia" && state.pendingEventQuestion && (
-              <div className="border border-indigo-700 rounded p-3 bg-indigo-950/40 space-y-2">
-                <p className="text-sm text-indigo-200 font-bold">Quick Knowledge Check</p>
-                <p className="text-sm text-stone-200">{state.pendingEventQuestion.question}</p>
+              <div className={`border ${themeConfig.routeCard} rounded p-3 space-y-2`}>
+                <p className={`text-sm ${themeConfig.routeText} font-bold`}>Quick Knowledge Check</p>
+                <p className={`text-sm ${themeConfig.subtext}`}>{state.pendingEventQuestion.question}</p>
                 <div className="space-y-1">
                   {state.pendingEventQuestion.choices.map((c, i) => (
-                    <button key={i} onClick={() => handleEventTriviaAnswer(i)} className="w-full text-left text-xs bg-indigo-900 hover:bg-indigo-800 rounded px-2 py-1">
+                    <button key={i} onClick={() => handleEventTriviaAnswer(i)} className={`w-full text-left text-xs ${themeConfig.routeButton} rounded px-2 py-1 transition-colors`}>
                       {c}
                     </button>
                   ))}
                 </div>
-                <p className="text-[11px] text-indigo-300">Correct answer: +1 Insight. Wrong answer: no penalty.</p>
+                <p className={`text-[11px] ${themeConfig.routeText} opacity-80`}>Correct answer: +1 Insight. Wrong answer: no penalty.</p>
               </div>
             )}
 
@@ -1093,15 +1182,16 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                 streak={state.triviaStreak}
                 onComplete={handleTriviaComplete}
                 primaryResourceKey={data.primaryResourceKey}
+                theme={theme}
               />
             )}
 
             {state.phase === "result" && (
               <div className="space-y-3">
-                <div className="border border-stone-700 rounded p-3 bg-stone-800/80">
-                  <p className="text-stone-300 text-sm leading-relaxed">{state.resultText}</p>
+                <div className={`border ${themeConfig.card} rounded p-3`}>
+                  <p className={`${themeConfig.subtext} text-sm leading-relaxed`}>{state.resultText}</p>
                 </div>
-                <button onClick={continueGame} className="w-full py-2 bg-amber-800 hover:bg-amber-700 rounded text-sm font-bold transition-colors">Continue Expedition</button>
+                <button onClick={continueGame} className={`w-full py-2 ${themeConfig.button} rounded text-sm font-bold transition-colors`}>Continue Expedition</button>
               </div>
             )}
 

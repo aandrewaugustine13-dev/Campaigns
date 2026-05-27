@@ -19,6 +19,7 @@ import { FC, FACES } from "./pixelFaces";
 
 export const CrusadesCampaign: CampaignConfig = {
   id: "crusades",
+  isPublished: true,
   title: "THE THIRD CRUSADE",
   subtitle: "Warwick to Jerusalem, 1190–1192",
   // TODO[content]: real intro + opening trail-feed copy.

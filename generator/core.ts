@@ -14,6 +14,7 @@ export interface GenerateInputs {
   numQuestions: number;
   numSages: number;
   difficulty: string;
+  artStyle: string;
 }
 
 export interface GenerateResult {
@@ -75,6 +76,7 @@ STRUCTURAL RULES:
 - trailStops must reference valid pathIndex values (indices into the trailPath array).
 - Event phase_min/phase_max are 0.0-1.0 floats representing what portion of the journey the event can trigger in.
 - pixelColors maps color-name strings to hex color codes (e.g. "skin": "#D4A574"). pixelFaces maps role ids to arrays of FaceLevel objects (threshold-based sprite swaps for the HUD). For a generated campaign, provide reasonable placeholder data.
+- theme should be set based on the requested art style (e.g., "frontier", "parchment", or "default").
 - outfitConfig.costs keys should match the equipment/supplies a player can buy for THIS journey — not generic Oregon Trail items. Think about what THIS expedition actually needed to prepare.
 
 OUTPUT FORMAT:
@@ -96,9 +98,10 @@ Now generate a new campaign with these parameters:
 - Standard: ${inputs.standard}
 - Grade / reading level: ${inputs.grade}
 - Number of events: ${inputs.length}
-- Number of event trivia (gate) questions: ${inputs.numQuestions}
+- Number of event trivia (gate questions): ${inputs.numQuestions}
 - Number of sage encounters: ${inputs.numSages}
 - Difficulty: ${inputs.difficulty}
+- Art Style / Theme: ${inputs.artStyle}
 
 Output ONLY the JSON object. No markdown fences, no commentary.`;
 }
@@ -129,6 +132,7 @@ export async function generateCampaign(
   }
 
   const data = JSON.parse(cleaned);
+  data.isPublished = false;
   const validation = validate(data);
 
   return { data, validation, elapsedSeconds };

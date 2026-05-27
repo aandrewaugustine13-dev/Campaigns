@@ -191,6 +191,7 @@ export interface CampaignConfig {
   subtitle: string;
   introBody: string;
   trailFeedOpener: string;
+  isPublished?: boolean;
 
   // Journey parameters
   totalDays: number;

@@ -44,6 +44,14 @@ export function validate(data: unknown): ValidationReport {
     check(key, typeof d[key] === "string" && (d[key] as string).length > 0, `Missing or empty string: ${key}`);
   }
 
+  if (d.theme !== undefined) {
+    check("theme", typeof d.theme === "string", "theme must be a string");
+  }
+
+  if (d.isPublished !== undefined) {
+    check("isPublished", typeof d.isPublished === "boolean", "isPublished must be a boolean");
+  }
+
   // ── Numeric fields ───────────────────────────────────────────
   for (const key of ["totalDays", "daysPerTurn", "totalDistance", "primaryResourceStart", "revenuePerUnit"] as const) {
     check(key, typeof d[key] === "number" && isFinite(d[key] as number), `Missing or non-numeric: ${key}`);

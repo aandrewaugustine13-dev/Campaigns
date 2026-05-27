@@ -28,6 +28,7 @@ import type { SageEncounterData } from "./campaigns/types";
 import SageEncounter from "./SageEncounter";
 import ChisholmParallaxBackground from "./campaigns/chisholm/parallax";
 import { ChisholmCampaign } from "./campaigns/chisholm/index";
+import { CrusadesCampaign } from "./campaigns/crusades/index";
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -311,9 +312,10 @@ export default function App(){
   const[campaignId,setCampaignId]=useState<string|null>(null);
   const[state,setState]=useState<GameState>(makeInit());
   const[usedEvents,setUsedEvents]=useState<Set<string>>(new Set());
+  const[isTeacherMode, setIsTeacherMode]=useState(false);
 
   const start=useCallback(()=>{setState({...makeInit(),phase:"outfit"});setUsedEvents(new Set());},[]);
-  const backToMenu=useCallback(()=>{setCampaignId(null);setState(makeInit());},[]);
+  const backToMenu=useCallback(()=>{setCampaignId(null);setState(makeInit());setUsedEvents(new Set());},[]);
 
   // ── Game Juice ──────────────────────────────────────────────
   const { floats, spawn: spawnFloat } = useFloatingNumbers();
@@ -752,28 +754,45 @@ export default function App(){
   console.log(`[RENDER] Phase: ${state.phase} | TriviaCounter: ${state.triviaCounter} | HasTrivia: ${!!state.currentTrivia}`);
   const partyMembers = getPartyMembers(r);
 
+  const campaigns = [
+    { id: "chisholm", title: "🐂 Chisholm Trail — 1867", subtitle: "San Antonio to Abilene", config: ChisholmCampaign, color: "bg-amber-800 hover:bg-amber-700", subColor: "text-amber-300" },
+    { id: "silkroad", title: "🐫 Silk Road — 130 BCE", subtitle: "Chang'an to Constantinople", config: { isPublished: true }, color: "bg-indigo-900 hover:bg-indigo-800", subColor: "text-indigo-300" },
+    { id: "crusades", title: "✝ Third Crusade — 1190", subtitle: "Warwick to Jerusalem", config: CrusadesCampaign, color: "bg-red-900 hover:bg-red-800", subColor: "text-red-300" },
+    { id: "lewisclark", title: "🧭 Lewis & Clark — 1804", subtitle: "St. Louis to the Pacific", config: { isPublished: true }, color: "bg-emerald-900 hover:bg-emerald-800", subColor: "text-emerald-300" },
+  ];
+
+  const visibleCampaigns = isTeacherMode 
+    ? campaigns 
+    : campaigns.filter(c => (c.config as any).isPublished);
+
   if(campaignId==="silkroad")return <SilkRoad onBack={backToMenu}/>;
   if(campaignId==="crusades")return <Crusades onBack={backToMenu}/>;
   if(campaignId==="lewisclark")return <GeneratedCampaign onBack={backToMenu}/>;
   if(campaignId==="generator")return <GeneratorUI onBack={backToMenu}/>;
 
   if(!campaignId)return(
-    <div className="h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center" style={{fontFamily:"'Georgia', serif"}}>
+    <div className="h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center relative" style={{fontFamily:"'Georgia', serif"}}>
+      {/* Teacher Mode Toggle */}
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <span className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Teacher God Mode</span>
+        <button 
+          onClick={() => setIsTeacherMode(!isTeacherMode)}
+          className={`w-10 h-5 rounded-full relative transition-colors ${isTeacherMode ? 'bg-amber-600' : 'bg-stone-700'}`}
+        >
+          <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isTeacherMode ? 'left-6' : 'left-1'}`} />
+        </button>
+      </div>
+
       <h1 className="text-3xl font-bold text-amber-400 mb-2">CAMPAIGNS</h1>
       <p className="text-stone-400 text-sm mb-8">Choose your trail.</p>
       <div className="space-y-3 w-64">
-        <button onClick={()=>setCampaignId("chisholm")} className="w-full py-3 bg-amber-800 hover:bg-amber-700 rounded font-bold transition-colors">
-          🐂 Chisholm Trail — 1867<br/><span className="text-xs font-normal text-amber-300">San Antonio to Abilene</span>
-        </button>
-        <button onClick={()=>setCampaignId("silkroad")} className="w-full py-3 bg-indigo-900 hover:bg-indigo-800 rounded font-bold transition-colors">
-          🐫 Silk Road — 130 BCE<br/><span className="text-xs font-normal text-indigo-300">Chang'an to Constantinople</span>
-        </button>
-        <button onClick={()=>setCampaignId("crusades")} className="w-full py-3 bg-red-900 hover:bg-red-800 rounded font-bold transition-colors">
-          ✝ Third Crusade — 1190<br/><span className="text-xs font-normal text-red-300">Warwick to Jerusalem</span>
-        </button>
-        <button onClick={()=>setCampaignId("lewisclark")} className="w-full py-3 bg-emerald-900 hover:bg-emerald-800 rounded font-bold transition-colors">
-          🧭 Lewis &amp; Clark — 1804<br/><span className="text-xs font-normal text-emerald-300">St. Louis to the Pacific</span>
-        </button>
+        {visibleCampaigns.map(c => (
+          <button key={c.id} onClick={()=>setCampaignId(c.id)} className={`w-full py-3 ${c.color} rounded font-bold transition-colors text-left px-4 relative`}>
+            {isTeacherMode && !(c.config as any).isPublished && <span className="absolute top-1 right-2 text-[8px] bg-amber-900 text-amber-300 px-1 rounded uppercase font-bold">Draft</span>}
+            {c.title}<br/><span className={`text-xs font-normal ${c.subColor}`}>{c.subtitle}</span>
+          </button>
+        ))}
+        
         <div className="border-t border-stone-700 pt-3 mt-1">
           <button onClick={()=>setCampaignId("generator")} className="w-full py-3 bg-stone-800 border border-amber-700 hover:bg-stone-700 rounded font-bold text-amber-400 transition-colors">
             + Create a Campaign

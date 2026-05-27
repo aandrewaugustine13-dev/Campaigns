@@ -12,6 +12,7 @@ import { FC, FACES } from "./pixelFaces";
 
 export const ChisholmCampaign: CampaignConfig = {
   id: "chisholm",
+  isPublished: true,
   title: "CHISHOLM TRAIL",
   subtitle: "San Antonio to Abilene, 1867",
   introBody: "Spring, 1867. San Antonio, Texas. You have $2,000 and a reputation. Every outfit choice matters now — weak crews and wagons break on the trail.",

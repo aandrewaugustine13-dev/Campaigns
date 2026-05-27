@@ -12,6 +12,8 @@ interface FormState {
   numQuestions: number;
   numSages: number;
   difficulty: string;
+  artStyle: string;
+  customStylePrompt: string;
 }
 
 const DEFAULTS: FormState = {
@@ -22,6 +24,8 @@ const DEFAULTS: FormState = {
   numQuestions: 3,
   numSages: 3,
   difficulty: "medium",
+  artStyle: "default",
+  customStylePrompt: "",
 };
 
 const GRADES = ["4th grade", "5th grade", "6th grade", "7th grade", "8th grade"];
@@ -253,6 +257,28 @@ export default function GeneratorUI({ onBack }: { onBack: () => void }) {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Art Direction / Visual Theme */}
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-stone-400 uppercase tracking-wide">Art Direction / Visual Theme</label>
+            <select
+              value={form.artStyle}
+              onChange={e => setForm(f => ({ ...f, artStyle: e.target.value }))}
+              className="w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-sm text-stone-100 focus:border-amber-600 focus:outline-none"
+            >
+              <option value="default">Default Dark Slate</option>
+              <option value="frontier">Distressed Frontier</option>
+              <option value="parchment">Vintage Parchment & Ink</option>
+              <option value="medieval">Medieval Tapestry & Chronicle</option>
+            </select>
+            <input
+              type="text"
+              value={form.customStylePrompt}
+              onChange={e => setForm(f => ({ ...f, customStylePrompt: e.target.value }))}
+              placeholder="Optional: Custom Style Prompt Overrides"
+              className="w-full mt-2 bg-stone-800 border border-stone-700 rounded px-3 py-2 text-sm text-stone-100 placeholder-stone-600 focus:border-amber-600 focus:outline-none"
+            />
           </div>
 
           {/* Generate button */}

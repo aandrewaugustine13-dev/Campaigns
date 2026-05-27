@@ -162,6 +162,8 @@ export interface CampaignData {
   subtitle: string;
   introBody: string;
   trailFeedOpener: string;
+  theme?: string;
+  isPublished?: boolean;
 
   // Journey parameters
   totalDays: number;
