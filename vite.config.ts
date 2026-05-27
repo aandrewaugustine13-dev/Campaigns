@@ -10,6 +10,7 @@ function generatorApiPlugin(): Plugin {
     configureServer(server) {
       loadEnv({ path: resolve(__dirname, '.env.local') });
 
+      return () => {
       server.middlewares.use('/api/generate', async (req, res) => {
         if (req.method !== 'POST') {
           res.statusCode = 405;
@@ -58,6 +59,7 @@ function generatorApiPlugin(): Plugin {
           res.end(JSON.stringify({ error: message }));
         }
       });
+      };
     },
   };
 }
