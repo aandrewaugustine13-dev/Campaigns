@@ -74,11 +74,18 @@ export interface SageQuestion {
   teksRef: string;
 }
 
+export interface PortraitAttribution {
+  artist: string;
+  license: string;
+  sourceUrl: string;
+}
+
 export interface SageEncounterData {
   id: string;
   name: string;
   title: string;
   portrait: string;
+  portraitAttribution?: PortraitAttribution;
   threshold: number;
   bio: string;
   greeting: string;

@@ -36,29 +36,44 @@ export default function SageEncounter({ sage, onComplete }: Props) {
         }}
       >
         <div className="flex items-start gap-3 p-3">
-          {/* Portrait placeholder */}
-          <div
-            className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 border-amber-800/60"
-            style={{
-              background: "linear-gradient(135deg, #3d2516, #2d1b11)",
-            }}
-          >
-            <img
-              src={sage.portrait}
-              alt={sage.name}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                // Fallback: show initials on failed load
-                const el = e.target as HTMLImageElement;
-                el.style.display = "none";
-                el.parentElement!.innerHTML = `
-                  <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;
-                    font-size:24px;font-weight:bold;color:#d97706;font-family:Georgia,serif;
-                    background:linear-gradient(135deg,#3d2516,#2d1b11);">
-                    ${sage.name.split(" ").map((w: string) => w[0]).join("")}
-                  </div>`;
+          {/* Portrait */}
+          <div className="flex-shrink-0">
+            <div
+              className="w-20 h-20 rounded-lg overflow-hidden border-2 border-amber-800/60"
+              style={{
+                background: "linear-gradient(135deg, #3d2516, #2d1b11)",
               }}
-            />
+            >
+              <img
+                src={sage.portrait}
+                alt={sage.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const el = e.target as HTMLImageElement;
+                  el.style.display = "none";
+                  el.parentElement!.innerHTML = `
+                    <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+                      font-size:24px;font-weight:bold;color:#d97706;font-family:Georgia,serif;
+                      background:linear-gradient(135deg,#3d2516,#2d1b11);">
+                      ${sage.name.split(" ").map((w: string) => w[0]).join("")}
+                    </div>`;
+                }}
+              />
+            </div>
+            {sage.portraitAttribution && (
+              <p className="w-20 mt-0.5 text-stone-500 leading-tight" style={{ fontSize: "11px" }}>
+                {sage.portraitAttribution.artist}
+                {" · "}
+                <a
+                  href={sage.portraitAttribution.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-stone-400"
+                >
+                  Source
+                </a>
+              </p>
+            )}
           </div>
 
           {/* Name + bio */}

@@ -3,6 +3,7 @@ import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { validate, type ValidationReport } from "./validate.js";
+import { enrichSagePortraits } from "./wikimedia.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -133,6 +134,9 @@ export async function generateCampaign(
 
   const data = JSON.parse(cleaned);
   data.isPublished = false;
+
+  await enrichSagePortraits(data);
+
   const validation = validate(data);
 
   return { data, validation, elapsedSeconds };
