@@ -72,37 +72,35 @@ export default function PushYourLuckEngine({ event, onUpdate, onLeave, backdropI
   const legacyImagePath: string | undefined = typeof event.image === "string" ? event.image : undefined;
 
   return (
-    <div className="border border-[#6a503d] rounded bg-stone-800 shadow-lg overflow-hidden">
+    <div className="border theme-border rounded theme-bg-card shadow-lg overflow-hidden">
       {commonsImage ? (
-        <div className="w-full h-32 relative border-b border-[#5b4536]">
+        <div className="w-full h-32 relative border-b theme-border">
           <img
             src={commonsImage.thumbUrl}
             alt={event.title}
             className="w-full h-full object-cover"
             style={{ objectPosition: "center" }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-stone-800 via-transparent to-transparent" />
         </div>
       ) : legacyImagePath ? (
-        <div className="w-full h-32 relative border-b border-[#5b4536]">
+        <div className="w-full h-32 relative border-b theme-border">
           <img
             src={`/campaigns/silkroad/${legacyImagePath}`}
             alt={event.title}
             className="w-full h-full object-cover"
             style={{ imageRendering: "pixelated", objectPosition: "center" }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-stone-800 via-transparent to-transparent" />
         </div>
       ) : null}
 
       {commonsImage && (
-        <div className="bg-stone-900 px-3 py-1 text-stone-500 border-b border-stone-700 leading-tight" style={{ fontSize: "11px" }}>
+        <div className="theme-bg-card-inner theme-text-muted px-3 py-1 border-b theme-divider leading-tight" style={{ fontSize: "11px" }}>
           {commonsImage.artist} · {commonsImage.license} ·{" "}
           <a
             href={commonsImage.sourceUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="underline hover:text-stone-300"
+            className="underline opacity-90 hover:opacity-100"
           >
             Source
           </a>
@@ -111,10 +109,10 @@ export default function PushYourLuckEngine({ event, onUpdate, onLeave, backdropI
 
       <div className="p-3 space-y-4">
         <div>
-          <h2 className="text-amber-300 font-bold text-lg mb-2 tracking-wide">{event.title}</h2>
-          <div className="bg-stone-900 border border-stone-700 p-3 rounded space-y-2 h-40 overflow-y-auto text-xs leading-relaxed">
+          <h2 className="theme-text-accent font-bold text-lg mb-2 tracking-wide theme-display-font">{event.title}</h2>
+          <div className="theme-bg-card-inner theme-divider border p-3 rounded space-y-2 h-40 overflow-y-auto text-xs leading-relaxed">
             {log.map((entry, i) => (
-              <p key={i} className={entry.includes('CRITICAL FAILURE') ? 'text-red-400 font-bold' : entry.includes('SUCCESS') ? 'text-emerald-400' : 'text-stone-300'}>
+              <p key={i} className={entry.includes('CRITICAL FAILURE') ? 'text-red-400 font-bold' : entry.includes('SUCCESS') ? 'text-emerald-400' : 'theme-text'}>
                 {entry}
               </p>
             ))}
@@ -123,18 +121,18 @@ export default function PushYourLuckEngine({ event, onUpdate, onLeave, backdropI
 
         <div className="space-y-2">
           {!failed && attemptIndex < attempts.length && (
-            <button 
+            <button
               onClick={handleAttempt}
-              className="w-full text-left p-3 bg-[#5a351b] hover:bg-[#704122] rounded text-sm text-amber-100 font-bold transition-colors border border-[#8c623d] flex justify-between items-center"
+              className="w-full text-left p-3 theme-btn-action rounded text-sm font-bold border theme-border flex justify-between items-center"
             >
               <span>▶ {currentAttempt.buttonText}</span>
-              <span className="text-red-400 text-xs">Risk: {Math.round(currentAttempt.riskChance * 100)}%</span>
+              <span className="text-red-300 text-xs">Risk: {Math.round(currentAttempt.riskChance * 100)}%</span>
             </button>
           )}
-          
-          <button 
+
+          <button
             onClick={() => onLeave(log)}
-            className="w-full text-center p-2 bg-stone-700 hover:bg-[#4a372a] rounded text-xs text-stone-300 font-bold transition-colors border border-stone-600 mt-2"
+            className="w-full text-center p-2 theme-bg-card-inner theme-border rounded text-xs theme-text font-bold transition-colors border opacity-90 hover:opacity-100 mt-2"
           >
             {failed ? "Limp away in defeat" : (event.leaveText || "Move On")}
           </button>

@@ -24,9 +24,25 @@ interface VisualNovelProps {
   showRiskHints?: boolean;
   riskHints?: string[];
   backdropImage?: CommonsImage;
+  // Chisholm-specific Trail Boss / Scout pixel-art portraits overlay the
+  // scene panel. Generated campaigns pass false to suppress them — the
+  // sage and party display lives in DoomHUD instead. Defaults true so
+  // App.tsx (Chisholm) keeps its current render path unchanged.
+  showCharacterOverlay?: boolean;
 }
 
-export default function VisualNovelEngine({ currentEvent, handleChoice, bossHealth, scoutHealth, insight = 0, onSpendInsightForHints, showRiskHints = false, riskHints = [], backdropImage }: VisualNovelProps) {
+export default function VisualNovelEngine({
+  currentEvent,
+  handleChoice,
+  bossHealth,
+  scoutHealth,
+  insight = 0,
+  onSpendInsightForHints,
+  showRiskHints = false,
+  riskHints = [],
+  backdropImage,
+  showCharacterOverlay = true,
+}: VisualNovelProps) {
   if (!currentEvent) return null;
 
   const [showSages, setShowSages] = useState(false);
@@ -48,12 +64,13 @@ export default function VisualNovelEngine({ currentEvent, handleChoice, bossHeal
     return sages.slice(0, 2);
   }, [currentEvent]);
 
-  // Image priority: event-specific → campaign backdrop → pixel-art parallax.
+  // Image priority: event-specific → campaign backdrop → themed fallback /
+  // Chisholm pixel-art parallax.
   const sceneImage: CommonsImage | undefined = currentEvent.image ?? backdropImage;
 
   return (
-    <div className="border-4 border-[#1a0f0a]">
-      {/* Scene — historical image OR pixel-art parallax + portraits */}
+    <div className="border-4 theme-dialogue-frame-border">
+      {/* Scene — historical image, themed fallback, or Chisholm parallax */}
       <div className="relative w-full overflow-hidden" style={{ height: 200 }}>
         {sceneImage ? (
           <div
@@ -64,7 +81,7 @@ export default function VisualNovelEngine({ currentEvent, handleChoice, bossHeal
               backgroundPosition: "center",
             }}
           />
-        ) : (
+        ) : showCharacterOverlay ? (
           <>
             {/* Layer 1: Static sky */}
             <div
@@ -90,52 +107,57 @@ export default function VisualNovelEngine({ currentEvent, handleChoice, bossHeal
               }}
             />
           </>
+        ) : (
+          <div className="absolute inset-0 theme-parallax" />
         )}
         {/* Vignette */}
         <div className="absolute inset-0" style={{
           background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.5) 100%)",
         }} />
 
-        {/* Boss portrait — left */}
-        <div className="absolute bottom-2 left-3 z-10">
-          <div className="bg-[#1a0f0a]/80 border-2 border-[#3d2516] p-0.5 rounded">
-            <img
-              src={getDoomFace("boss", bossHealth)}
-              className="w-16 h-16"
-              style={{ imageRendering: "pixelated" }}
-              alt="Trail Boss"
-            />
-          </div>
-          <div className="text-center">
-            <span className="text-[#e6c280] font-bold drop-shadow-md" style={{ fontSize: '9px' }}>Trail Boss</span>
-          </div>
-        </div>
+        {/* Boss + Scout pixel-art portraits — Chisholm only */}
+        {showCharacterOverlay && (
+          <>
+            <div className="absolute bottom-2 left-3 z-10">
+              <div className="bg-[#1a0f0a]/80 border-2 border-[#3d2516] p-0.5 rounded">
+                <img
+                  src={getDoomFace("boss", bossHealth)}
+                  className="w-16 h-16"
+                  style={{ imageRendering: "pixelated" }}
+                  alt="Trail Boss"
+                />
+              </div>
+              <div className="text-center">
+                <span className="text-[#e6c280] font-bold drop-shadow-md" style={{ fontSize: '9px' }}>Trail Boss</span>
+              </div>
+            </div>
 
-        {/* Scout portrait — right */}
-        <div className="absolute bottom-2 right-3 z-10">
-          <div className="bg-[#1a0f0a]/80 border-2 border-[#3d2516] p-0.5 rounded">
-            <img
-              src={getDoomFace("scout", scoutHealth)}
-              className="w-16 h-16"
-              style={{ imageRendering: "pixelated" }}
-              alt="Scout"
-            />
-          </div>
-          <div className="text-center">
-            <span className="text-[#e6c280] font-bold drop-shadow-md" style={{ fontSize: '9px' }}>Scout</span>
-          </div>
-        </div>
+            <div className="absolute bottom-2 right-3 z-10">
+              <div className="bg-[#1a0f0a]/80 border-2 border-[#3d2516] p-0.5 rounded">
+                <img
+                  src={getDoomFace("scout", scoutHealth)}
+                  className="w-16 h-16"
+                  style={{ imageRendering: "pixelated" }}
+                  alt="Scout"
+                />
+              </div>
+              <div className="text-center">
+                <span className="text-[#e6c280] font-bold drop-shadow-md" style={{ fontSize: '9px' }}>Scout</span>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Attribution — shown only when a Commons image is displayed */}
       {sceneImage && (
-        <div className="bg-[#1a0f0a] px-2 pt-1 text-[#a98760] leading-tight" style={{ fontSize: "11px" }}>
+        <div className="theme-dialogue-frame theme-dialogue-attribution px-2 pt-1 leading-tight" style={{ fontSize: "11px" }}>
           {sceneImage.artist} · {sceneImage.license} ·{" "}
           <a
             href={sceneImage.sourceUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="underline hover:text-[#e6c280]"
+            className="underline theme-dialogue-attribution-link"
           >
             Source
           </a>
@@ -143,14 +165,14 @@ export default function VisualNovelEngine({ currentEvent, handleChoice, bossHeal
       )}
 
       {/* Dialogue box — below the scene */}
-      <div className="bg-[#1a0f0a] p-2">
-        <div className="bg-[#e6c280] border-4 border-[#8b5a2b] rounded shadow-[4px_4px_0px_rgba(0,0,0,0.5)] p-3">
-          <p className="text-[#5c3a21] font-bold text-sm mb-2 drop-shadow-sm leading-snug">
+      <div className="theme-dialogue-frame p-2">
+        <div className="theme-dialogue-bg theme-dialogue-border border-4 rounded shadow-[4px_4px_0px_rgba(0,0,0,0.5)] p-3">
+          <p className="theme-dialogue-text font-bold text-sm mb-2 drop-shadow-sm leading-snug">
             {currentEvent.text}
           </p>
 
           {didYouKnow && (
-            <p className="text-[#6e4b2c] text-xs mb-2 bg-[#f3dfb4] border border-[#d1b07b] rounded px-2 py-1">
+            <p className="theme-dialogue-text-muted text-xs mb-2 theme-dialogue-accent border rounded px-2 py-1">
               <span className="font-bold">Did you know?</span> {didYouKnow}
             </p>
           )}
@@ -159,14 +181,14 @@ export default function VisualNovelEngine({ currentEvent, handleChoice, bossHeal
             <div className="mb-2">
               <button
                 onClick={() => setShowSages(v => !v)}
-                className="text-xs font-bold px-2 py-1 rounded border-2 border-[#b88645] bg-[#d4a86a] hover:bg-[#ffdf99] text-[#4a2e1b]"
+                className="text-xs font-bold px-2 py-1 rounded border-2 theme-dialogue-accent"
               >
                 {showSages ? "Hide Sage Advice" : "Ask a Sage"}
               </button>
               {showSages && (
                 <div className="mt-1 space-y-1">
                   {sageLines.map((sage, i) => (
-                    <p key={i} className="text-xs text-[#5c3a21] bg-[#f7e7c5] border border-[#d1b07b] rounded px-2 py-1">
+                    <p key={i} className="text-xs theme-dialogue-text theme-dialogue-accent border rounded px-2 py-1">
                       <span className="font-bold">{sage.name}</span> ({sage.role}): {sage.line}
                     </p>
                   ))}
@@ -180,7 +202,7 @@ export default function VisualNovelEngine({ currentEvent, handleChoice, bossHeal
               <button
                 onClick={onSpendInsightForHints}
                 disabled={showRiskHints || insight <= 0}
-                className={`text-xs font-bold px-2 py-1 rounded border-2 ${showRiskHints || insight <= 0 ? "border-stone-500 bg-stone-300 text-stone-600" : "border-[#b88645] bg-[#d4a86a] hover:bg-[#ffdf99] text-[#4a2e1b]"}`}
+                className={`text-xs font-bold px-2 py-1 rounded border-2 ${showRiskHints || insight <= 0 ? "border-stone-500 bg-stone-300 text-stone-600" : "theme-dialogue-accent"}`}
               >
                 {showRiskHints ? "Sage Risk Hints Shown" : `Ask a Sage (Spend 1 Insight)`}
               </button>
@@ -192,11 +214,11 @@ export default function VisualNovelEngine({ currentEvent, handleChoice, bossHeal
               <button
                 key={i}
                 onClick={() => handleChoice(i)}
-                className="w-full text-left p-1.5 bg-[#d4a86a] border-2 border-[#b88645] hover:bg-[#ffdf99] hover:border-[#d4a86a] text-[#4a2e1b] font-bold text-xs transition-colors shadow-inner"
+                className="w-full text-left p-1.5 theme-dialogue-accent border-2 font-bold text-xs shadow-inner"
               >
                 <span>▶ {c.text}</span>
                 {showRiskHints && riskHints[i] && (
-                  <span className="ml-2 text-[10px] font-bold text-[#7a4f1f]">[{riskHints[i]}]</span>
+                  <span className="ml-2 text-[10px] font-bold opacity-80">[{riskHints[i]}]</span>
                 )}
               </button>
             ))}

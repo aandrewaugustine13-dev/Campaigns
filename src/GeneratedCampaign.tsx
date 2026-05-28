@@ -168,21 +168,23 @@ function GenericTriviaEngine({
   const correct = answered === question.correctIndex;
   const explanation = (question as Record<string, unknown>).explanation as string | undefined;
 
-  const isDark = theme === 'default';
+  // Rendered inside GeneratedCampaign's data-theme wrapper, so CSS variables
+  // apply. The theme prop is retained for API compatibility but unused.
+  void theme;
 
   return (
-    <div className={`border ${isDark ? 'border-amber-700 bg-amber-950/30' : 'border-stone-800 bg-white/40'} rounded p-4 space-y-3`}>
-      <p className={`text-xs ${isDark ? 'text-amber-300' : 'text-amber-900'} font-bold uppercase tracking-wide`}>
+    <div className="border theme-border theme-bg-card-inner rounded p-4 space-y-3">
+      <p className="text-xs theme-text-accent font-bold uppercase tracking-wide">
         Knowledge Check {streak > 0 && <span className="text-emerald-500">(streak: {streak})</span>}
       </p>
-      <p className={`text-sm ${isDark ? 'text-stone-200' : 'text-stone-900'}`}>{question.question}</p>
+      <p className="text-sm theme-text">{question.question}</p>
       {answered === null ? (
         <div className="space-y-1">
           {question.choices.map((c, i) => (
             <button
               key={i}
               onClick={() => setAnswered(i)}
-              className={`w-full text-left text-xs ${isDark ? 'bg-amber-900/60 hover:bg-amber-800' : 'bg-stone-200 hover:bg-stone-300'} rounded px-3 py-2 transition-colors`}
+              className="w-full text-left text-xs theme-bg-card theme-border border rounded px-3 py-2 transition-colors hover:opacity-90"
             >
               {c}
             </button>
@@ -194,11 +196,11 @@ function GenericTriviaEngine({
             {correct ? "Correct!" : "Not quite."}
           </p>
           {(explanation || question.fact) && (
-            <p className={`text-xs ${isDark ? 'text-stone-400' : 'text-stone-600'}`}>{explanation || question.fact}</p>
+            <p className="text-xs theme-text-muted">{explanation || question.fact}</p>
           )}
           <button
             onClick={() => onComplete(correct, correct ? { [primaryResourceKey]: 5, morale: 3 } : {})}
-            className={`w-full py-2 ${isDark ? 'bg-amber-800 hover:bg-amber-700' : 'bg-stone-800 hover:bg-stone-700 text-white'} rounded text-xs font-bold transition-colors`}
+            className="w-full py-2 theme-btn-action rounded text-xs font-bold transition-colors"
           >
             Continue
           </button>
@@ -218,8 +220,12 @@ interface GenericOutfit {
 }
 
 function GenericOutfitScreen({ data, onDone }: { data: CampaignData; onDone: (outfit: GenericOutfit) => void }) {
-  const theme = data.theme || 'default';
-  const isDark = theme === 'default';
+  const ALLOWED_THEMES = new Set([
+    "frontier-leather", "broadsheet-sepia", "parchment-medieval",
+    "expedition-journal", "declassified-typewriter", "classical-marble",
+    "default",
+  ]);
+  const theme = ALLOWED_THEMES.has(data.theme ?? "") ? (data.theme as string) : "default";
 
   const costKeys = Object.keys(data.outfitConfig.costs);
   const [allocs, setAllocs] = useState<Record<string, number>>(() => {
@@ -231,20 +237,14 @@ function GenericOutfitScreen({ data, onDone }: { data: CampaignData; onDone: (ou
   const spent = costKeys.reduce((sum, k) => sum + allocs[k] * data.outfitConfig.costs[k], 0);
   const remaining = data.outfitConfig.budget - spent;
 
-  const containerClass = isDark ? "bg-stone-900 text-stone-100" : "bg-[#fcf5e5] text-stone-900";
-  const cardClass = isDark ? "bg-stone-800 border-stone-700" : "bg-white/40 border-stone-400";
-  const accentText = isDark ? "text-amber-400" : "text-amber-900";
-  const subtext = isDark ? "text-stone-400" : "text-stone-600";
-  const buttonClass = isDark ? "bg-amber-700 hover:bg-amber-600" : "bg-amber-800 hover:bg-amber-700 text-white";
-
   return (
-    <div className={`h-screen ${containerClass} flex flex-col overflow-hidden`} style={{ fontFamily: "'Georgia', serif" }}>
+    <div data-theme={theme} className="h-screen theme-bg-page theme-text flex flex-col overflow-hidden theme-body-font">
       <GenericParallax progress={0} pace="rest" title={data.title} />
       <div className="flex-1 min-h-0 overflow-y-auto p-3">
         <div className="max-w-lg mx-auto space-y-3">
           <div className="text-center">
-            <h1 className={`text-xl font-bold ${accentText}`}>{data.title} — OUTFIT</h1>
-            <p className={`${subtext} text-xs mt-0.5`}>
+            <h1 className="text-xl font-bold theme-text-accent theme-display-font">{data.title} — OUTFIT</h1>
+            <p className="theme-text-muted text-xs mt-0.5">
               Prepare your expedition. Budget:{" "}
               <span className={remaining >= 0 ? "text-emerald-500" : "text-red-500"}>
                 ${remaining.toLocaleString()}
@@ -254,11 +254,11 @@ function GenericOutfitScreen({ data, onDone }: { data: CampaignData; onDone: (ou
           </div>
 
           {costKeys.map(k => (
-            <div key={k} className={`${cardClass} border rounded p-2.5`}>
+            <div key={k} className="theme-bg-card theme-border border rounded p-2.5">
               <div className="flex justify-between items-center text-xs mb-1">
-                <span className={`${isDark ? 'text-stone-300' : 'text-stone-800'} font-bold`}>{k.replace(/_/g, " ")}</span>
-                <span className={`font-mono ${accentText}`}>
-                  {allocs[k]} <span className={subtext}>(${data.outfitConfig.costs[k]}/ea)</span>
+                <span className="theme-text font-bold">{k.replace(/_/g, " ")}</span>
+                <span className="font-mono theme-text-accent">
+                  {allocs[k]} <span className="theme-text-muted">(${data.outfitConfig.costs[k]}/ea)</span>
                 </span>
               </div>
               <input
@@ -267,7 +267,7 @@ function GenericOutfitScreen({ data, onDone }: { data: CampaignData; onDone: (ou
                 max={10}
                 value={allocs[k]}
                 onChange={e => setAllocs(prev => ({ ...prev, [k]: +e.target.value }))}
-                className={`w-full ${isDark ? 'accent-amber-500' : 'accent-amber-800'} h-2`}
+                className="w-full accent-amber-500 h-2"
               />
             </div>
           ))}
@@ -275,7 +275,7 @@ function GenericOutfitScreen({ data, onDone }: { data: CampaignData; onDone: (ou
           <button
             onClick={() => remaining >= 0 && onDone({ allocations: allocs, budgetSpent: spent })}
             disabled={remaining < 0}
-            className={`w-full py-3 ${buttonClass} disabled:opacity-50 rounded font-bold transition-colors`}
+            className="w-full py-3 theme-btn-action disabled:opacity-50 rounded font-bold transition-colors"
           >
             {remaining < 0 ? "OVER BUDGET" : "BEGIN EXPEDITION"}
           </button>
@@ -420,80 +420,32 @@ const GC: Record<string, string> = {
 export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: () => void; data?: CampaignData }) {
   const data = dataProp ?? (defaultCampaignJson as unknown as CampaignData);
 
-  const theme = data.theme || 'default';
-  
+  const ALLOWED_THEMES = new Set([
+    "frontier-leather", "broadsheet-sepia", "parchment-medieval",
+    "expedition-journal", "declassified-typewriter", "classical-marble",
+    "default",
+  ]);
+  const theme = ALLOWED_THEMES.has(data.theme ?? "") ? (data.theme as string) : "default";
+
+  // Semantic-class bundle. Layout/spacing/typography sizes stay as Tailwind
+  // utilities; color/background/border/font-family come from CSS variables
+  // defined in themes.css and selected via data-theme on the wrapper.
   const themeConfig = {
-    default: {
-      container: "bg-stone-900 text-stone-100",
-      sidebar: "bg-stone-900/80 border-stone-700",
-      hud: "bg-stone-800 border-stone-700",
-      feedItem: "bg-stone-800/60 border-stone-700",
-      feedItemActive: "bg-amber-950/20 border-amber-700",
-      parallaxBottom: "from-stone-800",
-      accent: "text-amber-300",
-      subtext: "text-stone-400",
-      card: "bg-stone-800 border-stone-700",
-      innerCard: "bg-stone-900/40 border-stone-700",
-      button: "bg-amber-700 hover:bg-amber-600",
-      routeCard: "border-indigo-700 bg-indigo-950/40",
-      routeText: "text-indigo-300",
-      routeButton: "bg-indigo-900 hover:bg-indigo-800",
-      questCard: "border-emerald-800 bg-emerald-950/30",
-      questText: "text-emerald-300",
-    },
-    frontier: {
-      container: "bg-[#e6d5b8] text-stone-900",
-      sidebar: "bg-[#d9c5a3]/80 border-[#b08d57]",
-      hud: "bg-[#d9c5a3] border-[#b08d57]",
-      feedItem: "bg-[#e6d5b8]/60 border-[#b08d57]",
-      feedItemActive: "bg-[#b08d57]/20 border-[#8c6d31]",
-      parallaxBottom: "from-[#d9c5a3]",
-      accent: "text-[#8c6d31]",
-      subtext: "text-[#5d4a26]",
-      card: "bg-[#d9c5a3] border-[#b08d57]",
-      innerCard: "bg-[#e6d5b8]/40 border-[#b08d57]",
-      button: "bg-[#b08d57] hover:bg-[#8c6d31] text-white",
-      routeCard: "border-[#8c6d31] bg-[#d9c5a3]",
-      routeText: "text-[#5d4a26] font-bold",
-      routeButton: "bg-[#e6d5b8] hover:bg-[#d9c5a3] border border-[#b08d57]",
-      questCard: "border-[#b08d57] bg-[#e6d5b8]",
-      questText: "text-emerald-800 font-bold",
-    },
-    parchment: {
-      container: "bg-[#fcf5e5] text-stone-900",
-      sidebar: "bg-[#f5ead2]/80 border-stone-900",
-      hud: "bg-[#f5ead2] border-stone-900",
-      feedItem: "bg-[#fcf5e5]/60 border-stone-900",
-      feedItemActive: "bg-[#d4c38d]/20 border-stone-900",
-      parallaxBottom: "from-[#f5ead2]",
-      accent: "text-amber-900",
-      subtext: "text-stone-700",
-      card: "bg-[#f5ead2] border-stone-900",
-      innerCard: "bg-white/40 border-stone-900",
-      button: "bg-stone-800 hover:bg-stone-700 text-white",
-      routeCard: "border-stone-900 bg-[#f5ead2]",
-      routeText: "text-stone-900 font-bold",
-      routeButton: "bg-white/40 hover:bg-white/60 border border-stone-900",
-      questCard: "border-stone-900 bg-white/40",
-      questText: "text-stone-900 font-bold",
-    }
-  }[theme as 'frontier' | 'parchment' | 'default'] || {
-    container: "bg-stone-900 text-stone-100",
-    sidebar: "bg-stone-900/80 border-stone-700",
-    hud: "bg-stone-800 border-stone-700",
-    feedItem: "bg-stone-800/60 border-stone-700",
-    feedItemActive: "bg-amber-950/20 border-amber-700",
-    parallaxBottom: "from-stone-800",
-    accent: "text-amber-300",
-    subtext: "text-stone-400",
-    card: "bg-stone-800 border-stone-700",
-    innerCard: "bg-stone-900/40 border-stone-700",
-    button: "bg-amber-700 hover:bg-amber-600",
-    routeCard: "border-indigo-700 bg-indigo-950/40",
-    routeText: "text-indigo-300",
-    routeButton: "bg-indigo-900 hover:bg-indigo-800",
-    questCard: "border-emerald-800 bg-emerald-950/30",
-    questText: "text-emerald-300",
+    container: "theme-bg-page theme-text",
+    sidebar: "theme-bg-card theme-border",
+    hud: "theme-bg-card theme-border",
+    feedItem: "theme-bg-card-inner theme-divider",
+    feedItemActive: "theme-bg-card-inner theme-border",
+    accent: "theme-text-accent",
+    subtext: "theme-text-muted",
+    card: "theme-bg-card theme-border",
+    innerCard: "theme-bg-card-inner theme-divider",
+    button: "theme-btn-action",
+    routeCard: "theme-bg-card-inner theme-border",
+    routeText: "theme-text-accent font-bold",
+    routeButton: "theme-bg-card-inner theme-border",
+    questCard: "theme-bg-card-inner theme-border",
+    questText: "theme-text-accent-2 font-bold",
   };
 
   const makeInit = useCallback((): GameState => ({
@@ -838,32 +790,32 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   // ═══════════════════════════════════════════════════════════════
 
   if (state.phase === "intro") return (
-    <div className={`h-screen ${themeConfig.container} flex flex-col items-center justify-center`} style={{ fontFamily: "'Georgia', serif" }}>
+    <div data-theme={theme} className={`h-screen ${themeConfig.container} flex flex-col items-center justify-center theme-body-font`}>
       <div className="max-w-md text-center space-y-4 p-4">
         {data.backdropImage && (
           <div className="space-y-1">
             <div
-              className="w-full h-40 rounded overflow-hidden border border-stone-700"
+              className="w-full h-40 rounded overflow-hidden border theme-border"
               style={{
                 backgroundImage: `url("${data.backdropImage.thumbUrl}")`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
               }}
             />
-            <p className="text-stone-500 leading-tight text-left" style={{ fontSize: "11px" }}>
+            <p className="theme-text-muted leading-tight text-left" style={{ fontSize: "11px" }}>
               {data.backdropImage.artist} · {data.backdropImage.license} ·{" "}
               <a
                 href={data.backdropImage.sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline hover:text-stone-300"
+                className="underline opacity-90 hover:opacity-100"
               >
                 Source
               </a>
             </p>
           </div>
         )}
-        <h1 className={`text-3xl font-bold ${themeConfig.accent}`}>{data.title}</h1>
+        <h1 className={`text-3xl font-bold theme-display-font ${themeConfig.accent}`}>{data.title}</h1>
         <p className={themeConfig.subtext}>{data.subtitle}</p>
         <p className={`${themeConfig.subtext} text-sm`}>{data.introBody}</p>
         <button onClick={start} className={`px-8 py-3 ${themeConfig.button} rounded font-bold transition-colors`}>BEGIN OUTFIT</button>
@@ -892,12 +844,12 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       data.title.toLowerCase().includes("defense");
 
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 p-4 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div data-theme={theme} className="h-screen theme-bg-page theme-text p-4 overflow-y-auto theme-body-font">
         <div className="max-w-lg mx-auto space-y-4">
-          <h1 className={`text-2xl font-bold text-center ${state.survived ? "text-amber-400" : "text-red-500"}`}>
+          <h1 className={`text-2xl font-bold text-center theme-display-font ${state.survived ? "theme-text-accent" : "text-red-500"}`}>
             {state.survived ? (isDefense ? "SIEGE CONCLUDED" : "EXPEDITION COMPLETE") : "EXPEDITION FAILED"}
           </h1>
-          <p className="text-center text-stone-300 text-sm">
+          <p className="text-center theme-text text-sm">
             {state.survived
               ? isDefense
                 ? `${data.title} — the garrison held out for ${state.day} days.`
@@ -906,51 +858,51 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
           </p>
 
           {data.revenuePerUnit > 0 && (
-            <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1 text-xs">
-              <h2 className="text-amber-300 font-bold uppercase tracking-wide text-center mb-1">Ledger</h2>
-              <div className="flex justify-between text-stone-400"><span>Outfit Cost</span><span className="text-red-400">-${cost.toLocaleString()}</span></div>
-              <div className="flex justify-between text-stone-400">
+            <div className="theme-bg-card theme-border border rounded p-3 space-y-1 text-xs">
+              <h2 className="theme-text-accent font-bold uppercase tracking-wide text-center mb-1">Ledger</h2>
+              <div className="flex justify-between theme-text-muted"><span>Outfit Cost</span><span className="text-red-400">-${cost.toLocaleString()}</span></div>
+              <div className="flex justify-between theme-text-muted">
                 <span className="capitalize">{data.resourceLabels[primaryKey] ?? primaryKey} (Start)</span>
-                <span className="text-stone-200">{primaryStart}</span>
+                <span className="theme-text">{primaryStart}</span>
               </div>
-              <div className="flex justify-between text-stone-400">
+              <div className="flex justify-between theme-text-muted">
                 <span className="capitalize">{data.resourceLabels[primaryKey] ?? primaryKey} (End)</span>
-                <span className="text-stone-200">{primaryVal}</span>
+                <span className="theme-text">{primaryVal}</span>
               </div>
               {state.survived && (
-                <div className="flex justify-between text-stone-400">
+                <div className="flex justify-between theme-text-muted">
                   <span>Value (${data.revenuePerUnit}/unit)</span>
                   <span className="text-emerald-400">+${revenue.toLocaleString()}</span>
                 </div>
               )}
-              <div className="border-t border-stone-600 mt-1 pt-1 flex justify-between font-bold">
-                <span className="text-stone-200">Net</span>
+              <div className="border-t theme-divider mt-1 pt-1 flex justify-between font-bold">
+                <span className="theme-text">Net</span>
                 <span className={profit >= 0 ? "text-emerald-400" : "text-red-500"}>{profit >= 0 ? "+" : ""}${profit.toLocaleString()}</span>
               </div>
             </div>
           )}
 
-          <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1 text-xs">
-            <h2 className="text-amber-300 font-bold uppercase tracking-wide text-center mb-1">Historical Knowledge</h2>
+          <div className="theme-bg-card theme-border border rounded p-3 space-y-1 text-xs">
+            <h2 className="theme-text-accent font-bold uppercase tracking-wide text-center mb-1">Historical Knowledge</h2>
             <div className="flex justify-between font-bold">
-              <span className="text-stone-200">Wisdom Earned</span>
-              <span className="text-amber-400">{state.historicalKnowledge} points</span>
+              <span className="theme-text">Wisdom Earned</span>
+              <span className="theme-text-accent">{state.historicalKnowledge} points</span>
             </div>
-            <div className="w-full bg-stone-700 rounded-full h-2 mt-1">
+            <div className="w-full theme-bg-track rounded-full h-2 mt-1">
               <div className="bg-amber-500 h-2 rounded-full transition-all" style={{ width: `${Math.min(state.historicalKnowledge / 30 * 100, 100)}%` }} />
             </div>
             {state.knowledgeLog.length > 0 && (
               <div className="mt-2 space-y-0.5">
                 {state.knowledgeLog.map((log, i) => (
-                  <p key={i} className="text-stone-500 text-xs">{log}</p>
+                  <p key={i} className="theme-text-muted text-xs">{log}</p>
                 ))}
               </div>
             )}
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1">
-              <h2 className="text-amber-300 font-bold text-xs uppercase tracking-wide text-center">Expedition Stats</h2>
+            <div className="theme-bg-card theme-border border rounded p-3 space-y-1">
+              <h2 className="theme-text-accent font-bold text-xs uppercase tracking-wide text-center">Expedition Stats</h2>
               {([
                 ["Days", `${state.day}`],
                 [
@@ -959,15 +911,15 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                 ],
                 ...Object.entries(r).slice(0, 4).map(([k, v]) => [data.resourceLabels[k] ?? k, `${Math.round(v)}`]),
               ] as [string, string][]).filter(([l]) => !(isDefense && l === "Distance")).map(([l, v]) => (
-                <div key={l} className="flex justify-between text-stone-400 text-xs">
+                <div key={l} className="flex justify-between theme-text-muted text-xs">
                   <span className="capitalize">{l}</span>
-                  <span className="text-stone-200">{v}</span>
+                  <span className="theme-text">{v}</span>
                 </div>
               ))}
             </div>
-            <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1">
-              <h2 className="text-blue-300 font-bold text-xs uppercase tracking-wide text-center">Achievements</h2>
-              <ul className="text-stone-500 text-[10px] leading-relaxed list-disc list-inside">
+            <div className="theme-bg-card theme-border border rounded p-3 space-y-1">
+              <h2 className="theme-text-accent-2 font-bold text-xs uppercase tracking-wide text-center">Achievements</h2>
+              <ul className="theme-text-muted text-[10px] leading-relaxed list-disc list-inside">
                 {getAchievements(state, data).map((a, i) => (
                   <li key={i}>{a}</li>
                 ))}
@@ -976,29 +928,29 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
           </div>
 
           <div className="text-center">
-            <span className="text-stone-500 text-xs">EXPEDITION RATING: </span>
+            <span className="theme-text-muted text-xs">EXPEDITION RATING: </span>
             <span className={`text-4xl font-bold ${GC[grade]}`}>{grade}</span>
           </div>
 
-          <div className="bg-stone-800 border border-stone-700 rounded p-3">
-            <p className="text-xs text-stone-500 leading-relaxed">{data.historicalContext}</p>
+          <div className="theme-bg-card theme-border border rounded p-3">
+            <p className="text-xs theme-text-muted leading-relaxed">{data.historicalContext}</p>
           </div>
 
           {state.decisions.length > 0 && (
-            <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1">
-              <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wide">Decision Log</h3>
+            <div className="theme-bg-card theme-border border rounded p-3 space-y-1">
+              <h3 className="text-xs font-bold theme-text-muted uppercase tracking-wide">Decision Log</h3>
               {state.decisions.map((d, i) => (
-                <p key={i} className="text-xs text-stone-500">
-                  <span className="text-stone-600">Day {d.day}:</span>{" "}
-                  <span className="text-stone-400">{d.event}</span> — {d.choice}
+                <p key={i} className="text-xs theme-text-muted">
+                  <span className="opacity-70">Day {d.day}:</span>{" "}
+                  <span className="theme-text">{d.event}</span> — {d.choice}
                 </p>
               ))}
             </div>
           )}
 
           <div className="text-center pb-4 space-y-2">
-            <button onClick={() => { setState(makeInit()); setUsedEvents(new Set()); }} className="px-5 py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded transition-colors">Run It Again</button>
-            <br /><button onClick={backToMenu} className="text-xs text-stone-500 hover:text-stone-300 transition-colors">&larr; Back to Campaigns</button>
+            <button onClick={() => { setState(makeInit()); setUsedEvents(new Set()); }} className="px-5 py-2 theme-btn-action font-bold rounded transition-colors">Run It Again</button>
+            <br /><button onClick={backToMenu} className="text-xs theme-text-muted opacity-70 hover:opacity-100 transition-opacity">&larr; Back to Campaigns</button>
           </div>
         </div>
       </div>
@@ -1007,7 +959,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
 
   // ── Main game view ──
   return (
-    <div className={`west-app h-screen ${themeConfig.container} flex overflow-hidden ${shakeClass}`} style={{ fontFamily: "'Georgia', serif" }}>
+    <div data-theme={theme} className={`west-app h-screen ${themeConfig.container} flex overflow-hidden theme-body-font ${shakeClass}`}>
       <StreakFlash streak={state.triviaStreak} />
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 pointer-events-none z-50">
         <FloatingNumbers floats={floats} />
@@ -1058,7 +1010,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                 </div>
                 <div className="flex items-center gap-2">
                   <ResourceIcon label="knowledge" className={`w-3 h-3 ${themeConfig.subtext}`} />
-                  <div className={`w-24 ${theme === 'default' ? "bg-stone-700" : "bg-stone-400"} rounded-full h-1.5`}>
+                  <div className="w-24 theme-bg-track rounded-full h-1.5">
                     <div className="bg-amber-500 h-1.5 rounded-full transition-all" style={{ width: `${Math.min(state.historicalKnowledge / 30 * 100, 100)}%` }} />
                   </div>
                   <span className={`${themeConfig.subtext} text-[10px]`}>{state.historicalKnowledge}</span>
@@ -1069,9 +1021,9 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                   <Map className="w-3 h-3" />
                   <span>Day {state.day} &middot; {Math.round(state.distance)} {data.distanceUnit}</span>
                 </div>
-                <button 
+                <button
                   onClick={() => setState(s => ({ ...s, inventoryOpen: !s.inventoryOpen }))}
-                  className={`flex items-center gap-1 px-2 py-0.5 ${theme === 'default' ? 'bg-stone-700 hover:bg-stone-600' : 'bg-stone-300 hover:bg-stone-400'} rounded text-[10px] font-bold ${theme === 'default' ? 'text-stone-300' : 'text-stone-800'} transition-colors`}
+                  className="flex items-center gap-1 px-2 py-0.5 theme-bg-card-inner theme-border border rounded text-[10px] font-bold theme-text transition-colors hover:opacity-90"
                 >
                   <Backpack className="w-3 h-3" />
                   Inventory
@@ -1157,7 +1109,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                         : themeConfig.button
                       }`}
                     >
-                      {p.label}<br /><span className={`font-normal ${theme === 'default' ? 'text-stone-400' : 'text-stone-100'} opacity-70`}>{p.desc}</span>
+                      {p.label}<br /><span className="font-normal opacity-70">{p.desc}</span>
                     </button>
                   ))}
                 </div>
@@ -1182,6 +1134,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                   showRiskHints={state.riskHintsOn}
                   riskHints={riskHints}
                   backdropImage={data.backdropImage}
+                  showCharacterOverlay={false}
                 />
               )
             )}

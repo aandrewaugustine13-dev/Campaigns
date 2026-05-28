@@ -47,34 +47,17 @@ export default function DoomHUD({ members, theme = 'default', campaignId = 'defa
     }
   }, [members, damageTriggers]);
 
+  // Theming via CSS variables: DoomHUD inherits data-theme from its ancestor
+  // wrapper (GeneratedCampaign main view sets it; Chisholm App.tsx does not,
+  // so :root defaults apply — keeping Chisholm's existing dark-leather look
+  // unchanged). The theme prop is retained for API compatibility but unused.
+  void theme;
   const themeClasses = {
-    default: {
-      container: "bg-[#261b15] border-[#574230]",
-      title: "text-[#c9b89f]",
-      card: "bg-[#1b130f] border-[#5a4434]",
-      name: "text-stone-200",
-      barBg: "bg-[#3a281f] border-[#5a4432]"
-    },
-    frontier: {
-      container: "bg-[#d9c5a3] border-[#b08d57]",
-      title: "text-[#5d4a26]",
-      card: "bg-[#e6d5b8] border-[#b08d57]",
-      name: "text-stone-800",
-      barBg: "bg-[#cdaa7d] border-[#b08d57]"
-    },
-    parchment: {
-      container: "bg-[#f5ead2] border-stone-900",
-      title: "text-stone-900",
-      card: "bg-white/40 border-stone-900",
-      name: "text-stone-900",
-      barBg: "bg-stone-200 border-stone-900"
-    }
-  }[theme as 'frontier' | 'parchment' | 'default'] || {
-    container: "bg-[#261b15] border-[#574230]",
-    title: "text-[#c9b89f]",
-    card: "bg-[#1b130f] border-[#5a4434]",
-    name: "text-stone-200",
-    barBg: "bg-[#3a281f] border-[#5a4432]"
+    container: "theme-bg-card theme-border",
+    title: "theme-text-accent",
+    card: "theme-bg-card-inner theme-border",
+    name: "theme-text",
+    barBg: "theme-bg-track theme-divider",
   };
 
   return (
