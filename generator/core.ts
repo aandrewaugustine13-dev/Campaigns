@@ -135,7 +135,10 @@ export async function generateCampaign(
   const data = JSON.parse(cleaned);
   data.isPublished = false;
 
-  await enrichSagePortraits(data);
+  await enrichSagePortraits(data, {
+    topic: inputs.topic,
+    title: typeof data.title === "string" ? data.title : "",
+  });
 
   const validation = validate(data);
 

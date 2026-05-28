@@ -3,10 +3,10 @@ import type { SageEncounterData } from "./campaigns/types";
 
 // ═══════════════════════════════════════════════════════════════
 // SAGE ENCOUNTER — full encounter flow
-// Phase 1: Greeting + Bio → Phase 2: Advice → Phase 3: Question → Phase 4: Result
+// Phase 1: Intro (greeting + advice) → Phase 2: Question → Phase 3: Result
 // ═══════════════════════════════════════════════════════════════
 
-type SagePhase = "greeting" | "advice" | "question" | "result";
+type SagePhase = "intro" | "question" | "result";
 
 interface Props {
   sage: SageEncounterData;
@@ -14,7 +14,7 @@ interface Props {
 }
 
 export default function SageEncounter({ sage, onComplete }: Props) {
-  const [phase, setPhase] = useState<SagePhase>("greeting");
+  const [phase, setPhase] = useState<SagePhase>("intro");
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [wasCorrect, setWasCorrect] = useState(false);
 
@@ -94,27 +94,14 @@ export default function SageEncounter({ sage, onComplete }: Props) {
         </div>
       </div>
 
-      {/* ── Phase: Greeting ─────────────────────────────── */}
-      {phase === "greeting" && (
+      {/* ── Phase: Intro — greeting + advice in one panel ── */}
+      {phase === "intro" && (
         <div className="space-y-3">
           <div className="border border-stone-700 rounded-lg p-3 bg-stone-800/80">
             <p className="text-stone-300 text-sm leading-relaxed italic">
               {sage.greeting}
             </p>
           </div>
-          <button
-            onClick={() => setPhase("advice")}
-            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
-            style={{ fontFamily: "'Georgia', serif" }}
-          >
-            Listen
-          </button>
-        </div>
-      )}
-
-      {/* ── Phase: Advice ───────────────────────────────── */}
-      {phase === "advice" && (
-        <div className="space-y-3">
           <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/30">
             <p className="text-amber-200 text-sm leading-relaxed">
               {sage.advice}
