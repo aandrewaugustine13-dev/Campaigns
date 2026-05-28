@@ -1,0 +1,326 @@
+/* ═══════════════════════════════════════════════════════════════
+   Campaign theme system — Phase 2
+   ───────────────────────────────────────────────────────────────
+   Each generated campaign sets data-theme="<name>" on its root
+   wrapper. Components consume colors and fonts via the CSS
+   variables below and the semantic helper classes at the bottom
+   of this file. Body font is fixed across themes for reading-
+   level accessibility; display font and palette change.
+
+   :root defines fallback values that match the legacy hardcoded
+   look in VisualNovelEngine / GeneratedCampaign so any component
+   rendered OUTSIDE a data-theme wrapper (Chisholm, Crusades,
+   Silk Road, the campaign menu) stays visually identical.
+
+   Trust-signal colors (success/error/warn) are intentionally NOT
+   per-theme. "Correct" greens and "Failure" reds must read the
+   same in every theme.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root,
+[data-theme="default"] {
+  /* Surfaces */
+  --bg-page: #1c130f;
+  --bg-card: #2b1f18;
+  --bg-card-inner: rgba(26, 19, 15, 0.55);
+
+  /* Action affordances */
+  --bg-button-action: #8f5323;
+  --bg-button-action-hover: #a2602b;
+  --text-button-action: #fff7e6;
+
+  /* Text */
+  --text-primary: #f2e6d0;
+  --text-muted: #b7a58f;
+  --text-accent: #e8c377;
+  --text-accent-2: #8fcf9c;
+
+  /* Structure */
+  --border-card: #5b4534;
+  --border-divider: #3a2a20;
+
+  /* HUD bar tracks (neutral mid that reads against the page bg) */
+  --bar-track: #3a281f;
+
+  /* Typography */
+  --font-display: Georgia, "Times New Roman", serif;
+  --font-body: Georgia, "Times New Roman", serif;
+
+  /* Parallax fallback (shown only when no event/backdrop image exists) */
+  --parallax-fallback:
+    radial-gradient(circle at top, #2b1f19 0%, #16100d 65%);
+
+  /* Dialogue panel (VisualNovelEngine) — defaults match the
+     existing Chisholm parchment-speech-on-dark-frame look. */
+  --dialogue-frame: #1a0f0a;
+  --dialogue-bg: #e6c280;
+  --dialogue-border: #8b5a2b;
+  --dialogue-text: #5c3a21;
+  --dialogue-text-muted: #6e4b2c;
+  --dialogue-accent-bg: #d4a86a;
+  --dialogue-accent-bg-hover: #ffdf99;
+  --dialogue-accent-border: #b88645;
+  --dialogue-accent-text: #4a2e1b;
+  --dialogue-attribution-text: #a98760;
+  --dialogue-attribution-link-hover: #e6c280;
+}
+
+[data-theme="frontier-leather"] {
+  --bg-page: #e6d5b8;
+  --bg-card: #d9c5a3;
+  --bg-card-inner: rgba(230, 213, 184, 0.45);
+  --bg-button-action: #8c6d31;
+  --bg-button-action-hover: #6d5325;
+  --text-button-action: #fdf6e3;
+  --text-primary: #3a2814;
+  --text-muted: #5d4a26;
+  --text-accent: #8c6d31;
+  --text-accent-2: #2f5a2f;
+  --border-card: #b08d57;
+  --border-divider: #c9b27a;
+  --bar-track: #c4a373;
+  --font-display: "Rye", Georgia, serif;
+  --font-body: Georgia, "Times New Roman", serif;
+  --parallax-fallback:
+    linear-gradient(180deg, #d9b97a 0%, #c69b53 55%, #8c6d31 100%);
+  --dialogue-frame: #5d3b1a;
+  --dialogue-bg: #f0d8a0;
+  --dialogue-border: #8c6d31;
+  --dialogue-text: #3a2814;
+  --dialogue-text-muted: #6d4a22;
+  --dialogue-accent-bg: #d8b66a;
+  --dialogue-accent-bg-hover: #f0d090;
+  --dialogue-accent-border: #8c6d31;
+  --dialogue-accent-text: #3a2814;
+  --dialogue-attribution-text: #c9a85a;
+  --dialogue-attribution-link-hover: #fff0c0;
+}
+
+[data-theme="broadsheet-sepia"] {
+  --bg-page: #f4ead0;
+  --bg-card: #ece1c1;
+  --bg-card-inner: rgba(250, 243, 220, 0.85);
+  --bg-button-action: #1c130a;
+  --bg-button-action-hover: #3a2814;
+  --text-button-action: #f4ead0;
+  --text-primary: #2e1f0a;
+  --text-muted: #5d4628;
+  --text-accent: #7a3517;
+  --text-accent-2: #2f5a3a;
+  --border-card: #b08d57;
+  --border-divider: #c9b386;
+  --bar-track: #d4be8a;
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-body: Georgia, "Times New Roman", serif;
+  --parallax-fallback:
+    radial-gradient(rgba(46, 31, 10, 0.08) 1px, transparent 1.5px) 0 0 / 8px 8px,
+    linear-gradient(180deg, #ede0b8 0%, #f4ead0 50%, #ddc998 100%);
+  --dialogue-frame: #2e1f0a;
+  --dialogue-bg: #faf3dc;
+  --dialogue-border: #7a3517;
+  --dialogue-text: #2e1f0a;
+  --dialogue-text-muted: #5d4628;
+  --dialogue-accent-bg: #ece1c1;
+  --dialogue-accent-bg-hover: #f7eccb;
+  --dialogue-accent-border: #7a3517;
+  --dialogue-accent-text: #2e1f0a;
+  --dialogue-attribution-text: #b08d57;
+  --dialogue-attribution-link-hover: #faf3dc;
+}
+
+[data-theme="parchment-medieval"] {
+  --bg-page: #f0e3c2;
+  --bg-card: #e2d4a8;
+  --bg-card-inner: rgba(247, 236, 200, 0.85);
+  --bg-button-action: #5e1a1a;
+  --bg-button-action-hover: #7a2424;
+  --text-button-action: #f0e3c2;
+  --text-primary: #2a1f10;
+  --text-muted: #6b502d;
+  --text-accent: #a32a1f;
+  --text-accent-2: #2f5a3a;
+  --border-card: #a88848;
+  --border-divider: #c4a76b;
+  --bar-track: #c9b07a;
+  --font-display: "Cinzel", "Trajan Pro", Georgia, serif;
+  --font-body: Georgia, "Times New Roman", serif;
+  --parallax-fallback:
+    radial-gradient(ellipse at center, transparent 60%, rgba(60, 40, 15, 0.25) 100%),
+    linear-gradient(180deg, #e9d9a8 0%, #f0e3c2 50%, #d4c08c 100%);
+  --dialogue-frame: #2a1f10;
+  --dialogue-bg: #f7ecc8;
+  --dialogue-border: #a88848;
+  --dialogue-text: #2a1f10;
+  --dialogue-text-muted: #6b502d;
+  --dialogue-accent-bg: #e2d4a8;
+  --dialogue-accent-bg-hover: #f0e0b4;
+  --dialogue-accent-border: #a32a1f;
+  --dialogue-accent-text: #2a1f10;
+  --dialogue-attribution-text: #a88848;
+  --dialogue-attribution-link-hover: #f7ecc8;
+}
+
+[data-theme="expedition-journal"] {
+  --bg-page: #e8dcc0;
+  --bg-card: #d8c89e;
+  --bg-card-inner: rgba(244, 235, 207, 0.85);
+  --bg-button-action: #1f3a2e;
+  --bg-button-action-hover: #2d5444;
+  --text-button-action: #e8dcc0;
+  --text-primary: #2b2010;
+  --text-muted: #5a4a2c;
+  --text-accent: #1f3a2e;
+  --text-accent-2: #6b3a1a;
+  --border-card: #8a6e3c;
+  --border-divider: #b39866;
+  --bar-track: #c2a878;
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-body: Georgia, "Times New Roman", serif;
+  --parallax-fallback:
+    linear-gradient(180deg, #c8d9b8 0%, #d8c89e 60%, #a88c5a 100%);
+  --dialogue-frame: #2b2010;
+  --dialogue-bg: #f4ebcf;
+  --dialogue-border: #8a6e3c;
+  --dialogue-text: #2b2010;
+  --dialogue-text-muted: #5a4a2c;
+  --dialogue-accent-bg: #d8c89e;
+  --dialogue-accent-bg-hover: #ead8a8;
+  --dialogue-accent-border: #1f3a2e;
+  --dialogue-accent-text: #1f3a2e;
+  --dialogue-attribution-text: #8a6e3c;
+  --dialogue-attribution-link-hover: #f4ebcf;
+}
+
+[data-theme="declassified-typewriter"] {
+  --bg-page: #d8caa6;
+  --bg-card: #c2b486;
+  --bg-card-inner: rgba(232, 220, 184, 0.9);
+  --bg-button-action: #1f1f1f;
+  --bg-button-action-hover: #3a3a3a;
+  --text-button-action: #f0e6c4;
+  --text-primary: #1f1a10;
+  --text-muted: #4a3f28;
+  --text-accent: #a31818;
+  --text-accent-2: #1f3a5a;
+  --border-card: #6b5a36;
+  --border-divider: #8c7a4a;
+  --bar-track: #a89868;
+  --font-display: "Special Elite", "Courier Prime", "Courier New", monospace;
+  --font-body: Georgia, "Times New Roman", serif;
+  --parallax-fallback:
+    repeating-linear-gradient(
+      0deg,
+      rgba(31, 26, 16, 0.03) 0px,
+      rgba(31, 26, 16, 0.03) 2px,
+      transparent 2px,
+      transparent 4px
+    ),
+    linear-gradient(180deg, #d8caa6 0%, #c2b486 100%);
+  --dialogue-frame: #1f1a10;
+  --dialogue-bg: #e8dcb4;
+  --dialogue-border: #6b5a36;
+  --dialogue-text: #1f1a10;
+  --dialogue-text-muted: #4a3f28;
+  --dialogue-accent-bg: #c2b486;
+  --dialogue-accent-bg-hover: #d6c89a;
+  --dialogue-accent-border: #a31818;
+  --dialogue-accent-text: #1f1a10;
+  --dialogue-attribution-text: #6b5a36;
+  --dialogue-attribution-link-hover: #e8dcb4;
+}
+
+[data-theme="classical-marble"] {
+  --bg-page: #efe8d8;
+  --bg-card: #e0d6bd;
+  --bg-card-inner: rgba(248, 243, 230, 0.9);
+  --bg-button-action: #6b1818;
+  --bg-button-action-hover: #8a2a2a;
+  --text-button-action: #f8f3e6;
+  --text-primary: #1f1810;
+  --text-muted: #5a4c30;
+  --text-accent: #8a6a1c;
+  --text-accent-2: #2f5a3a;
+  --border-card: #b59a5a;
+  --border-divider: #d4bf86;
+  --bar-track: #d8c498;
+  --font-display: "Cinzel", "Trajan Pro", Georgia, serif;
+  --font-body: Georgia, "Times New Roman", serif;
+  --parallax-fallback:
+    linear-gradient(180deg, #f5efde 0%, #e0d6bd 60%, #b59a5a 100%);
+  --dialogue-frame: #1f1810;
+  --dialogue-bg: #f8f3e6;
+  --dialogue-border: #b59a5a;
+  --dialogue-text: #1f1810;
+  --dialogue-text-muted: #5a4c30;
+  --dialogue-accent-bg: #e0d6bd;
+  --dialogue-accent-bg-hover: #f0e6c8;
+  --dialogue-accent-border: #8a6a1c;
+  --dialogue-accent-text: #1f1810;
+  --dialogue-attribution-text: #b59a5a;
+  --dialogue-attribution-link-hover: #f8f3e6;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   Semantic helper classes
+   These read the theme variables and are used by components.
+   Layout/spacing/typography sizes stay as Tailwind utilities.
+   Only color/background/border/font-family come from here.
+   !important is used to override Tailwind's default border/text
+   color utilities when mixed (e.g. `border theme-border`).
+   ─────────────────────────────────────────────────────────────── */
+
+.theme-bg-page         { background-color: var(--bg-page) !important; }
+.theme-bg-card         { background-color: var(--bg-card) !important; }
+.theme-bg-card-inner   { background-color: var(--bg-card-inner) !important; }
+.theme-bg-track        { background-color: var(--bar-track) !important; }
+
+.theme-text            { color: var(--text-primary) !important; }
+.theme-text-muted      { color: var(--text-muted) !important; }
+.theme-text-accent     { color: var(--text-accent) !important; }
+.theme-text-accent-2   { color: var(--text-accent-2) !important; }
+
+.theme-border          { border-color: var(--border-card) !important; }
+.theme-divider         { border-color: var(--border-divider) !important; }
+
+.theme-btn-action {
+  background-color: var(--bg-button-action) !important;
+  color: var(--text-button-action) !important;
+  transition: background-color 0.15s ease;
+}
+.theme-btn-action:hover {
+  background-color: var(--bg-button-action-hover) !important;
+}
+
+.theme-display-font { font-family: var(--font-display); }
+.theme-body-font    { font-family: var(--font-body); }
+
+/* Parallax fallback — the panel shown when no Commons image
+   and no Chisholm character overlay (i.e. generated campaigns
+   in degraded-image mode). */
+.theme-parallax {
+  background: var(--parallax-fallback);
+}
+
+/* Dialogue panel (VisualNovelEngine) */
+.theme-dialogue-frame       { background-color: var(--dialogue-frame) !important; }
+.theme-dialogue-frame-border { border-color: var(--dialogue-frame) !important; }
+.theme-dialogue-bg          { background-color: var(--dialogue-bg) !important; }
+.theme-dialogue-border      { border-color: var(--dialogue-border) !important; }
+.theme-dialogue-text        { color: var(--dialogue-text) !important; }
+.theme-dialogue-text-muted  { color: var(--dialogue-text-muted) !important; }
+
+.theme-dialogue-accent      {
+  background-color: var(--dialogue-accent-bg) !important;
+  border-color: var(--dialogue-accent-border) !important;
+  color: var(--dialogue-accent-text) !important;
+  transition: background-color 0.15s ease;
+}
+.theme-dialogue-accent:hover {
+  background-color: var(--dialogue-accent-bg-hover) !important;
+}
+
+.theme-dialogue-attribution { color: var(--dialogue-attribution-text) !important; }
+.theme-dialogue-attribution a:hover,
+a.theme-dialogue-attribution-link:hover {
+  color: var(--dialogue-attribution-link-hover) !important;
+}
