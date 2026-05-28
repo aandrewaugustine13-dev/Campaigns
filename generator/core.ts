@@ -3,7 +3,7 @@ import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { validate, type ValidationReport } from "./validate.js";
-import { enrichSagePortraits } from "./wikimedia.js";
+import { enrichSagePortraits, enrichEventImages } from "./wikimedia.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -79,6 +79,8 @@ STRUCTURAL RULES:
 - pixelColors maps color-name strings to hex color codes (e.g. "skin": "#D4A574"). pixelFaces maps role ids to arrays of FaceLevel objects (threshold-based sprite swaps for the HUD). For a generated campaign, provide reasonable placeholder data.
 - theme should be set based on the requested art style (e.g., "frontier", "parchment", or "default").
 - outfitConfig.costs keys should match the equipment/supplies a player can buy for THIS journey — not generic Oregon Trail items. Think about what THIS expedition actually needed to prepare.
+- imageStyleKeyword: ONE word matching the dominant visual medium of the topic's era. Examples: "lithograph" (most 19th-century US topics), "engraving" (older prints, 17th-18th century), "painting" (any era with portraitable subjects), "illumination" (medieval manuscripts), "photograph" (late 19th century onward), "daguerreotype" (1840s-1860s), "woodcut" (Renaissance, early printing). This is a one-token ranking booster for Wikimedia Commons file search — keep it strictly to ONE word.
+- Each event MUST include an imageSearchQuery: short Wikimedia Commons file-search query for this event's visual. 2-4 words. MUST include at least one named entity (specific person, place, or event name). Optionally include a year (e.g. "1825", "1836") or a one-word art-style noun (e.g. "lithograph", "engraving", "painting"). Do NOT write descriptive sentences. Do NOT use verbs like "writing", "pouring", "fighting", "celebrating". Examples of GOOD queries: "Erie Canal 1825", "Alamo Travis", "Lewis Clark expedition", "Erie Canal lithograph", "Erie Canal aqueduct". Examples of BAD queries: "Travis writing letter Alamo defenders" (too descriptive, matches book titles), "De Witt Clinton pouring water Buffalo 1825" (verbs match descriptions of PDFs not images), "canal celebration scene" (no named entity).
 
 OUTPUT FORMAT:
 Output ONLY a single JSON object conforming to the CampaignData schema. No markdown, no code fences, no explanation. Just the JSON.`;
@@ -135,10 +137,12 @@ export async function generateCampaign(
   const data = JSON.parse(cleaned);
   data.isPublished = false;
 
-  await enrichSagePortraits(data, {
+  const imageryCtx = {
     topic: inputs.topic,
     title: typeof data.title === "string" ? data.title : "",
-  });
+  };
+  await enrichSagePortraits(data, imageryCtx);
+  await enrichEventImages(data, imageryCtx);
 
   const validation = validate(data);
 

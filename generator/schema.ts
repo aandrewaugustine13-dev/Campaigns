@@ -65,6 +65,8 @@ export interface GameEvent {
   sageAdvice?: SageAdvice[];
   riskProfile?: ("LOW" | "MED" | "HIGH")[];
   triviaGate?: boolean;
+  imageSearchQuery?: string;
+  image?: CommonsImage;
 }
 
 // ── Sages ───────────────────────────────────────────────────────
@@ -81,6 +83,19 @@ export interface PortraitAttribution {
   artist: string;
   license: string;
   sourceUrl: string;
+}
+
+// Event imagery and campaign backdrop. Looser license pool than portraits
+// (PD + CC0 + CC-BY + CC-BY-SA) — variety matters more than canonicity here.
+// TODO: CC-BY-SA "share-alike" obligations may become relevant if the
+// teacher-editing workflow later lets users modify and export these images.
+// For now, in-platform display with attribution satisfies the license.
+export interface CommonsImage {
+  thumbUrl: string;
+  artist: string;
+  license: string;
+  sourceUrl: string;
+  searchQuery: string;
 }
 
 export interface SageEncounterData {
@@ -207,4 +222,8 @@ export interface CampaignData {
   // Pixel face system
   pixelColors: Record<string, string>;
   pixelFaces: Record<string, FaceLevel[]>;
+
+  // Imagery (post-generation Commons enrichment)
+  imageStyleKeyword?: string;
+  backdropImage?: CommonsImage;
 }

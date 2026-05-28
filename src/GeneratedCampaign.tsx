@@ -303,6 +303,8 @@ interface GameEvent {
   sageAdvice?: { name: string; role: string; line: string }[];
   riskProfile?: ("LOW" | "MED" | "HIGH")[];
   triviaGate?: boolean;
+  imageSearchQuery?: string;
+  image?: { thumbUrl: string; artist: string; license: string; sourceUrl: string; searchQuery: string };
 }
 interface Decision { event: string; choice: string; day: number }
 
@@ -838,6 +840,29 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   if (state.phase === "intro") return (
     <div className={`h-screen ${themeConfig.container} flex flex-col items-center justify-center`} style={{ fontFamily: "'Georgia', serif" }}>
       <div className="max-w-md text-center space-y-4 p-4">
+        {data.backdropImage && (
+          <div className="space-y-1">
+            <div
+              className="w-full h-40 rounded overflow-hidden border border-stone-700"
+              style={{
+                backgroundImage: `url("${data.backdropImage.thumbUrl}")`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+            />
+            <p className="text-stone-500 leading-tight text-left" style={{ fontSize: "11px" }}>
+              {data.backdropImage.artist} · {data.backdropImage.license} ·{" "}
+              <a
+                href={data.backdropImage.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-stone-300"
+              >
+                Source
+              </a>
+            </p>
+          </div>
+        )}
         <h1 className={`text-3xl font-bold ${themeConfig.accent}`}>{data.title}</h1>
         <p className={themeConfig.subtext}>{data.subtitle}</p>
         <p className={`${themeConfig.subtext} text-sm`}>{data.introBody}</p>
@@ -1145,7 +1170,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
 
             {state.phase === "event" && state.currentEvent && (
               state.currentEvent.type === "push_luck" ? (
-                <PushYourLuckEngine event={state.currentEvent} onUpdate={handlePushUpdate} onLeave={handlePushLeave} />
+                <PushYourLuckEngine event={state.currentEvent} onUpdate={handlePushUpdate} onLeave={handlePushLeave} backdropImage={data.backdropImage} />
               ) : (
                 <VisualNovelEngine
                   currentEvent={state.currentEvent}
@@ -1156,6 +1181,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                   onSpendInsightForHints={spendInsightForHints}
                   showRiskHints={state.riskHintsOn}
                   riskHints={riskHints}
+                  backdropImage={data.backdropImage}
                 />
               )
             )}

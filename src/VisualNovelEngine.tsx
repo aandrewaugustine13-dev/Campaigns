@@ -7,6 +7,13 @@ interface SageAdvice {
   line: string;
 }
 
+interface CommonsImage {
+  thumbUrl: string;
+  artist: string;
+  license: string;
+  sourceUrl: string;
+}
+
 interface VisualNovelProps {
   currentEvent: any;
   handleChoice: (index: number) => void;
@@ -16,9 +23,10 @@ interface VisualNovelProps {
   onSpendInsightForHints?: () => void;
   showRiskHints?: boolean;
   riskHints?: string[];
+  backdropImage?: CommonsImage;
 }
 
-export default function VisualNovelEngine({ currentEvent, handleChoice, bossHealth, scoutHealth, insight = 0, onSpendInsightForHints, showRiskHints = false, riskHints = [] }: VisualNovelProps) {
+export default function VisualNovelEngine({ currentEvent, handleChoice, bossHealth, scoutHealth, insight = 0, onSpendInsightForHints, showRiskHints = false, riskHints = [], backdropImage }: VisualNovelProps) {
   if (!currentEvent) return null;
 
   const [showSages, setShowSages] = useState(false);
@@ -40,33 +48,49 @@ export default function VisualNovelEngine({ currentEvent, handleChoice, bossHeal
     return sages.slice(0, 2);
   }, [currentEvent]);
 
+  // Image priority: event-specific → campaign backdrop → pixel-art parallax.
+  const sceneImage: CommonsImage | undefined = currentEvent.image ?? backdropImage;
+
   return (
     <div className="border-4 border-[#1a0f0a]">
-      {/* Scene — parallax layers + portraits */}
+      {/* Scene — historical image OR pixel-art parallax + portraits */}
       <div className="relative w-full overflow-hidden" style={{ height: 200 }}>
-        {/* Layer 1: Static sky */}
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `url(/faces/bg_sky.png)`,
-            backgroundSize: "cover",
-            backgroundPosition: "center bottom",
-            imageRendering: "pixelated",
-          }}
-        />
-        {/* Layer 2: Scrolling cattle strip */}
-        <div
-          className="absolute bottom-0 left-0 right-0"
-          style={{
-            height: 65,
-            backgroundImage: `url(/faces/fg_cattle.png)`,
-            backgroundSize: "auto 100%",
-            backgroundRepeat: "repeat-x",
-            backgroundPosition: "bottom",
-            animation: "bgScroll 25s linear infinite, cattleBob 0.6s ease-in-out infinite",
-            imageRendering: "pixelated",
-          }}
-        />
+        {sceneImage ? (
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url("${sceneImage.thumbUrl}")`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+        ) : (
+          <>
+            {/* Layer 1: Static sky */}
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage: `url(/faces/bg_sky.png)`,
+                backgroundSize: "cover",
+                backgroundPosition: "center bottom",
+                imageRendering: "pixelated",
+              }}
+            />
+            {/* Layer 2: Scrolling cattle strip */}
+            <div
+              className="absolute bottom-0 left-0 right-0"
+              style={{
+                height: 65,
+                backgroundImage: `url(/faces/fg_cattle.png)`,
+                backgroundSize: "auto 100%",
+                backgroundRepeat: "repeat-x",
+                backgroundPosition: "bottom",
+                animation: "bgScroll 25s linear infinite, cattleBob 0.6s ease-in-out infinite",
+                imageRendering: "pixelated",
+              }}
+            />
+          </>
+        )}
         {/* Vignette */}
         <div className="absolute inset-0" style={{
           background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.5) 100%)",
@@ -102,6 +126,21 @@ export default function VisualNovelEngine({ currentEvent, handleChoice, bossHeal
           </div>
         </div>
       </div>
+
+      {/* Attribution — shown only when a Commons image is displayed */}
+      {sceneImage && (
+        <div className="bg-[#1a0f0a] px-2 pt-1 text-[#a98760] leading-tight" style={{ fontSize: "11px" }}>
+          {sceneImage.artist} · {sceneImage.license} ·{" "}
+          <a
+            href={sceneImage.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-[#e6c280]"
+          >
+            Source
+          </a>
+        </div>
+      )}
 
       {/* Dialogue box — below the scene */}
       <div className="bg-[#1a0f0a] p-2">

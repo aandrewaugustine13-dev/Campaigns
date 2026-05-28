@@ -11,19 +11,34 @@ interface PushAttempt {
   penalties: Resources;
 }
 
+interface CommonsImage {
+  thumbUrl: string;
+  artist: string;
+  license: string;
+  sourceUrl: string;
+}
+
 interface PushYourLuckEngineProps {
   event: {
     title: string;
     text: string;
     attempts?: PushAttempt[];
     leaveText?: string;
-    image?: string; // 🔴 NEW: Added image support
+    // Two image shapes coexist: legacy string path (Silk Road's hand-coded
+    // pixel art under /campaigns/silkroad/) and CommonsImage (generator-
+    // produced via wikimedia.ts enrichEventImages). Discriminated at render.
+    image?: string | CommonsImage;
   };
   onUpdate: (effects: Resources) => void;
   onLeave: (finalLog: string[]) => void;
+  backdropImage?: CommonsImage;
 }
 
-export default function PushYourLuckEngine({ event, onUpdate, onLeave }: PushYourLuckEngineProps) {
+function isCommonsImage(v: unknown): v is CommonsImage {
+  return typeof v === "object" && v !== null && typeof (v as any).thumbUrl === "string";
+}
+
+export default function PushYourLuckEngine({ event, onUpdate, onLeave, backdropImage }: PushYourLuckEngineProps) {
   const [attemptIndex, setAttemptIndex] = useState(0);
   const [log, setLog] = useState<string[]>([event.text]);
   const [failed, setFailed] = useState(false);
@@ -49,18 +64,48 @@ export default function PushYourLuckEngine({ event, onUpdate, onLeave }: PushYou
     }
   };
 
+  // Resolve banner image: Commons object on event → string path on event
+  // (Silk Road legacy) → campaign backdrop → none.
+  const commonsImage: CommonsImage | undefined = isCommonsImage(event.image)
+    ? event.image
+    : backdropImage;
+  const legacyImagePath: string | undefined = typeof event.image === "string" ? event.image : undefined;
+
   return (
     <div className="border border-[#6a503d] rounded bg-stone-800 shadow-lg overflow-hidden">
-      {/* 🔴 NEW: Dynamic Image Banner */}
-      {event.image && (
+      {commonsImage ? (
         <div className="w-full h-32 relative border-b border-[#5b4536]">
-          <img 
-            src={`/campaigns/silkroad/${event.image}`} 
+          <img
+            src={commonsImage.thumbUrl}
+            alt={event.title}
+            className="w-full h-full object-cover"
+            style={{ objectPosition: "center" }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-stone-800 via-transparent to-transparent" />
+        </div>
+      ) : legacyImagePath ? (
+        <div className="w-full h-32 relative border-b border-[#5b4536]">
+          <img
+            src={`/campaigns/silkroad/${legacyImagePath}`}
             alt={event.title}
             className="w-full h-full object-cover"
             style={{ imageRendering: "pixelated", objectPosition: "center" }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-stone-800 via-transparent to-transparent" />
+        </div>
+      ) : null}
+
+      {commonsImage && (
+        <div className="bg-stone-900 px-3 py-1 text-stone-500 border-b border-stone-700 leading-tight" style={{ fontSize: "11px" }}>
+          {commonsImage.artist} · {commonsImage.license} ·{" "}
+          <a
+            href={commonsImage.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-stone-300"
+          >
+            Source
+          </a>
         </div>
       )}
 
