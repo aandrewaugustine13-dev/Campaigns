@@ -10,6 +10,7 @@
     "generate": "npx tsx generator/generate.ts",
     "economy": "npx tsx generator/inspect-economy.ts",
     "cast": "npx tsx generator/inspect-cast.ts",
+    "frame": "npx tsx generator/inspect-frame.ts",
     "locked": "npx tsx generator/inspect-locked.ts"
   },
   "dependencies": {
