@@ -76,6 +76,12 @@ export default function GeneratorUI({ onBack }: { onBack: () => void }) {
 
       const result = await res.json();
 
+      // /api/generate flushes its 200 headers before completion and may return
+      // { error } in the body; treat that as a failure.
+      if (result && result.error) {
+        throw new Error(result.error);
+      }
+
       if (result.validation && result.validation.failed > 0) {
         const errors = result.validation.findings
           .filter((f: { level: string }) => f.level === "error")

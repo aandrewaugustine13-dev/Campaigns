@@ -36,7 +36,14 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
     const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
     throw new Error(err.error || `Server returned ${res.status}`);
   }
-  return res.json() as Promise<T>;
+  // /api/generate streams whitespace then a 200 body that may carry { error }
+  // (its headers are flushed before the outcome is known). Treat that as a
+  // failure rather than handing back a payload with no data.
+  const payload = (await res.json()) as T & { error?: string };
+  if (payload && typeof payload === "object" && payload.error) {
+    throw new Error(payload.error);
+  }
+  return payload;
 }
 
 function Badge({ children, tone }: { children: React.ReactNode; tone: "amber" | "indigo" }) {

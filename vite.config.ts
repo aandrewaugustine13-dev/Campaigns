@@ -52,14 +52,62 @@ function generatorApiPlugin(): Plugin {
       loadEnv({ path: resolve(__dirname, '.env.local') });
 
       // Full campaign generation (optionally with locked Stage-1 constraints).
-      jsonPost(server, '/api/generate', async (apiKey, inputs) => {
-        const { generateCampaign } = await import('./generator/core.ts');
-        const result = await generateCampaign(apiKey, inputs);
-        return {
-          data: result.data,
-          validation: result.validation,
-          elapsedSeconds: result.elapsedSeconds,
-        };
+      // This call routinely runs 3-5+ minutes. A request that sends no bytes for
+      // that long gets aborted as idle by browsers and proxies (the "timed out"
+      // the user saw), even though the server finishes fine. So we stream
+      // insignificant JSON whitespace as a heartbeat while the model runs, then
+      // write the real body. JSON.parse ignores leading whitespace, so the
+      // client's res.json() still parses correctly. Errors come back as a 200
+      // body { error } since headers are already flushed; the client treats any
+      // payload with an `error` field as a failure.
+      server.middlewares.use('/api/generate', async (req, res) => {
+        if (req.method !== 'POST') {
+          res.statusCode = 405;
+          res.setHeader('Content-Type', 'application/json');
+          return res.end(JSON.stringify({ error: 'Method not allowed' }));
+        }
+
+        const apiKey = process.env.ANTHROPIC_API_KEY;
+        if (!apiKey) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json');
+          return res.end(JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured in .env.local' }));
+        }
+
+        let body = '';
+        for await (const chunk of req) body += chunk;
+
+        let inputs;
+        try {
+          inputs = body ? JSON.parse(body) : {};
+        } catch {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json');
+          return res.end(JSON.stringify({ error: 'Invalid JSON in request body' }));
+        }
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.write(' '); // flush headers + first byte immediately
+        const heartbeat = setInterval(() => {
+          try { res.write(' '); } catch { /* socket closed */ }
+        }, 15000);
+
+        try {
+          const { generateCampaign } = await import('./generator/core.ts');
+          const result = await generateCampaign(apiKey, inputs);
+          clearInterval(heartbeat);
+          res.end(JSON.stringify({
+            data: result.data,
+            validation: result.validation,
+            elapsedSeconds: result.elapsedSeconds,
+          }));
+        } catch (e: unknown) {
+          clearInterval(heartbeat);
+          const message = e instanceof Error ? e.message : String(e);
+          console.error('[generator-api] /api/generate failed:', message);
+          res.end(JSON.stringify({ error: message }));
+        }
       });
 
       // Stage-1 proposers: each takes { standard } and returns { data, findings }.
