@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import type { CampaignData } from "../generator/schema";
 import GeneratedCampaign from "./GeneratedCampaign";
+import Stage1Studio from "./Stage1Studio";
 
 type Phase = "form" | "generating" | "error" | "playing";
+type Mode = "guided" | "quick";
 
 interface FormState {
   topic: string;
@@ -32,6 +34,7 @@ const GRADES = ["4th grade", "5th grade", "6th grade", "7th grade", "8th grade"]
 
 export default function GeneratorUI({ onBack }: { onBack: () => void }) {
   const [phase, setPhase] = useState<Phase>("form");
+  const [mode, setMode] = useState<Mode>("guided");
   const [form, setForm] = useState<FormState>(DEFAULTS);
   const [campaignData, setCampaignData] = useState<CampaignData | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
@@ -100,6 +103,18 @@ export default function GeneratorUI({ onBack }: { onBack: () => void }) {
     return <GeneratedCampaign data={campaignData} onBack={backToForm} />;
   }
 
+  // ── Guided (Stage 1) flow — the default. Manages its own steps and
+  // hands back a finished campaign to play. ──
+  if (mode === "guided" && phase === "form") {
+    return (
+      <Stage1Studio
+        onPlay={(data) => { setCampaignData(data); setPhase("playing"); }}
+        onBack={onBack}
+        onQuickForm={() => setMode("quick")}
+      />
+    );
+  }
+
   // ── Generating ──
   if (phase === "generating") {
     return (
@@ -164,6 +179,12 @@ export default function GeneratorUI({ onBack }: { onBack: () => void }) {
           <div className="text-center space-y-1">
             <h1 className="text-2xl font-bold text-amber-400">Campaign Generator</h1>
             <p className="text-stone-500 text-sm">Create a playable campaign from a topic and standard.</p>
+            <button
+              onClick={() => setMode("guided")}
+              className="text-xs text-amber-500 hover:text-amber-400 underline transition-colors"
+            >
+              Use guided setup instead (propose structure from a standard)
+            </button>
           </div>
 
           {/* Topic */}
