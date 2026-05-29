@@ -218,7 +218,10 @@ export async function generateCampaign(
   apiKey: string,
   inputs: GenerateInputs,
 ): Promise<GenerateResult> {
-  const client = new Anthropic({ apiKey });
+  // A generated campaign is large; the stream can legitimately run several
+  // minutes. Give it a generous ceiling and a retry so a stalled connection
+  // fails fast and recovers instead of hanging until something upstream gives.
+  const client = new Anthropic({ apiKey, timeout: 15 * 60_000, maxRetries: 1 });
   const startTime = Date.now();
 
   const stream = client.messages.stream({

@@ -105,6 +105,8 @@ function generatorApiPlugin(): Plugin {
           const job: GenJob = { status: 'running', startedAt: Date.now() };
           jobs.set(jobId, job);
           sweepJobs();
+          const locked = !!(inputs && (inputs.frame || inputs.economy || inputs.cast || inputs.playerRole));
+          console.log(`[generator-api] job ${jobId.slice(0, 8)} started (${locked ? 'guided/locked' : 'quick'})`);
 
           // Run in the background; the response returns right away.
           void (async () => {
@@ -114,10 +116,13 @@ function generatorApiPlugin(): Plugin {
               job.data = result.data;
               job.validation = result.validation;
               job.status = 'done';
+              const secs = ((Date.now() - job.startedAt) / 1000).toFixed(0);
+              console.log(`[generator-api] job ${jobId.slice(0, 8)} done in ${secs}s`);
             } catch (e: unknown) {
               job.error = e instanceof Error ? e.message : String(e);
               job.status = 'error';
-              console.error('[generator-api] /api/generate job failed:', job.error);
+              const secs = ((Date.now() - job.startedAt) / 1000).toFixed(0);
+              console.error(`[generator-api] job ${jobId.slice(0, 8)} failed after ${secs}s:`, job.error);
             } finally {
               job.finishedAt = Date.now();
             }
