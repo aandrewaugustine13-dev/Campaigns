@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { parseModelJson } from "./json.js";
 
 // ════════════════════════════════════════════════════════════════
 // Stage 1 output: the proposed structural FRAME of a campaign — the
@@ -181,12 +182,7 @@ export async function generateFrame(
   stream.on("text", (t) => { rawText += t; });
   await stream.finalMessage();
 
-  let cleaned = rawText.trim();
-  if (cleaned.startsWith("```")) {
-    cleaned = cleaned.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
-  }
-
-  const data = JSON.parse(cleaned) as ProposedFrame;
+  const data = parseModelJson<ProposedFrame>(rawText);
   const findings = validateFrame(data);
   return { data, raw: rawText, findings };
 }

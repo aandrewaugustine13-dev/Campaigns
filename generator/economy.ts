@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { parseModelJson } from "./json.js";
 
 // ════════════════════════════════════════════════════════════════
 // Stage 1 output: the ECONOMY + RATING RUBRIC for a "systems" campaign.
@@ -171,12 +172,7 @@ export async function generateEconomy(
   stream.on("text", (t) => { rawText += t; });
   await stream.finalMessage();
 
-  let cleaned = rawText.trim();
-  if (cleaned.startsWith("```")) {
-    cleaned = cleaned.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
-  }
-
-  const data = JSON.parse(cleaned) as SystemsEconomy;
+  const data = parseModelJson<SystemsEconomy>(rawText);
   const findings = validateEconomy(data);
   return { data, raw: rawText, findings };
 }

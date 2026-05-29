@@ -3,6 +3,7 @@ import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { validate, type ValidationReport } from "./validate.js";
+import { parseModelJson } from "./json.js";
 import { enrichSagePortraits, enrichEventImages } from "./wikimedia.js";
 import type { CastCharacter } from "./cast.js";
 import type { SystemsEconomy } from "./economy.js";
@@ -233,12 +234,7 @@ export async function generateCampaign(
 
   const elapsedSeconds = (Date.now() - startTime) / 1000;
 
-  let cleaned = rawText.trim();
-  if (cleaned.startsWith("```")) {
-    cleaned = cleaned.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
-  }
-
-  const data = JSON.parse(cleaned);
+  const data = parseModelJson<Record<string, unknown>>(rawText);
   data.isPublished = false;
 
   const imageryCtx = {

@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { parseModelJson } from "./json.js";
 
 // ════════════════════════════════════════════════════════════════
 // Stage 1 output: the PROPOSED CAST for a "systems" campaign — the real
@@ -166,12 +167,7 @@ export async function generateCast(
   stream.on("text", (t) => { rawText += t; });
   await stream.finalMessage();
 
-  let cleaned = rawText.trim();
-  if (cleaned.startsWith("```")) {
-    cleaned = cleaned.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
-  }
-
-  const data = JSON.parse(cleaned) as ProposedCast;
+  const data = parseModelJson<ProposedCast>(rawText);
   const findings = validateCast(data);
   return { data, raw: rawText, findings };
 }
