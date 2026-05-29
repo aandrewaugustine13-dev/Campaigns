@@ -68,6 +68,12 @@ export default function TrailMap({
 }) {
   const [milestoneId, setMilestoneId] = useState<string | null>(null);
   const reachedRef = useRef<Set<string>>(new Set([trailStops[0]?.id]));
+  // The map box is locked to the image's real proportions once it loads. If
+  // the image is missing (common for generated campaigns), we drop the aspect
+  // lock entirely so the map fills its column instead of rendering as a thin
+  // strip stuck at the Chisholm portrait ratio.
+  const [imgAspect, setImgAspect] = useState<string | null>(null);
+  const [imgFailed, setImgFailed] = useState(false);
 
   useEffect(() => {
     for (const stop of trailStops) {
@@ -140,7 +146,7 @@ export default function TrailMap({
           <div className="h-full w-full flex items-center justify-center">
             <div
               className="relative h-full max-h-full w-full max-w-full"
-              style={{ aspectRatio: "412 / 1024" }}
+              style={imgFailed ? undefined : { aspectRatio: imgAspect ?? "412 / 1024" }}
             >
               {/* The parchment map */}
               <img
@@ -148,10 +154,17 @@ export default function TrailMap({
                 alt="Trail Map"
                 className="absolute inset-0 w-full h-full object-fill"
                 draggable={false}
+                onLoad={(e) => {
+                  const el = e.target as HTMLImageElement;
+                  if (el.naturalWidth && el.naturalHeight) {
+                    setImgAspect(`${el.naturalWidth} / ${el.naturalHeight}`);
+                  }
+                }}
                 onError={(e) => {
                   const el = e.target as HTMLImageElement;
                   el.style.display = "none";
                   el.parentElement!.style.background = "linear-gradient(135deg, #3d2a1a 0%, #2a1f15 50%, #1a1510 100%)";
+                  setImgFailed(true);
                 }}
               />
 

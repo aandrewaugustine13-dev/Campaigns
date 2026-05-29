@@ -115,12 +115,19 @@ function getPartyMembers(data: CampaignData, resources: Record<string, number>) 
   });
 }
 
+// Pick a knowledge-check question, preferring ones the player has not seen
+// this cycle. When every question has been used, recycle the whole pool so
+// checks keep coming — but never repeat the question shown immediately
+// before, so a tiny question bank still feels varied.
 function pickTriviaQuestion(
   data: CampaignData,
-  _progress: number,
   usedIds: Set<string>,
+  excludeId: string | null,
 ) {
-  const available = data.eventTrivia.filter(q => !usedIds.has(q.id));
+  let available = data.eventTrivia.filter(q => !usedIds.has(q.id) && q.id !== excludeId);
+  if (available.length === 0) {
+    available = data.eventTrivia.filter(q => q.id !== excludeId);
+  }
   if (available.length === 0) return null;
   return available[Math.floor(Math.random() * available.length)];
 }
@@ -232,6 +239,7 @@ function GenericOutfitScreen({ data, onDone }: { data: CampaignData; onDone: (ou
 
   // Cap the outfit to four items so it stays easy to track. Extra cost
   // keys (if the generator produced more) are ignored on this screen.
+  const SLIDER_MAX = 10;
   const costKeys = Object.keys(data.outfitConfig.costs).slice(0, 4);
   const [allocs, setAllocs] = useState<Record<string, number>>(() => {
     const init: Record<string, number> = {};
@@ -239,8 +247,18 @@ function GenericOutfitScreen({ data, onDone }: { data: CampaignData; onDone: (ou
     return init;
   });
 
+  // Generators often hand out a budget large enough to max every slider,
+  // which removes the whole point of outfitting. Force scarcity: cap the
+  // working budget so a player can fill ~55% of total capacity and must
+  // make trade-offs about what this expedition actually needs.
+  const maxSpend = costKeys.reduce((sum, k) => sum + data.outfitConfig.costs[k] * SLIDER_MAX, 0);
+  const budget = Math.max(
+    1,
+    Math.min(data.outfitConfig.budget || maxSpend, Math.round(maxSpend * 0.55)),
+  );
+
   const spent = costKeys.reduce((sum, k) => sum + allocs[k] * data.outfitConfig.costs[k], 0);
-  const remaining = data.outfitConfig.budget - spent;
+  const remaining = budget - spent;
 
   return (
     <div data-theme={theme} className="h-screen theme-bg-page theme-text flex flex-col overflow-hidden theme-body-font">
@@ -254,8 +272,9 @@ function GenericOutfitScreen({ data, onDone }: { data: CampaignData; onDone: (ou
               <span className={remaining >= 0 ? "text-emerald-500" : "text-red-500"}>
                 ${remaining.toLocaleString()}
               </span>{" "}
-              of ${data.outfitConfig.budget.toLocaleString()}
+              of ${budget.toLocaleString()}
             </p>
+            <p className="theme-text-muted text-[10px] mt-0.5 italic">Funds are tight — you can't afford everything. Choose what matters.</p>
           </div>
 
           {costKeys.map(k => (
@@ -269,7 +288,7 @@ function GenericOutfitScreen({ data, onDone }: { data: CampaignData; onDone: (ou
               <input
                 type="range"
                 min={0}
-                max={10}
+                max={SLIDER_MAX}
                 value={allocs[k]}
                 onChange={e => setAllocs(prev => ({ ...prev, [k]: +e.target.value }))}
                 className="w-full accent-amber-500 h-2"
@@ -310,59 +329,93 @@ function nearestSupplyTown(
   return { near: next.pct - progress < 8, town: next.name };
 }
 
-// Resource-agnostic barter offers for a generated town. Trades a slice of a
-// surplus resource (or the primary asset) for a depleted one, normalized by
-// each resource's cap with a flat barter "tax" so trading is useful but lossy.
-// Personnel resources are excluded entirely — you cannot trade people.
+// A trading post deals in tangible SUPPLIES only — provisions, ammunition,
+// medicine, materials — never abstract stats like morale, political support,
+// or engineering skill, which can't sensibly be "bought." Money-like
+// resources act as currency; everything else is off-limits at the post.
+const MONEY_RE = /cash|coin|money|silver|gold|fund|treasur|budget|capital|wealth|currency|denari|florin|dinar|ducat|specie|bullion|purse/i;
+const SUPPLY_RE = /suppl|provision|food|ration|water|grain|fodder|forage|ammo|ammunition|powder|medicine|medical|cement|timber|lumber|material|equipment|goods|cargo|fuel|tool|\bpart|spare|cloth|salt|spice|fur|pelt|fish|meat|seed|trade/i;
+
+function isMoneyResource(key: string, label?: string): boolean {
+  return MONEY_RE.test(key) || (label ? MONEY_RE.test(label) : false);
+}
+// A buyable/sellable good: matches the supply vocabulary and is not personnel
+// or currency. This is what keeps "Sell political support" out of the post.
+function isSupplyResource(key: string, label?: string): boolean {
+  if (isPersonnelResource(key, label) || isMoneyResource(key, label)) return false;
+  return SUPPLY_RE.test(key) || (label ? SUPPLY_RE.test(label) : false);
+}
+
+// Find the single currency resource for this economy, if one exists.
+function findMoneyKey(
+  resources: Record<string, number> | undefined,
+  labels: Record<string, string> | undefined,
+): string | undefined {
+  const lbl = labels ?? {};
+  return Object.keys(resources ?? {}).find(k => isMoneyResource(k, lbl[k]));
+}
+
+// Trade-post offers. With a currency present: buy or sell each supply for
+// money (buy-back is priced under purchase so trading is lossy). With no
+// currency: barter one physical supply for another. Abstract stats and
+// people are never tradeable, so the post always "makes sense."
 function computeGenericTradeOffers(
   resources: Record<string, number> | undefined,
   caps: Record<string, number> | undefined,
-  primaryKey: string,
+  _primaryKey: string,
   labels: Record<string, string> | undefined,
 ): TradeOffer[] {
   const res = resources ?? {};
   const capMap = caps ?? {};
   const lbl = labels ?? {};
-  const ratio = (k: string) => (res[k] ?? 0) / (capMap[k] ?? 100);
-  const value = (k: string, amt: number) => amt / (capMap[k] ?? 100);
-  const TAX = 0.75;
-  // Tradeable pool excludes the primary asset and any personnel resources.
-  const tradeable = Object.keys(res).filter(
-    k => k !== primaryKey && !isPersonnelResource(k, lbl[k]),
-  );
-  const surplus = [...tradeable].sort((a, b) => ratio(b) - ratio(a));
-  const deficit = [...tradeable].sort((a, b) => ratio(a) - ratio(b));
-  const primaryTradeable = !!primaryKey && !isPersonnelResource(primaryKey, lbl[primaryKey]);
+  const cap = (k: string) => capMap[k] ?? 100;
   const offers: TradeOffer[] = [];
 
-  const mkBarter = (giveKey: string | undefined, getKey: string | undefined, id: string) => {
-    if (!giveKey || !getKey || giveKey === getKey) return;
-    const giveAmt = Math.max(1, Math.round((res[giveKey] ?? 0) * 0.25));
-    const getAmt = Math.max(1, Math.floor(value(giveKey, giveAmt) * (capMap[getKey] ?? 100) * TAX));
-    offers.push({
-      id,
-      label: `Trade ${lbl[giveKey] ?? giveKey} for ${lbl[getKey] ?? getKey}`,
-      give: { [giveKey]: giveAmt },
-      get: { [getKey]: getAmt },
-      disabled: (res[giveKey] ?? 0) < giveAmt,
-    });
-  };
+  const moneyKey = findMoneyKey(res, lbl);
+  const supplies = Object.keys(res).filter(k => isSupplyResource(k, lbl[k]) && k !== moneyKey);
 
-  mkBarter(surplus[0], deficit[0], "barter_a");
-  mkBarter(surplus[1], deficit[0], "barter_b");
-  mkBarter(surplus[0], deficit[1], "barter_c");
-
-  if (primaryTradeable && res[primaryKey] !== undefined && deficit[0]) {
-    const giveAmt = Math.max(1, Math.round((res[primaryKey] ?? 0) * 0.08));
-    const getKey = deficit[0];
-    const getAmt = Math.max(1, Math.floor(value(primaryKey, giveAmt) * (capMap[getKey] ?? 100) * TAX));
-    offers.push({
-      id: "sell_primary",
-      label: `Sell ${lbl[primaryKey] ?? primaryKey} to restock ${lbl[getKey] ?? getKey}`,
-      give: { [primaryKey]: giveAmt },
-      get: { [getKey]: getAmt },
-      disabled: (res[primaryKey] ?? 0) < giveAmt,
-    });
+  if (moneyKey) {
+    const moneyCap = cap(moneyKey);
+    for (const k of supplies) {
+      const buyQty = Math.max(1, Math.round(cap(k) * 0.2));      // ~20% of cap per buy
+      const buyCost = Math.max(1, Math.round(moneyCap * 0.15));  // costs ~15% of money cap
+      offers.push({
+        id: `buy_${k}`,
+        label: `Buy ${lbl[k] ?? k}`,
+        give: { [moneyKey]: buyCost },
+        get: { [k]: buyQty },
+        disabled: (res[moneyKey] ?? 0) < buyCost,
+      });
+      const sellQty = Math.max(1, Math.round(cap(k) * 0.2));
+      const sellGain = Math.max(1, Math.round(moneyCap * 0.1)); // sell back below buy price
+      offers.push({
+        id: `sell_${k}`,
+        label: `Sell ${lbl[k] ?? k}`,
+        give: { [k]: sellQty },
+        get: { [moneyKey]: sellGain },
+        disabled: (res[k] ?? 0) < sellQty,
+      });
+    }
+  } else if (supplies.length >= 2) {
+    // No currency in this economy — barter physical supplies for each other.
+    const ratio = (k: string) => (res[k] ?? 0) / cap(k);
+    const sorted = [...supplies].sort((a, b) => ratio(b) - ratio(a));
+    const surplus = sorted[0];
+    const needs = [...sorted].reverse().filter(k => k !== surplus);
+    const TAX = 0.75;
+    const mkBarter = (giveKey: string, getKey: string, id: string) => {
+      const giveAmt = Math.max(1, Math.round((res[giveKey] ?? 0) * 0.25));
+      const getAmt = Math.max(1, Math.floor((giveAmt / cap(giveKey)) * cap(getKey) * TAX));
+      offers.push({
+        id,
+        label: `Trade ${lbl[giveKey] ?? giveKey} for ${lbl[getKey] ?? getKey}`,
+        give: { [giveKey]: giveAmt },
+        get: { [getKey]: getAmt },
+        disabled: (res[giveKey] ?? 0) < giveAmt,
+      });
+    };
+    if (needs[0]) mkBarter(surplus, needs[0], "barter_a");
+    if (needs[1]) mkBarter(surplus, needs[1], "barter_b");
   }
 
   const seen = new Set<string>();
@@ -409,6 +462,10 @@ interface GameState {
   triviaCounter: number;
   currentTrivia: { id: string; question: string; choices: string[]; correctIndex: number; fact?: string } | null;
   usedTriviaIds: Set<string>;
+  lastTriviaId: string | null;
+  usedGateIds: Set<string>;
+  eventCounts: Record<string, number>;
+  eventLastTurn: Record<string, number>;
   triviaStreak: number;
   insight: number;
   objectives: Objective[];
@@ -437,27 +494,58 @@ function weightedPick<T extends { weight?: number }>(items: T[]): T {
   return items[0];
 }
 
-function pickEvent(day: number, td: number, used: Set<string>, evts: GameEvent[]): GameEvent | null {
-  const p = day / td;
-  const el = evts.filter(e => p >= e.phase_min && p <= e.phase_max && !used.has(e.id));
-  const pool = el.length > 0 ? el : evts.filter(e => p >= e.phase_min && p <= e.phase_max);
-  if (!pool.length) return null;
-  return weightedPick(pool);
+// How the engine paces event repetition. Generated campaigns often ship with
+// a small event bank (5–8) packed into overlapping phase windows, so without
+// these guards the same event ("workers strike", "clear the stumps") fires
+// turn after turn once the unseen pool empties.
+const EVENT_COOLDOWN_TURNS = 4; // an event can't recur within this many turns
+const MAX_EVENT_REPEATS = 2;    // ...and can fire at most this many times total
+
+// Choose the next event for this turn. Brand-new events always win; a
+// previously seen event is only eligible again once it has cooled down AND is
+// still under its repeat cap. When nothing qualifies we return null so the
+// expedition simply travels this turn rather than replaying old content.
+function selectEvent(
+  day: number,
+  totalDays: number,
+  events: GameEvent[],
+  routeTag: string,
+  counts: Record<string, number>,
+  lastTurn: Record<string, number>,
+  turn: number,
+): GameEvent | null {
+  const p = totalDays > 0 ? day / totalDays : 0;
+  const inPhase = events.filter(e => p >= e.phase_min && p <= e.phase_max);
+  if (inPhase.length === 0) return null;
+
+  const tilt = (e: GameEvent) => {
+    let w = e.weight || 1;
+    if (routeTag === "SAFE") w = Math.max(1, w - 1);
+    if (routeTag === "FAST") w += 1;
+    return Math.max(1, w);
+  };
+
+  const fresh = inPhase.filter(e => !counts[e.id]);
+  const reusable = inPhase.filter(e =>
+    (counts[e.id] ?? 0) > 0 &&
+    (counts[e.id] ?? 0) < MAX_EVENT_REPEATS &&
+    turn - (lastTurn[e.id] ?? -Infinity) >= EVENT_COOLDOWN_TURNS,
+  );
+  const pool = fresh.length > 0 ? fresh : reusable;
+  if (pool.length === 0) return null;
+  return weightedPick(pool.map(e => ({ ...e, weight: tilt(e) })));
 }
 
-function routeAdjustedEvent(day: number, totalDays: number, used: Set<string>, events: GameEvent[], routeTag: string) {
-  const base = pickEvent(day, totalDays, used, events);
-  if (!base) return null;
-  const phase = day / totalDays;
-  const pool = events.filter(e => phase >= e.phase_min && phase <= e.phase_max && !used.has(e.id));
-  if (pool.length === 0) return base;
-  const withWeights = pool.map(e => {
-    let weight = e.weight;
-    if (routeTag === "SAFE") weight = Math.max(1, weight - 1);
-    if (routeTag === "FAST") weight += 1;
-    return { ...e, weight };
-  });
-  return weightedPick(withWeights);
+// Choose an event-trivia gate question, preferring unseen ones and recycling
+// the bank when exhausted, so the gate stays varied across a long run.
+function selectGateQuestion(
+  pool: CampaignData["eventTrivia"],
+  usedIds: Set<string>,
+) {
+  if (!pool || pool.length === 0) return null;
+  const available = pool.filter(q => !usedIds.has(q.id));
+  const choices = available.length > 0 ? available : pool;
+  return choices[Math.floor(Math.random() * choices.length)];
 }
 
 function shouldGateTrivia(eventId: string, turn: number) {
@@ -545,6 +633,8 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     outfit: { allocations: {}, budgetSpent: 0 },
     historicalKnowledge: 0, knowledgeLog: [], triviaCounter: 0,
     currentTrivia: null, usedTriviaIds: new Set(), triviaStreak: 0,
+    lastTriviaId: null, usedGateIds: new Set(),
+    eventCounts: {}, eventLastTurn: {},
     insight: 1, objectives: [],
     routeState: { currentNodeId: "start" }, routeTag: "SAFE",
     riskHintsOn: false, pendingChoiceIndex: null, pendingEventQuestion: null,
@@ -554,7 +644,6 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   }), [data]);
 
   const [state, setState] = useState<GameState>(makeInit);
-  const [usedEvents, setUsedEvents] = useState<Set<string>>(new Set());
   // Final-exam gate. Built from the campaign's TEKS event-trivia, padded
   // with sage questions, capped at 10. End results stay locked until passed.
   const [examPassed, setExamPassed] = useState(false);
@@ -578,7 +667,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       .slice(0, 10);
   }, [data]);
 
-  const start = useCallback(() => { setState({ ...makeInit(), phase: "outfit" }); setUsedEvents(new Set()); setExamPassed(false); setExamScore(0); setLeftTownId(null); }, [makeInit]);
+  const start = useCallback(() => { setState({ ...makeInit(), phase: "outfit" }); setExamPassed(false); setExamScore(0); setLeftTownId(null); }, [makeInit]);
   const backToMenu = useCallback(() => { onBack(); }, [onBack]);
 
   // ── Game juice ──
@@ -702,19 +791,23 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       }
 
       // Event
-      const event = routeAdjustedEvent(s.day, data.totalDays, usedEvents, data.events as GameEvent[], s.routeTag);
+      const event = selectEvent(s.day, data.totalDays, data.events as GameEvent[], s.routeTag, s.eventCounts, s.eventLastTurn, s.turn);
       if (event) {
         if (s.triviaCounter >= 2) {
-          const trivia = pickTriviaQuestion(data, currentProgress, s.usedTriviaIds);
+          const trivia = pickTriviaQuestion(data, s.usedTriviaIds, s.lastTriviaId);
           if (trivia) {
             s.currentTrivia = trivia;
-            s.usedTriviaIds = new Set(s.usedTriviaIds).add(trivia.id);
+            const nextUsed = new Set(s.usedTriviaIds).add(trivia.id);
+            // Recycle once every question has been seen so checks keep coming.
+            s.usedTriviaIds = nextUsed.size >= data.eventTrivia.length ? new Set([trivia.id]) : nextUsed;
+            s.lastTriviaId = trivia.id;
             s.triviaCounter = 0;
             s.phase = "trivia";
             return s;
           }
         }
-        setUsedEvents(p => new Set(p).add(event.id));
+        s.eventCounts = { ...s.eventCounts, [event.id]: (s.eventCounts[event.id] ?? 0) + 1 };
+        s.eventLastTurn = { ...s.eventLastTurn, [event.id]: s.turn };
         s.currentEvent = { ...event, triviaGate: shouldGateTrivia(event.id, s.turn) };
         s.phase = "event";
         s.riskHintsOn = false;
@@ -724,7 +817,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       }
       return s;
     });
-  }, [data, usedEvents]);
+  }, [data]);
 
   // ── Route choice ──
   const chooseRoute = useCallback((toId: string, tag: "SAFE" | "FAST" | "PROFIT") => {
@@ -782,13 +875,24 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   }, [data]);
 
   const handleChoice = useCallback((ci: number) => {
-    if (state.currentEvent?.triviaGate) {
-      const q = data.eventTrivia[(state.turn + ci) % data.eventTrivia.length];
-      setState(prev => ({ ...prev, phase: "event_trivia" as const, pendingChoiceIndex: ci, pendingEventQuestion: q }));
-      return;
+    if (state.currentEvent?.triviaGate && data.eventTrivia.length > 0) {
+      const q = selectGateQuestion(data.eventTrivia, state.usedGateIds);
+      if (q) {
+        setState(prev => {
+          const nextUsed = new Set(prev.usedGateIds).add(q.id);
+          return {
+            ...prev,
+            phase: "event_trivia" as const,
+            pendingChoiceIndex: ci,
+            pendingEventQuestion: q,
+            usedGateIds: nextUsed.size >= data.eventTrivia.length ? new Set([q.id]) : nextUsed,
+          };
+        });
+        return;
+      }
     }
     finalizeChoice(ci, 0);
-  }, [finalizeChoice, state.currentEvent?.triviaGate, state.turn, data.eventTrivia]);
+  }, [finalizeChoice, state.currentEvent?.triviaGate, state.usedGateIds, data.eventTrivia]);
 
   const handleEventTriviaAnswer = useCallback((choiceIndex: number) => {
     const q = state.pendingEventQuestion;
@@ -924,6 +1028,17 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     const keys = Object.keys(data.initialResources);
     return keys.slice(0, 6);
   }, [data]);
+
+  // Trading post deals only in money + tangible supplies; show exactly those.
+  const tradeMoneyKey = useMemo(
+    () => findMoneyKey(data.initialResources, data.resourceLabels),
+    [data],
+  );
+  const tradeShowKeys = useMemo(() => {
+    const supplies = Object.keys(data.initialResources)
+      .filter(k => isSupplyResource(k, data.resourceLabels?.[k]));
+    return [tradeMoneyKey, ...supplies].filter(Boolean) as string[];
+  }, [data, tradeMoneyKey]);
 
   const barResources = useMemo(() => {
     const keys = Object.keys(data.initialResources);
@@ -1130,7 +1245,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
           )}
 
           <div className="text-center pb-4 space-y-2">
-            <button onClick={() => { setState(makeInit()); setUsedEvents(new Set()); setExamPassed(false); setExamScore(0); setLeftTownId(null); }} className="px-5 py-2 theme-btn-action font-bold rounded transition-colors">Run It Again</button>
+            <button onClick={() => { setState(makeInit()); setExamPassed(false); setExamScore(0); setLeftTownId(null); }} className="px-5 py-2 theme-btn-action font-bold rounded transition-colors">Run It Again</button>
             <br /><button onClick={backToMenu} className="text-xs theme-text-muted opacity-70 hover:opacity-100 transition-opacity">&larr; Back to Campaigns</button>
           </div>
         </div>
@@ -1297,7 +1412,8 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                     townName={supplyTown.town}
                     resources={r}
                     labels={data.resourceLabels ?? {}}
-                    showKeys={topResources.filter(k => !isPersonnelResource(k, data.resourceLabels?.[k]))}
+                    showKeys={tradeShowKeys}
+                    moneyKey={tradeMoneyKey}
                     offers={computeGenericTradeOffers(r, data.resourceCaps, data.primaryResourceKey, data.resourceLabels)}
                     themed
                     onTrade={(o) => handleTrade(o, supplyTown.town!)}
