@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "generate": "npx tsx generator/generate.ts"
+    "generate": "npx tsx generator/generate.ts",
+    "economy": "npx tsx generator/inspect-economy.ts",
+    "cast": "npx tsx generator/inspect-cast.ts"
   },
   "dependencies": {
     "lucide-react": "^1.16.0",

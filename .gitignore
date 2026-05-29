@@ -7,3 +7,10 @@ public/faces/sliced/
 artifacts/
 *.pyc
 __pycache__/
+
+# Local secrets / API keys
+.env.local
+.env.*.local
+
+# Generator scratch outputs (per-run artifacts, not source)
+generator/output*.json
