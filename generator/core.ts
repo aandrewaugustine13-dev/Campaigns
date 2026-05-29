@@ -125,7 +125,15 @@ function buildLockedConstraints(inputs: GenerateInputs): string {
     );
     lines.push("");
     lines.push(
-      "HONEST STRUCTURE OVER FAKE TRAVEL: when the frame is not a journey, OMIT or leave empty the journey-only fields rather than fake them. Specifically set totalDistance to 0, distanceUnit to \"\", trailPath to [], trailStops to [], paces to [], and route to a single terminal node like [{ \"id\": \"start\", \"title\": \"...\", \"description\": \"...\", \"edges\": [] }]. Do not invent miles, paces, trail coordinates, or route forks just to fill these fields. An empty field is the correct answer here, not a project disguised in trail clothing.",
+      "PROGRESSION MODE: at the top level of the JSON output, set \"progressionMode\" to \"project\" when the frame is NOT a journey, or to \"journey\" (or omit it) when it IS. This single field tells the engine and validator which shape this campaign takes.",
+    );
+    lines.push("");
+    lines.push(
+      "HONEST STRUCTURE OVER FAKE TRAVEL: in project mode, OMIT or leave empty the journey-only fields rather than fake them. Specifically set totalDistance to 0, distanceUnit to \"\", paces to [], trailPath to [], trailStops to [], and outfitConfig.herdOptions to []; reduce route to a single terminal node like [{ \"id\": \"start\", \"title\": \"...\", \"description\": \"...\", \"edges\": [] }]. Do not invent miles, paces, trail coordinates, or route forks just to fill these fields. An empty field is the correct answer here, not a project disguised in trail clothing.",
+    );
+    lines.push("");
+    lines.push(
+      "TIME-BASED PROGRESSION FOR PROJECTS: in project mode the world advances through TIME, not distance, so totalDays and daysPerTurn are REQUIRED — populate them with real values matching the frame's time span. Examples: an eight-year canal project at quarterly Commission reviews ≈ totalDays: 2920, daysPerTurn: 90; a six-month siege at weekly war-council ticks ≈ totalDays: 180, daysPerTurn: 7. Event phase_min / phase_max 0–1 windows are computed as currentDay / totalDays. Do NOT zero totalDays or daysPerTurn for a project.",
     );
     lines.push("");
   }

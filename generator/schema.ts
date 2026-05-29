@@ -186,6 +186,11 @@ export interface CampaignData {
   trailFeedOpener: string;
   theme?: string;
   isPublished?: boolean;
+  /** Engine progression mode. Absent ⇒ treated as "journey" for back-compat.
+   * "journey": distance + pace drives turns (totalDistance / paces required).
+   * "project": time-based phases (totalDays / daysPerTurn required, travel
+   * fields left empty). Validator gates journey-only checks on this value. */
+  progressionMode?: "journey" | "project";
 
   // Journey parameters
   totalDays: number;

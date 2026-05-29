@@ -39,9 +39,28 @@ export function validate(data: unknown): ValidationReport {
 
   const d = data as Record<string, unknown>;
 
+  // ── Progression mode ─────────────────────────────────────────
+  // Gates the journey-only structural checks below. Absent ⇒ "journey"
+  // so every pre-existing campaign keeps the original check set.
+  const mode: "journey" | "project" =
+    d.progressionMode === "project" ? "project" : "journey";
+  if (
+    d.progressionMode !== undefined &&
+    d.progressionMode !== "journey" &&
+    d.progressionMode !== "project"
+  ) {
+    findings.push(err("progressionMode", 'progressionMode must be "journey" or "project" if present'));
+  }
+
   // ── Identity fields ──────────────────────────────────────────
-  for (const key of ["id", "title", "subtitle", "introBody", "trailFeedOpener", "distanceUnit", "mapImage", "primaryResourceKey", "historicalContext"] as const) {
+  for (const key of ["id", "title", "subtitle", "introBody", "trailFeedOpener", "mapImage", "primaryResourceKey", "historicalContext"] as const) {
     check(key, typeof d[key] === "string" && (d[key] as string).length > 0, `Missing or empty string: ${key}`);
+  }
+
+  // distanceUnit is required only when the run advances by distance.
+  if (mode === "journey") {
+    check("distanceUnit", typeof d.distanceUnit === "string" && (d.distanceUnit as string).length > 0,
+      "Missing or empty string: distanceUnit");
   }
 
   if (d.theme !== undefined) {
@@ -55,6 +74,14 @@ export function validate(data: unknown): ValidationReport {
   // ── Numeric fields ───────────────────────────────────────────
   for (const key of ["totalDays", "daysPerTurn", "totalDistance", "primaryResourceStart", "revenuePerUnit"] as const) {
     check(key, typeof d[key] === "number" && isFinite(d[key] as number), `Missing or non-numeric: ${key}`);
+  }
+
+  // Project mode advances by time, so the time span must be real.
+  if (mode === "project") {
+    check("totalDays", typeof d.totalDays === "number" && (d.totalDays as number) > 0,
+      "totalDays must be > 0 in project mode (drives phase progression)");
+    check("daysPerTurn", typeof d.daysPerTurn === "number" && (d.daysPerTurn as number) > 0,
+      "daysPerTurn must be > 0 in project mode (drives phase progression)");
   }
 
   // ── Resources consistency ────────────────────────────────────
@@ -151,7 +178,9 @@ export function validate(data: unknown): ValidationReport {
 
   // ── Pace resource keys ───────────────────────────────────────
   const paces = d.paces;
-  check("paces", Array.isArray(paces) && (paces as unknown[]).length > 0, "paces must be a non-empty array");
+  if (mode === "journey") {
+    check("paces", Array.isArray(paces) && (paces as unknown[]).length > 0, "paces must be a non-empty array");
+  }
   if (Array.isArray(paces)) {
     for (let i = 0; i < paces.length; i++) {
       const p = paces[i] as Record<string, unknown>;
@@ -253,12 +282,16 @@ export function validate(data: unknown): ValidationReport {
 
   // ── Trail stops ──────────────────────────────────────────────
   const trailStops = d.trailStops;
-  check("trailStops", Array.isArray(trailStops) && (trailStops as unknown[]).length >= 2,
-    "trailStops must have at least 2 entries (start and end)");
+  if (mode === "journey") {
+    check("trailStops", Array.isArray(trailStops) && (trailStops as unknown[]).length >= 2,
+      "trailStops must have at least 2 entries (start and end)");
+  }
 
   const trailPath = d.trailPath;
-  check("trailPath", Array.isArray(trailPath) && (trailPath as unknown[]).length >= 2,
-    "trailPath must have at least 2 coordinate pairs");
+  if (mode === "journey") {
+    check("trailPath", Array.isArray(trailPath) && (trailPath as unknown[]).length >= 2,
+      "trailPath must have at least 2 coordinate pairs");
+  }
 
   if (Array.isArray(trailPath)) {
     for (let i = 0; i < trailPath.length; i++) {
@@ -275,8 +308,10 @@ export function validate(data: unknown): ValidationReport {
   if (typeof oc === "object" && oc !== null) {
     check("outfitConfig.budget", typeof oc.budget === "number", "Missing outfitConfig.budget");
     check("outfitConfig.costs", typeof oc.costs === "object" && oc.costs !== null, "Missing outfitConfig.costs");
-    check("outfitConfig.herdOptions", Array.isArray(oc.herdOptions) && (oc.herdOptions as unknown[]).length > 0,
-      "Missing or empty outfitConfig.herdOptions");
+    if (mode === "journey") {
+      check("outfitConfig.herdOptions", Array.isArray(oc.herdOptions) && (oc.herdOptions as unknown[]).length > 0,
+        "Missing or empty outfitConfig.herdOptions");
+    }
   }
 
   // ── Pixel faces ──────────────────────────────────────────────
