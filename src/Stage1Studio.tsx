@@ -3,6 +3,7 @@ import type { CampaignData } from "../generator/schema";
 import type { ProposedFrame, PlayerPerspective } from "../generator/frame";
 import type { SystemsEconomy } from "../generator/economy";
 import type { ProposedCast } from "../generator/cast";
+import { generateCampaignJob } from "./generateClient";
 
 // ═══════════════════════════════════════════════════════════════
 // Stage 1 Studio — the teacher-facing flow that turns a single TEKS
@@ -168,9 +169,9 @@ export default function Stage1Studio({
         cast: cast?.cast,
         economy: economy ?? undefined,
       };
-      const result = await postJson<{ data: CampaignData }>("/api/generate", payload);
+      const result = await generateCampaignJob(payload);
       if (timerRef.current) clearInterval(timerRef.current);
-      onPlay(result.data);
+      onPlay(result.data as CampaignData);
     } catch (e) {
       if (timerRef.current) clearInterval(timerRef.current);
       fail(generate, e);
@@ -191,7 +192,7 @@ export default function Stage1Studio({
       <div className="text-center space-y-6 pt-16">
         <h1 className="text-2xl font-bold text-amber-400">Building Your Campaign…</h1>
         <Spinner label={`${elapsed}s — assembling events, sages, trivia, and map from your locked inputs`} />
-        <p className="text-stone-600 text-xs">This usually takes 60–120 seconds.</p>
+        <p className="text-stone-600 text-xs">This usually takes 3–5 minutes. You can leave this tab open; it keeps working in the background.</p>
       </div>,
     );
   }

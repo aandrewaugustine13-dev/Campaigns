@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import type { Plugin } from 'vite'
 import { config as loadEnv } from 'dotenv'
 import { resolve } from 'path'
+import { randomUUID } from 'crypto'
 
 // Minimal JSON POST endpoint: validates method + API key, parses the body,
 // hands {apiKey, inputs} to the handler, and serializes its return value.
@@ -51,63 +52,95 @@ function generatorApiPlugin(): Plugin {
     configureServer(server) {
       loadEnv({ path: resolve(__dirname, '.env.local') });
 
-      // Full campaign generation (optionally with locked Stage-1 constraints).
-      // This call routinely runs 3-5+ minutes. A request that sends no bytes for
-      // that long gets aborted as idle by browsers and proxies (the "timed out"
-      // the user saw), even though the server finishes fine. So we stream
-      // insignificant JSON whitespace as a heartbeat while the model runs, then
-      // write the real body. JSON.parse ignores leading whitespace, so the
-      // client's res.json() still parses correctly. Errors come back as a 200
-      // body { error } since headers are already flushed; the client treats any
-      // payload with an `error` field as a failure.
+      // Full campaign generation runs 3-5+ minutes — far too long to hold a
+      // single browser request open reliably (a sleep, tab throttle, network
+      // blip, or HMR reload kills it). So generation is an async JOB: POST
+      // starts the work and returns a jobId immediately; the client polls
+      // GET /api/generate/<id> every few seconds. Each request is sub-second,
+      // so nothing can time it out. Jobs live in memory for the dev process;
+      // they are delivered once then dropped, with a TTL sweep as a backstop.
+      interface GenJob {
+        status: 'running' | 'done' | 'error';
+        startedAt: number;
+        finishedAt?: number;
+        data?: unknown;
+        validation?: unknown;
+        error?: string;
+      }
+      const jobs = new Map<string, GenJob>();
+
+      const sweepJobs = () => {
+        const now = Date.now();
+        for (const [id, job] of jobs) {
+          const since = now - (job.finishedAt ?? job.startedAt);
+          if (job.status !== 'running' && since > 10 * 60_000) jobs.delete(id);
+          else if (job.status === 'running' && now - job.startedAt > 30 * 60_000) jobs.delete(id);
+        }
+      };
+
       server.middlewares.use('/api/generate', async (req, res) => {
-        if (req.method !== 'POST') {
-          res.statusCode = 405;
+        const json = (status: number, payload: unknown) => {
+          res.statusCode = status;
           res.setHeader('Content-Type', 'application/json');
-          return res.end(JSON.stringify({ error: 'Method not allowed' }));
+          res.end(JSON.stringify(payload));
+        };
+        // req.url is the path AFTER the mount point: '/' to start, '/<id>' to poll.
+        const sub = (req.url || '/').split('?')[0];
+
+        // Start a job.
+        if (req.method === 'POST' && (sub === '/' || sub === '')) {
+          const apiKey = process.env.ANTHROPIC_API_KEY;
+          if (!apiKey) return json(500, { error: 'ANTHROPIC_API_KEY not configured in .env.local' });
+
+          let body = '';
+          for await (const chunk of req) body += chunk;
+          let inputs;
+          try {
+            inputs = body ? JSON.parse(body) : {};
+          } catch {
+            return json(400, { error: 'Invalid JSON in request body' });
+          }
+
+          const jobId = randomUUID();
+          const job: GenJob = { status: 'running', startedAt: Date.now() };
+          jobs.set(jobId, job);
+          sweepJobs();
+
+          // Run in the background; the response returns right away.
+          void (async () => {
+            try {
+              const { generateCampaign } = await import('./generator/core.ts');
+              const result = await generateCampaign(apiKey, inputs);
+              job.data = result.data;
+              job.validation = result.validation;
+              job.status = 'done';
+            } catch (e: unknown) {
+              job.error = e instanceof Error ? e.message : String(e);
+              job.status = 'error';
+              console.error('[generator-api] /api/generate job failed:', job.error);
+            } finally {
+              job.finishedAt = Date.now();
+            }
+          })();
+
+          return json(202, { jobId });
         }
 
-        const apiKey = process.env.ANTHROPIC_API_KEY;
-        if (!apiKey) {
-          res.statusCode = 500;
-          res.setHeader('Content-Type', 'application/json');
-          return res.end(JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured in .env.local' }));
+        // Poll a job.
+        if (req.method === 'GET' && sub.length > 1) {
+          const job = jobs.get(sub.slice(1));
+          if (!job) return json(404, { error: 'Unknown or expired generation job' });
+
+          const elapsedSeconds = ((job.finishedAt ?? Date.now()) - job.startedAt) / 1000;
+          if (job.status === 'running') return json(200, { status: 'running', elapsedSeconds });
+          if (job.status === 'error') return json(200, { status: 'error', error: job.error, elapsedSeconds });
+
+          const payload = { status: 'done', data: job.data, validation: job.validation, elapsedSeconds };
+          jobs.delete(sub.slice(1)); // deliver once, then free memory
+          return json(200, payload);
         }
 
-        let body = '';
-        for await (const chunk of req) body += chunk;
-
-        let inputs;
-        try {
-          inputs = body ? JSON.parse(body) : {};
-        } catch {
-          res.statusCode = 400;
-          res.setHeader('Content-Type', 'application/json');
-          return res.end(JSON.stringify({ error: 'Invalid JSON in request body' }));
-        }
-
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'application/json');
-        res.write(' '); // flush headers + first byte immediately
-        const heartbeat = setInterval(() => {
-          try { res.write(' '); } catch { /* socket closed */ }
-        }, 15000);
-
-        try {
-          const { generateCampaign } = await import('./generator/core.ts');
-          const result = await generateCampaign(apiKey, inputs);
-          clearInterval(heartbeat);
-          res.end(JSON.stringify({
-            data: result.data,
-            validation: result.validation,
-            elapsedSeconds: result.elapsedSeconds,
-          }));
-        } catch (e: unknown) {
-          clearInterval(heartbeat);
-          const message = e instanceof Error ? e.message : String(e);
-          console.error('[generator-api] /api/generate failed:', message);
-          res.end(JSON.stringify({ error: message }));
-        }
+        return json(405, { error: 'Method not allowed' });
       });
 
       // Stage-1 proposers: each takes { standard } and returns { data, findings }.

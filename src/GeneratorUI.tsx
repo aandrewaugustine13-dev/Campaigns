@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import type { CampaignData } from "../generator/schema";
 import GeneratedCampaign from "./GeneratedCampaign";
 import Stage1Studio from "./Stage1Studio";
+import { generateCampaignJob } from "./generateClient";
 
 type Phase = "form" | "generating" | "error" | "playing";
 type Mode = "guided" | "quick";
@@ -61,31 +62,14 @@ export default function GeneratorUI({ onBack }: { onBack: () => void }) {
     startTimer();
 
     try {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+      const result = await generateCampaignJob(form);
 
       stopTimer();
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-        throw new Error(err.error || `Server returned ${res.status}`);
-      }
-
-      const result = await res.json();
-
-      // /api/generate flushes its 200 headers before completion and may return
-      // { error } in the body; treat that as a failure.
-      if (result && result.error) {
-        throw new Error(result.error);
-      }
-
       if (result.validation && result.validation.failed > 0) {
         const errors = result.validation.findings
-          .filter((f: { level: string }) => f.level === "error")
-          .map((f: { field: string; message: string }) => `${f.field}: ${f.message}`)
+          ?.filter((f) => f.level === "error")
+          .map((f) => `${f.field}: ${f.message}`)
           .join("\n");
         console.warn("Validation errors:", errors);
       }
