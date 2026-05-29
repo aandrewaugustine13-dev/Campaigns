@@ -9,6 +9,18 @@
   image-rendering: crisp-edges;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   GLOBAL CONTRAST LIFT
+   Muted stone text is hard to read on the dark surfaces. Lift the
+   commonly-used secondary text tokens, scoped to dark containers
+   (.bg-stone-900 roots) so light-themed generated campaigns — which
+   use parchment backgrounds with dark theme-text — are unaffected.
+   ═══════════════════════════════════════════════════════════════ */
+.bg-stone-900 .text-stone-600 { color: #938a7f; }
+.bg-stone-900 .text-stone-500 { color: #b4aa9d; }
+.bg-stone-900 .text-stone-400 { color: #cabfb1; }
+.bg-stone-900 .text-stone-300 { color: #e6decf; }
+
 @keyframes bgScroll {
   0% { background-position: 0 0; }
   100% { background-position: 1000px 0; }
@@ -135,6 +147,44 @@
   100% { transform: scale(1); opacity: 0.8; }
 }
 
+/* ── Animated journey-map marker + route ─────────────────────────── */
+
+/* Marching dashes along the traveled route so the path reads as motion */
+@keyframes mapDashMarch {
+  to { stroke-dashoffset: -18; }
+}
+.trail-route-march {
+  animation: mapDashMarch 1.1s linear infinite;
+}
+
+/* Gentle vertical bob on the position icon */
+@keyframes mapMarkerBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+.trail-marker-bob {
+  animation: mapMarkerBob 1.6s ease-in-out infinite;
+}
+
+/* Expanding "you are here" pulse ring behind the icon */
+@keyframes mapPulseRing {
+  0% { transform: translate(-50%, -50%) scale(0.6); opacity: 0.9; }
+  70% { opacity: 0; }
+  100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+}
+.trail-marker-ring {
+  animation: mapPulseRing 2s ease-out infinite;
+}
+
+/* "On the move" indicator while the trail auto-advances between decisions */
+@keyframes trailTraveling {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+.trail-traveling {
+  animation: trailTraveling 1.1s ease-in-out infinite;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    OLD WEST STRATEGY SKIN (restrained + readable)
    ═══════════════════════════════════════════════════════════════ */
@@ -149,12 +199,12 @@
 .west-app .bg-stone-700 { background-color: #3a2a20 !important; }
 .west-app .border-stone-700 { border-color: #5b4534 !important; }
 .west-app .border-stone-600 { border-color: #6a503d !important; }
-.west-app .text-stone-500 { color: #b7a58f !important; }
-.west-app .text-stone-400 { color: #ccbca6 !important; }
-.west-app .text-stone-300 { color: #e2d1b6 !important; }
-.west-app .text-stone-200 { color: #f2e6d0 !important; }
-.west-app .text-amber-400 { color: #e0b24d !important; }
-.west-app .text-amber-300 { color: #e8c377 !important; }
+.west-app .text-stone-500 { color: #cdbfa8 !important; }
+.west-app .text-stone-400 { color: #ddd0bb !important; }
+.west-app .text-stone-300 { color: #ece0c8 !important; }
+.west-app .text-stone-200 { color: #f7eed9 !important; }
+.west-app .text-amber-400 { color: #f0c460 !important; }
+.west-app .text-amber-300 { color: #f2d089 !important; }
 .west-app .bg-amber-700 { background-color: #8f5323 !important; }
 .west-app .hover\:bg-amber-600:hover { background-color: #a2602b !important; }
 

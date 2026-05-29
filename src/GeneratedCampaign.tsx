@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { 
   Backpack, Droplets, Utensils, Users, Crosshair, 
   Shield, Coins, Heart, Smile, Zap, BookOpen, Map,
@@ -28,6 +28,9 @@ import VisualNovelEngine from "./VisualNovelEngine";
 import PushYourLuckEngine from "./PushYourLuckEngine";
 import DoomHUD from "./DoomHUD";
 import TrailMap from "./TrailMap";
+import FinalExam, { type ExamQuestion } from "./FinalExam";
+import { CampaignLogModal } from "./CampaignLog";
+import TradePost, { type TradeOffer } from "./TradePost";
 import {
   useFloatingNumbers, FloatingNumbers,
   useScreenShake, useStatPulse, useResourceTracker,
@@ -227,7 +230,9 @@ function GenericOutfitScreen({ data, onDone }: { data: CampaignData; onDone: (ou
   ]);
   const theme = ALLOWED_THEMES.has(data.theme ?? "") ? (data.theme as string) : "default";
 
-  const costKeys = Object.keys(data.outfitConfig.costs);
+  // Cap the outfit to four items so it stays easy to track. Extra cost
+  // keys (if the generator produced more) are ignored on this screen.
+  const costKeys = Object.keys(data.outfitConfig.costs).slice(0, 4);
   const [allocs, setAllocs] = useState<Record<string, number>>(() => {
     const init: Record<string, number> = {};
     for (const k of costKeys) init[k] = 1;
@@ -285,6 +290,90 @@ function GenericOutfitScreen({ data, onDone }: { data: CampaignData; onDone: (ou
   );
 }
 
+// Personnel are people, not goods — never tradeable as inventory. Detected
+// by resource key OR display label so generated campaigns can't offer to
+// "trade men for supplies."
+const PERSONNEL_RE = /crew|\bmen\b|soldier|sailor|people|person|worker|\bhand|troop|settler|passenger|guard|porter|labou?r|slave|servant|villager|recruit|warrior|knight|pilgrim|colonist|migrant|scout|rider|soul/i;
+function isPersonnelResource(key: string, label?: string): boolean {
+  return PERSONNEL_RE.test(key) || (label ? PERSONNEL_RE.test(label) : false);
+}
+
+// Nearest supply town ahead of the player, and whether it's close enough
+// to stop at. Mirrors Chisholm's isNearSupplyTown but reads generated data.
+function nearestSupplyTown(
+  stops: { supply: boolean; pct: number; name: string }[] | undefined,
+  progress: number,
+): { near: boolean; town: string | null } {
+  if (!Array.isArray(stops)) return { near: false, town: null };
+  const next = stops.find(s => s && s.supply && s.pct > progress);
+  if (!next) return { near: false, town: null };
+  return { near: next.pct - progress < 8, town: next.name };
+}
+
+// Resource-agnostic barter offers for a generated town. Trades a slice of a
+// surplus resource (or the primary asset) for a depleted one, normalized by
+// each resource's cap with a flat barter "tax" so trading is useful but lossy.
+// Personnel resources are excluded entirely — you cannot trade people.
+function computeGenericTradeOffers(
+  resources: Record<string, number> | undefined,
+  caps: Record<string, number> | undefined,
+  primaryKey: string,
+  labels: Record<string, string> | undefined,
+): TradeOffer[] {
+  const res = resources ?? {};
+  const capMap = caps ?? {};
+  const lbl = labels ?? {};
+  const ratio = (k: string) => (res[k] ?? 0) / (capMap[k] ?? 100);
+  const value = (k: string, amt: number) => amt / (capMap[k] ?? 100);
+  const TAX = 0.75;
+  // Tradeable pool excludes the primary asset and any personnel resources.
+  const tradeable = Object.keys(res).filter(
+    k => k !== primaryKey && !isPersonnelResource(k, lbl[k]),
+  );
+  const surplus = [...tradeable].sort((a, b) => ratio(b) - ratio(a));
+  const deficit = [...tradeable].sort((a, b) => ratio(a) - ratio(b));
+  const primaryTradeable = !!primaryKey && !isPersonnelResource(primaryKey, lbl[primaryKey]);
+  const offers: TradeOffer[] = [];
+
+  const mkBarter = (giveKey: string | undefined, getKey: string | undefined, id: string) => {
+    if (!giveKey || !getKey || giveKey === getKey) return;
+    const giveAmt = Math.max(1, Math.round((res[giveKey] ?? 0) * 0.25));
+    const getAmt = Math.max(1, Math.floor(value(giveKey, giveAmt) * (capMap[getKey] ?? 100) * TAX));
+    offers.push({
+      id,
+      label: `Trade ${lbl[giveKey] ?? giveKey} for ${lbl[getKey] ?? getKey}`,
+      give: { [giveKey]: giveAmt },
+      get: { [getKey]: getAmt },
+      disabled: (res[giveKey] ?? 0) < giveAmt,
+    });
+  };
+
+  mkBarter(surplus[0], deficit[0], "barter_a");
+  mkBarter(surplus[1], deficit[0], "barter_b");
+  mkBarter(surplus[0], deficit[1], "barter_c");
+
+  if (primaryTradeable && res[primaryKey] !== undefined && deficit[0]) {
+    const giveAmt = Math.max(1, Math.round((res[primaryKey] ?? 0) * 0.08));
+    const getKey = deficit[0];
+    const getAmt = Math.max(1, Math.floor(value(primaryKey, giveAmt) * (capMap[getKey] ?? 100) * TAX));
+    offers.push({
+      id: "sell_primary",
+      label: `Sell ${lbl[primaryKey] ?? primaryKey} to restock ${lbl[getKey] ?? getKey}`,
+      give: { [primaryKey]: giveAmt },
+      get: { [getKey]: getAmt },
+      disabled: (res[primaryKey] ?? 0) < giveAmt,
+    });
+  }
+
+  const seen = new Set<string>();
+  return offers.filter(o => {
+    const sig = JSON.stringify([o.give, o.get]);
+    if (seen.has(sig)) return false;
+    seen.add(sig);
+    return true;
+  });
+}
+
 // ═════════════════════════════════════════════════════════════════
 // TYPES
 // ═════════════════════════════════════════════════════════════════
@@ -306,7 +395,7 @@ interface GameEvent {
   imageSearchQuery?: string;
   image?: { thumbUrl: string; artist: string; license: string; sourceUrl: string; searchQuery: string };
 }
-interface Decision { event: string; choice: string; day: number }
+interface Decision { event: string; choice: string; day: number; text?: string; detail?: string }
 
 interface GameState {
   day: number; turn: number; resources: Resources;
@@ -466,8 +555,30 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
 
   const [state, setState] = useState<GameState>(makeInit);
   const [usedEvents, setUsedEvents] = useState<Set<string>>(new Set());
+  // Final-exam gate. Built from the campaign's TEKS event-trivia, padded
+  // with sage questions, capped at 10. End results stay locked until passed.
+  const [examPassed, setExamPassed] = useState(false);
+  const [examScore, setExamScore] = useState(0);
+  const [showLog, setShowLog] = useState(false);
+  const [leftTownId, setLeftTownId] = useState<string | null>(null);
+  const examQuestions = useMemo<ExamQuestion[]>(() => {
+    const fromTrivia: ExamQuestion[] = (data.eventTrivia ?? []).map((q) => ({
+      id: q.id, question: q.question, choices: q.choices, correctIndex: q.correctIndex, fact: q.fact,
+    }));
+    const fromSages: ExamQuestion[] = (data.sages ?? []).map((sg, i) => ({
+      id: `sageq_${sg.id ?? i}`,
+      question: sg.question.question,
+      choices: sg.question.choices,
+      correctIndex: sg.question.correctIndex,
+      fact: sg.question.explanation,
+      teksRef: sg.question.teksRef,
+    }));
+    return [...fromTrivia, ...fromSages]
+      .filter((q) => Array.isArray(q.choices) && q.choices.length >= 2)
+      .slice(0, 10);
+  }, [data]);
 
-  const start = useCallback(() => { setState({ ...makeInit(), phase: "outfit" }); setUsedEvents(new Set()); }, [makeInit]);
+  const start = useCallback(() => { setState({ ...makeInit(), phase: "outfit" }); setUsedEvents(new Set()); setExamPassed(false); setExamScore(0); setLeftTownId(null); }, [makeInit]);
   const backToMenu = useCallback(() => { onBack(); }, [onBack]);
 
   // ── Game juice ──
@@ -620,6 +731,21 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     setState(prev => ({ ...prev, routeState: { currentNodeId: toId }, routeTag: tag }));
   }, []);
 
+  // ── Town barter ──
+  const handleTrade = useCallback((offer: TradeOffer, townName: string) => {
+    setState(prev => {
+      const s: GameState = { ...prev, resources: { ...prev.resources }, decisions: [...prev.decisions] };
+      for (const [k, v] of Object.entries(offer.give)) if ((s.resources[k] || 0) < v) return prev;
+      for (const [k, v] of Object.entries(offer.give)) s.resources[k] = clampR(data, k, (s.resources[k] || 0) - v);
+      for (const [k, v] of Object.entries(offer.get)) s.resources[k] = clampR(data, k, (s.resources[k] || 0) + v);
+      const note = `${offer.label} at ${townName}.`;
+      s.decisions.push({ event: `Trade — ${townName}`, choice: offer.label, day: s.day, detail: note });
+      s.resultText = note;
+      s.phase = "result";
+      return s;
+    });
+  }, [data]);
+
   // ── Event choice ──
   const finalizeChoice = useCallback((ci: number, insightBonus: number) => {
     setState(prev => {
@@ -627,7 +753,17 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       const s: GameState = { ...prev, resources: { ...prev.resources }, decisions: [...prev.decisions] };
       const choice = s.currentEvent!.choices![ci];
       const outcome = resolveChoice(choice);
-      s.decisions.push({ event: s.currentEvent!.title, choice: choice.text, day: s.day });
+      {
+        const ev = s.currentEvent!;
+        const fact = Array.isArray(ev.trivia) && ev.trivia.length ? `Did you know? ${ev.trivia[0]}` : "";
+        s.decisions.push({
+          event: ev.title,
+          choice: choice.text,
+          day: s.day,
+          text: ev.text,
+          detail: [outcome.result, fact].filter(Boolean).join("\n\n") || undefined,
+        });
+      }
       if (outcome.effects) {
         for (const [k, v] of Object.entries(outcome.effects)) {
           if (s.resources[k] !== undefined) s.resources[k] = clampR(data, k, s.resources[k] + v);
@@ -679,7 +815,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     setState(prev => {
       if (!prev.currentEvent) return prev;
       const s: GameState = { ...prev, decisions: [...prev.decisions] };
-      s.decisions.push({ event: s.currentEvent!.title, choice: `Pushed luck ${log.length - 1} times.`, day: s.day });
+      s.decisions.push({ event: s.currentEvent!.title, choice: `Pushed luck ${log.length - 1} times.`, day: s.day, text: s.currentEvent!.text });
       s.currentEvent = null;
       s.phase = "sailing";
       return s;
@@ -721,7 +857,13 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       }
       s.historicalKnowledge += knowledge;
       s.knowledgeLog.push(`${sage.name}: +${knowledge} knowledge${correct ? " (correct)" : ""}`);
-      s.decisions.push({ event: `Sage: ${sage.name}`, choice: correct ? "Answered correctly" : `Learned from ${sage.name}`, day: s.day });
+      s.decisions.push({
+        event: `Sage: ${sage.name}`,
+        choice: correct ? "Answered correctly" : `Learned from ${sage.name}`,
+        day: s.day,
+        text: sage.question.question,
+        detail: `Correct answer: ${sage.question.choices[sage.question.correctIndex]}\n\n${sage.question.explanation}`,
+      });
       s.sagesMet.push(sage.id);
       s.sageIndex = prev.sageIndex + 1;
       s.currentSage = null;
@@ -733,16 +875,21 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   const handleTriviaComplete = useCallback((correct: boolean, effects: Record<string, number>) => {
     setState(prev => {
       const s: GameState = { ...prev, resources: { ...prev.resources }, knowledgeLog: [...prev.knowledgeLog], decisions: [...prev.decisions] };
+      const tq = s.currentTrivia;
+      const triviaText = tq?.question;
+      const triviaDetail = tq
+        ? [`Correct answer: ${tq.choices[tq.correctIndex]}`, tq.fact].filter(Boolean).join("\n\n")
+        : undefined;
       if (correct) {
         s.triviaStreak++;
         for (const [k, v] of Object.entries(effects)) {
           if (k === "historicalKnowledge") { s.historicalKnowledge += v; s.knowledgeLog.push(`Knowledge: +${v}`); }
           else if (s.resources[k] !== undefined) s.resources[k] = clampR(data, k, s.resources[k] + v);
         }
-        s.decisions.push({ event: "Knowledge Check", choice: `Correct (streak: ${s.triviaStreak})`, day: s.day });
+        s.decisions.push({ event: "Knowledge Check", choice: `Correct (streak: ${s.triviaStreak})`, day: s.day, text: triviaText, detail: triviaDetail });
       } else {
         s.triviaStreak = 0;
-        s.decisions.push({ event: "Knowledge Check", choice: "Learned", day: s.day });
+        s.decisions.push({ event: "Knowledge Check", choice: "Learned", day: s.day, text: triviaText, detail: triviaDetail });
       }
       s.currentTrivia = null;
       s.phase = s.distance >= data.totalDistance ? "end" as const : "sailing" as const;
@@ -754,8 +901,24 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   // ── Derived state ──
   const r = state.resources;
   const progress = state.distance / data.totalDistance * 100;
-  const currentRouteNode = findNode(data.route, state.routeState.currentNodeId) || data.route[0];
+  const currentRouteNode = findNode(data.route, state.routeState.currentNodeId)
+    || data.route?.[0]
+    || { id: "start", title: "On the trail", description: "", edges: [] };
   const partyMembers = getPartyMembers(data, r);
+
+  // ── Decision-driven progression ──────────────────────────────
+  // No manual "advance" button. The expedition moves forward on its own
+  // until it reaches a real route fork to decide; events/sages/trivia
+  // (set by advanceTurn) pause it by leaving the "sailing" phase.
+  const supplyTown = nearestSupplyTown(data.trailStops, progress);
+  const atRouteFork = currentRouteNode.edges.length >= 2;
+  const atTownStop = supplyTown.near && supplyTown.town !== leftTownId;
+  const awaitingDecision = atRouteFork || atTownStop;
+  useEffect(() => {
+    if (state.phase !== "sailing" || state.gameOver || awaitingDecision) return;
+    const t = setTimeout(() => advanceTurn(), 650);
+    return () => clearTimeout(t);
+  }, [state.phase, state.turn, state.gameOver, awaitingDecision, advanceTurn]);
 
   const topResources = useMemo(() => {
     const keys = Object.keys(data.initialResources);
@@ -827,6 +990,25 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   if (state.phase === "outfit") return <GenericOutfitScreen data={data} onDone={onOutfitDone} />;
 
   if (state.phase === "end") {
+    // ── Gate: pass the TEKS final exam before the results unlock ──
+    if (!examPassed && examQuestions.length > 0) {
+      return (
+        <div data-theme={theme} className="h-screen theme-bg-page theme-text p-4 overflow-y-auto theme-body-font flex items-center">
+          <div className="max-w-lg mx-auto w-full space-y-4">
+            <h1 className="text-2xl font-bold text-center theme-text-accent">Check for Understanding</h1>
+            <FinalExam
+              themed
+              questions={examQuestions}
+              decisionLog={state.decisions}
+              subtitle="Answer the final exam to complete the campaign. Review your decisions if you get stuck."
+              onPass={(correct) => { setExamScore(correct); setExamPassed(true); }}
+            />
+            <button onClick={backToMenu} className="block w-full theme-text-muted text-xs">← Back to Campaigns</button>
+          </div>
+        </div>
+      );
+    }
+
     const primaryKey = data.primaryResourceKey;
     const primaryVal = r[primaryKey] ?? 0;
     const primaryStart = data.primaryResourceStart;
@@ -834,7 +1016,8 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     const revenue = state.survived ? primaryVal * data.revenuePerUnit : 0;
     const cost = state.outfit.budgetSpent;
     const profit = revenue - cost;
-    const grade = getGrade(state.survived, primaryPct, state.historicalKnowledge);
+    const examKnowledge = state.historicalKnowledge + examScore * 3;
+    const grade = getGrade(state.survived, primaryPct, examKnowledge);
 
     const isDefense = data.distanceUnit.toLowerCase().includes("level") ||
       data.distanceUnit.toLowerCase().includes("wall") ||
@@ -937,22 +1120,21 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
           </div>
 
           {state.decisions.length > 0 && (
-            <div className="theme-bg-card theme-border border rounded p-3 space-y-1">
-              <h3 className="text-xs font-bold theme-text-muted uppercase tracking-wide">Decision Log</h3>
-              {state.decisions.map((d, i) => (
-                <p key={i} className="text-xs theme-text-muted">
-                  <span className="opacity-70">Day {d.day}:</span>{" "}
-                  <span className="theme-text">{d.event}</span> — {d.choice}
-                </p>
-              ))}
-            </div>
+            <button
+              onClick={() => setShowLog(true)}
+              className="w-full theme-bg-card theme-border border rounded p-3 text-left hover:brightness-110 transition-all"
+            >
+              <h3 className="text-xs font-bold theme-text-accent uppercase tracking-wide">Open Campaign Log</h3>
+              <p className="text-xs theme-text-muted mt-0.5">Click back through every decision, event, and answer from your journey.</p>
+            </button>
           )}
 
           <div className="text-center pb-4 space-y-2">
-            <button onClick={() => { setState(makeInit()); setUsedEvents(new Set()); }} className="px-5 py-2 theme-btn-action font-bold rounded transition-colors">Run It Again</button>
+            <button onClick={() => { setState(makeInit()); setUsedEvents(new Set()); setExamPassed(false); setExamScore(0); setLeftTownId(null); }} className="px-5 py-2 theme-btn-action font-bold rounded transition-colors">Run It Again</button>
             <br /><button onClick={backToMenu} className="text-xs theme-text-muted opacity-70 hover:opacity-100 transition-opacity">&larr; Back to Campaigns</button>
           </div>
         </div>
+        {showLog && <CampaignLogModal entries={state.decisions} themed onClose={() => setShowLog(false)} />}
       </div>
     );
   }
@@ -967,7 +1149,9 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
 
       {/* Map sidebar */}
       <div className="hidden md:flex w-[360px] lg:w-[430px] xl:w-[520px] 2xl:w-[580px] flex-shrink-0">
-        <TrailMap progress={progress} day={state.day} totalDays={data.totalDays} trailPath={data.trailPath} trailStops={data.trailStops} mapImage={data.mapImage} totalDistance={data.totalDistance} />
+        {Array.isArray(data.trailPath) && data.trailPath.length > 0 && (
+          <TrailMap progress={progress} day={state.day} totalDays={data.totalDays} trailPath={data.trailPath} trailStops={data.trailStops ?? []} mapImage={data.mapImage} totalDistance={data.totalDistance} />
+        )}
       </div>
 
       {/* Trail feed sidebar */}
@@ -1029,6 +1213,12 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                   Inventory
                   {state.inventoryOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
                 </button>
+                <button
+                  onClick={() => setShowLog(true)}
+                  className="flex items-center gap-1 px-2 py-0.5 theme-bg-card-inner theme-border border rounded text-[10px] font-bold theme-text-accent transition-colors hover:opacity-90"
+                >
+                  Campaign Log
+                </button>
               </div>
             </div>
 
@@ -1073,14 +1263,18 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                     Route: {currentRouteNode.title} ({state.routeTag})
                   </p>
                   <p className={`text-xs ${themeConfig.subtext} mt-1`}>{currentRouteNode.description}</p>
-                  {currentRouteNode.edges.length > 0 && (
+                  {atRouteFork && (
                     <div className="mt-2 grid grid-cols-1 gap-1">
+                      <p className={`text-[11px] font-bold ${themeConfig.routeText}`}>Choose your path — the expedition moves out once you decide:</p>
                       {currentRouteNode.edges.map(edge => (
-                        <button key={edge.to} onClick={() => chooseRoute(edge.to, edge.tag)} className={`text-left text-xs px-2 py-1 rounded ${themeConfig.routeButton} transition-colors`}>
+                        <button key={edge.to} onClick={() => { chooseRoute(edge.to, edge.tag); advanceTurn(); }} className={`text-left text-xs px-2 py-1 rounded ${themeConfig.routeButton} transition-colors`}>
                           {edge.label} <span className={themeConfig.subtext}>[{edge.tag}]</span>
                         </button>
                       ))}
                     </div>
+                  )}
+                  {!awaitingDecision && (
+                    <p className={`text-xs mt-2 font-bold trail-traveling ${themeConfig.routeText}`}>The expedition presses onward…</p>
                   )}
                 </div>
 
@@ -1097,22 +1291,19 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                   </div>
                 )}
 
-                {/* Pace buttons */}
-                <div className="flex gap-2">
-                  {data.paces.map(p => (
-                    <button
-                      key={p.id}
-                      onClick={() => { setState(prev => ({ ...prev, pace: p.id })); advanceTurn(); }}
-                      className={`flex-1 py-2 rounded text-xs font-bold transition-colors ${
-                        p.id === data.paces[data.paces.length - 1]?.id ? "bg-red-900 hover:bg-red-800 text-white"
-                        : p.id === data.paces[0]?.id ? "bg-emerald-900 hover:bg-emerald-800 text-white"
-                        : themeConfig.button
-                      }`}
-                    >
-                      {p.label}<br /><span className="font-normal opacity-70">{p.desc}</span>
-                    </button>
-                  ))}
-                </div>
+                {/* Trading post at supply towns */}
+                {atTownStop && supplyTown.town && (
+                  <TradePost
+                    townName={supplyTown.town}
+                    resources={r}
+                    labels={data.resourceLabels ?? {}}
+                    showKeys={topResources.filter(k => !isPersonnelResource(k, data.resourceLabels?.[k]))}
+                    offers={computeGenericTradeOffers(r, data.resourceCaps, data.primaryResourceKey, data.resourceLabels)}
+                    themed
+                    onTrade={(o) => handleTrade(o, supplyTown.town!)}
+                    onLeave={() => { setLeftTownId(supplyTown.town); advanceTurn(); }}
+                  />
+                )}
               </div>
             )}
 
@@ -1177,6 +1368,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
           </div>
         </div>
       </div>
+      {showLog && <CampaignLogModal entries={state.decisions} themed onClose={() => setShowLog(false)} />}
     </div>
   );
 }

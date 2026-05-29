@@ -19,10 +19,15 @@ export function clampR(k: string, v: number): number {
   return Math.max(0, Math.min(v, max));
 }
 
+// Pace is the core push-vs-preserve tension. Easy genuinely restores
+// the herd and crew but is too slow to finish on its own; Push covers
+// ground fast but burns condition, morale, and supplies hard. The wide
+// mpd spread (4/8/12) forces a real strategy of when to spend and when
+// to recover rather than parking on one setting.
 export const PACES: PaceConfig[] = [
-  { id: "easy",   label: "Easy",   desc: "5 mi/day · Herd fattens", mpd: 5,  fx: { herdCondition:  2, morale:  1, supplies: -1 } },
-  { id: "normal", label: "Normal", desc: "7 mi/day · Standard",      mpd: 7,  fx: { herdCondition: -1, morale: -1, supplies: -2 } },
-  { id: "push",   label: "Push",   desc: "10 mi/day · Brutal",       mpd: 10, fx: { herdCondition: -5, morale: -4, supplies: -3 } },
+  { id: "easy",   label: "Easy",   desc: "4 mi/day · Herd fattens", mpd: 4,  fx: { herdCondition:  4, morale:  2, supplies: -1 } },
+  { id: "normal", label: "Normal", desc: "8 mi/day · Standard",      mpd: 8,  fx: { herdCondition: -1, morale: -1, supplies: -2 } },
+  { id: "push",   label: "Push",   desc: "12 mi/day · Brutal",       mpd: 12, fx: { herdCondition: -7, morale: -5, supplies: -4 } },
 ];
 
 export const RESOURCE_LABELS: Record<string, string> = {

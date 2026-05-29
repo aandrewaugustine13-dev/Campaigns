@@ -220,6 +220,37 @@ interface CommonsImageResult {
   searchQuery: string;
 }
 
+// Titles that are almost never the "historical art" we want for an event or
+// backdrop — maps, flags, heraldry, charts, icons, etc. Matching files are
+// heavily down-ranked (not hard-skipped: a junk hit still beats no image).
+const JUNK_TITLE_RE = /map|locator|coat of arms|flag|logo|seal|emblem|diagram|chart|icon|stamp|banner|coin|svg/i;
+
+// Words too generic to signal topical relevance when overlapping a title.
+const STOPWORDS = new Set([
+  "the", "and", "of", "a", "an", "in", "on", "at", "to", "for", "with",
+  "history", "painting", "image", "photo", "illustration", "art",
+]);
+
+function tokenize(text: string): string[] {
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter((t) => t.length >= 3 && !STOPWORDS.has(t));
+}
+
+// Higher = more likely to be the on-topic historical image. Rewards query↔
+// title token overlap; penalizes junk titles and SVGs (usually diagrams).
+function scoreCandidate(title: string, mime: string, queryTokens: Set<string>): number {
+  const titleTokens = tokenize(title);
+  let overlap = 0;
+  for (const t of titleTokens) if (queryTokens.has(t)) overlap++;
+  let score = overlap * 3;
+  if (JUNK_TITLE_RE.test(title)) score -= 6;
+  if (mime === "image/svg+xml") score -= 5;
+  return score;
+}
+
 // Commons file search — the keyword-based strategy. Used for event imagery
 // and campaign backdrop, NOT for portraits (those use the WP-pageimages
 // flow in searchPortrait). Returns the first image hit whose license is
@@ -232,7 +263,7 @@ async function searchCommonsFile(query: string): Promise<CommonsImageResult | nu
     generator: "search",
     gsrnamespace: "6",
     gsrsearch: query,
-    gsrlimit: "10",
+    gsrlimit: "20",
     prop: "imageinfo",
     iiprop: "url|extmetadata|mime",
     iiurlwidth: "600",
@@ -254,26 +285,107 @@ async function searchCommonsFile(query: string): Promise<CommonsImageResult | nu
     const pages = data.query?.pages;
     if (!pages) return null;
 
-    const sorted = Object.values(pages).sort(
-      (a, b) => ((a as any).index ?? 999) - ((b as any).index ?? 999),
-    );
+    const queryTokens = new Set(tokenize(query));
 
-    for (const page of sorted) {
+    // Rank all license-acceptable image hits and take the best, rather than
+    // the first Commons hit (which is frequently a map/flag/diagram).
+    let best: { result: CommonsImageResult; score: number; index: number } | null = null;
+    for (const page of Object.values(pages)) {
       const info = page.imageinfo?.[0];
       if (!info?.extmetadata) continue;
       const mime = info.mime ?? "";
       if (!mime.startsWith("image/")) continue;
       if (!isAcceptableForEventImage(info.extmetadata)) continue;
 
-      return {
-        thumbUrl: info.thumburl,
-        artist: stripHtml(info.extmetadata.Artist?.value ?? "Unknown"),
-        license: info.extmetadata.LicenseShortName?.value ?? "Unknown",
-        sourceUrl: commonsPageUrl(page.title),
-        searchQuery: query,
+      const index = (page as any).index ?? 999;
+      const score = scoreCandidate(page.title, mime, queryTokens);
+      const candidate = {
+        result: {
+          thumbUrl: info.thumburl,
+          artist: stripHtml(info.extmetadata.Artist?.value ?? "Unknown"),
+          license: info.extmetadata.LicenseShortName?.value ?? "Unknown",
+          sourceUrl: commonsPageUrl(page.title),
+          searchQuery: query,
+        },
+        score,
+        index,
       };
+
+      // Highest score wins; the original search rank breaks ties.
+      if (!best || score > best.score || (score === best.score && index < best.index)) {
+        best = candidate;
+      }
     }
+
+    // Relevance gate: require at least one meaningful query↔title token
+    // match (and net-positive after junk/SVG penalties). A wrong image is
+    // worse than no image — the engine falls back to the backdrop / none.
+    if (!best || best.score <= 0) return null;
+    return best.result;
+  } catch {
     return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// CC-BY-tolerant variant of lookupCommonsFile, returning the richer
+// CommonsImageResult used by events/backdrop. Used by the article-pageimage
+// pass below.
+async function lookupCommonsFileForEvent(
+  filename: string,
+  searchQuery: string,
+  signal: AbortSignal,
+): Promise<CommonsImageResult | null> {
+  const params = new URLSearchParams({
+    action: "query",
+    titles: `File:${filename}`,
+    prop: "imageinfo",
+    iiprop: "url|extmetadata|mime",
+    iiurlwidth: "600",
+    format: "json",
+    origin: "*",
+  });
+
+  const res = await fetch(`${COMMONS_API}?${params}`, {
+    headers: { "User-Agent": USER_AGENT, "Api-User-Agent": USER_AGENT },
+    signal,
+  });
+  if (!res.ok) return null;
+
+  const data = (await res.json()) as CommonsResponse;
+  const page = Object.values(data.query?.pages ?? {})[0] as
+    | (CommonsPage & { missing?: string })
+    | undefined;
+  if (!page || page.missing !== undefined) return null;
+
+  const info = page.imageinfo?.[0];
+  if (!info?.extmetadata) return null;
+  const mime = info.mime ?? "";
+  if (!mime.startsWith("image/")) return null;
+  if (!isAcceptableForEventImage(info.extmetadata)) return null;
+
+  return {
+    thumbUrl: info.thumburl,
+    artist: stripHtml(info.extmetadata.Artist?.value ?? "Unknown"),
+    license: info.extmetadata.LicenseShortName?.value ?? "Unknown",
+    sourceUrl: commonsPageUrl(`File:${filename}`),
+    searchQuery,
+  };
+}
+
+// Primary pass for event/backdrop imagery: find the best-matching Wikipedia
+// article for the query and use its lead image (pageimage), which is almost
+// always the canonical on-topic photo/painting. Null if there's no article,
+// no pageimage, the file isn't license-acceptable, or on any network error.
+async function searchViaArticlePageimage(query: string): Promise<CommonsImageResult | null> {
+  if (!query.trim()) return null;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    const pageimage = await findArticlePageimage(query, controller.signal);
+    if (!pageimage) return null;
+    return await lookupCommonsFileForEvent(pageimage, query, controller.signal);
   } catch {
     return null;
   } finally {
@@ -291,14 +403,23 @@ export async function enrichEventImages(data: any, ctx: CampaignContext): Promis
 
   const appendStyle = (q: string) => styleKw ? `${q} ${styleKw}` : q;
 
+  // For each query: try the canonical article lead image first (raw query,
+  // no style keyword — that derails article search), then fall back to the
+  // ranked Commons file search (with style keyword) if the article pass
+  // finds nothing usable.
+  const resolveImage = async (rawQuery: string): Promise<CommonsImageResult | null> => {
+    const viaArticle = await searchViaArticlePageimage(rawQuery);
+    if (viaArticle) return viaArticle;
+    return searchCommonsFile(appendStyle(rawQuery));
+  };
+
   const eventTasks = events.map((ev: any) =>
     typeof ev.imageSearchQuery === "string" && ev.imageSearchQuery.trim()
-      ? searchCommonsFile(appendStyle(ev.imageSearchQuery.trim()))
+      ? resolveImage(ev.imageSearchQuery.trim())
       : Promise.resolve<CommonsImageResult | null>(null),
   );
 
-  const backdropQuery = appendStyle(ctx.topic);
-  const tasks = [...eventTasks, searchCommonsFile(backdropQuery)];
+  const tasks = [...eventTasks, resolveImage(ctx.topic)];
 
   const settled = await Promise.allSettled(tasks);
 

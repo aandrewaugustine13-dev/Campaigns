@@ -30,6 +30,23 @@ function nextSupplyTown(trailStops: TrailStop[], progress: number): TrailStop | 
   return trailStops.find(s => s.supply && s.pct > progress) || null;
 }
 
+// Points from the start of the trail up to the current position, used to
+// draw the "traveled so far" portion of the route as a solid line.
+function travelledPoints(
+  trailPath: [number, number][],
+  progress: number,
+): [number, number][] {
+  const p = Math.max(0, Math.min(100, progress)) / 100;
+  const totalSegments = trailPath.length - 1;
+  if (totalSegments <= 0) return [trailPath[0]];
+  const exactIndex = p * totalSegments;
+  const i = Math.min(Math.floor(exactIndex), totalSegments);
+  const pts = trailPath.slice(0, i + 1);
+  const here = getHerdPosition(trailPath, progress);
+  pts.push([here.x, here.y]);
+  return pts;
+}
+
 export default function TrailMap({
   progress,
   day,
@@ -38,6 +55,7 @@ export default function TrailMap({
   trailStops,
   mapImage,
   totalDistance,
+  markerIcon = "/map-icons/herd.png",
 }: {
   progress: number;
   day: number;
@@ -46,6 +64,7 @@ export default function TrailMap({
   trailStops: TrailStop[];
   mapImage: string;
   totalDistance: number;
+  markerIcon?: string;
 }) {
   const [milestoneId, setMilestoneId] = useState<string | null>(null);
   const reachedRef = useRef<Set<string>>(new Set([trailStops[0]?.id]));
@@ -73,6 +92,34 @@ export default function TrailMap({
   );
 
   const herd = useMemo(() => getHerdPosition(trailPath, progress), [trailPath, progress]);
+  const fullRoute = useMemo(
+    () => trailPath.map(([x, y]) => `${x},${y}`).join(" "),
+    [trailPath],
+  );
+  const traveledRoute = useMemo(
+    () => travelledPoints(trailPath, progress).map(([x, y]) => `${x},${y}`).join(" "),
+    [trailPath, progress],
+  );
+  // Labels for every stop, placed to whichever side keeps them on the map.
+  const stopLabels = useMemo(
+    () =>
+      trailStops.map((stop) => {
+        const [x, y] = trailPath[stop.pathIndex] ?? [50, 50];
+        return { id: stop.id, name: stop.name, x, y, supply: stop.supply, side: x <= 50 ? "right" : "left" as "right" | "left" };
+      }),
+    [trailPath, trailStops],
+  );
+  const startId = trailStops[0]?.id;
+
+  // Scale bar: convert a round mile count into a fraction of the map's
+  // vertical span (the path's y-range), so it reflects real distance.
+  const { scaleMiles, scaleHeightPct } = useMemo(() => {
+    const ys = trailPath.map((p) => p[1]);
+    const yRange = Math.max(...ys) - Math.min(...ys) || 1;
+    const miles = totalDistance >= 400 ? 100 : totalDistance >= 120 ? 50 : Math.max(10, Math.round(totalDistance / 4));
+    return { scaleMiles: miles, scaleHeightPct: (miles / totalDistance) * yRange };
+  }, [trailPath, totalDistance]);
+
   const nextSupply = nextSupplyTown(trailStops, progress);
   const approachingSupply = nextSupply && (nextSupply.pct - progress) < 8;
   const currentStop = [...trailStops].reverse().find(s => progress >= s.pct) || trailStops[0];
@@ -108,6 +155,39 @@ export default function TrailMap({
                 }}
               />
 
+              {/* Route overlay: faint full route + lit traveled portion.
+                  non-scaling-stroke keeps line weight uniform despite the
+                  distorted (preserveAspectRatio none) viewBox. */}
+              <svg
+                className="absolute inset-0 w-full h-full pointer-events-none"
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+                style={{ zIndex: 10 }}
+                aria-hidden="true"
+              >
+                <polyline
+                  points={fullRoute}
+                  fill="none"
+                  stroke="rgba(231,196,128,0.28)"
+                  strokeWidth={2}
+                  strokeDasharray="3 3"
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                />
+                <polyline
+                  className="trail-route-march"
+                  points={traveledRoute}
+                  fill="none"
+                  stroke="#d97706"
+                  strokeWidth={2.5}
+                  strokeDasharray="5 4"
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </svg>
+
               {/* Static camp markers */}
               {campMarkers.map((camp) => (
                 <img
@@ -128,23 +208,147 @@ export default function TrailMap({
                 />
               ))}
 
-              {/* Herd marker */}
-              <img
-                src="/map-icons/herd.png"
-                alt=""
-                aria-hidden="true"
+              {/* Stop dots (for stops without a camp icon) + name labels */}
+              {stopLabels.map((s) => {
+                const hasCampIcon = s.supply && s.id !== startId;
+                return (
+                  <div key={`label-${s.id}`}>
+                    {!hasCampIcon && (
+                      <span
+                        className="absolute pointer-events-none"
+                        style={{
+                          left: `${s.x}%`,
+                          top: `${s.y}%`,
+                          width: 7,
+                          height: 7,
+                          transform: "translate(-50%, -50%)",
+                          borderRadius: "9999px",
+                          background: s.id === startId ? "#fbbf24" : "#e7c480",
+                          border: "1px solid rgba(0,0,0,0.6)",
+                          zIndex: 13,
+                        }}
+                      />
+                    )}
+                    <span
+                      className="absolute pointer-events-none whitespace-nowrap font-bold"
+                      style={{
+                        left: `${s.x}%`,
+                        top: `${s.y}%`,
+                        transform: s.side === "right" ? "translate(8px, -50%)" : "translate(calc(-100% - 8px), -50%)",
+                        fontSize: "clamp(8px, 0.8vw, 10px)",
+                        color: "#fde9c8",
+                        background: "rgba(20,14,10,0.72)",
+                        padding: "1px 5px",
+                        borderRadius: 4,
+                        textShadow: "0 1px 2px rgba(0,0,0,0.9)",
+                        fontFamily: "'Georgia', serif",
+                        zIndex: 16,
+                      }}
+                    >
+                      {s.name}
+                    </span>
+                  </div>
+                );
+              })}
+
+              {/* Compass — north is up on this map */}
+              <div
+                className="absolute pointer-events-none flex flex-col items-center"
+                style={{ right: 8, top: 8, zIndex: 25, color: "#fde9c8" }}
+              >
+                <div
+                  className="flex items-center justify-center rounded-full"
+                  style={{
+                    width: "clamp(26px, 2.6vw, 34px)",
+                    height: "clamp(26px, 2.6vw, 34px)",
+                    background: "radial-gradient(circle, rgba(40,28,18,0.92), rgba(20,14,10,0.92))",
+                    border: "1.5px solid rgba(217,119,6,0.6)",
+                    boxShadow: "0 1px 4px rgba(0,0,0,0.6)",
+                  }}
+                >
+                  <span style={{ fontSize: "clamp(13px, 1.4vw, 17px)", lineHeight: 1 }}>🧭</span>
+                </div>
+                <span
+                  className="font-black mt-0.5"
+                  style={{ fontSize: "clamp(9px, 0.9vw, 11px)", textShadow: "0 1px 2px rgba(0,0,0,0.9)" }}
+                >
+                  N ↑
+                </span>
+              </div>
+
+              {/* Scale bar — a round mile count as a fraction of the map's
+                  vertical extent, giving a real sense of distance */}
+              <div
+                className="absolute pointer-events-none flex items-center gap-1"
+                style={{ left: 8, bottom: 10, zIndex: 25 }}
+              >
+                <div
+                  style={{
+                    width: 3,
+                    height: `${scaleHeightPct}%`,
+                    minHeight: 14,
+                    background: "#fde9c8",
+                    borderRadius: 2,
+                    boxShadow: "0 0 0 1px rgba(0,0,0,0.6)",
+                    position: "relative",
+                  }}
+                >
+                  <span style={{ position: "absolute", left: -3, top: -1, width: 9, height: 2, background: "#fde9c8" }} />
+                  <span style={{ position: "absolute", left: -3, bottom: -1, width: 9, height: 2, background: "#fde9c8" }} />
+                </div>
+                <span
+                  className="font-bold"
+                  style={{
+                    fontSize: "clamp(8px, 0.8vw, 10px)",
+                    color: "#fde9c8",
+                    textShadow: "0 1px 2px rgba(0,0,0,0.9)",
+                    fontFamily: "'Georgia', serif",
+                  }}
+                >
+                  {scaleMiles} mi
+                </span>
+              </div>
+
+              {/* "You are here" marker — pulse ring behind a bobbing icon.
+                  The wrapper carries the position tween; inner layers carry
+                  the looping pulse/bob so the two don't fight. */}
+              <div
                 className="absolute pointer-events-none select-none"
                 style={{
                   left: `${herd.x}%`,
                   top: `${herd.y}%`,
-                  width: "clamp(14px, 1.4vw, 18px)",
-                  height: "clamp(14px, 1.4vw, 18px)",
                   transform: "translate(-50%, -50%)",
-                  transition: "left 1s ease-in-out, top 1s ease-in-out",
+                  transition: "left 1.1s ease-in-out, top 1.1s ease-in-out",
                   zIndex: 20,
                 }}
-                draggable={false}
-              />
+              >
+                <span
+                  className="trail-marker-ring"
+                  style={{
+                    position: "absolute",
+                    left: "50%",
+                    top: "50%",
+                    width: "clamp(20px, 2vw, 26px)",
+                    height: "clamp(20px, 2vw, 26px)",
+                    transform: "translate(-50%, -50%)",
+                    borderRadius: "9999px",
+                    border: "2px solid rgba(217,119,6,0.7)",
+                  }}
+                />
+                <img
+                  src={markerIcon}
+                  alt=""
+                  aria-hidden="true"
+                  className="trail-marker-bob relative block"
+                  style={{
+                    width: "clamp(14px, 1.4vw, 18px)",
+                    height: "clamp(14px, 1.4vw, 18px)",
+                    filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.7))",
+                  }}
+                  draggable={false}
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
+              </div>
 
               {/* Milestone arrival banner */}
               {flashStop && (

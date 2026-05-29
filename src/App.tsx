@@ -29,6 +29,10 @@ import SageEncounter from "./SageEncounter";
 import ChisholmParallaxBackground from "./campaigns/chisholm/parallax";
 import { ChisholmCampaign } from "./campaigns/chisholm/index";
 import { CrusadesCampaign } from "./campaigns/crusades/index";
+import FinalExam from "./FinalExam";
+import { CampaignLogModal } from "./CampaignLog";
+import TradePost, { type TradeOffer } from "./TradePost";
+import { CHISHOLM_FINAL_EXAM } from "./campaigns/chisholm/finalExam";
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -50,7 +54,7 @@ interface GameEvent {
   riskProfile?: ("LOW" | "MED" | "HIGH")[];
   triviaGate?: boolean;
 }
-interface Decision { event: string; choice: string; day: number; }
+interface Decision { event: string; choice: string; day: number; text?: string; detail?: string; }
 interface OutfitConfig {
   herd: number;
   crew: number;
@@ -117,22 +121,30 @@ function getCrewRating(herd: number, crew: number): { label: string; color: stri
   return { label: "Well-staffed", color: "text-blue-400", condition: 70 };
 }
 
+// Standard kit is no longer micro-managed at outfit — rifles, spare parts,
+// trail teams, and crew wages come bundled at a fixed cost so the player
+// only sizes the four things that matter: herd, crew, horses, provisions.
+const FIXED_GUNS = 6;
+const FIXED_SPAREPARTS = 3;
+const FIXED_HORSEQUALITY = 2;
+const FIXED_WAGES: "low" | "standard" | "good" = "standard";
+const FIXED_GEAR_COST =
+  FIXED_GUNS * COST_GUN +
+  FIXED_SPAREPARTS * COST_SPAREPARTS +
+  FIXED_HORSEQUALITY * COST_HORSE_QUALITY +
+  WAGE_COST[FIXED_WAGES];
+
 function OutfitScreen({ onDone }: { onDone: (config: OutfitConfig) => void }) {
   const [herdIdx, setHerdIdx] = useState(2); 
   const [extraCrew, setExtraCrew] = useState(4); 
   const [extraHorses, setExtraHorses] = useState(12); 
   const [extraSupplies, setExtraSupplies] = useState(10); 
-  const [guns, setGuns] = useState(4);
-  const [spareParts, setSpareParts] = useState(3);
-  const [medicalGear, setMedicalGear] = useState(2);
-  const [horseQuality, setHorseQuality] = useState(2);
-  const [wages, setWages] = useState<"low" | "standard" | "good">("standard");
 
   const herd = HERD_OPTIONS[herdIdx];
   const crew = BASE_CREW + extraCrew;
   const horses = BASE_HORSES + extraHorses;
   const supplies = BASE_SUPPLIES + extraSupplies;
-  const spent = extraCrew * COST_COWBOY + extraHorses * COST_HORSE + extraSupplies * COST_SUPPLY + guns * COST_GUN + spareParts * COST_SPAREPARTS + medicalGear * COST_MEDICAL_GEAR + horseQuality * COST_HORSE_QUALITY + WAGE_COST[wages];
+  const spent = FIXED_GEAR_COST + extraCrew * COST_COWBOY + extraHorses * COST_HORSE + extraSupplies * COST_SUPPLY;
   const remaining = OUTFIT_BUDGET - spent;
   const rating = getCrewRating(herd, crew);
   const horsesPerCowboy = (horses / crew).toFixed(1);
@@ -178,56 +190,16 @@ function OutfitScreen({ onDone }: { onDone: (config: OutfitConfig) => void }) {
 
           <div className="bg-stone-800 border border-stone-700 rounded p-2.5">
             <div className="flex justify-between items-center text-xs mb-1">
-              <span className="text-stone-300 font-bold">{"\uD83C\uDF56"} Supplies</span>
+              <span className="text-stone-300 font-bold">{"\uD83C\uDF56"} Provisions</span>
               <span className="font-mono">{supplies} <span className="text-stone-500">(+{extraSupplies})</span></span>
             </div>
             <input type="range" min={0} max={30} value={extraSupplies} onChange={e => setExtraSupplies(+e.target.value)} className="w-full accent-amber-500 h-2" />
+            <p className="text-[10px] text-stone-500 mt-1">Food and medicine for the crew. Top up at towns along the trail.</p>
           </div>
 
-          <div className="bg-stone-800 border border-stone-700 rounded p-2.5">
-            <div className="flex justify-between items-center text-xs mb-1">
-              <span className="text-stone-300 font-bold">{"\uD83D\uDD2B"} Rifles & Ammo</span>
-              <span className="font-mono">{guns}</span>
-            </div>
-            <input type="range" min={0} max={12} value={guns} onChange={e => setGuns(+e.target.value)} className="w-full accent-amber-500 h-2" />
-          </div>
-
-          <div className="bg-stone-800 border border-stone-700 rounded p-2.5">
-            <div className="flex justify-between items-center text-xs mb-1">
-              <span className="text-stone-300 font-bold">{"\uD83D\uDD27"} Spare Parts</span>
-              <span className="font-mono">{spareParts} sets</span>
-            </div>
-            <input type="range" min={0} max={8} value={spareParts} onChange={e => setSpareParts(+e.target.value)} className="w-full accent-amber-500 h-2" />
-          </div>
-
-          <div className="bg-stone-800 border border-stone-700 rounded p-2.5">
-            <div className="flex justify-between items-center text-xs mb-1">
-              <span className="text-stone-300 font-bold">🩺 Medical Gear</span>
-              <span className="font-mono">{medicalGear} kits</span>
-            </div>
-            <input type="range" min={0} max={6} value={medicalGear} onChange={e => setMedicalGear(+e.target.value)} className="w-full accent-amber-500 h-2" />
-          </div>
-
-          <div className="bg-stone-800 border border-stone-700 rounded p-2.5">
-            <div className="flex justify-between items-center text-xs mb-1">
-              <span className="text-stone-300 font-bold">🐎 Horse Quality</span>
-              <span className="font-mono">Tier {horseQuality + 1}</span>
-            </div>
-            <input type="range" min={0} max={4} value={horseQuality} onChange={e => setHorseQuality(+e.target.value)} className="w-full accent-amber-500 h-2" />
-          </div>
-
-          <div className="bg-stone-800 border border-stone-700 rounded p-2.5">
-            <div className="flex justify-between items-center text-xs mb-1.5">
-              <span className="text-stone-300 font-bold">{"\uD83D\uDD25"} Cowboy Wages</span>
-            </div>
-            <div className="flex gap-1.5">
-              {([{ id: "low" as const, label: "$25/mo" }, { id: "standard" as const, label: "$35/mo" }, { id: "good" as const, label: "$45/mo" }]).map(w => (
-                <button key={w.id} onClick={() => setWages(w.id)}
-                  className={`flex-1 p-1.5 rounded text-xs border transition-colors ${wages === w.id ? "bg-amber-700 border-amber-600 text-white" : "bg-stone-700 border-stone-600 text-stone-300 hover:bg-stone-600"}`}>
-                  <div className="font-bold">{w.label}</div>
-                </button>
-              ))}
-            </div>
+          <div className="bg-stone-800/60 border border-stone-700 rounded p-2.5 text-[11px] text-stone-400">
+            <div className="flex justify-between"><span className="font-bold text-stone-300">Standard kit (included)</span><span className="font-mono text-stone-400">${FIXED_GEAR_COST.toLocaleString()}</span></div>
+            <p className="mt-0.5">Rifles &amp; ammo, spare parts, sound trail teams, and standard wages — bundled so you can focus on the four essentials above.</p>
           </div>
 
           <div className={`rounded p-2.5 border text-center ${remaining >= 0 ? "bg-stone-800 border-stone-700" : "bg-red-900/30 border-red-800"}`}>
@@ -238,7 +210,7 @@ function OutfitScreen({ onDone }: { onDone: (config: OutfitConfig) => void }) {
           </div>
 
           <button
-            onClick={() => onDone({ herd, crew, horses, supplies, guns, spareParts, medicalGear, horseQuality, wages, budgetSpent: spent, startingCash: Math.max(0, remaining) })}
+            onClick={() => onDone({ herd, crew, horses, supplies, guns: FIXED_GUNS, spareParts: FIXED_SPAREPARTS, medicalGear: 0, horseQuality: FIXED_HORSEQUALITY, wages: FIXED_WAGES, budgetSpent: spent, startingCash: Math.max(0, remaining) })}
             disabled={remaining < 0}
             className={`w-full py-2.5 font-bold rounded transition-colors ${remaining >= 0 ? "bg-amber-700 hover:bg-amber-600 text-white" : "bg-stone-700 text-stone-500 cursor-not-allowed"}`}
           >
@@ -260,6 +232,61 @@ function weightedPick<T extends{weight?:number}>(items:T[]):T{
   for(const item of items){r-=item.weight||1;if(r<=0)return item;}return items[0];
 }
 
+// ── Knowledge becomes a live capability ─────────────────────────
+// historicalKnowledge + trivia streak collapse into a capped
+// competence factor (0..~0.6). 30 knowledge ≈ "mastery" — the same
+// scale getTrailGrade already uses. This is what makes "a student who
+// knows the material dominates" real during play, not just at grading.
+function competenceFactor(historicalKnowledge: number, streak: number): number {
+  const k = Math.min(historicalKnowledge / 30, 1);
+  const s = Math.min(streak * 0.03, 0.15);
+  return Math.min(k * 0.5 + s, 0.6);
+}
+
+// Net desirability of an outcome's resource deltas. Crew is the
+// scarcest, most consequential resource, so it dominates; herd count
+// is the score you are ultimately graded on.
+function outcomeFavorability(o: Outcome): number {
+  const e = o.effects || {};
+  return (e.herd || 0) * 1
+    + (e.crew || 0) * 25
+    + (e.horses || 0) * 3
+    + (e.morale || 0) * 2
+    + (e.supplies || 0) * 2
+    + (e.herdCondition || 0) * 2
+    + (e.wagonCondition || 0) * 1.5
+    + (e.cash || 0) * 0.2;
+}
+
+// State + knowledge biased outcome roll (interlock). With no skill the
+// pick is the original pure-random weightedPick. As competence and
+// situational readiness rise, weight tilts toward the more favorable
+// outcomes — so the same risky choice rewards a prepared, knowledgeable
+// player and punishes an unprepared one, instead of being a coin flip.
+function biasedPick(outcomes: Outcome[], comp: number, readiness: number): Outcome {
+  if (outcomes.length <= 1) return outcomes[0];
+  const skill = Math.min(comp + (readiness - 0.5) * 0.4, 0.85);
+  if (skill <= 0) return weightedPick(outcomes);
+  const favs = outcomes.map(outcomeFavorability);
+  const min = Math.min(...favs);
+  const span = (Math.max(...favs) - min) || 1;
+  const adjusted = outcomes.map((o, i) => {
+    const norm = (favs[i] - min) / span;            // 0 worst … 1 best
+    const factor = 1 + skill * (norm - 0.5) * 2;    // skill .85 → ~[0.15 … 1.85]
+    return { ...o, weight: Math.max(0.05, (o.weight || 1) * factor) };
+  });
+  return weightedPick(adjusted);
+}
+
+// Situational readiness (0..1) from the resources that govern how well
+// the outfit absorbs a gamble: herd condition, crew strength, wagon.
+function readinessOf(resources: Resources): number {
+  return clamp(
+    (resources.herdCondition / 100 + Math.min(resources.crew / 12, 1) + resources.wagonCondition / 100) / 3,
+    0, 1,
+  );
+}
+
 function routeAdjustedEvent(day:number,totalDays:number,used:Set<string>,events:GameEvent[],routeTag:"SAFE"|"FAST"|"PROFIT"){
   const base = pickEvent(day,totalDays,used,events);
   if (!base) return null;
@@ -279,11 +306,15 @@ function routeAdjustedEvent(day:number,totalDays:number,used:Set<string>,events:
 }
 
 function shouldGateTrivia(eventId: string, turn: number){
-  const seed = eventId.length + turn;
-  return seed % 4 === 0;
+  // Only gate a choice behind a question on genuinely high-risk events,
+  // and only on some of those, so the question feels earned rather than
+  // a constant tax on every interaction.
+  const danger = /storm|stampede|fire|rustler|fever|snake|raid|flood|drought/.test(eventId);
+  if (!danger) return false;
+  return (eventId.length + turn) % 2 === 0;
 }
-function resolveChoice(ch:Choice):{effects?:Resources;result?:string;earlyEnd?:boolean}{
-  if(ch.outcomes)return weightedPick(ch.outcomes);return{effects:ch.effects,result:ch.result,earlyEnd:ch.earlyEnd};
+function resolveChoice(ch:Choice, comp = 0, readiness = 0.5):{effects?:Resources;result?:string;earlyEnd?:boolean}{
+  if(ch.outcomes)return biasedPick(ch.outcomes, comp, readiness);return{effects:ch.effects,result:ch.result,earlyEnd:ch.earlyEnd};
 }
 function pickEvent(day:number,td:number,used:Set<string>,evts:GameEvent[]):GameEvent|null{
   const p=day/td;const el=evts.filter(e=>p>=e.phase_min&&p<=e.phase_max&&!used.has(e.id));
@@ -301,7 +332,16 @@ function pickEvent(day:number,td:number,used:Set<string>,evts:GameEvent[]):GameE
 
 function getGrade2(h:number,started:number,s:boolean):string{if(!s)return"F";const p=h/started;if(p>=0.95)return"A";if(p>=0.88)return"B";if(p>=0.80)return"C";if(p>=0.70)return"D";return"F";}
 const GC:Record<string,string>={"A+":"text-amber-300",A:"text-emerald-400",B:"text-blue-400",C:"text-yellow-400",D:"text-orange-400",F:"text-red-500"};
+// Once a player has learned enough, sage risk hints come for free —
+// knowledge grants foresight, instead of paying insight on every event.
+const FORESIGHT_KNOWLEDGE = 12;
 const DEFAULT_OUTFIT: OutfitConfig = { herd: 2500, crew: 12, horses: 60, supplies: 65, guns: 4, spareParts: 3, medicalGear: 2, horseQuality: 2, wages: "standard", budgetSpent: 0, startingCash: 0 };
+
+// Human labels for the town trading post.
+const TRADE_LABELS: Record<string, string> = {
+  cash: "cash", supplies: "provisions", horses: "horses", spareParts: "spare parts",
+  ammo: "ammo", herd: "cattle", crew: "crew", morale: "morale", wagonCondition: "wagon",
+};
 const makeInit=():GameState=>({day:1,turn:0,resources:{...INIT_R},phase:"intro",pace:"normal",distance:0,currentEvent:null,resultText:"",decisions:[],gameOver:false,survived:false,earlySale:false,outfit:{...DEFAULT_OUTFIT},historicalKnowledge:0,knowledgeLog:[],triviaCounter:0,currentTrivia:null,usedTriviaIds:new Set(),triviaStreak:0,insight:1,objectives:[],routeState:{currentNodeId:"start"},routeTag:"SAFE",riskHintsOn:false,pendingChoiceIndex:null,pendingEventQuestion:null,objectiveNotice:"",sageIndex:0,currentSage:null,sagesMet:[],trailFeed:[ChisholmCampaign.trailFeedOpener],hardPaceStreak:0});
 
 // ═══════════════════════════════════════════════════════════════
@@ -313,9 +353,17 @@ export default function App(){
   const[state,setState]=useState<GameState>(makeInit());
   const[usedEvents,setUsedEvents]=useState<Set<string>>(new Set());
   const[isTeacherMode, setIsTeacherMode]=useState(false);
+  // Final-exam gate. The end-screen results stay locked until the
+  // player passes the TEKS check for understanding.
+  const[examPassed,setExamPassed]=useState(false);
+  const[examScore,setExamScore]=useState(0);
+  const[showLog,setShowLog]=useState(false);
+  // Name of the last supply town the player chose to leave, so the auto-
+  // advance loop doesn't re-stop at the same town every step.
+  const[leftTownId,setLeftTownId]=useState<string|null>(null);
 
-  const start=useCallback(()=>{setState({...makeInit(),phase:"outfit"});setUsedEvents(new Set());},[]);
-  const backToMenu=useCallback(()=>{setCampaignId(null);setState(makeInit());setUsedEvents(new Set());},[]);
+  const start=useCallback(()=>{setState({...makeInit(),phase:"outfit"});setUsedEvents(new Set());setExamPassed(false);setExamScore(0);setLeftTownId(null);},[]);
+  const backToMenu=useCallback(()=>{setCampaignId(null);setState(makeInit());setUsedEvents(new Set());setExamPassed(false);setExamScore(0);setLeftTownId(null);},[]);
 
   // ── Game Juice ──────────────────────────────────────────────
   const { floats, spawn: spawnFloat } = useFloatingNumbers();
@@ -387,11 +435,17 @@ export default function App(){
       const wagonLossDrain = s.resources.wagonCondition <= 0 ? 7 : 0;
       s.resources.supplies=clamp(s.resources.supplies-crewDrain-wagonLossDrain,0,100);
 
-      // Wagon stress model
+      // Competence (knowledge + streak) softens this turn's attrition.
+      const comp = competenceFactor(s.historicalKnowledge, s.triviaStreak);
+
+      // Wagon stress model. Weather is now mostly driven by pace and how
+      // worn the wagon already is, with only a small random jitter —
+      // texture, not stakes.
       const supplyStress = s.resources.supplies < 22 ? 5 : s.resources.supplies < 35 ? 3 : 0;
       const herdStress = s.resources.herdCondition < 30 ? 3 : 0;
       const hardPaceStress = s.pace === "push" ? 6 : s.pace === "normal" ? 2 : 0;
-      const weatherStress = Math.random() < 0.25 ? Math.ceil(Math.random() * 4) : 0;
+      const weatherBase = (s.pace === "push" ? 3 : s.pace === "normal" ? 1.5 : 0.5) + (s.resources.wagonCondition < 40 ? 2 : 0);
+      const weatherStress = Math.round(weatherBase + Math.random() * 1.5);
       const totalWagonStress = supplyStress + herdStress + hardPaceStress + weatherStress;
       s.resources.wagonCondition = clampR("wagonCondition", s.resources.wagonCondition - totalWagonStress + Math.floor((s.outfit.horseQuality || 0) / 2));
 
@@ -408,7 +462,9 @@ export default function App(){
           s.resources.wagonCondition = clampR("wagonCondition", s.resources.wagonCondition - 20);
           s.resources.supplies = clampR("supplies", s.resources.supplies - 12);
           s.resources.herdCondition = clampR("herdCondition", s.resources.herdCondition - 6);
-          if (Math.random() < 0.35) {
+          // Abandonment is state-driven, not a blind roll: the wagon is
+          // lost only when it was already gutted before this breakdown.
+          if (s.resources.wagonCondition <= 8) {
             s.resources.wagonCondition = 0;
             s.resultText = "No spare parts. The chuck wagon was abandoned in mud and broken timber. You are now hauling what you can on horseback.";
           } else {
@@ -418,12 +474,26 @@ export default function App(){
         }
       }
 
-      // Consequential failures under weak conditions
-      if(s.resources.herdCondition<20)s.resources.herd=Math.max(0,s.resources.herd-Math.ceil(Math.random()*65)-25);
-      else if(s.resources.herdCondition<35&&Math.random()<0.6)s.resources.herd=Math.max(0,s.resources.herd-Math.ceil(Math.random()*30));
-      if(s.resources.crew<=7&&Math.random()<0.35)s.resources.herd=Math.max(0,s.resources.herd-Math.ceil(Math.random()*35));
-      if(s.resources.morale<20&&Math.random()<0.4)s.resources.crew=Math.max(0,s.resources.crew-1);
-      if(s.resources.supplies<15&&Math.random()<0.3)s.resources.crew=Math.max(0,s.resources.crew-1);
+      // Consequential failures under weak conditions. Loss size now
+      // scales with how far below the safe threshold the outfit sits
+      // (learnable), carries only light jitter, and competence softens it.
+      const soften = 1 - comp * 0.5; // up to ~30% less attrition at mastery
+      if (s.resources.herdCondition < 35) {
+        const deficit = 35 - s.resources.herdCondition;                 // 0..35
+        const base = deficit * 1.8 + (s.resources.herdCondition < 20 ? 25 : 0);
+        const loss = Math.round((base + Math.random() * 10) * soften);
+        s.resources.herd = Math.max(0, s.resources.herd - loss);
+      }
+      if (s.resources.crew <= 7) {
+        const loss = Math.round(((8 - s.resources.crew) * 4 + Math.random() * 6) * soften);
+        s.resources.herd = Math.max(0, s.resources.herd - loss);
+      }
+      // Desertion is now a consequence of compounding neglect rather than
+      // a per-turn coin flip: morale AND supplies both failing, or either
+      // one in true collapse, costs a hand.
+      if ((s.resources.morale < 20 && s.resources.supplies < 15) || s.resources.morale < 12 || s.resources.supplies < 8) {
+        s.resources.crew = Math.max(0, s.resources.crew - 1);
+      }
 
       const turnFeed = buildTrailFeedEntries(s.resources, pace.id, s.hardPaceStreak, distanceGain, s.day);
       if (isNearSupplyTown((s.distance / TOTAL_DISTANCE) * 100).near) {
@@ -466,7 +536,7 @@ export default function App(){
       const event=routeAdjustedEvent(s.day,TOTAL_DAYS,usedEvents,EVENTS,s.routeTag);
       console.log(`[ADVANCE] Turn ${s.turn} | Day ${s.day} | Event: ${event?.id || 'NONE'} | TriviaCounter: ${s.triviaCounter}`);
       if(event){
-        if (s.triviaCounter >= 2) {
+        if (s.triviaCounter >= 3) {
           const progress = Math.min((s.distance / TOTAL_DISTANCE) * 100, 100);
           const trivia = pickTriviaQuestion(progress, s.usedTriviaIds);
           console.log(`[TRIVIA CHECK] Counter=${s.triviaCounter} | Progress=${progress.toFixed(1)}% | Question found: ${trivia?.id || 'NULL'}`);
@@ -498,8 +568,20 @@ export default function App(){
     setState(prev=>{
       if(!prev.currentEvent || !prev.currentEvent.choices) return prev;
       const s:GameState={...prev,resources:{...prev.resources},decisions:[...prev.decisions]};
-      const choice=s.currentEvent!.choices![ci];const outcome=resolveChoice(choice);
-      s.decisions.push({event:s.currentEvent!.title,choice:choice.text,day:s.day});
+      const comp=competenceFactor(s.historicalKnowledge,s.triviaStreak);
+      const readiness=readinessOf(s.resources);
+      const choice=s.currentEvent!.choices![ci];const outcome=resolveChoice(choice,comp,readiness);
+      {
+        const ev=s.currentEvent!;
+        const fact=Array.isArray(ev.trivia)&&ev.trivia.length?`Did you know? ${ev.trivia[0]}`:"";
+        s.decisions.push({
+          event:ev.title,
+          choice:choice.text,
+          day:s.day,
+          text:ev.text,
+          detail:[outcome.result,fact].filter(Boolean).join("\n\n")||undefined,
+        });
+      }
       if(outcome.effects)for(const[k,v]of Object.entries(outcome.effects))if(s.resources[k]!==undefined){
         let delta = v;
         if (k === "herd" && v < 0 && s.resources.crew <= 7) delta = Math.floor(v * 1.35);
@@ -561,7 +643,7 @@ export default function App(){
     setState(prev => {
       if (!prev.currentEvent) return prev;
       const s: GameState = { ...prev, decisions: [...prev.decisions] };
-      s.decisions.push({ event: s.currentEvent!.title, choice: `Pushed luck ${log.length - 1} times.`, day: s.day });
+      s.decisions.push({ event: s.currentEvent!.title, choice: `Pushed luck ${log.length - 1} times.`, day: s.day, text: s.currentEvent!.text });
       s.currentEvent = null;
       s.phase = "sailing";
       return s;
@@ -607,6 +689,8 @@ export default function App(){
         event: `Sage: ${sage.name}`,
         choice: correct ? `Answered correctly` : `Learned from ${sage.name}`,
         day: s.day,
+        text: sage.question.question,
+        detail: `Correct answer: ${sage.question.choices[sage.question.correctIndex]}\n\n${sage.question.explanation}`,
       });
 
       // Advance sage index and record the meeting
@@ -640,10 +724,41 @@ export default function App(){
       else if(roll<greatCeil){s.resources.supplies=clampR("supplies",s.resources.supplies+14);result="You bring in a full buffalo. The crew has food for days.";}
       else if(roll<accidentCeil){s.resources.horses=Math.max(0,s.resources.horses-1);result="Horse stepped in a prairie dog hole at a gallop. Had to put the animal down.";}
       else{s.resources.crew=Math.max(0,s.resources.crew-1);result="A hunter caught a rattlesnake bite reaching through brush.";}
-      s.decisions.push({event:"Hunting",choice:"Went hunting",day:s.day});
+      s.decisions.push({event:"Hunting",choice:"Went hunting",day:s.day,detail:result});
       s.resultText=result;s.phase="result";return s;
     });
   },[]);
+
+  // Trapping — ammo-free, lower yield, no accidents. The safe, slow way
+  // to add food; pairs with hunting (high risk/reward) for some autonomy.
+  const handleTrap = useCallback(()=>{
+    setState(prev=>{
+      const s:GameState={...prev,resources:{...prev.resources},decisions:[...prev.decisions]};
+      const roll=Math.random()*100;
+      let result:string;
+      if(roll<38){result="The snares come up empty this time.";}
+      else if(roll<80){s.resources.supplies=clampR("supplies",s.resources.supplies+3);result="Rabbits and a few birds in the snares — a small, steady haul.";}
+      else{s.resources.supplies=clampR("supplies",s.resources.supplies+6);result="A good night for the traps. Enough small game to stretch the larder.";}
+      s.decisions.push({event:"Trapping",choice:"Set snares for small game",day:s.day,detail:result});
+      s.resultText=result;s.phase="result";return s;
+    });
+  },[]);
+
+  // Town barter: apply a give → get trade. Used by the Trading Post for
+  // both cash purchases and bartering surplus inventory.
+  const handleTrade = useCallback((offer: TradeOffer, townName: string) => {
+    setState(prev => {
+      const s: GameState = { ...prev, resources: { ...prev.resources }, decisions: [...prev.decisions] };
+      for (const [k, v] of Object.entries(offer.give)) if ((s.resources[k] || 0) < v) return prev;
+      for (const [k, v] of Object.entries(offer.give)) s.resources[k] = clampR(k, (s.resources[k] || 0) - v);
+      for (const [k, v] of Object.entries(offer.get)) s.resources[k] = clampR(k, (s.resources[k] || 0) + v);
+      const note = `${offer.label} at ${townName}.`;
+      s.decisions.push({ event: `Trade — ${townName}`, choice: offer.label, day: s.day, detail: note });
+      s.resultText = note;
+      s.phase = "result";
+      return s;
+    });
+  }, []);
 
   const handleTownRepair = useCallback(() => {
     setState(prev => {
@@ -652,7 +767,7 @@ export default function App(){
       s.resources.cash = clampR("cash", s.resources.cash - 140);
       s.resources.wagonCondition = clampR("wagonCondition", s.resources.wagonCondition + 28);
       s.resources.spareParts = clampR("spareParts", s.resources.spareParts + 1);
-      s.decisions.push({ event: "Town Stop", choice: "Paid for blacksmith wagon repair", day: s.day });
+      s.decisions.push({ event: "Town Stop", choice: "Paid for blacksmith wagon repair", day: s.day, detail: "You paid steep town rates for blacksmith work and one spare-part crate." });
       s.resultText = "You paid steep town rates for blacksmith work and one spare-part crate.";
       s.trailFeed = [...(s.trailFeed || []), "Blacksmith repairs finished by lantern light. The wagon sounds steadier."].slice(-18);
       s.phase = "result";
@@ -667,7 +782,7 @@ export default function App(){
       s.resources.cash = clampR("cash", s.resources.cash - 110);
       s.resources.crew = clampR("crew", s.resources.crew + 1);
       s.resources.morale = clampR("morale", s.resources.morale + 4);
-      s.decisions.push({ event: "Town Stop", choice: "Hired replacement hand", day: s.day });
+      s.decisions.push({ event: "Town Stop", choice: "Hired replacement hand", day: s.day, detail: "You hired a replacement hand at inflated trail-town wages." });
       s.resultText = "You hired a replacement hand at inflated trail-town wages.";
       s.trailFeed = [...(s.trailFeed || []), "A new hand joined at town. Camp duty and night watch improved."].slice(-18);
       s.phase = "result";
@@ -682,7 +797,7 @@ export default function App(){
       s.resources.cash = clampR("cash", s.resources.cash - 95);
       s.resources.supplies = clampR("supplies", s.resources.supplies + 20);
       s.resources.morale = clampR("morale", s.resources.morale + 3);
-      s.decisions.push({ event: "Town Stop", choice: "Bought provisions and medicine", day: s.day });
+      s.decisions.push({ event: "Town Stop", choice: "Bought provisions and medicine", day: s.day, detail: "You bought costly trail provisions, enough to steady the camp for now." });
       s.resultText = "You bought costly trail provisions, enough to steady the camp for now.";
       s.trailFeed = [...(s.trailFeed || []), "Fresh provisions reached camp. Meals should hold for several more days."].slice(-18);
       s.phase = "result";
@@ -695,6 +810,10 @@ export default function App(){
     setState(prev => {
       const s: GameState = { ...prev, resources: { ...prev.resources }, knowledgeLog: [...prev.knowledgeLog], decisions: [...prev.decisions] };
       const qText = s.currentTrivia?.question || "Trivia";
+      const tq = s.currentTrivia;
+      const triviaDetail = tq
+        ? `Correct answer: ${tq.choices[tq.correctIndex]}\n\n${tq.explanation}`
+        : undefined;
 
       if (correct) {
         s.triviaStreak++;
@@ -708,10 +827,10 @@ export default function App(){
             s.resources[k] = clampR(k, s.resources[k] + v);
           }
         }
-        s.decisions.push({ event: "Sage Encounter", choice: `✓ Answered correctly (streak: ${s.triviaStreak}): "${qText}"`, day: s.day });
+        s.decisions.push({ event: "Sage Encounter", choice: `✓ Answered correctly (streak: ${s.triviaStreak}): "${qText}"`, day: s.day, text: qText, detail: triviaDetail });
       } else {
         s.triviaStreak = 0;
-        s.decisions.push({ event: "Sage Encounter", choice: `Learned from: "${qText}"`, day: s.day });
+        s.decisions.push({ event: "Sage Encounter", choice: `Learned from: "${qText}"`, day: s.day, text: qText, detail: triviaDetail });
       }
 
       s.currentTrivia = null;
@@ -728,6 +847,22 @@ export default function App(){
   const progress=state.distance/TOTAL_DISTANCE*100;
   const currentRouteNode = findNode(CHISHOLM_ROUTE, state.routeState.currentNodeId) || CHISHOLM_ROUTE[0];
   const supplyTown = isNearSupplyTown(progress);
+
+  // ── Decision-driven progression ──────────────────────────────
+  // There is no "advance turn" button. While on the trail, the drive moves
+  // forward on its own until it reaches something the player must decide:
+  // a route fork, a town stop, or a lost wagon. Events, sages, and trivia
+  // (set by advanceTurn) pause it too, since the phase leaves "sailing".
+  const atRouteFork = currentRouteNode.edges.length >= 2;
+  const atTownStop = supplyTown.near && supplyTown.town !== leftTownId;
+  const wagonLost = r.wagonCondition <= 0;
+  const awaitingDecision = atRouteFork || atTownStop || wagonLost;
+  useEffect(() => {
+    if (state.phase !== "sailing" || state.gameOver || awaitingDecision) return;
+    // Small delay so each leg of travel is visible (marker moves, feed updates).
+    const t = setTimeout(() => advanceTurn(), 650);
+    return () => clearTimeout(t);
+  }, [state.phase, state.turn, state.gameOver, awaitingDecision, advanceTurn]);
   const wagonState = r.wagonCondition <= 0 ? "lost" : r.wagonCondition < 20 ? "critical" : r.wagonCondition < 40 ? "damaged" : r.wagonCondition < 65 ? "strained" : "operational";
   const warningFlags = [
     r.crew <= 7 ? "⚠️ Crew undermanned: herd control and security are deteriorating." : null,
@@ -817,11 +952,32 @@ export default function App(){
   if(state.phase==="outfit")return<OutfitScreen onDone={onOutfitDone}/>;
 
   if(state.phase==="end"){
+    // ── Gate: the TEKS final exam must be passed before results show ──
+    if(!examPassed){
+      return(
+        <div className="h-screen bg-stone-900 text-stone-100 p-4 overflow-y-auto flex items-center" style={{fontFamily:"'Georgia', serif"}}>
+          <div className="max-w-lg mx-auto w-full space-y-4">
+            <h1 className="text-2xl font-bold text-center text-amber-400">CHECK FOR UNDERSTANDING</h1>
+            <FinalExam
+              questions={CHISHOLM_FINAL_EXAM}
+              decisionLog={state.decisions}
+              subtitle="Answer the final exam to complete the drive. Review your trail if you get stuck."
+              onPass={(correct)=>{setExamScore(correct);setExamPassed(true);}}
+            />
+            <button onClick={backToMenu} className="block w-full text-stone-500 hover:text-stone-300 text-xs">← Back to Campaigns</button>
+          </div>
+        </div>
+      );
+    }
+
     const herdPct = state.outfit.herd > 0 ? r.herd / state.outfit.herd : 0;
     const revenue = state.survived ? r.herd * ChisholmCampaign.revenuePerUnit : 0;
     const cost = state.outfit.budgetSpent;
     const profit = revenue - cost;
-    const grade = getTrailGrade(state.survived, herdPct, state.historicalKnowledge);
+    // Exam performance is the dominant knowledge signal in the grade:
+    // a perfect 10/10 contributes the full knowledge band.
+    const examKnowledge = state.historicalKnowledge + examScore * 3;
+    const grade = getTrailGrade(state.survived, herdPct, examKnowledge);
 
     return(
     <div className="h-screen bg-stone-900 text-stone-100 p-4 overflow-y-auto" style={{fontFamily:"'Georgia', serif"}}>
@@ -850,6 +1006,10 @@ export default function App(){
 
         <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1 text-xs">
           <h2 className="text-amber-300 font-bold uppercase tracking-wide text-center mb-1">Historical Knowledge (TEKS)</h2>
+          <div className="flex justify-between font-bold">
+            <span className="text-stone-200">Final Exam</span>
+            <span className="text-amber-400">{examScore} / {CHISHOLM_FINAL_EXAM.length} correct</span>
+          </div>
           <div className="flex justify-between font-bold">
             <span className="text-stone-200">Trail Wisdom Earned</span>
             <span className="text-amber-400">{state.historicalKnowledge} points</span>
@@ -889,19 +1049,21 @@ export default function App(){
         </div>
 
         {state.decisions.length > 0 && (
-          <div className="bg-stone-800 border border-stone-700 rounded p-3 space-y-1">
-            <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wide">Decision Log</h3>
-            {state.decisions.map((d, i) => (
-              <p key={i} className="text-xs text-stone-500"><span className="text-stone-600">Day {d.day}:</span> <span className="text-stone-400">{d.event}</span> — {d.choice}</p>
-            ))}
-          </div>
+          <button
+            onClick={()=>setShowLog(true)}
+            className="w-full bg-stone-800 hover:bg-stone-700 border border-stone-700 rounded p-3 text-left transition-colors"
+          >
+            <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wide">Open Campaign Log</h3>
+            <p className="text-xs text-stone-400 mt-0.5">Click back through every decision, event, and answer from your drive.</p>
+          </button>
         )}
 
         <div className="text-center pb-4 space-y-2">
-          <button onClick={()=>{setState(makeInit());setUsedEvents(new Set());}} className="px-5 py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded transition-colors">Run It Again</button>
+          <button onClick={()=>{setState(makeInit());setUsedEvents(new Set());setExamPassed(false);setExamScore(0);}} className="px-5 py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded transition-colors">Run It Again</button>
           <br/><button onClick={backToMenu} className="text-xs text-stone-500 hover:text-stone-300 transition-colors">← Back to Campaigns</button>
         </div>
       </div>
+      {showLog && <CampaignLogModal entries={state.decisions} onClose={()=>setShowLog(false)} />}
     </div>
     );
   }
@@ -963,8 +1125,14 @@ export default function App(){
             <div className="flex-1 bg-stone-700 rounded-full h-2"><div className="bg-amber-500 h-2 rounded-full transition-all" style={{width:`${Math.min(state.historicalKnowledge/30*100,100)}%`}}/></div>
             <span className="text-stone-500 text-xs w-6 text-right">{state.historicalKnowledge}</span>
           </div>
-          <div className="flex justify-between text-stone-500 text-xs mt-1">
+          <div className="flex justify-between items-center text-stone-500 text-xs mt-1">
             <span>Day {state.day}/{TOTAL_DAYS}</span>
+            <button
+              onClick={()=>setShowLog(true)}
+              className="px-2 py-0.5 rounded border border-stone-600 text-amber-400 hover:bg-stone-700 font-bold transition-colors"
+            >
+              📖 Campaign Log
+            </button>
             <span>{Math.round(state.distance)}/{TOTAL_DISTANCE} mi</span>
           </div>
           {state.objectiveNotice && (
@@ -988,10 +1156,11 @@ export default function App(){
               <div className="border border-indigo-700 rounded p-2 bg-indigo-950/40">
                 <p className="text-xs text-indigo-300 font-bold">Route: {currentRouteNode.title} ({state.routeTag})</p>
                 <p className="text-xs text-stone-300">{currentRouteNode.description}</p>
-                {currentRouteNode.edges.length > 0 && (
+                {atRouteFork && (
                   <div className="mt-2 grid grid-cols-1 gap-1">
+                    <p className="text-[11px] text-indigo-200 font-bold">Choose your path — the herd moves out once you decide:</p>
                     {currentRouteNode.edges.map((edge) => (
-                      <button key={edge.to} onClick={() => chooseRoute(edge.to, edge.tag)} className="text-left text-xs px-2 py-1 rounded bg-indigo-900 hover:bg-indigo-800">
+                      <button key={edge.to} onClick={() => { chooseRoute(edge.to, edge.tag); setLeftTownId(null); advanceTurn(); }} className="text-left text-xs px-2 py-1 rounded bg-indigo-900 hover:bg-indigo-800">
                         {edge.label} <span className="text-indigo-300">[{edge.tag}]</span>
                       </button>
                     ))}
@@ -1014,39 +1183,53 @@ export default function App(){
               <div className="border border-stone-700 rounded p-3 bg-stone-800/80">
                 <p className="text-stone-300 text-sm">{getPhrase(progress/100)}</p>
                 <p className="text-stone-500 text-xs mt-1 italic">{getRegionFlavor(progress)}</p>
+                {!awaitingDecision && (
+                  <p className="text-amber-400/90 text-xs mt-2 font-bold trail-traveling">🐂 The drive presses north…</p>
+                )}
               </div>
 
-              {supplyTown.near && (
-                <div className="border border-amber-800 rounded p-2 bg-amber-950/30 space-y-2">
-                  <p className="text-xs text-amber-300 font-bold">Town stop nearby: {supplyTown.town}</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <button onClick={handleTownRepair} disabled={(r.cash||0) < 140} className="text-xs px-2 py-1 rounded bg-stone-700 hover:bg-stone-600 disabled:opacity-50">Repair Wagon ($140)</button>
-                    <button onClick={handleTownHire} disabled={(r.cash||0) < 110} className="text-xs px-2 py-1 rounded bg-stone-700 hover:bg-stone-600 disabled:opacity-50">Hire Hand ($110)</button>
-                    <button onClick={handleTownResupply} disabled={(r.cash||0) < 95} className="text-xs px-2 py-1 rounded bg-stone-700 hover:bg-stone-600 disabled:opacity-50">Resupply ($95)</button>
+              {atTownStop && supplyTown.town && (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <button onClick={handleHunt} disabled={(r.ammo||0)<5} className="py-1.5 bg-amber-900 hover:bg-amber-800 disabled:opacity-40 disabled:cursor-not-allowed rounded text-xs font-bold transition-colors">
+                      🔫 Hunt big game{(r.ammo||0)>=5 ? ` (${r.ammo} rounds)` : " (no ammo)"}
+                    </button>
+                    <button onClick={handleTrap} className="py-1.5 bg-emerald-900 hover:bg-emerald-800 rounded text-xs font-bold transition-colors">
+                      🪤 Set traps (no ammo)
+                    </button>
                   </div>
+                  <TradePost
+                    townName={supplyTown.town}
+                    resources={r as Record<string, number>}
+                    labels={TRADE_LABELS}
+                    showKeys={["cash","supplies","horses","spareParts","herd"]}
+                    moneyKey="cash"
+                    offers={[
+                      { id:"resupply", label:"Resupply provisions", give:{cash:95}, get:{supplies:20}, disabled:(r.cash||0)<95 },
+                      { id:"repair", label:"Repair the wagon", give:{cash:140}, get:{wagonCondition:28, spareParts:1}, disabled:(r.cash||0)<140 },
+                      { id:"hire", label:"Hire a trail hand", give:{cash:110}, get:{crew:1, morale:4}, disabled:(r.cash||0)<110 },
+                      { id:"sell_horses", label:"Sell spare horses for cash", give:{horses:5}, get:{cash:120}, disabled:(r.horses||0)<35 },
+                      { id:"horses_food", label:"Trade spare horses for food", give:{horses:5}, get:{supplies:14}, disabled:(r.horses||0)<35 },
+                      { id:"sell_parts", label:"Sell a spare-parts crate", give:{spareParts:1}, get:{cash:45}, disabled:(r.spareParts||0)<2 },
+                      { id:"sell_cattle", label:"Sell off cattle for cash", give:{herd:50}, get:{cash:200}, disabled:(r.herd||0)<400 },
+                    ]}
+                    onTrade={(o)=>handleTrade(o, supplyTown.town!)}
+                    onLeave={()=>{setLeftTownId(supplyTown.town);advanceTurn();}}
+                  />
                 </div>
               )}
-              <div className="flex gap-2">
-                {PACES.map(p=>{
-                  const blocked = (p.id === "push" && (r.crew <= 7 || r.wagonCondition <= 20)) || (p.id === "normal" && r.wagonCondition <= 0);
-                  return (
-                    <button key={p.id} onClick={()=>{if(blocked) return; setState(prev=>({...prev,pace:p.id}));advanceTurn();}}
-                      disabled={blocked}
-                      className={`flex-1 py-2 rounded text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${p.id==="push"?"bg-red-900 hover:bg-red-800":p.id==="normal"?"bg-stone-700 hover:bg-stone-600":"bg-emerald-900 hover:bg-emerald-800"}`}>
-                      {p.label}<br/><span className="font-normal text-stone-400">{blocked ? "Blocked: crew/wagon" : p.desc}</span>
-                    </button>
-                  );
-                })}
-              </div>
-              {(r.ammo||0)>=5&&(
-                <button onClick={handleHunt} className="w-full py-2 bg-amber-900 hover:bg-amber-800 rounded text-xs font-bold transition-colors">
-                  🔫 Hunt ({r.ammo||0} rounds)
-                </button>
-              )}
-              {r.wagonCondition <= 0 && (
-                <button onClick={()=>setState(prev=>({...prev, phase:"end", gameOver:true, survived:false, resultText:"You turned back after losing the chuck wagon."}))} className="w-full py-2 bg-red-900 hover:bg-red-800 rounded text-xs font-bold transition-colors">
-                  ↩ Turn Back Before More Losses
-                </button>
+
+              {wagonLost && (
+                <div className="border border-red-800 rounded p-2 bg-red-950/30 space-y-2">
+                  <p className="text-xs text-red-300 font-bold">The chuck wagon is gone.</p>
+                  <p className="text-[11px] text-stone-400">Press on by horseback and bleed supplies, or cut your losses and turn back.</p>
+                  <button onClick={()=>advanceTurn()} className="w-full py-2 bg-red-900 hover:bg-red-800 rounded text-sm font-bold transition-colors">
+                    Push on without the wagon →
+                  </button>
+                  <button onClick={()=>setState(prev=>({...prev, phase:"end", gameOver:true, survived:false, resultText:"You turned back after losing the chuck wagon."}))} className="w-full py-2 bg-stone-700 hover:bg-stone-600 rounded text-xs font-bold transition-colors">
+                    ↩ Turn Back Before More Losses
+                  </button>
+                </div>
               )}
             </div>
           )}
@@ -1067,7 +1250,7 @@ export default function App(){
                 scoutHealth={r.morale}
                 insight={state.insight}
                 onSpendInsightForHints={spendInsightForHints}
-                showRiskHints={state.riskHintsOn}
+                showRiskHints={state.riskHintsOn || state.historicalKnowledge >= FORESIGHT_KNOWLEDGE}
                 riskHints={riskHints}
               />
             )
@@ -1105,6 +1288,7 @@ export default function App(){
         </div>
       </div>
       </div>{/* end main game column */}
+      {showLog && <CampaignLogModal entries={state.decisions} onClose={()=>setShowLog(false)} />}
     </div>
   );
 }

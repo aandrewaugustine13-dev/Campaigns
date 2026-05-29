@@ -29,11 +29,11 @@
   --bg-button-action-hover: #a2602b;
   --text-button-action: #fff7e6;
 
-  /* Text */
-  --text-primary: #f2e6d0;
-  --text-muted: #b7a58f;
-  --text-accent: #e8c377;
-  --text-accent-2: #8fcf9c;
+  /* Text (muted lifted for contrast on the dark default surface) */
+  --text-primary: #f6ecd8;
+  --text-muted: #cabb9f;
+  --text-accent: #f0cd82;
+  --text-accent-2: #9fd9ab;
 
   /* Structure */
   --border-card: #5b4534;

@@ -11,6 +11,12 @@ import {
   getQuotaLine, getSaladinLine, getJaffaLine, getVerdictSummary, SCORE_OUTRO,
 } from "./campaigns/crusades/crusadesActFour";
 import { useFloatingNumbers, useScreenShake, FloatingNumbers } from "./GameJuice";
+import CampaignImage from "./components/CampaignImage";
+import { CRUSADE_TREATMENT } from "./campaigns/treatments";
+
+// ── Visual treatment toggle. Flip to false to render every Crusade
+// image raw (legacy look) for a side-by-side raw-vs-treated compare.
+const CRUSADE_TREATMENT_ON = true;
 
 // ═══════════════════════════════════════════════════════════════
 // THIRD CRUSADE — top-level campaign wrapper
@@ -822,27 +828,18 @@ const TURNING_OUTCOMES: Record<TurningOutcomeId, { narration: string }> = {
 type TurningStep = "decide" | "outcome";
 
 
-// ── Opening panel: <img> with a visibly labeled gray fallback
-// when the asset is missing. Designed so missing art is obvious,
-// not silently hidden behind a gradient.
+// ── Opening panel: routes every Crusade beat/panel image through
+// CampaignImage so the heterogeneous art shares one treatment. The
+// visibly labeled "missing art" fallback now lives in CampaignImage.
+// Crusade panels carry no source/license metadata, so no caption is
+// rendered. Toggle CRUSADE_TREATMENT_ON to compare raw vs treated.
 function OpeningPanel({ src, alt }: { src: string; alt: string }) {
-  const [failed, setFailed] = useState(false);
-  if (failed) {
-    return (
-      <div className="w-full h-48 rounded border-2 border-dashed border-stone-600 bg-stone-800 flex items-center justify-center">
-        <div className="text-center px-3">
-          <div className="text-stone-400 text-xs font-bold uppercase tracking-wider">Missing art</div>
-          <div className="text-stone-500 text-[10px] font-mono mt-1 break-all">{src}</div>
-        </div>
-      </div>
-    );
-  }
   return (
-    <img
+    <CampaignImage
       src={src}
       alt={alt}
-      onError={() => setFailed(true)}
-      className="w-full h-48 object-cover rounded border border-stone-700 bg-stone-950"
+      treatment={CRUSADE_TREATMENT}
+      treated={CRUSADE_TREATMENT_ON}
     />
   );
 }
