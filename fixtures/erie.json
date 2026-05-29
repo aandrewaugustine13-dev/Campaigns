@@ -1,0 +1,125 @@
+{
+  "topic": "Erie Canal",
+  "standard": "TEKS 8.10 — how the Erie Canal's waterway and transportation drove regional economic development in the early 19th century",
+  "grade": "8th grade",
+  "length": 8,
+  "numQuestions": 5,
+  "numSages": 3,
+  "difficulty": "medium",
+  "artStyle": "broadsheet-sepia",
+  "frame": "A multi-year public-works project the player oversees and manages across years and setbacks. This is NOT a journey, NOT a trail, NOT a survival trek. The player does not travel point A to point B.",
+  "playerRole": "You are the Erie Canal Commission — the body responsible for funding, building, and completing the canal.",
+  "cast": [
+    {
+      "name": "DeWitt Clinton",
+      "realPerson": true,
+      "role": "Governor and Canal Champion",
+      "significance": "This figure demonstrates how political leadership and vision drove the massive public works project that transformed American commerce.",
+      "relationshipToPlayer": "The player encounters him as the primary advocate securing state funding and political support for the canal construction.",
+      "portraitPolicy": "documented_likeness"
+    },
+    {
+      "name": "Benjamin Wright",
+      "realPerson": true,
+      "role": "Chief Engineer",
+      "significance": "This figure represents the technical expertise and engineering innovation required to build the canal through challenging terrain.",
+      "relationshipToPlayer": "The player works with him to solve construction challenges and implement the engineering solutions that made the canal possible.",
+      "portraitPolicy": "documented_likeness"
+    },
+    {
+      "name": "Irish Canal Laborer (representative)",
+      "realPerson": false,
+      "role": "Construction Worker",
+      "significance": "This figure represents the thousands of immigrant laborers whose dangerous work built the canal and shows the human cost of the project.",
+      "relationshipToPlayer": "The player manages and coordinates with these workers who perform the actual excavation and construction of the canal.",
+      "portraitPolicy": "stylized_plate"
+    },
+    {
+      "name": "New York City Merchant (representative)",
+      "realPerson": false,
+      "role": "Commercial Beneficiary",
+      "significance": "This figure demonstrates how the canal transformed trade routes and created new commercial opportunities that drove economic growth.",
+      "relationshipToPlayer": "The player encounters them as they adapt their business practices to take advantage of the new water transportation route.",
+      "portraitPolicy": "stylized_plate"
+    },
+    {
+      "name": "Western New York Farmer (representative)",
+      "realPerson": false,
+      "role": "Agricultural Producer",
+      "significance": "This figure shows how the canal connected rural producers to distant markets and transformed agricultural practices in the region.",
+      "relationshipToPlayer": "The player works with them to establish new shipping routes and market connections that the canal made possible.",
+      "portraitPolicy": "stylized_plate"
+    },
+    {
+      "name": "Martin Van Buren",
+      "realPerson": true,
+      "role": "Political Opponent",
+      "significance": "This figure represents the political opposition and skepticism the canal project faced, showing the controversy over public spending.",
+      "relationshipToPlayer": "The player must navigate his objections and political resistance to the canal's funding and construction.",
+      "portraitPolicy": "documented_likeness"
+    }
+  ],
+  "economy": {
+    "campaignType": "systems",
+    "learningObjective": "The Erie Canal's success depended on balancing construction costs, labor management, and engineering challenges to create a profitable waterway that transformed regional trade.",
+    "resources": [
+      {
+        "name": "funding",
+        "playerFacing": "State Treasury",
+        "description": "New York State's financial commitment to the canal project, including bonds and tax revenue",
+        "startsAt": "moderate",
+        "raisedBy": "Securing legislative appropriations, issuing canal bonds, collecting tolls from completed sections",
+        "drainedBy": "Construction costs, worker wages, engineering surveys, land acquisition, unexpected geological problems",
+        "degradationEffect": "Lower funding forces cheaper construction methods, longer work delays, and reduced canal depth or width"
+      },
+      {
+        "name": "workforce",
+        "playerFacing": "Labor Force",
+        "description": "Available workers including Irish immigrants, local farmers, and skilled engineers",
+        "startsAt": "low",
+        "raisedBy": "Recruiting immigrant workers, offering competitive wages, establishing work camps, training local laborers",
+        "drainedBy": "Disease outbreaks, dangerous working conditions, seasonal departures, competition from other projects",
+        "degradationEffect": "Reduced workforce slows construction progress and forces reliance on less experienced workers"
+      },
+      {
+        "name": "engineering",
+        "playerFacing": "Technical Expertise",
+        "description": "Knowledge and innovation needed to solve canal construction challenges",
+        "startsAt": "low",
+        "raisedBy": "Learning from European canal systems, trial and error problem-solving, developing new techniques, training American engineers",
+        "drainedBy": "Complex terrain challenges, lock construction difficulties, water level management problems, geological surprises",
+        "degradationEffect": "Lower expertise leads to construction delays, water leakage, unstable locks, and costly repairs"
+      },
+      {
+        "name": "political_support",
+        "playerFacing": "Public Support",
+        "description": "Political backing from legislators, governors, and citizens across New York State",
+        "startsAt": "moderate",
+        "raisedBy": "Demonstrating economic benefits, completing successful canal sections, promoting regional development, managing costs effectively",
+        "drainedBy": "Cost overruns, construction delays, political opposition, competing state priorities, skepticism about benefits",
+        "degradationEffect": "Weakened support reduces future funding, increases legislative oversight, and threatens project completion"
+      }
+    ],
+    "ratingRubric": {
+      "basis": "How well the player understood and managed the real factors that determined the Erie Canal's transformative economic impact",
+      "bands": [
+        {
+          "label": "Canal Visionary",
+          "description": "Demonstrated deep understanding that the canal's success required balancing immediate construction challenges with long-term economic transformation, managing resources to create a durable waterway that revolutionized regional trade"
+        },
+        {
+          "label": "Competent Engineer",
+          "description": "Showed solid grasp of canal construction priorities, generally managing workforce and funding effectively while developing adequate engineering solutions for most challenges"
+        },
+        {
+          "label": "Struggling Overseer",
+          "description": "Understood some aspects of canal management but struggled to balance competing demands, resulting in a functional but problematic waterway with limited economic impact"
+        },
+        {
+          "label": "Failed Administrator",
+          "description": "Missed the key dynamics of canal development, focusing on single issues while neglecting the interconnected nature of funding, labor, engineering, and political support needed for transformative infrastructure"
+        }
+      ]
+    }
+  }
+}

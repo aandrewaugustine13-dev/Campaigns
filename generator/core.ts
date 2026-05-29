@@ -4,6 +4,8 @@ import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { validate, type ValidationReport } from "./validate.js";
 import { enrichSagePortraits, enrichEventImages } from "./wikimedia.js";
+import type { CastCharacter } from "./cast.js";
+import type { SystemsEconomy } from "./economy.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -16,6 +18,15 @@ export interface GenerateInputs {
   numSages: number;
   difficulty: string;
   artStyle: string;
+  // Optional locked constraints (Stage-1 artifacts authored / verified by a
+  // teacher). When any of these is provided, buildUserMessage emits a LOCKED
+  // CONSTRAINTS block that the SYSTEM_PROMPT treats as overriding its
+  // journey / Oregon-Trail framing. When all four are absent, behavior is
+  // byte-identical to the original path.
+  frame?: string;
+  playerRole?: string;
+  cast?: CastCharacter[];
+  economy?: SystemsEconomy;
 }
 
 export interface GenerateResult {
@@ -52,6 +63,8 @@ function loadExample(): string {
 
 const SYSTEM_PROMPT = `You are a generator of historically authentic, standards-aligned educational "journey" campaigns in the style of Oregon Trail — one shared resource-management engine, with the content swapped per topic. You output ONLY a single JSON object. You never write code, components, or functions.
 
+OVERRIDE: If the user message contains a "=== LOCKED CONSTRAINTS ===" block, those inputs are ground truth and OVERRIDE any genre, journey, trail, or Oregon-Trail framing elsewhere in this system prompt — build the campaign's real structure honestly to the declared frame, even where that conflicts with the language below.
+
 CORE PHILOSOPHY (non-negotiable):
 1. THE HISTORY IS THE MECHANICS. The resources you track must be the REAL logistical stakes of this specific historical endeavor — not generic food/gold/health slapped on every topic. Research what THIS journey actually had to manage and model THOSE. Playing the game IS learning what this endeavor truly demanded.
 2. KNOWLEDGE DRIVES SUCCESS. Correct answers to standards-aligned questions produce the resource rewards that make the expedition thrive. A student who knows the material dominates.
@@ -85,14 +98,97 @@ STRUCTURAL RULES:
 OUTPUT FORMAT:
 Output ONLY a single JSON object conforming to the CampaignData schema. No markdown, no code fences, no explanation. Just the JSON.`;
 
+// Build the LOCKED CONSTRAINTS block injected before the example dump when
+// the caller supplies any Stage-1 artifact. The block declares the frame,
+// player role, cast, and economy as ground truth and tells the model to
+// build the campaign AROUND them — including OMITTING journey-only fields
+// honestly when the frame is not a journey, rather than faking them.
+function buildLockedConstraints(inputs: GenerateInputs): string {
+  const { frame, playerRole, cast, economy } = inputs;
+  if (!frame && !playerRole && !cast && !economy) return "";
+
+  const lines: string[] = [];
+  lines.push("");
+  lines.push("=== LOCKED CONSTRAINTS (ground truth — overrides system prompt and example) ===");
+  lines.push("");
+  lines.push(
+    "These inputs were authored and verified by a teacher. Build the campaign AROUND them. Do NOT invent new resources, rename them, drop them, regenerate your own, swap cast members, or reshape the campaign into a journey if the frame is not a journey.",
+  );
+  lines.push("");
+
+  if (frame) {
+    lines.push("--- FRAME (the kind of experience this is — controlling structure) ---");
+    lines.push(frame);
+    lines.push("");
+    lines.push(
+      "The FRAME is the controlling structure of this campaign. If the frame says this is NOT a journey, you MUST NOT produce a journey/trail/route/supply-trek structure: no \"press onward,\" no SAFE/FAST/PROFIT route forks, no trail stops, no trading posts, no point-A-to-point-B travel, unless the frame explicitly calls for them. The Chisholm example below is ONE possible shape among many — your structure follows the FRAME, NOT the example.",
+    );
+    lines.push("");
+    lines.push(
+      "HONEST STRUCTURE OVER FAKE TRAVEL: when the frame is not a journey, OMIT or leave empty the journey-only fields rather than fake them. Specifically set totalDistance to 0, distanceUnit to \"\", trailPath to [], trailStops to [], paces to [], and route to a single terminal node like [{ \"id\": \"start\", \"title\": \"...\", \"description\": \"...\", \"edges\": [] }]. Do not invent miles, paces, trail coordinates, or route forks just to fill these fields. An empty field is the correct answer here, not a project disguised in trail clothing.",
+    );
+    lines.push("");
+  }
+
+  if (playerRole) {
+    lines.push("--- PLAYER ROLE (who the player is) ---");
+    lines.push(playerRole);
+    lines.push("");
+    lines.push(
+      "Every event, sage encounter, and trivia question must be written from THIS role's point of view. The player IS this role; do not narrate the player as a separate character or as a generic traveler.",
+    );
+    lines.push("");
+  }
+
+  if (economy) {
+    lines.push("--- ECONOMY (the exact resources — use these and only these) ---");
+    lines.push(JSON.stringify(economy, null, 2));
+    lines.push("");
+    const keyHints = Array.isArray(economy.resources)
+      ? economy.resources.map((r) => `"${r.name}" → playerFacing "${r.playerFacing}"`).join("; ")
+      : "(see resources above)";
+    lines.push(
+      `For each economy resource above, derive a stable camelCase identifier from its name and use THAT identifier consistently as the key in initialResources, resourceCaps, resourceLabels, every effects map, every outcomes[*].effects, every event-trivia rewards/penalties, every sage reward.correct / reward.wrong, and primaryResourceKey. Resources in order: ${keyHints}. Set resourceLabels[key] to the resource's playerFacing string. Do NOT add resources beyond these. Do NOT rename or drop any. EVERY choice the player can make MUST move at least ONE of these economy resources.`,
+    );
+    lines.push("");
+    lines.push(
+      "The ratingRubric above is how the end rating is described. Reflect its basis in historicalContext and let its bands inform how the end grading reads.",
+    );
+    lines.push("");
+  }
+
+  if (cast) {
+    lines.push("--- CAST (the exact people the player encounters — use these and only these) ---");
+    lines.push(JSON.stringify(cast, null, 2));
+    lines.push("");
+    lines.push(
+      "These are the figures the player meets and deals with. Use them as the sage encounters and as the named actors inside events. Do NOT invent additional named historical individuals. Keep real names spelled exactly as given. Representative roles (realPerson: false) must be referred to by the role label given (e.g. \"Irish labor foreman\") and not given fabricated personal names. portraitPolicy may guide the sage portrait approach but does not block their inclusion.",
+    );
+    lines.push("");
+  }
+
+  lines.push("=== END LOCKED CONSTRAINTS ===");
+  lines.push("");
+
+  return lines.join("\n");
+}
+
 function buildUserMessage(inputs: GenerateInputs): string {
+  const locked = buildLockedConstraints(inputs);
+  const exampleIntro = locked
+    ? "Here is one example campaign (Chisholm Trail). Treat it as ONE possible shape among many — your structure follows the LOCKED CONSTRAINTS above, NOT this example:"
+    : "Here is a complete example campaign (Chisholm Trail) so you can see the level of detail, tone, and structure expected:";
+  const tail = locked
+    ? "\nThe LOCKED CONSTRAINTS above are ground truth. They override any conflicting guidance in the schema's field shapes or in the example above.\n"
+    : "";
+
   return `Here is the TypeScript schema your output must conform to:
 
 \`\`\`typescript
 ${schemaSource}
 \`\`\`
-
-Here is a complete example campaign (Chisholm Trail) so you can see the level of detail, tone, and structure expected:
+${locked}
+${exampleIntro}
 
 ${loadExample()}
 
@@ -105,7 +201,7 @@ Now generate a new campaign with these parameters:
 - Number of sage encounters: ${inputs.numSages}
 - Difficulty: ${inputs.difficulty}
 - Art Style / Theme: ${inputs.artStyle}
-
+${tail}
 Output ONLY the JSON object. No markdown fences, no commentary.`;
 }
 
