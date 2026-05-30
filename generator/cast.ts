@@ -134,10 +134,15 @@ interface ProposedCast { campaignType: "systems"; cast: CastCharacter[]; }
 
 RULES: campaignType is always the literal "systems". Provide 4–7 cast members. realPerson is true only for genuine named individuals. Representative roles have realPerson: false and a name clearly labeled as a type. Output ONLY the JSON object.`;
 
-function buildUserMessage(standard: string): string {
+function buildUserMessage(standard: string, topic?: string): string {
+  // The descriptive SUBJECT (when provided) is authoritative; the code is
+  // supporting metadata. Empty topic ⇒ subjectBlock === standard (byte-identical).
+  const subjectBlock = topic && topic.trim()
+    ? `SUBJECT (authoritative — what this campaign is about): ${topic}\nSTANDARD (supporting reference / alignment code): ${standard}`
+    : standard;
   return `Propose the Stage 1 cast for a systems-type campaign built on THIS standard:
 
-${standard}
+${subjectBlock}
 
 Derive the cast from the real history of this specific standard. Prefer accurately-named real figures; use clearly-labeled representative roles only where no single named individual fits; never fabricate a fake named person. Keep the cast to the 4–7 figures most essential to the learning. Set portraitPolicy honestly.
 
@@ -153,6 +158,7 @@ export interface GenerateCastResult {
 export async function generateCast(
   standard: string,
   apiKey: string,
+  topic?: string,
 ): Promise<GenerateCastResult> {
   const client = new Anthropic({ apiKey });
 
@@ -160,7 +166,7 @@ export async function generateCast(
     model: "claude-sonnet-4-6",
     max_tokens: 2000,
     system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: buildUserMessage(standard) }],
+    messages: [{ role: "user", content: buildUserMessage(standard, topic) }],
   });
 
   let rawText = "";

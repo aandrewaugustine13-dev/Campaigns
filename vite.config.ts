@@ -157,24 +157,24 @@ function generatorApiPlugin(): Plugin {
         const forceType = inputs.forceType === 'systems' || inputs.forceType === 'character'
           ? inputs.forceType
           : undefined;
-        const { data, findings } = await generateFrame(String(inputs.standard ?? ''), apiKey, forceType);
+        const { data, findings } = await generateFrame(String(inputs.standard ?? ''), apiKey, forceType, String(inputs.topic ?? ''));
         return { data, findings };
       });
 
       jsonPost(server, '/api/economy', async (apiKey, inputs) => {
         const { generateEconomy } = await import('./generator/economy.ts');
-        const { data, findings } = await generateEconomy(String(inputs.standard ?? ''), apiKey);
+        const { data, findings } = await generateEconomy(String(inputs.standard ?? ''), apiKey, String(inputs.topic ?? ''));
         return { data, findings };
       });
 
       jsonPost(server, '/api/cast', async (apiKey, inputs) => {
         const { generateCast } = await import('./generator/cast.ts');
-        const { data, findings } = await generateCast(String(inputs.standard ?? ''), apiKey);
+        const { data, findings } = await generateCast(String(inputs.standard ?? ''), apiKey, String(inputs.topic ?? ''));
         return { data, findings };
       });
 
       // Character campaigns only: propose the moral fault line for the chosen
-      // perspective. Takes { standard, perspective } and returns { data, findings }.
+      // perspective. Takes { standard, perspective, topic } and returns { data, findings }.
       // The perspective is load-bearing — the fault line depends on whose eyes.
       jsonPost(server, '/api/faultline', async (apiKey, inputs) => {
         const { generateFaultLine } = await import('./generator/faultline.ts');
@@ -182,6 +182,7 @@ function generatorApiPlugin(): Plugin {
           String(inputs.standard ?? ''),
           String(inputs.perspective ?? ''),
           apiKey,
+          String(inputs.topic ?? ''),
         );
         return { data, findings };
       });

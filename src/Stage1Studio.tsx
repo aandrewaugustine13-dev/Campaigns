@@ -134,10 +134,10 @@ export default function Stage1Studio({
 
   // ── Step 1 → propose the structural frame ──────────────────────
   const proposeFrame = async () => {
-    if (!inputs.standard.trim()) return;
+    if (!inputs.standard.trim() || !inputs.topic.trim()) return;
     setBusy("Reading the standard and proposing a structure…");
     try {
-      const { data } = await postJson<{ data: ProposedFrame }>("/api/frame", { standard: inputs.standard });
+      const { data } = await postJson<{ data: ProposedFrame }>("/api/frame", { standard: inputs.standard, topic: inputs.topic.trim() });
       setFrame(data);
       setRecommendedType(data.campaignType);
       setPerspectiveIdx(0);
@@ -161,6 +161,7 @@ export default function Stage1Studio({
     try {
       const { data } = await postJson<{ data: ProposedFrame }>("/api/frame", {
         standard: inputs.standard,
+        topic: inputs.topic.trim(),
         forceType: target,
       });
       setFrame(data);
@@ -189,11 +190,13 @@ export default function Stage1Studio({
         : "Proposing the resource economy and historical cast…",
     );
     try {
-      const ecoP = postJson<{ data: SystemsEconomy }>("/api/economy", { standard: inputs.standard });
-      const castP = postJson<{ data: ProposedCast }>("/api/cast", { standard: inputs.standard });
+      const topic = inputs.topic.trim();
+      const ecoP = postJson<{ data: SystemsEconomy }>("/api/economy", { standard: inputs.standard, topic });
+      const castP = postJson<{ data: ProposedCast }>("/api/cast", { standard: inputs.standard, topic });
       const flP: Promise<{ data: FaultLineSpec } | null> = isCharacter
         ? postJson<{ data: FaultLineSpec }>("/api/faultline", {
             standard: inputs.standard,
+            topic,
             perspective: `${persp.role} — ${persp.description}`,
           })
         : Promise.resolve(null);
@@ -295,37 +298,38 @@ export default function Stage1Studio({
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs font-bold text-stone-400 uppercase tracking-wide">TEKS / Standard *</label>
+          <label className="text-xs font-bold text-stone-400 uppercase tracking-wide">What is this campaign about? *</label>
+          <input
+            type="text"
+            value={inputs.topic}
+            onChange={e => set({ topic: e.target.value })}
+            placeholder="e.g. The Erie Canal and the opening of westward trade"
+            className="w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-sm text-stone-100 placeholder-stone-600 focus:border-amber-600 focus:outline-none"
+          />
+          <p className="text-[11px] text-stone-500">The historical subject of the campaign. This drives what gets generated — be specific.</p>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs font-bold text-stone-400 uppercase tracking-wide">Standard *</label>
           <textarea
             value={inputs.standard}
             onChange={e => set({ standard: e.target.value })}
-            rows={3}
-            placeholder="e.g. TEKS 7.x — The Erie Canal and its role in the economic transformation of New York and the opening of westward trade"
+            rows={2}
+            placeholder="e.g. TEKS 5.1(A) — or paste the full standard text"
             className="w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-sm text-stone-100 placeholder-stone-600 focus:border-amber-600 focus:outline-none resize-none"
           />
+          <p className="text-[11px] text-stone-500">The standard you're aligning to. A bare code works now that the subject above leads.</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-stone-400 uppercase tracking-wide">Topic (optional)</label>
-            <input
-              type="text"
-              value={inputs.topic}
-              onChange={e => set({ topic: e.target.value })}
-              placeholder="auto from perspective"
-              className="w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-sm text-stone-100 placeholder-stone-600 focus:border-amber-600 focus:outline-none"
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-stone-400 uppercase tracking-wide">Grade Level</label>
-            <select
-              value={inputs.grade}
-              onChange={e => set({ grade: e.target.value })}
-              className="w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-sm text-stone-100 focus:border-amber-600 focus:outline-none"
-            >
-              {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
-            </select>
-          </div>
+        <div className="space-y-1">
+          <label className="text-xs font-bold text-stone-400 uppercase tracking-wide">Grade Level</label>
+          <select
+            value={inputs.grade}
+            onChange={e => set({ grade: e.target.value })}
+            className="w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-sm text-stone-100 focus:border-amber-600 focus:outline-none"
+          >
+            {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
+          </select>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
@@ -364,7 +368,7 @@ export default function Stage1Studio({
         {busy ? <Spinner label={busy} /> : (
           <button
             onClick={proposeFrame}
-            disabled={!inputs.standard.trim()}
+            disabled={!inputs.standard.trim() || !inputs.topic.trim()}
             className="w-full py-3 bg-amber-700 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed rounded font-bold text-lg transition-colors"
           >
             Propose Structure →

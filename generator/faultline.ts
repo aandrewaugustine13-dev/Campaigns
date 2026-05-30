@@ -267,10 +267,15 @@ interface FaultLineSpec { campaignType: "character"; dilemma: string; whyNoClean
 
 RULES: campaignType is always the literal "character". flag.type is exactly "boolean" or "tristate". Provide one value meaning per side (≥2). setter.options has ≥2 options writing ≥2 DISTINCT flag values, and NO option carries any resource reward/effect. Provide ≥1 reader. Output ONLY the JSON object conforming to FaultLineSpec.`;
 
-function buildUserMessage(standard: string, perspective: string): string {
+function buildUserMessage(standard: string, perspective: string, topic?: string): string {
+  // The descriptive SUBJECT (when provided) is authoritative; the code is
+  // supporting metadata. Empty topic ⇒ "STANDARD: ${standard}" (byte-identical).
+  const subjectBlock = topic && topic.trim()
+    ? `SUBJECT (authoritative — what this campaign is about): ${topic}\nSTANDARD (supporting reference / alignment code): ${standard}`
+    : `STANDARD: ${standard}`;
   return `Identify the ONE moral fault line for a character campaign built on THIS standard, played through THIS person's eyes:
 
-STANDARD: ${standard}
+${subjectBlock}
 
 PLAYER PERSPECTIVE (whose eyes — the fault line depends on this): ${perspective}
 
@@ -289,6 +294,7 @@ export async function generateFaultLine(
   standard: string,
   perspective: string,
   apiKey: string,
+  topic?: string,
 ): Promise<GenerateFaultLineResult> {
   const client = new Anthropic({ apiKey });
 
@@ -296,7 +302,7 @@ export async function generateFaultLine(
     model: "claude-sonnet-4-6",
     max_tokens: 2000,
     system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: buildUserMessage(standard, perspective) }],
+    messages: [{ role: "user", content: buildUserMessage(standard, perspective, topic) }],
   });
 
   let rawText = "";

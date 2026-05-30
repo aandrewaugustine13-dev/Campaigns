@@ -139,10 +139,15 @@ interface SystemsEconomy { campaignType: "systems"; learningObjective: string; r
 
 RULES: campaignType is always the literal "systems". Provide 2–4 resources. startsAt is qualitative ONLY — exactly one of "low", "moderate", or "high" (never a number). Provide at least 3 rating bands ordered best to worst. Output ONLY the JSON object.`;
 
-function buildUserMessage(standard: string): string {
+function buildUserMessage(standard: string, topic?: string): string {
+  // The descriptive SUBJECT (when provided) is authoritative; the code is
+  // supporting metadata. Empty topic ⇒ subjectBlock === standard (byte-identical).
+  const subjectBlock = topic && topic.trim()
+    ? `SUBJECT (authoritative — what this campaign is about): ${topic}\nSTANDARD (supporting reference / alignment code): ${standard}`
+    : standard;
   return `Define the Stage 1 economy and rating rubric for a systems-type campaign built on THIS standard:
 
-${standard}
+${subjectBlock}
 
 Derive the resources from the real causal logic of this specific standard. Make the learning objective the genuine point of the standard. Ensure every resource can degrade but never ends the run. Tie the rating bands to historical understanding, not score optimization.
 
@@ -158,6 +163,7 @@ export interface GenerateEconomyResult {
 export async function generateEconomy(
   standard: string,
   apiKey: string,
+  topic?: string,
 ): Promise<GenerateEconomyResult> {
   const client = new Anthropic({ apiKey });
 
@@ -165,7 +171,7 @@ export async function generateEconomy(
     model: "claude-sonnet-4-6",
     max_tokens: 2000,
     system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: buildUserMessage(standard) }],
+    messages: [{ role: "user", content: buildUserMessage(standard, topic) }],
   });
 
   let rawText = "";

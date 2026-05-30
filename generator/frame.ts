@@ -174,7 +174,18 @@ interface ProposedFrame { campaignType: CampaignType; progressionMode: Progressi
 
 RULES: campaignType is exactly "systems" or "character". progressionMode is exactly "journey" or "project". Provide 1–3 alternativePerspectives, each genuinely distinct from the recommended one. typeLocked is a boolean: true only when content-safety forced "character" (with a non-empty lockReason), never true for "systems". Output ONLY the JSON object.`;
 
-function buildUserMessage(standard: string, forceType?: CampaignType): string {
+function buildUserMessage(standard: string, forceType?: CampaignType, topic?: string): string {
+  // The descriptive SUBJECT (when provided) is the authoritative statement of
+  // what the campaign is about; the standard code is supporting metadata — this
+  // is what stops a bare code from leaving the subject to the model's guess.
+  // When no topic is given, subjectBlock === standard: byte-identical to before.
+  const hasTopic = !!(topic && topic.trim());
+  const subjectBlock = hasTopic
+    ? `SUBJECT (authoritative — what this campaign is about): ${topic}\nSTANDARD (supporting reference / alignment code): ${standard}`
+    : standard;
+  const subjectNote = hasTopic
+    ? ` Treat the SUBJECT line as the authoritative statement of WHAT this campaign is about; the standard code is supporting metadata — if the code is terse or ambiguous, defer to the SUBJECT for the topic.`
+    : "";
   // When the teacher overrides the recommended type, pin the frame to that type
   // — but the content-safety law in the system prompt still wins absolutely, so
   // an override to "systems" can never gamify an atrocity.
@@ -183,9 +194,9 @@ function buildUserMessage(standard: string, forceType?: CampaignType): string {
     : "";
   return `Propose the Stage 1 structural frame for a campaign built on THIS standard:
 
-${standard}
+${subjectBlock}
 
-Choose campaignType and progressionMode honestly from the real shape of this specific standard's history, treating the two axes as independent. Write a frame that states the controlling structure plainly and says explicitly when it is not a journey. Propose a primary perspective plus 1–3 genuinely different alternatives, offering a non-dominant perspective where the history supports it. Apply the content-safety law: if a management framing would mean optimizing an atrocity, recommend "character" and name that reasoning in the rationale.${pin}
+Choose campaignType and progressionMode honestly from the real shape of this specific standard's history, treating the two axes as independent. Write a frame that states the controlling structure plainly and says explicitly when it is not a journey. Propose a primary perspective plus 1–3 genuinely different alternatives, offering a non-dominant perspective where the history supports it. Apply the content-safety law: if a management framing would mean optimizing an atrocity, recommend "character" and name that reasoning in the rationale.${subjectNote}${pin}
 
 Output ONLY the JSON object conforming to ProposedFrame.`;
 }
@@ -200,6 +211,7 @@ export async function generateFrame(
   standard: string,
   apiKey: string,
   forceType?: CampaignType,
+  topic?: string,
 ): Promise<GenerateFrameResult> {
   const client = new Anthropic({ apiKey });
 
@@ -207,7 +219,7 @@ export async function generateFrame(
     model: "claude-sonnet-4-6",
     max_tokens: 2000,
     system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: buildUserMessage(standard, forceType) }],
+    messages: [{ role: "user", content: buildUserMessage(standard, forceType, topic) }],
   });
 
   let rawText = "";
