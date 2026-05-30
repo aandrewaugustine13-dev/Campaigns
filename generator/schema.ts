@@ -7,6 +7,42 @@
 
 export type Resources = Record<string, number>;
 
+// ── Flags (persistent typed facts) ──────────────────────────────
+// Flags are a SEPARATE system from resources. Resources are numeric
+// meters you spend and refill; flags are typed facts about who the
+// player is or what they did. All of the following is optional and
+// additive: a campaign with no `flags` behaves EXACTLY as before.
+
+// A flag's stored value. boolean flags use false|true; tristate flags
+// add null to mean "unset" (the choice that would set it never fired),
+// which the reader must distinguish from an explicit false.
+export type FlagValue = boolean | null;
+
+export interface FlagDecl {
+  id: string;                    // unique within campaign, camelCase
+  type: "boolean" | "tristate";
+  initial: FlagValue;            // boolean → false|true ; tristate → null|false|true
+  label?: string;                // optional, editor/debug only
+}
+
+// Map of flagId → value a choice sets when taken. Sibling to a Choice's
+// numeric `effects`; deliberately mirrors the Resources map shape.
+export type FlagWrites = Record<string, FlagValue>;
+
+// Narrative text that may vary on a flag value. A plain string is the
+// (unchanged) common case; the object form picks the first matching
+// variant, else `default`. The resolver is a strict superset — a plain
+// string resolves to itself — so non-flag campaigns are unaffected.
+export type FlagText =
+  | string
+  | { default: string; variants: FlagVariant[] };
+
+export interface FlagVariant {
+  whenFlag: string;              // a declared flag id
+  equals: FlagValue;             // value that selects this variant
+  text: string;
+}
+
 // ── Pace ────────────────────────────────────────────────────────
 
 export interface PaceConfig {
@@ -29,6 +65,7 @@ export interface Outcome {
 export interface Choice {
   text: string;
   effects?: Resources;
+  flagWrites?: FlagWrites;
   result?: string;
   outcomes?: Outcome[];
   earlyEnd?: boolean;
@@ -202,6 +239,9 @@ export interface CampaignData {
   initialResources: Resources;
   resourceCaps: Resources;
   resourceLabels: Record<string, string>;
+
+  // Flags (persistent typed facts; optional & additive — absent ⇒ no flag system)
+  flags?: FlagDecl[];
 
   // Game mechanics data
   paces: PaceConfig[];

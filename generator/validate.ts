@@ -112,6 +112,45 @@ export function validate(data: unknown): ValidationReport {
       `primaryResourceKey "${d.primaryResourceKey}" not found in initialResources`);
   }
 
+  // ── Flags (declarations) ─────────────────────────────────────
+  // Optional & additive: absent ⇒ no flag system, so existing
+  // campaigns reference no flags and this whole block is a no-op.
+  const declaredFlags = new Map<string, "boolean" | "tristate">();
+  const writtenFlags = new Set<string>();
+  const readFlags = new Set<string>();
+
+  // A value is legal for a flag iff: tristate allows null|false|true,
+  // boolean allows only false|true.
+  function flagValueLegal(type: "boolean" | "tristate", v: unknown): boolean {
+    if (type === "tristate") return v === null || v === true || v === false;
+    return v === true || v === false;
+  }
+
+  const flagsDecl = d.flags;
+  if (flagsDecl !== undefined) {
+    check("flags", Array.isArray(flagsDecl), "flags must be an array if present");
+    if (Array.isArray(flagsDecl)) {
+      for (let i = 0; i < flagsDecl.length; i++) {
+        const f = flagsDecl[i] as Record<string, unknown>;
+        const fp = `flags[${i}]`;
+        const idOk = typeof f.id === "string" && (f.id as string).length > 0;
+        check(`${fp}.id`, idOk, "Flag missing id");
+        const typeOk = f.type === "boolean" || f.type === "tristate";
+        check(`${fp}.type`, typeOk, 'Flag type must be "boolean" or "tristate"');
+        if (idOk && typeOk) {
+          const fid = f.id as string;
+          const ftype = f.type as "boolean" | "tristate";
+          check(`${fp}.id`, !declaredFlags.has(fid), `Duplicate flag id: "${fid}"`);
+          declaredFlags.set(fid, ftype);
+          check(`${fp}.initial`, flagValueLegal(ftype, f.initial),
+            ftype === "tristate"
+              ? "tristate flag initial must be null, false, or true"
+              : "boolean flag initial must be false or true");
+        }
+      }
+    }
+  }
+
   // Collect all resource keys referenced in events for cross-check
   const eventResourceKeys = new Set<string>();
 
@@ -130,7 +169,42 @@ export function validate(data: unknown): ValidationReport {
         eventIds.add(ev.id);
       }
       check(`${prefix}.title`, typeof ev.title === "string", "Missing event title");
-      check(`${prefix}.text`, typeof ev.text === "string", "Missing event text");
+
+      // text may be a plain string (unchanged) OR a flag-keyed FlagText
+      // object { default, variants }. The object form is what the reader
+      // resolves at render time; we validate its variants here.
+      const txt = ev.text;
+      if (typeof txt === "string") {
+        check(`${prefix}.text`, true, "Missing event text");
+      } else if (txt !== null && typeof txt === "object" && !Array.isArray(txt)) {
+        const ft = txt as Record<string, unknown>;
+        check(`${prefix}.text.default`, typeof ft.default === "string",
+          "FlagText must have a string `default`");
+        check(`${prefix}.text.variants`, Array.isArray(ft.variants),
+          "FlagText must have a `variants` array");
+        if (Array.isArray(ft.variants)) {
+          for (let vi = 0; vi < ft.variants.length; vi++) {
+            const vr = ft.variants[vi] as Record<string, unknown>;
+            const vp = `${prefix}.text.variants[${vi}]`;
+            check(`${vp}.text`, typeof vr.text === "string", "Variant missing text");
+            if (typeof vr.whenFlag === "string") {
+              const wf = vr.whenFlag;
+              readFlags.add(wf);
+              const wtype = declaredFlags.get(wf);
+              check(`${vp}.whenFlag`, wtype !== undefined,
+                `Variant references undeclared flag "${wf}"`);
+              if (wtype !== undefined) {
+                check(`${vp}.equals`, flagValueLegal(wtype, vr.equals),
+                  `Variant equals value is not legal for ${wtype} flag "${wf}"`);
+              }
+            } else {
+              check(`${vp}.whenFlag`, false, "Variant missing whenFlag");
+            }
+          }
+        }
+      } else {
+        check(`${prefix}.text`, false, "Event text must be a string or a FlagText object");
+      }
       check(`${prefix}.phase_min`, typeof ev.phase_min === "number", "Missing phase_min");
       check(`${prefix}.phase_max`, typeof ev.phase_max === "number", "Missing phase_max");
       check(`${prefix}.weight`, typeof ev.weight === "number" && (ev.weight as number) > 0, "Missing or zero weight");
@@ -151,6 +225,18 @@ export function validate(data: unknown): ValidationReport {
           for (const ch of ev.choices as Record<string, unknown>[]) {
             if (ch.effects) {
               for (const k of Object.keys(ch.effects as Record<string, number>)) eventResourceKeys.add(k);
+            }
+            if (ch.flagWrites && typeof ch.flagWrites === "object") {
+              for (const [fk, fv] of Object.entries(ch.flagWrites as Record<string, unknown>)) {
+                writtenFlags.add(fk);
+                const wtype = declaredFlags.get(fk);
+                check(`${prefix}.choices.flagWrites`, wtype !== undefined,
+                  `Choice writes undeclared flag "${fk}"`);
+                if (wtype !== undefined) {
+                  check(`${prefix}.choices.flagWrites`, flagValueLegal(wtype, fv),
+                    `flagWrites value for ${wtype} flag "${fk}" is not legal`);
+                }
+              }
             }
             if (Array.isArray(ch.outcomes)) {
               for (const o of ch.outcomes as Record<string, unknown>[]) {
@@ -174,6 +260,16 @@ export function validate(data: unknown): ValidationReport {
   for (const k of eventResourceKeys) {
     check("events→resources", initKeys.has(k),
       `Events reference resource key "${k}" not found in initialResources`);
+  }
+
+  // ── Flag usage warnings ──────────────────────────────────────
+  // A declared flag with no writer can never change; one with no
+  // reader can never be observed. Both are warnings, not errors.
+  for (const [id] of declaredFlags) {
+    check("flags→writes", writtenFlags.has(id),
+      `Flag "${id}" is declared but never written by any choice`, "warn");
+    check("flags→reads", readFlags.has(id),
+      `Flag "${id}" is declared but never read by any variant`, "warn");
   }
 
   // ── Pace resource keys ───────────────────────────────────────
