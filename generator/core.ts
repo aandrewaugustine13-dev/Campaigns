@@ -7,6 +7,9 @@ import { parseModelJson } from "./json.js";
 import { enrichSagePortraits, enrichEventImages } from "./wikimedia.js";
 import type { CastCharacter } from "./cast.js";
 import type { SystemsEconomy } from "./economy.js";
+import type { FaultLineSpec } from "./faultline.js";
+import { faultLineToCampaignPieces } from "./faultlineCompile.js";
+import type { FlagDecl } from "./schema.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -28,6 +31,15 @@ export interface GenerateInputs {
   playerRole?: string;
   cast?: CastCharacter[];
   economy?: SystemsEconomy;
+  // Optional CHARACTER-campaign spine. When present, its validated fault
+  // line is COMPILED (generator/faultlineCompile.ts) into concrete pieces —
+  // a declared flag, an early setter event carrying flagWrites, and later
+  // reader events carrying FlagText variants — which are spliced into the
+  // generated campaign, and a read-only summary is added to the prompt so
+  // the model builds the surrounding campaign around (never re-resolving)
+  // those fixed beats. Gated entirely on its own presence: when absent,
+  // generation is byte-for-byte identical to the systems path.
+  faultLine?: FaultLineSpec;
 }
 
 export interface GenerateResult {
@@ -182,8 +194,61 @@ function buildLockedConstraints(inputs: GenerateInputs): string {
   return lines.join("\n");
 }
 
-function buildUserMessage(inputs: GenerateInputs): string {
+// Read-only FAULT LINE context. Emitted ONLY when a faultLine is supplied.
+// It does NOT ask the model to generate the fault-line beats — those are
+// compiled in code and spliced in afterward. Its sole job is to tell the
+// model those fixed beats already exist so the surrounding campaign it DOES
+// generate stays consistent with them and never re-resolves the dilemma.
+function buildFaultLineContext(fl: FaultLineSpec): string {
+  const beats: string[] = [];
+  const seen = new Set<string>();
+  for (const r of fl.readers) {
+    if (!seen.has(r.beat)) { seen.add(r.beat); beats.push(r.beat); }
+  }
+
+  const lines: string[] = [];
+  lines.push("");
+  lines.push("");
+  lines.push("=== FAULT LINE (an already-authored spine — READ-ONLY context, do NOT generate these beats) ===");
+  lines.push("");
+  lines.push(
+    "This is a CHARACTER campaign. Its moral spine has ALREADY been authored, validated, and compiled into concrete events that will be ADDED TO YOUR OUTPUT AUTOMATICALLY after you respond. You must NOT generate these beats yourself. They are described here only so the surrounding campaign you DO generate stays consistent with them.",
+  );
+  lines.push("");
+  lines.push(`THE DILEMMA (the one defining choice): ${fl.dilemma}`);
+  lines.push(`WHY THERE IS NO CLEAN ANSWER: ${fl.whyNoCleanAnswer}`);
+  lines.push("");
+  lines.push(`THE DEFINING CHOICE — a fixed EARLY event titled "${fl.setter.beat}": ${fl.setter.situation}`);
+  lines.push("Its options and consequences are already written; one early choice settles who this person becomes.");
+  lines.push("");
+  lines.push("LATER SCENES THAT REMEMBER THE CHOICE — fixed events already written:");
+  for (const b of beats) lines.push(`- ${b}`);
+  lines.push("");
+  lines.push("RULES FOR THE SURROUNDING CAMPAIGN YOU GENERATE:");
+  lines.push(
+    "- Do NOT output a \"flags\" field, and do NOT write your own version of the defining choice above or resolve this dilemma in any event you create. The fixed events already do that; duplicating or pre-empting it would break the campaign.",
+  );
+  lines.push(
+    "- Leave the OPENING to the defining choice. Your earliest events should establish the world and the pressure, not pose a second identity-defining fork.",
+  );
+  lines.push(
+    "- This is a character study, not a score: do NOT add any resource/meter that rewards or punishes the defining choice. Identity is carried by the fixed flag, never by points.",
+  );
+  lines.push(
+    "- Otherwise generate normally — events, sages, and eventTrivia that deepen this person's world and the history around this fault line, written from the player role's point of view and consistent with the LOCKED CONSTRAINTS.",
+  );
+  lines.push("");
+  lines.push("=== END FAULT LINE ===");
+  lines.push("");
+  return lines.join("\n");
+}
+
+export function buildUserMessage(inputs: GenerateInputs): string {
   const locked = buildLockedConstraints(inputs);
+  // Gated solely on faultLine presence — never folded into the frame/economy/
+  // cast conditionals, since systems campaigns carry those. Empty ⇒ the
+  // systems prompt is byte-for-byte unchanged.
+  const faultLineContext = inputs.faultLine ? buildFaultLineContext(inputs.faultLine) : "";
   const exampleIntro = locked
     ? "Here is one example campaign (Chisholm Trail). Treat it as ONE possible shape among many — your structure follows the LOCKED CONSTRAINTS above, NOT this example:"
     : "Here is a complete example campaign (Chisholm Trail) so you can see the level of detail, tone, and structure expected:";
@@ -196,7 +261,7 @@ function buildUserMessage(inputs: GenerateInputs): string {
 \`\`\`typescript
 ${schemaSource}
 \`\`\`
-${locked}
+${locked}${faultLineContext}
 ${exampleIntro}
 
 ${loadExample()}
@@ -212,6 +277,21 @@ Now generate a new campaign with these parameters:
 - Art Style / Theme: ${inputs.artStyle}
 ${tail}
 Output ONLY the JSON object. No markdown fences, no commentary.`;
+}
+
+// Splice the compiled fault-line pieces into a parsed campaign. STRICT
+// NO-OP when faultLine is absent, so the systems path is untouched. The
+// flag is prepended (defensively de-duplicated against any flag the model
+// emitted), the setter goes in early and the readers after — array order
+// is immaterial to the engine (it selects events by phase window), so this
+// is purely the declare→set→read lifecycle made concrete.
+export function applyFaultLine(data: Record<string, unknown>, faultLine?: FaultLineSpec): void {
+  if (!faultLine) return;
+  const pieces = faultLineToCampaignPieces(faultLine);
+  const existingFlags = Array.isArray(data.flags) ? (data.flags as FlagDecl[]) : [];
+  data.flags = [pieces.flagDecl, ...existingFlags.filter((f) => f && f.id !== pieces.flagDecl.id)];
+  const existingEvents = Array.isArray(data.events) ? (data.events as unknown[]) : [];
+  data.events = [pieces.setterEvent, ...existingEvents, ...pieces.readerEvents];
 }
 
 export async function generateCampaign(
@@ -246,6 +326,12 @@ export async function generateCampaign(
   };
   await enrichSagePortraits(data, imageryCtx);
   await enrichEventImages(data, imageryCtx);
+
+  // Character path only: splice the compiled fault-line pieces in after
+  // imagery (the compiled events carry no imageSearchQuery by design) and
+  // before validation, so validate() sees the full, final campaign. No-op
+  // for systems campaigns (no faultLine).
+  applyFaultLine(data, inputs.faultLine);
 
   const validation = validate(data);
 
