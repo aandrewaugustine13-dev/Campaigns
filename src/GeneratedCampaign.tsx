@@ -48,6 +48,27 @@ function clampR(data: CampaignData, k: string, v: number): number {
   return Math.max(0, Math.min(v, max));
 }
 
+// Progression mode. "project" campaigns advance by time (day/totalDays) and
+// ship with empty paces/trailPath/trailStops; "journey" campaigns advance by
+// distance and pace. Absent progressionMode + empty paces ⇒ treat as project
+// so a malformed-but-paceless blob can't dereference paces[0].
+function isProjectMode(data: CampaignData): boolean {
+  return data.progressionMode === "project" || !(data.paces && data.paces.length);
+}
+
+// Percent-complete used for sages, flavor text, parallax and the map.
+// Journey divides by distance (unchanged); project divides by elapsed days.
+function deriveProgress(data: CampaignData, day: number, distance: number): number {
+  if (isProjectMode(data)) return data.totalDays > 0 ? (day / data.totalDays) * 100 : 0;
+  return data.totalDistance > 0 ? (distance / data.totalDistance) * 100 : 0;
+}
+
+// End-of-campaign condition. Journey arrives by distance (unchanged); project
+// concludes when the calendar runs out.
+function hasReachedGoal(data: CampaignData, day: number, distance: number): boolean {
+  return isProjectMode(data) ? day >= data.totalDays : distance >= data.totalDistance;
+}
+
 function getRegionFlavor(data: CampaignData, progress: number): string {
   const stops = data.trailStops;
   for (let i = stops.length - 1; i >= 0; i--) {
@@ -627,7 +648,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
 
   const makeInit = useCallback((): GameState => ({
     day: 1, turn: 0, resources: { ...data.initialResources },
-    phase: "intro", pace: data.paces[1]?.id ?? data.paces[0].id,
+    phase: "intro", pace: data.paces[1]?.id ?? data.paces[0]?.id ?? "",
     distance: 0, currentEvent: null, resultText: "", decisions: [],
     gameOver: false, survived: false, earlySale: false,
     outfit: { allocations: {}, budgetSpent: 0 },
@@ -709,11 +730,15 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       const s: GameState = { ...prev, resources: { ...prev.resources } };
       const before = { turn: prev.turn, day: prev.day, distance: prev.distance, resources: { ...prev.resources } };
       s.turn += 1;
-      const pace = data.paces.find(p => p.id === s.pace) ?? data.paces[0];
+      const project = isProjectMode(data);
+      const pace = project ? null : (data.paces.find(p => p.id === s.pace) ?? data.paces[0]);
       s.day = Math.min(s.day + data.daysPerTurn, data.totalDays + 1);
 
-      for (const [k, v] of Object.entries(pace.fx)) {
-        s.resources[k] = clampR(data, k, (s.resources[k] || 0) + v);
+      // [journey] pace fx — project ships no paces, so this is skipped
+      if (pace) {
+        for (const [k, v] of Object.entries(pace.fx)) {
+          s.resources[k] = clampR(data, k, (s.resources[k] || 0) + v);
+        }
       }
 
       if (s.routeTag === "FAST") {
@@ -724,10 +749,14 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
         s.resources.morale = clampR(data, "morale", s.resources.morale + 1);
       }
 
-      const distanceGain = pace.mpd * data.daysPerTurn;
-      s.distance = Math.min(s.distance + distanceGain, data.totalDistance);
-      s.hardPaceStreak = pace.id === data.paces[data.paces.length - 1]?.id
-        ? s.hardPaceStreak + 1 : Math.max(0, s.hardPaceStreak - 1);
+      // [journey] distance + hardPaceStreak — project advances by time, not travel
+      let distanceGain = 0;
+      if (pace) {
+        distanceGain = pace.mpd * data.daysPerTurn;
+        s.distance = Math.min(s.distance + distanceGain, data.totalDistance);
+        s.hardPaceStreak = pace.id === data.paces[data.paces.length - 1]?.id
+          ? s.hardPaceStreak + 1 : Math.max(0, s.hardPaceStreak - 1);
+      }
 
       // Supplies drain
       if (s.resources.supplies !== undefined) {
@@ -744,7 +773,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
         }
       }
 
-      const turnFeed = buildTrailFeedEntries(data, s.resources, pace.id, s.hardPaceStreak, distanceGain, s.day);
+      const turnFeed = buildTrailFeedEntries(data, s.resources, pace?.id ?? s.pace, s.hardPaceStreak, distanceGain, s.day);
       s.trailFeed = [...s.trailFeed, ...turnFeed].slice(-18);
 
       // Fail conditions: check key resources
@@ -756,7 +785,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       if (criticallyLow.length >= 2 || (s.resources.morale !== undefined && s.resources.morale <= 0)) {
         return { ...s, phase: "end" as const, gameOver: true, survived: false };
       }
-      if (s.distance >= data.totalDistance) {
+      if (hasReachedGoal(data, s.day, s.distance)) {
         return { ...s, phase: "end" as const, gameOver: true, survived: true };
       }
 
@@ -780,7 +809,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       }
 
       // Sage check
-      const currentProgress = (s.distance / data.totalDistance) * 100;
+      const currentProgress = deriveProgress(data, s.day, s.distance);
       if (s.sageIndex < data.sages.length) {
         const nextSage = data.sages[s.sageIndex];
         if (currentProgress >= nextSage.threshold) {
@@ -937,7 +966,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       if (criticallyLow.length >= 2 || (s.resources.morale !== undefined && s.resources.morale <= 0)) {
         return { ...s, phase: "end" as const, gameOver: true, survived: false };
       }
-      if (s.distance >= data.totalDistance || s.earlySale) {
+      if (hasReachedGoal(data, s.day, s.distance) || s.earlySale) {
         return { ...s, phase: "end" as const, gameOver: true, survived: true };
       }
       s.phase = "sailing";
@@ -996,15 +1025,16 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
         s.decisions.push({ event: "Knowledge Check", choice: "Learned", day: s.day, text: triviaText, detail: triviaDetail });
       }
       s.currentTrivia = null;
-      s.phase = s.distance >= data.totalDistance ? "end" as const : "sailing" as const;
-      if (s.distance >= data.totalDistance) { s.gameOver = true; s.survived = true; }
+      const reached = hasReachedGoal(data, s.day, s.distance);
+      s.phase = reached ? "end" as const : "sailing" as const;
+      if (reached) { s.gameOver = true; s.survived = true; }
       return s;
     });
   }, [data]);
 
   // ── Derived state ──
   const r = state.resources;
-  const progress = state.distance / data.totalDistance * 100;
+  const progress = deriveProgress(data, state.day, state.distance);
   const currentRouteNode = findNode(data.route, state.routeState.currentNodeId)
     || data.route?.[0]
     || { id: "start", title: "On the trail", description: "", edges: [] };

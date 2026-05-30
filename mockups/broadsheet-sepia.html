@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Theme mockup — broadsheet-sepia vs default</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Cinzel:wght@600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --font-body: Georgia, "Times New Roman", serif;
+  }
+
+  /* ── Default theme (current dark, for before/after comparison) ─────────── */
+  [data-theme="default"] {
+    --bg-page: #1c1917;            /* stone-900 */
+    --bg-card: #292524;            /* stone-800 */
+    --bg-card-inner: rgba(28, 25, 23, 0.4);
+    --bg-button-action: #b45309;   /* amber-700 */
+    --bg-button-action-hover: #d97706; /* amber-600 */
+    --text-primary: #f5f5f4;       /* stone-100 */
+    --text-muted: #a8a29e;         /* stone-400 */
+    --text-accent: #fcd34d;        /* amber-300 */
+    --text-button-action: #ffffff;
+    --border-card: #44403c;        /* stone-700 */
+    --border-divider: #292524;
+    --font-display: var(--font-body);
+    --parallax-fallback:
+      linear-gradient(180deg, #1c1917 0%, #292524 60%, #44403c 100%);
+  }
+
+  /* ── Broadsheet sepia (Erie Canal era) ─────────────────────────────────── */
+  [data-theme="broadsheet-sepia"] {
+    --bg-page: #f4ead0;            /* warm cream newsprint */
+    --bg-card: #ece1c1;            /* deeper cream */
+    --bg-card-inner: #faf3dc;      /* highlight cream */
+    --bg-button-action: #1c130a;   /* ink black */
+    --bg-button-action-hover: #3a2814; /* warm brown-black */
+    --text-primary: #2e1f0a;       /* dark ink brown */
+    --text-muted: #5d4628;         /* warm brown */
+    --text-accent: #7a3517;        /* broadsheet red ink (rubric) */
+    --text-button-action: #f4ead0;
+    --border-card: #b08d57;        /* faded sepia */
+    --border-divider: #c9b386;
+    --font-display: "Playfair Display", Georgia, serif;
+    --parallax-fallback:
+      /* halftone dot pattern at low density + sepia gradient */
+      radial-gradient(rgba(46, 31, 10, 0.08) 1px, transparent 1.5px) 0 0 / 8px 8px,
+      linear-gradient(180deg, #ede0b8 0%, #f4ead0 50%, #ddc998 100%);
+  }
+
+  /* ── Demo page chrome (not part of any theme) ──────────────────────────── */
+  html, body { margin: 0; padding: 0; background: #0c0a09; color: #d6d3d1; font-family: var(--font-body); }
+  .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 24px; max-width: 1300px; margin: 0 auto; }
+  .demo-grid > h2 { grid-column: 1 / -1; margin: 8px 0 -4px; font-size: 18px; color: #fbbf24; font-weight: normal; }
+  .demo-grid > h2 span { color: #78716c; font-size: 13px; margin-left: 8px; }
+  .demo-header { padding: 16px 24px 0; font-size: 14px; color: #a8a29e; max-width: 1300px; margin: 0 auto; }
+  .demo-header h1 { color: #fbbf24; font-size: 22px; margin: 0 0 6px; font-weight: normal; }
+  .demo-header code { background: #292524; padding: 1px 6px; border-radius: 3px; color: #fbbf24; font-size: 12px; }
+
+  /* ── Themed surface (wrapper that picks up data-theme vars) ────────────── */
+  .surface {
+    background: var(--bg-page);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    padding: 24px;
+    border-radius: 6px;
+    min-height: 600px;
+    border: 1px solid #44403c;
+  }
+  .label-tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #292524; color: #a8a29e; margin-bottom: 12px; letter-spacing: 0.05em; }
+
+  /* ── Intro screen styled with theme vars ──────────────────────────────── */
+  .intro {
+    max-width: 440px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .intro .backdrop {
+    width: 100%;
+    height: 180px;
+    border-radius: 4px;
+    border: 1px solid var(--border-card);
+    background-size: cover;
+    background-position: center;
+    margin-bottom: 8px;
+  }
+  .intro .attribution {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: left;
+    margin-bottom: 16px;
+    line-height: 1.3;
+  }
+  .intro h1 {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 34px;
+    line-height: 1.05;
+    color: var(--text-primary);
+    margin: 16px 0 6px;
+    letter-spacing: -0.005em;
+  }
+  .intro .subtitle {
+    font-family: var(--font-display);
+    color: var(--text-accent);
+    font-size: 15px;
+    font-style: italic;
+    margin: 0 0 16px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .intro .body {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.55;
+    margin: 0 0 20px;
+  }
+  .intro .cta {
+    background: var(--bg-button-action);
+    color: var(--text-button-action);
+    font-family: var(--font-display);
+    border: 1px solid var(--bg-button-action);
+    padding: 12px 28px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 2px;
+  }
+  .intro .cta:hover { background: var(--bg-button-action-hover); border-color: var(--bg-button-action-hover); }
+  .intro .back-link {
+    display: block;
+    margin-top: 12px;
+    color: var(--text-muted);
+    opacity: 0.7;
+    font-size: 12px;
+    text-decoration: none;
+  }
+
+  /* ── Sage encounter card styled with theme vars ───────────────────────── */
+  .sage-card {
+    max-width: 440px;
+    margin: 32px auto 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 6px;
+    padding: 14px;
+  }
+  .sage-card .head { display: flex; gap: 12px; align-items: flex-start; }
+  .sage-card .portrait {
+    width: 72px; height: 72px;
+    border-radius: 4px;
+    border: 1px solid var(--border-card);
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+  }
+  .sage-card h2 {
+    font-family: var(--font-display);
+    font-size: 20px;
+    margin: 0 0 2px;
+    color: var(--text-primary);
+    line-height: 1.1;
+  }
+  .sage-card .sage-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-accent);
+    font-weight: 700;
+    margin: 0 0 6px;
+  }
+  .sage-card .sage-bio { font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.45; }
+  .sage-card .greeting {
+    margin-top: 12px;
+    padding: 10px;
+    background: var(--bg-card-inner);
+    border: 1px solid var(--border-divider);
+    border-radius: 3px;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--text-primary);
+    line-height: 1.5;
+  }
+  .sage-card .advice {
+    margin-top: 8px;
+    padding: 10px;
+    background: var(--bg-card-inner);
+    border: 1px solid var(--border-divider);
+    border-radius: 3px;
+    font-size: 13px;
+    color: var(--text-primary);
+    line-height: 1.5;
+  }
+  .sage-card .ask {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: var(--bg-button-action);
+    color: var(--text-button-action);
+    font-family: var(--font-display);
+    border: 1px solid var(--bg-button-action);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 2px;
+  }
+
+  /* ── Scene panel with parallax fallback (no event image case) ─────────── */
+  .scene-fallback {
+    height: 200px;
+    background: var(--parallax-fallback);
+    border: 1px solid var(--border-card);
+    border-radius: 4px;
+    margin: 24px auto 0;
+    max-width: 440px;
+    position: relative;
+    overflow: hidden;
+  }
+  .scene-fallback .label {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    opacity: 0.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-header">
+  <h1>Theme mockup — broadsheet-sepia (Erie Canal era)</h1>
+  <p>
+    Side-by-side: <code>data-theme="default"</code> (current dark) on the left vs
+    <code>data-theme="broadsheet-sepia"</code> on the right. Same campaign data,
+    different theme. All differences flow from CSS variables defined once per theme.
+    Body text stays Georgia in both; display type (titles, button labels) swaps to
+    Playfair Display in broadsheet-sepia.
+  </p>
+</div>
+
+<div class="demo-grid">
+
+  <h2>Intro screen <span>title • subtitle • intro body • backdrop attribution • CTA</span></h2>
+
+  <div class="surface" data-theme="default">
+    <span class="label-tag">data-theme="default"</span>
+    <div class="intro">
+      <div class="backdrop" style="background-image:url('https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/New_York_celebration_for_the_Erie_Canal_1825.png/600px-New_York_celebration_for_the_Erie_Canal_1825.png');"></div>
+      <p class="attribution">Anthony Imbert · Public domain · <a href="#" style="color:inherit">Source</a></p>
+      <h1>The Erie Canal</h1>
+      <p class="subtitle">Engineering a Nation, 1817–1825</p>
+      <p class="body">Eight years of digging through swamp, limestone, and political headwind. You command a survey crew between Albany and Buffalo. Manage labor, supplies, and weather while the engineers ahead of you race the calendar — Governor Clinton's "great ditch" must reach the lakes before the funding runs dry.</p>
+      <button class="cta">BEGIN OUTFIT</button>
+      <a class="back-link" href="#">← Back to Campaigns</a>
+    </div>
+  </div>
+
+  <div class="surface" data-theme="broadsheet-sepia">
+    <span class="label-tag">data-theme="broadsheet-sepia"</span>
+    <div class="intro">
+      <div class="backdrop" style="background-image:url('https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/New_York_celebration_for_the_Erie_Canal_1825.png/600px-New_York_celebration_for_the_Erie_Canal_1825.png');"></div>
+      <p class="attribution">Anthony Imbert · Public domain · <a href="#" style="color:inherit">Source</a></p>
+      <h1>The Erie Canal</h1>
+      <p class="subtitle">Engineering a Nation, 1817–1825</p>
+      <p class="body">Eight years of digging through swamp, limestone, and political headwind. You command a survey crew between Albany and Buffalo. Manage labor, supplies, and weather while the engineers ahead of you race the calendar — Governor Clinton's "great ditch" must reach the lakes before the funding runs dry.</p>
+      <button class="cta">BEGIN OUTFIT</button>
+      <a class="back-link" href="#">← Back to Campaigns</a>
+    </div>
+  </div>
+
+  <h2>Sage encounter card <span>portrait • title • bio • greeting • advice • CTA</span></h2>
+
+  <div class="surface" data-theme="default">
+    <span class="label-tag">data-theme="default"</span>
+    <div class="sage-card">
+      <div class="head">
+        <div class="portrait" style="background-image:url('https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/De_Witt_Clinton_by_Rembrandt_Peale.jpg/300px-De_Witt_Clinton_by_Rembrandt_Peale.jpg');"></div>
+        <div style="flex:1; min-width:0;">
+          <h2>De Witt Clinton</h2>
+          <p class="sage-title">Governor &amp; Canal Champion</p>
+          <p class="sage-bio">The political force behind the project. Spent twelve years convincing skeptics this canal would unmake the wilderness — and proving them right.</p>
+        </div>
+      </div>
+      <p class="greeting">The doubters called it Clinton's Ditch. Let them. We dig anyway.</p>
+      <p class="advice">Watch the limestone at Lockport. The locks won't ride on prayer — they need cut stone, dressed clean, and you'll need every quarryman from here to Genesee.</p>
+      <button class="ask">DE WITT HAS A QUESTION FOR YOU</button>
+    </div>
+  </div>
+
+  <div class="surface" data-theme="broadsheet-sepia">
+    <span class="label-tag">data-theme="broadsheet-sepia"</span>
+    <div class="sage-card">
+      <div class="head">
+        <div class="portrait" style="background-image:url('https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/De_Witt_Clinton_by_Rembrandt_Peale.jpg/300px-De_Witt_Clinton_by_Rembrandt_Peale.jpg');"></div>
+        <div style="flex:1; min-width:0;">
+          <h2>De Witt Clinton</h2>
+          <p class="sage-title">Governor &amp; Canal Champion</p>
+          <p class="sage-bio">The political force behind the project. Spent twelve years convincing skeptics this canal would unmake the wilderness — and proving them right.</p>
+        </div>
+      </div>
+      <p class="greeting">The doubters called it Clinton's Ditch. Let them. We dig anyway.</p>
+      <p class="advice">Watch the limestone at Lockport. The locks won't ride on prayer — they need cut stone, dressed clean, and you'll need every quarryman from here to Genesee.</p>
+      <button class="ask">DE WITT HAS A QUESTION FOR YOU</button>
+    </div>
+  </div>
+
+  <h2>Scene panel — parallax fallback (no event image case) <span>used when both event and backdrop images are missing</span></h2>
+
+  <div class="surface" data-theme="default">
+    <span class="label-tag">data-theme="default"</span>
+    <div class="scene-fallback"><div class="label">Default — current stone-900 gradient</div></div>
+  </div>
+
+  <div class="surface" data-theme="broadsheet-sepia">
+    <span class="label-tag">data-theme="broadsheet-sepia"</span>
+    <div class="scene-fallback"><div class="label">Broadsheet — halftone dot on warm cream</div></div>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -1,507 +1,569 @@
 {
-  "id": "lewisclark",
-  "title": "LEWIS & CLARK EXPEDITION",
-  "isPublished": true,
-  "subtitle": "Corps of Discovery, 1804-1806",
-  "introBody": "Spring 1804. St. Louis, Missouri. President Jefferson has sent you to explore the Louisiana Purchase. You must reach the Pacific Ocean, map the land, and return with knowledge that will shape America's future.",
-  "trailFeedOpener": "May 14, 1804: The Corps of Discovery departs Camp Dubois with high hopes.",
-  "totalDays": 863,
-  "daysPerTurn": 7,
+  "id": "lewis_clark",
+  "title": "CORPS OF DISCOVERY",
+  "subtitle": "Camp Dubois to the Pacific, 1804",
+  "introBody": "Spring, 1804. Camp Dubois, Illinois. President Jefferson has charged you with leading the Corps of Discovery up the Missouri River and across the continent to the Pacific Ocean. You have a small budget, a hand-picked crew, and a mission that will change America forever. Every supply choice matters — the wilderness does not forgive poor planning.",
+  "trailFeedOpener": "May 1804: The Corps of Discovery pushes off from Camp Dubois into the wide Missouri River.",
+  "theme": "expedition-journal",
+  "isPublished": false,
+  "progressionMode": "journey",
+  "totalDays": 180,
+  "daysPerTurn": 6,
   "totalDistance": 8000,
   "distanceUnit": "miles",
   "initialResources": {
-    "supplies": 85,
-    "health": 75,
-    "morale": 70,
-    "boats": 3,
-    "ammunition": 60,
-    "trade_goods": 50,
-    "scientific_specimens": 0,
-    "maps": 25
+    "crew": 30,
+    "provisions": 70,
+    "morale": 60,
+    "boatCondition": 80,
+    "ammo": 100,
+    "medicalSupplies": 50,
+    "trade": 60
   },
   "resourceCaps": {
-    "supplies": 120,
-    "health": 100,
+    "crew": 40,
+    "provisions": 100,
     "morale": 100,
-    "boats": 5,
-    "ammunition": 100,
-    "trade_goods": 80,
-    "scientific_specimens": 100,
-    "maps": 100
+    "boatCondition": 100,
+    "ammo": 150,
+    "medicalSupplies": 100,
+    "trade": 100
   },
   "resourceLabels": {
-    "supplies": "supplies",
-    "health": "health",
+    "crew": "crew",
+    "provisions": "food",
     "morale": "morale",
-    "boats": "boats",
-    "ammunition": "ammo",
-    "trade_goods": "trade",
-    "scientific_specimens": "specimens",
-    "maps": "maps"
+    "boatCondition": "boats",
+    "ammo": "ammo",
+    "medicalSupplies": "medicine",
+    "trade": "trade"
   },
   "paces": [
     {
-      "id": "cautious",
-      "label": "Cautious",
-      "desc": "8 mi/day · Map carefully",
-      "mpd": 8,
-      "fx": {
-        "health": 1,
-        "maps": 2,
-        "supplies": -2,
-        "morale": -1
-      }
-    },
-    {
       "id": "steady",
       "label": "Steady",
-      "desc": "12 mi/day · Balanced progress",
-      "mpd": 12,
+      "desc": "10 mi/day · Careful travel",
+      "mpd": 10,
       "fx": {
-        "health": -1,
-        "supplies": -3,
-        "morale": 1
+        "provisions": -1,
+        "morale": 2,
+        "boatCondition": -1
       }
     },
     {
-      "id": "urgent",
-      "label": "Urgent",
-      "desc": "18 mi/day · Push hard",
+      "id": "normal",
+      "label": "Normal",
+      "desc": "18 mi/day · Standard march",
       "mpd": 18,
       "fx": {
-        "health": -4,
-        "morale": -3,
-        "supplies": -4,
-        "maps": -1
+        "provisions": -2,
+        "morale": -1,
+        "boatCondition": -2
+      }
+    },
+    {
+      "id": "push",
+      "label": "Push",
+      "desc": "28 mi/day · Hard travel",
+      "mpd": 28,
+      "fx": {
+        "provisions": -4,
+        "morale": -5,
+        "boatCondition": -5,
+        "medicalSupplies": -1
       }
     }
   ],
   "events": [
     {
-      "id": "great_falls",
-      "phase_min": 0.25,
-      "phase_max": 0.35,
-      "weight": 8,
-      "title": "Great Falls of the Missouri",
-      "text": "The roaring falls block your river route. You must portage around them - a back-breaking task that could take weeks.",
+      "id": "great_falls_portage",
+      "phase_min": 0.3,
+      "phase_max": 0.5,
+      "weight": 5,
+      "title": "The Great Falls Portage",
+      "text": "You reach the Great Falls of the Missouri River — five massive waterfalls that block all river travel. The boats and all supplies must be carried overland for nearly 18 miles around the falls. It is backbreaking work in summer heat, and the crew is already tired.",
+      "type": "standard",
       "trivia": [
-        "The Great Falls portage took the expedition 18 days to complete.",
-        "The men had to carry boats and supplies across 18 miles of rough terrain."
+        "The portage around the Great Falls took the Corps nearly a month — far longer than Lewis expected.",
+        "The men built crude wagons from cottonwood trees to haul the heavy dugout canoes overland."
       ],
       "sageAdvice": [
         {
-          "name": "Clark",
-          "role": "Co-leader",
-          "line": "We must scout the best route before we begin moving supplies."
+          "name": "Pvt. Ordway",
+          "role": "Corps sergeant",
+          "line": "If we push through fast, the men will break. A slow portage is a living portage."
         },
         {
-          "name": "Drouillard",
-          "role": "Hunter",
-          "line": "Game is scarce here. We need to preserve our strength."
+          "name": "York",
+          "role": "Clark's enslaved companion",
+          "line": "I've carried heavy loads my whole life. Pace yourselves and help each other."
         }
       ],
       "choices": [
         {
-          "text": "Take time to scout the safest route",
-          "outcomes": [
-            {
-              "weight": 7,
-              "effects": {
-                "supplies": -8,
-                "health": -3,
-                "maps": 4
-              },
-              "result": "The careful scouting pays off. You find the best path and complete the portage safely."
-            },
-            {
-              "weight": 3,
-              "effects": {
-                "supplies": -12,
-                "health": -6,
-                "morale": -4
-              },
-              "result": "Even with scouting, the portage is brutal. Several men are injured on the rocky terrain."
-            }
-          ]
-        },
-        {
-          "text": "Start the portage immediately",
-          "outcomes": [
-            {
-              "weight": 4,
-              "effects": {
-                "supplies": -6,
-                "health": -8,
-                "boats": -1
-              },
-              "result": "Haste leads to disaster. A boat is damaged badly on the rocks."
-            },
-            {
-              "weight": 6,
-              "effects": {
-                "supplies": -5,
-                "health": -4,
-                "morale": 2
-              },
-              "result": "The men work with determination and complete the portage quickly."
-            }
-          ]
-        },
-        {
-          "text": "Build wheels to move the boats",
+          "text": "Build crude wagons and take it slow — extra days but protect the crew.",
           "effects": {
-            "supplies": -10,
-            "health": -2,
+            "provisions": -8,
             "morale": 3,
-            "maps": 2
+            "boatCondition": -5
           },
-          "result": "The wheeled contraption works! This innovation makes the portage much easier."
+          "result": "The cottonwood wagons creak and groan but hold. The portage takes 18 days. The crew arrives exhausted but intact, and spirits lift when they see open water again."
+        },
+        {
+          "text": "Carry everything on backs — faster but brutal.",
+          "outcomes": [
+            {
+              "weight": 5,
+              "effects": {
+                "provisions": -5,
+                "morale": -8,
+                "medicalSupplies": -6,
+                "crew": -1
+              },
+              "result": "Three men develop serious injuries from the loads. One cannot continue. The portage finishes faster, but the cost in health is steep."
+            },
+            {
+              "weight": 5,
+              "effects": {
+                "provisions": -4,
+                "morale": -4,
+                "boatCondition": -3
+              },
+              "result": "The crew digs deep and carries through. Sore backs and blistered feet, but no serious injuries. Faster than the wagon method."
+            }
+          ]
+        },
+        {
+          "text": "Leave some supplies behind to lighten the load.",
+          "effects": {
+            "provisions": -15,
+            "morale": -2,
+            "boatCondition": -2
+          },
+          "result": "The portage goes more quickly without the full load, but the abandoned provisions will be sorely missed in the mountains ahead."
         }
-      ]
+      ],
+      "imageSearchQuery": "Great Falls Missouri River 1805",
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/GREAT_FALLS_PORTAGE%2C_CASCADE_COUNTY%2C_MONTANA.jpg/960px-GREAT_FALLS_PORTAGE%2C_CASCADE_COUNTY%2C_MONTANA.jpg",
+        "artist": "JERRYE AND ROY KLOTZ MD",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AGREAT_FALLS_PORTAGE%2C_CASCADE_COUNTY%2C_MONTANA.jpg",
+        "searchQuery": "Great Falls Missouri River 1805"
+      }
     },
     {
       "id": "shoshone_meeting",
       "phase_min": 0.45,
-      "phase_max": 0.55,
-      "weight": 9,
-      "title": "Meeting the Shoshone",
-      "text": "You encounter Shoshone people in the mountains. Sacagawea recognizes her brother among them. This meeting could be crucial for getting horses.",
-      "trivia": [
-        "Sacagawea's reunion with her brother Cameahwait helped secure horses for the expedition.",
-        "The Shoshone provided critical information about mountain passes to the Pacific."
-      ],
-      "choices": [
-        {
-          "text": "Offer trade goods for horses and guides",
-          "outcomes": [
-            {
-              "weight": 8,
-              "effects": {
-                "trade_goods": -15,
-                "morale": 5,
-                "health": 3,
-                "maps": 6
-              },
-              "result": "The trade is successful. The Shoshone provide horses and valuable information about the trail ahead."
-            },
-            {
-              "weight": 2,
-              "effects": {
-                "trade_goods": -8,
-                "morale": -2
-              },
-              "result": "The negotiations go poorly. You get few horses and little help."
-            }
-          ]
-        },
-        {
-          "text": "Ask for help without offering trade",
-          "effects": {
-            "morale": -4,
-            "maps": 1
-          },
-          "result": "The Shoshone are polite but offer little assistance without fair trade."
-        },
-        {
-          "text": "Demonstrate your peaceful intentions with gifts",
-          "effects": {
-            "trade_goods": -5,
-            "morale": 8,
-            "health": 2,
-            "maps": 4
-          },
-          "result": "Your gifts and respectful approach win their trust. They share crucial knowledge about the mountains."
-        }
-      ]
-    },
-    {
-      "id": "winter_fort",
-      "phase_min": 0.15,
-      "phase_max": 0.25,
-      "weight": 7,
-      "title": "Winter with the Mandan",
-      "text": "Winter approaches as you reach Mandan villages. You must decide how to survive the harsh Dakota winter.",
-      "trivia": [
-        "Fort Mandan was built near present-day Bismarck, North Dakota.",
-        "The expedition spent five months with the Mandan people during winter 1804-1805."
-      ],
-      "choices": [
-        {
-          "text": "Build a fort and trade with the Mandan",
-          "effects": {
-            "supplies": -15,
-            "health": 2,
-            "morale": 4,
-            "trade_goods": -8,
-            "maps": 5
-          },
-          "result": "Fort Mandan provides good shelter. Trade with the Mandan helps you learn about the land ahead."
-        },
-        {
-          "text": "Try to continue traveling in winter",
-          "outcomes": [
-            {
-              "weight": 3,
-              "effects": {
-                "health": -12,
-                "morale": -8,
-                "supplies": -10
-              },
-              "result": "The winter travel is devastating. Frostbite and exhaustion nearly destroy the expedition."
-            },
-            {
-              "weight": 7,
-              "effects": {
-                "health": -6,
-                "morale": -4,
-                "supplies": -8
-              },
-              "result": "You make slow progress but at great cost to the men's health and spirits."
-            }
-          ]
-        },
-        {
-          "text": "Focus on gathering information and specimens",
-          "effects": {
-            "supplies": -12,
-            "scientific_specimens": 8,
-            "maps": 8,
-            "morale": 2
-          },
-          "result": "The winter is productive for science. You document plants, animals, and Native cultures."
-        }
-      ]
-    },
-    {
-      "id": "pacific_ocean",
-      "phase_min": 0.75,
-      "phase_max": 0.85,
-      "weight": 10,
-      "title": "First Sight of the Pacific",
-      "text": "After months of struggle, you finally see the Pacific Ocean. The expedition's main goal is achieved, but winter approaches quickly.",
-      "trivia": [
-        "Clark wrote in his journal: 'Great joy in camp we are in view of the Ocian.'",
-        "The expedition built Fort Clatsop near present-day Astoria, Oregon for winter shelter."
-      ],
-      "choices": [
-        {
-          "text": "Celebrate and document this historic moment",
-          "effects": {
-            "morale": 12,
-            "scientific_specimens": 5,
-            "maps": 6,
-            "supplies": -3
-          },
-          "result": "The men's spirits soar. You carefully document reaching the Pacific for posterity."
-        },
-        {
-          "text": "Immediately start preparing winter shelter",
-          "effects": {
-            "health": 3,
-            "morale": 5,
-            "supplies": -8
-          },
-          "result": "Practical thinking. You build solid shelter before the Pacific winter storms hit."
-        },
-        {
-          "text": "Search for a ship to take you home",
-          "outcomes": [
-            {
-              "weight": 2,
-              "effects": {
-                "morale": 15,
-                "supplies": 10
-              },
-              "result": "Incredible luck! A trading ship agrees to resupply you.",
-              "earlyEnd": true
-            },
-            {
-              "weight": 8,
-              "effects": {
-                "morale": -3,
-                "health": -2,
-                "supplies": -5
-              },
-              "result": "No ships appear. You've wasted valuable time and energy searching."
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "dangerous_rapids",
-      "phase_min": 0.6,
-      "phase_max": 0.75,
+      "phase_max": 0.6,
       "weight": 6,
-      "title": "Columbia River Rapids",
-      "text": "The Columbia River churns through dangerous rapids ahead. Your boats and supplies are at risk, but portaging will cost precious time.",
+      "title": "Meeting the Shoshone",
+      "text": "You desperately need horses to cross the Rocky Mountains, and only the Shoshone nation has them. Sacagawea, your Shoshone interpreter, recognizes the chief — he is her brother, Cameahwait. This is your best chance to obtain the horses that could make or break the expedition.",
+      "type": "standard",
       "trivia": [
-        "The Columbia River rapids were among the most dangerous parts of the journey.",
-        "Many expedition supplies were damaged or lost in the rough waters."
+        "Without Shoshone horses, the Corps could not have crossed the Rocky Mountains before winter.",
+        "Sacagawea's reunion with her brother Cameahwait was one of the most emotional moments of the entire expedition."
+      ],
+      "sageAdvice": [
+        {
+          "name": "Sacagawea",
+          "role": "Shoshone interpreter",
+          "line": "My people are cautious of strangers. Show respect and offer fair trade — do not rush them."
+        }
       ],
       "choices": [
         {
-          "text": "Run the rapids with experienced river men",
+          "text": "Offer generous trade goods and let Sacagawea lead the negotiation.",
+          "effects": {
+            "trade": -20,
+            "morale": 8,
+            "provisions": 5
+          },
+          "result": "Sacagawea's presence and your generous offer of trade goods secure 29 horses and a guide. Cameahwait also shares knowledge of the mountain passes ahead. The entire camp celebrates."
+        },
+        {
+          "text": "Offer minimal trade goods — save supplies for later.",
           "outcomes": [
-            {
-              "weight": 6,
-              "effects": {
-                "morale": 4,
-                "supplies": -3,
-                "scientific_specimens": -2
-              },
-              "result": "Skilled navigation gets you through with only minor losses."
-            },
             {
               "weight": 4,
               "effects": {
-                "boats": -1,
-                "supplies": -8,
-                "health": -4,
-                "morale": -5
+                "trade": -8,
+                "morale": -4
               },
-              "result": "A boat is wrecked in the rapids. Valuable supplies are lost to the river."
+              "result": "The Shoshone are offended by the small offer. They provide only 11 horses, barely enough, and no guide. The mountain crossing will be much harder."
+            },
+            {
+              "weight": 6,
+              "effects": {
+                "trade": -10,
+                "morale": 3
+              },
+              "result": "Cameahwait's affection for his sister outweighs your poor offer. You receive 20 horses — not as many as possible, but enough to proceed."
             }
           ]
         },
         {
-          "text": "Portage around the most dangerous sections",
+          "text": "Try to take the horses by force or threat.",
           "effects": {
-            "health": -3,
-            "supplies": -5,
-            "morale": -2,
-            "maps": 2
+            "morale": -15,
+            "crew": -2,
+            "ammo": -15,
+            "trade": -5
           },
-          "result": "The careful portage saves your boats but exhausts the men."
-        },
+          "result": "A disastrous decision. The Shoshone melt into the mountains. Two crew members are wounded in the confrontation. You are left without horses and must turn back for weeks to find another route. Jefferson would not approve."
+        }
+      ],
+      "imageSearchQuery": "Sacagawea Lewis Clark Shoshone",
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Detail_Lewis_%26_Clark_at_Three_Forks.jpg/960px-Detail_Lewis_%26_Clark_at_Three_Forks.jpg",
+        "artist": "Edgar Samuel Paxson",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ADetail_Lewis_%26_Clark_at_Three_Forks.jpg",
+        "searchQuery": "Sacagawea Lewis Clark Shoshone"
+      }
+    },
+    {
+      "id": "bitterroot_mountains",
+      "phase_min": 0.55,
+      "phase_max": 0.7,
+      "weight": 5,
+      "title": "Lost in the Bitterroots",
+      "text": "The Bitterroot Mountains are nothing like what you expected. Snow in September, no game, no trails. Your Shoshone guide Old Toby says there is a way through, but it will take everything you have. The crew is already eating tallow candles and boiled moccasins.",
+      "type": "standard",
+      "trivia": [
+        "The Bitterroot crossing was the most brutal part of the entire journey — men went days without food in freezing mountain snow.",
+        "The Corps finally ate one of their own horses to survive the crossing."
+      ],
+      "choices": [
         {
-          "text": "Get local Native guides to help",
+          "text": "Trust Old Toby's knowledge — follow the Nez Perce trail exactly.",
           "outcomes": [
             {
               "weight": 7,
               "effects": {
-                "trade_goods": -6,
-                "morale": 3,
-                "maps": 4
+                "provisions": -12,
+                "morale": -5,
+                "medicalSupplies": -4,
+                "crew": -1
               },
-              "result": "Local knowledge proves invaluable. You navigate safely with expert guidance."
+              "result": "Old Toby's trail is brutal but real. One man dies of exposure. The rest stagger out of the mountains onto the Camas Prairie, half-starved but alive."
             },
             {
               "weight": 3,
               "effects": {
-                "trade_goods": -4,
-                "morale": -1
+                "provisions": -8,
+                "morale": 4,
+                "medicalSupplies": -2
               },
-              "result": "The guides are helpful but cannot prevent all dangers of the rapids."
+              "result": "Old Toby finds a shortcut through a high pass. The crossing is still terrible, but shorter than expected. The crew emerges battered but grateful."
+            }
+          ]
+        },
+        {
+          "text": "Send hunters ahead — risk slowing down to find food.",
+          "effects": {
+            "provisions": 8,
+            "morale": 3,
+            "boatCondition": 0,
+            "medicalSupplies": -2
+          },
+          "result": "Lewis and a small hunting party range ahead and shoot two deer. It is not much, but the fresh meat saves morale and keeps the weakest men on their feet through the worst of the crossing."
+        },
+        {
+          "text": "Push at maximum speed — get out of the mountains before more snow falls.",
+          "outcomes": [
+            {
+              "weight": 4,
+              "effects": {
+                "crew": -2,
+                "morale": -12,
+                "medicalSupplies": -10,
+                "provisions": -6
+              },
+              "result": "Two men collapse with mountain fever. One horse rolls off a cliff. The push breaks the crew's health badly, and you arrive on the far side in desperate shape."
+            },
+            {
+              "weight": 6,
+              "effects": {
+                "provisions": -10,
+                "morale": -6,
+                "medicalSupplies": -5
+              },
+              "result": "You beat the worst snow but the pace wrecks everyone's feet and spirits. The crew survives, barely, and collapses on the western slope in relief."
             }
           ]
         }
-      ]
+      ],
+      "imageSearchQuery": "Bitterroot Mountains Lewis Clark expedition",
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/8/85/Lewis_and_Clark.jpg",
+        "artist": "Unknown",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ALewis_and_Clark.jpg",
+        "searchQuery": "Bitterroot Mountains Lewis Clark expedition"
+      }
+    },
+    {
+      "id": "nez_perce_hospitality",
+      "phase_min": 0.65,
+      "phase_max": 0.75,
+      "weight": 4,
+      "title": "The Nez Perce Nation",
+      "text": "Starving and exhausted after the Bitterroots, your Corps stumbles onto Nez Perce land. Chief Twisted Hair greets you. The Nez Perce could easily overpower your weakened crew, but instead they offer food and show you how to build canoes from the massive ponderosa pines. Your survival depends on their goodwill.",
+      "type": "standard",
+      "trivia": [
+        "The Nez Perce fed the starving Corps of Discovery and taught them how to hollow out canoes using fire — a technique new to the explorers.",
+        "The Nez Perce kept the Corps' horses over winter and returned them in the spring of 1806."
+      ],
+      "sageAdvice": [
+        {
+          "name": "Chief Twisted Hair",
+          "role": "Nez Perce leader",
+          "line": "We have watched your strange party struggle over the mountains. We will help you — but remember this friendship when your nation grows powerful."
+        }
+      ],
+      "choices": [
+        {
+          "text": "Accept their hospitality fully — rest, eat, and learn canoe-building.",
+          "effects": {
+            "provisions": 18,
+            "morale": 14,
+            "boatCondition": 20,
+            "medicalSupplies": 5,
+            "trade": -8
+          },
+          "result": "You stay four days with the Nez Perce. The crew recovers, five new canoes are built, and the sick men regain strength. Twisted Hair even draws you a map of the rivers to the ocean. This generosity may be what saves the expedition."
+        },
+        {
+          "text": "Accept food but keep moving — the Pacific waits.",
+          "effects": {
+            "provisions": 8,
+            "morale": 4,
+            "boatCondition": 5
+          },
+          "result": "You accept food gratefully but push on quickly. The Nez Perce understand urgency and wish you safe passage. You leave stronger than you arrived, though you missed the chance for new canoes."
+        },
+        {
+          "text": "Trade aggressively — try to buy as much as possible.",
+          "outcomes": [
+            {
+              "weight": 5,
+              "effects": {
+                "provisions": 15,
+                "morale": -3,
+                "trade": -20
+              },
+              "result": "You push too hard in the trading. The Nez Perce feel their generosity is being exploited. You get the supplies but leave a sour relationship behind."
+            },
+            {
+              "weight": 5,
+              "effects": {
+                "provisions": 20,
+                "morale": 8,
+                "trade": -15
+              },
+              "result": "The trading goes well. Your remaining trade goods are deeply valued, and the Nez Perce send you off with more food than you could have hoped for."
+            }
+          ]
+        }
+      ],
+      "imageSearchQuery": "Nez Perce Lewis Clark 1805",
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Nez_Percemen_1906.jpg/960px-Nez_Percemen_1906.jpg",
+        "artist": "en:Lee Moorhouse",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ANez_Percemen_1906.jpg",
+        "searchQuery": "Nez Perce Lewis Clark 1805"
+      }
+    },
+    {
+      "id": "columbia_river_rapids",
+      "phase_min": 0.75,
+      "phase_max": 0.9,
+      "weight": 5,
+      "title": "Columbia River Rapids",
+      "text": "The Columbia River races toward the Pacific through a series of violent rapids. Local Chinook people warn you that these waters have capsized many canoes. But portaging around each set of rapids would cost weeks you do not have before winter storms close the river.",
+      "type": "push_luck",
+      "leaveText": "Portage around all rapids — safe but slow.",
+      "attempts": [
+        {
+          "id": "columbia_1",
+          "buttonText": "Run the first set of rapids",
+          "successText": "The canoes shoot through the foam and emerge intact. The crew whoops with relief. Celilo Falls roars behind you.",
+          "failureText": "A canoe strikes a hidden rock. Supplies are soaked and some ammo is lost to the river.",
+          "riskChance": 0.2,
+          "rewards": {
+            "morale": 6,
+            "boatCondition": 0
+          },
+          "penalties": {
+            "ammo": -15,
+            "provisions": -8,
+            "boatCondition": -10
+          }
+        },
+        {
+          "id": "columbia_2",
+          "buttonText": "Shoot the second, worse rapids",
+          "successText": "Incredible seamanship — the helmsmen thread the canoes through rocks that should have ended everything. Chinook onlookers cheer from the banks.",
+          "failureText": "One canoe swamps completely. Three men nearly drown and critical supplies are lost to the Columbia.",
+          "riskChance": 0.4,
+          "rewards": {
+            "morale": 10,
+            "boatCondition": 5
+          },
+          "penalties": {
+            "crew": -1,
+            "provisions": -15,
+            "boatCondition": -20,
+            "medicalSupplies": -8
+          }
+        },
+        {
+          "id": "columbia_3",
+          "buttonText": "Risk the final dangerous gorge",
+          "successText": "You fly through the Columbia Gorge at terrifying speed. Salt air hits your face. The ocean cannot be far. The crew is electric with excitement.",
+          "failureText": "Disaster. Two canoes are destroyed in the gorge. The Corps barely makes it to shore alive. Everything must be rebuilt from scratch.",
+          "riskChance": 0.6,
+          "rewards": {
+            "morale": 20,
+            "boatCondition": 10,
+            "provisions": 5
+          },
+          "penalties": {
+            "boatCondition": -40,
+            "provisions": -20,
+            "ammo": -20,
+            "morale": -10
+          }
+        }
+      ],
+      "imageSearchQuery": "Columbia River Gorge 1805 expedition",
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/8/85/Lewis_and_Clark.jpg",
+        "artist": "Unknown",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ALewis_and_Clark.jpg",
+        "searchQuery": "Columbia River Gorge 1805 expedition"
+      }
     }
   ],
   "sages": [
     {
-      "id": "sacagawea",
-      "name": "Sacagawea",
-      "title": "Shoshone Guide & Interpreter",
-      "portrait": "/faces/sage_sacagawea.png",
-      "threshold": 20,
-      "bio": "Sacagawea was a Shoshone woman who served as an interpreter and guide for Lewis and Clark. Kidnapped as a child, she was living among the Hidatsa when she joined the expedition. Her presence showed Native peoples that the expedition came in peace.",
-      "greeting": "Your Shoshone guide Sacagawea points to landmarks ahead. Her knowledge of the land and ability to communicate with tribes has already proven invaluable to the expedition.",
-      "advice": "\"The presence of a woman and baby shows we travel in peace. Warriors do not bring families to war. Trust this truth when you meet new peoples on the trail ahead.\"",
+      "id": "jefferson",
+      "name": "President Thomas Jefferson",
+      "title": "Author of the Louisiana Purchase",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Lewis_and_Clark.jpg/330px-Lewis_and_Clark.jpg",
+      "portraitAttribution": {
+        "artist": "Unknown",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ALewis_and_Clark.jpg"
+      },
+      "threshold": 10,
+      "bio": "Thomas Jefferson was the third President of the United States and the architect of the Louisiana Purchase in 1803. He commissioned the Corps of Discovery to explore the new territory, find a water route to the Pacific, and document the land, plants, animals, and peoples of the West.",
+      "greeting": "Before you depart, a rider arrives with a letter bearing the presidential seal. Jefferson himself has written to you with final instructions.",
+      "advice": "\"I charge you to observe the face of the country, the soil and face of every tribe you encounter. Treat all nations with respect — you go as ambassadors of peace. The information you gather will be worth more than gold to this young nation.\"",
       "question": {
-        "question": "What important role did Sacagawea play in the Lewis and Clark expedition?",
+        "question": "Why did President Jefferson send Lewis and Clark on their expedition in 1804?",
         "choices": [
-          "She was the expedition's cook and doctor",
-          "She served as guide and interpreter, helping communicate with Native peoples",
-          "She was the expedition's official map maker",
-          "She commanded one of the boats on the Missouri River"
+          "To start a war with Native nations in the West",
+          "To explore the new Louisiana Territory, find a water route to the Pacific, and report on the land and people",
+          "To bring gold and silver back to Washington D.C.",
+          "To build forts along the Missouri River for the U.S. Army"
         ],
         "correctIndex": 1,
-        "explanation": "Sacagawea served as both guide and interpreter for the expedition. She helped the explorers communicate with Native peoples, find food and paths, and her presence as a woman with a baby showed that the expedition came in peace, not for war.",
-        "teksRef": "5.1(B) — Analyze the role of Sacagawea in the success of the Lewis and Clark expedition"
+        "explanation": "Jefferson commissioned the Corps of Discovery after the Louisiana Purchase doubled the size of the United States. He wanted to know what the country had acquired — its geography, resources, plants, animals, and Native peoples — and to find a practical water route to the Pacific Ocean for trade.",
+        "teksRef": "TEKS 5.1(A) — Significance of the Lewis and Clark Expedition"
       },
       "reward": {
         "correct": {
-          "morale": 6,
-          "maps": 4,
-          "trade_goods": 3
+          "provisions": 10,
+          "morale": 8,
+          "trade": 5
         },
         "wrong": {
-          "morale": 2,
-          "maps": 1
+          "morale": 3
         },
         "knowledgeCorrect": 4,
-        "knowledgeWrong": 1
+        "knowledgeWrong": 2
+      }
+    },
+    {
+      "id": "sacagawea",
+      "name": "Sacagawea",
+      "title": "Shoshone Interpreter and Guide",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Lewis_and_clark-expedition.jpg/330px-Lewis_and_clark-expedition.jpg",
+      "portraitAttribution": {
+        "artist": "Charles Marion Russell",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ALewis_and_clark-expedition.jpg"
+      },
+      "threshold": 40,
+      "bio": "Sacagawea was a young Shoshone woman who joined the Corps of Discovery at Fort Mandan in present-day North Dakota. Traveling with her infant son Jean-Baptiste, she served as an interpreter and cultural guide, helping the Corps communicate with Native nations and signaling peaceful intentions. Her presence was invaluable to the expedition's survival.",
+      "greeting": "At Fort Mandan, a French-Canadian fur trader named Charbonneau approaches your camp. His young Shoshone wife, Sacagawea, steps forward and speaks clearly in her own language.",
+      "advice": "\"I know the Shoshone lands ahead. My people have the horses you will need. I can speak for you — but you must show respect and patience. A woman traveling with a baby tells every nation you pass that this is not a war party.\"",
+      "question": {
+        "question": "How did Sacagawea help make the Lewis and Clark Expedition successful?",
+        "choices": [
+          "She drew all the maps of the western United States",
+          "She served as an interpreter, helped communicate with Native peoples, and signaled that the Corps came in peace",
+          "She commanded the Corps of Discovery when Lewis was sick",
+          "She brought Spanish soldiers to protect the expedition"
+        ],
+        "correctIndex": 1,
+        "explanation": "Sacagawea's most important contributions were as an interpreter and cultural ambassador. Her presence — especially traveling with an infant — reassured Native nations that the Corps was not a war party. She also helped the Corps obtain critical horses from the Shoshone, her own people, making the Rocky Mountain crossing possible.",
+        "teksRef": "TEKS 5.1(B) — Interactions with Native peoples during the Lewis and Clark Expedition"
+      },
+      "reward": {
+        "correct": {
+          "trade": 10,
+          "morale": 8,
+          "provisions": 5
+        },
+        "wrong": {
+          "morale": 3,
+          "trade": 3
+        },
+        "knowledgeCorrect": 4,
+        "knowledgeWrong": 2
       }
     },
     {
       "id": "clark",
       "name": "William Clark",
-      "title": "Co-leader & Cartographer",
-      "portrait": "/faces/sage_clark.png",
-      "threshold": 50,
-      "bio": "William Clark was chosen by Meriwether Lewis to co-lead the Corps of Discovery. A skilled frontiersman and soldier, Clark proved to be an excellent map maker and leader of men. His detailed maps would guide future westward expansion.",
-      "greeting": "Captain Clark spreads his maps on a wooden crate, comparing his careful drawings with the landscape around you. His attention to detail has created the most accurate maps of this territory ever made.",
-      "advice": "\"Every river, every mountain pass we map opens the door for those who follow. We are not just exploring - we are building the future of American expansion into these lands.\"",
+      "title": "Co-Commander and Mapmaker",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Lewis_and_Clark.jpg/330px-Lewis_and_Clark.jpg",
+      "portraitAttribution": {
+        "artist": "Unknown",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ALewis_and_Clark.jpg"
+      },
+      "threshold": 70,
+      "bio": "William Clark was the co-commander of the Corps of Discovery and its primary mapmaker. A skilled frontiersman and military officer, Clark drew detailed maps of the territory from his careful observations — maps that remained some of the most accurate of the American West for decades. Clark also brought York, an enslaved man, whose presence fascinated many Native nations the Corps encountered.",
+      "greeting": "Clark spreads a large sheet of paper across a flat boulder and invites you to look. He has been drawing maps from memory every evening, and what you see is astonishing — a detailed picture of a continent no American had ever mapped before.",
+      "advice": "\"Every river, every mountain pass, every village — I write it all down. This information is what we were sent to gather. If we make it back, these maps will open the West to settlement. Every step you have taken has added to the knowledge of your country.\"",
       "question": {
-        "question": "Why was mapping the western territory so important to the Lewis and Clark expedition?",
+        "question": "How did the Lewis and Clark Expedition contribute to westward expansion?",
         "choices": [
-          "Maps were required by French law in the Louisiana Territory",
-          "Accurate maps would help future settlers and traders find routes west",
-          "The expedition needed maps to find gold deposits",
-          "Maps were needed to claim land from Native peoples"
+          "It showed that the West was too dangerous for settlers to ever reach",
+          "It produced detailed maps and information about routes, resources, and Native peoples that encouraged future settlement",
+          "It established the first railroad route to the Pacific Ocean",
+          "It convinced the British to sell Oregon to the United States immediately"
         ],
         "correctIndex": 1,
-        "explanation": "Creating accurate maps was crucial because they would help future settlers, traders, and explorers find safe routes to the West. The expedition's maps opened up westward expansion by showing rivers, mountain passes, and other important geographic features.",
-        "teksRef": "5.1(A) — Explain the significance of the Louisiana Purchase and the Lewis and Clark expedition"
-      },
-      "reward": {
-        "correct": {
-          "maps": 8,
-          "scientific_specimens": 4,
-          "morale": 4
-        },
-        "wrong": {
-          "maps": 3,
-          "morale": 1
-        },
-        "knowledgeCorrect": 5,
-        "knowledgeWrong": 2
-      }
-    },
-    {
-      "id": "jefferson",
-      "name": "Thomas Jefferson",
-      "title": "President of the United States",
-      "portrait": "/faces/sage_jefferson.png",
-      "threshold": 85,
-      "bio": "President Thomas Jefferson organized and funded the Lewis and Clark expedition. A lover of science and learning, Jefferson wanted to map the Louisiana Purchase, find a water route to the Pacific, and establish trade with Native peoples.",
-      "greeting": "As you near the end of your journey, you recall President Jefferson's final instructions before departure. His vision of American expansion guided every mile of your incredible journey.",
-      "advice": "\"You have accomplished what I dreamed - opening a path to the Pacific and proving the continent can be crossed. Your discoveries will shape America's destiny for generations to come.\"",
-      "question": {
-        "question": "What was President Jefferson's main goal for the Lewis and Clark expedition?",
-        "choices": [
-          "To find gold and silver mines in the western mountains",
-          "To establish military forts along the Missouri River",
-          "To explore the Louisiana Purchase and find a route to the Pacific Ocean",
-          "To remove Native peoples from the newly purchased territory"
-        ],
-        "correctIndex": 2,
-        "explanation": "President Jefferson's primary goal was to explore the vast Louisiana Purchase territory and find a practical route to the Pacific Ocean. He wanted to map the region, study its plants and animals, and establish peaceful relations with Native peoples for future trade.",
-        "teksRef": "5.1(A) — Explain the significance of the Louisiana Purchase and the Lewis and Clark expedition"
+        "explanation": "Clark's detailed maps and the expedition's journals gave Americans their first reliable information about the geography, resources, and peoples of the West. This knowledge directly encouraged future explorers, fur traders, and settlers to head west, fueling the westward expansion that defined 19th-century America.",
+        "teksRef": "TEKS 5.1(A) — Role of Lewis and Clark in westward expansion"
       },
       "reward": {
         "correct": {
           "morale": 10,
-          "scientific_specimens": 6,
-          "maps": 6
+          "provisions": 8,
+          "boatCondition": 5
         },
         "wrong": {
-          "morale": 4,
-          "scientific_specimens": 2
+          "morale": 4
         },
-        "knowledgeCorrect": 6,
+        "knowledgeCorrect": 4,
         "knowledgeWrong": 2
       }
     }
@@ -510,299 +572,265 @@
     {
       "id": "start",
       "title": "Camp Dubois",
-      "description": "Your winter training camp near St. Louis.",
+      "description": "You depart from the confluence of the Missouri and Mississippi Rivers.",
       "edges": [
         {
           "to": "missouri_river",
           "tag": "SAFE",
-          "label": "Follow the Missouri carefully"
+          "label": "Follow the river carefully"
         },
         {
-          "to": "overland_route",
+          "to": "open_plains",
           "tag": "FAST",
-          "label": "Try a more direct overland path"
+          "label": "Push upriver hard"
         }
       ]
     },
     {
       "id": "missouri_river",
       "title": "Missouri River Route",
-      "description": "Following the great river upstream.",
+      "description": "Steady river travel with reliable Native contacts.",
       "edges": [
         {
-          "to": "mandan_villages",
-          "tag": "PROFIT",
-          "label": "Stop at Mandan villages for trade"
+          "to": "fort_mandan",
+          "tag": "SAFE",
+          "label": "Winter at Fort Mandan"
         },
         {
-          "to": "rocky_mountains",
+          "to": "high_plains",
+          "tag": "PROFIT",
+          "label": "Scout the high plains"
+        }
+      ]
+    },
+    {
+      "id": "open_plains",
+      "title": "Open Plains",
+      "description": "Fast overland travel but harder resupply.",
+      "edges": [
+        {
+          "to": "fort_mandan",
+          "tag": "FAST",
+          "label": "Race to winter quarters"
+        },
+        {
+          "to": "high_plains",
+          "tag": "PROFIT",
+          "label": "Explore beyond the trail"
+        }
+      ]
+    },
+    {
+      "id": "fort_mandan",
+      "title": "Fort Mandan",
+      "description": "Winter quarters. Resupply with the Mandan people.",
+      "edges": [
+        {
+          "to": "rockies",
+          "tag": "SAFE",
+          "label": "Follow Sacagawea's guidance"
+        }
+      ]
+    },
+    {
+      "id": "high_plains",
+      "title": "High Plains",
+      "description": "Rich in game but exposed to weather and distance.",
+      "edges": [
+        {
+          "to": "rockies",
           "tag": "FAST",
           "label": "Push toward the mountains"
         }
       ]
     },
     {
-      "id": "overland_route",
-      "title": "Overland Trail",
-      "description": "A challenging but potentially faster route.",
-      "edges": [
-        {
-          "to": "rocky_mountains",
-          "tag": "FAST",
-          "label": "Head straight for the mountains"
-        }
-      ]
-    },
-    {
-      "id": "mandan_villages",
-      "title": "Mandan Villages",
-      "description": "Friendly Native settlements for winter shelter.",
-      "edges": [
-        {
-          "to": "rocky_mountains",
-          "tag": "SAFE",
-          "label": "Continue west in spring"
-        }
-      ]
-    },
-    {
-      "id": "rocky_mountains",
+      "id": "rockies",
       "title": "Rocky Mountains",
-      "description": "The great continental divide.",
+      "description": "The most grueling section of the entire journey.",
       "edges": [
         {
-          "to": "columbia_river",
+          "to": "columbia_road",
           "tag": "SAFE",
-          "label": "Find the Columbia River"
+          "label": "Descend carefully to the Columbia"
+        },
+        {
+          "to": "finish",
+          "tag": "FAST",
+          "label": "Race to the Pacific"
         }
       ]
     },
     {
-      "id": "columbia_river",
+      "id": "columbia_road",
       "title": "Columbia River",
-      "description": "The river route to the Pacific.",
+      "description": "Fast water to the Pacific — if the canoes hold.",
       "edges": [
         {
-          "to": "pacific_ocean",
+          "to": "finish",
           "tag": "PROFIT",
-          "label": "Follow the river to the sea"
+          "label": "Reach the Pacific coast"
         }
       ]
     },
     {
-      "id": "pacific_ocean",
-      "title": "Pacific Ocean",
-      "description": "The western edge of the continent.",
+      "id": "finish",
+      "title": "Fort Clatsop — Pacific Ocean",
+      "description": "The journey's end. The Pacific roars before you.",
       "edges": []
     }
   ],
   "eventTrivia": [
     {
-      "id": "t1",
-      "question": "Why was it important for the Lewis and Clark expedition to make friends with Native peoples?",
+      "id": "lt1",
+      "question": "Why was the Great Falls portage such a major problem for the Corps of Discovery?",
       "choices": [
-        "To get help with directions and supplies",
-        "To teach them English",
-        "To sell them weapons"
-      ],
-      "correctIndex": 0,
-      "fact": "Native peoples provided crucial guidance, food, and knowledge about the land ahead."
-    },
-    {
-      "id": "t2",
-      "question": "What did Lewis and Clark bring back from their expedition?",
-      "choices": [
-        "Gold and silver",
-        "Maps and scientific specimens",
-        "Lumber and furs"
+        "It was where the Corps ran out of food completely",
+        "Five waterfalls blocked the river and forced the Corps to carry everything overland for 18 miles",
+        "The Shoshone refused to let them pass the falls"
       ],
       "correctIndex": 1,
-      "fact": "The expedition returned with detailed maps, plant and animal specimens, and knowledge about the western territory."
+      "fact": "The Great Falls of the Missouri required an 18-mile overland portage — the Corps built crude wagons from cottonwood trees to haul their heavy canoes."
     },
     {
-      "id": "t3",
-      "question": "How long did the Lewis and Clark expedition take?",
+      "id": "lt2",
+      "question": "Why was Sacagawea's presence important when the Corps met new Native nations?",
       "choices": [
-        "Six months",
-        "Over two years",
-        "Five years"
+        "She carried all the weapons for the Corps",
+        "A woman traveling with a baby showed Native peoples the Corps was a peaceful group, not a war party",
+        "She could run faster than any warrior and outrun danger"
       ],
       "correctIndex": 1,
-      "fact": "The expedition lasted from 1804 to 1806, covering over 8,000 miles in about two and a half years."
+      "fact": "Sacagawea's presence — especially with her infant son — signaled to Native nations that the Corps of Discovery came in peace, not as a war party."
+    },
+    {
+      "id": "lt3",
+      "question": "What did the Nez Perce do for the starving Corps of Discovery after the Bitterroot Mountains?",
+      "choices": [
+        "They gave the Corps guns and ammunition",
+        "They attacked the Corps to take their supplies",
+        "They fed the Corps, helped build canoes, and shared knowledge of the rivers ahead"
+      ],
+      "correctIndex": 2,
+      "fact": "The Nez Perce saved the Corps of Discovery by providing food, teaching them to build canoes, and sharing knowledge of the Columbia River system."
     }
   ],
   "trailPath": [
     [
-      15,
-      85
-    ],
-    [
-      18,
-      83
-    ],
-    [
-      22,
-      81
-    ],
-    [
-      26,
-      79
-    ],
-    [
-      30,
-      77
-    ],
-    [
-      34,
-      75
-    ],
-    [
-      38,
-      73
-    ],
-    [
-      42,
-      71
-    ],
-    [
-      46,
-      69
-    ],
-    [
-      50,
-      67
-    ],
-    [
-      54,
-      65
-    ],
-    [
-      58,
-      63
-    ],
-    [
-      62,
-      61
-    ],
-    [
-      66,
-      59
-    ],
-    [
-      70,
-      57
-    ],
-    [
-      74,
+      55,
       55
     ],
     [
-      78,
-      53
-    ],
-    [
-      82,
-      51
-    ],
-    [
-      86,
-      49
-    ],
-    [
-      88,
-      47
-    ],
-    [
-      86,
-      45
-    ],
-    [
-      84,
-      43
-    ],
-    [
-      82,
-      41
-    ],
-    [
-      80,
-      39
-    ],
-    [
-      78,
-      37
-    ],
-    [
-      76,
-      35
-    ],
-    [
-      74,
-      33
-    ],
-    [
-      72,
-      31
-    ],
-    [
-      70,
-      29
-    ],
-    [
-      68,
-      27
-    ],
-    [
-      66,
-      25
-    ],
-    [
-      64,
-      23
-    ],
-    [
-      62,
-      21
-    ],
-    [
-      60,
-      19
-    ],
-    [
-      58,
-      17
-    ],
-    [
-      56,
-      15
-    ],
-    [
-      54,
-      13
-    ],
-    [
       52,
-      11
+      52
     ],
     [
-      50,
-      9
-    ],
-    [
-      48,
-      7
+      49,
+      50
     ],
     [
       46,
-      5
+      47
     ],
     [
-      44,
-      3
+      43,
+      44
     ],
     [
-      42,
-      1
+      40,
+      42
+    ],
+    [
+      37,
+      40
+    ],
+    [
+      34,
+      38
+    ],
+    [
+      31,
+      36
+    ],
+    [
+      28,
+      34
+    ],
+    [
+      25,
+      32
+    ],
+    [
+      22,
+      30
+    ],
+    [
+      20,
+      28
+    ],
+    [
+      18,
+      26
+    ],
+    [
+      16,
+      24
+    ],
+    [
+      14,
+      22
+    ],
+    [
+      13,
+      20
+    ],
+    [
+      12,
+      18
+    ],
+    [
+      14,
+      16
+    ],
+    [
+      16,
+      14
+    ],
+    [
+      18,
+      13
+    ],
+    [
+      16,
+      12
+    ],
+    [
+      14,
+      11
+    ],
+    [
+      13,
+      10
+    ],
+    [
+      12,
+      12
+    ],
+    [
+      11,
+      14
+    ],
+    [
+      10,
+      16
+    ],
+    [
+      9,
+      18
+    ],
+    [
+      8,
+      20
     ]
   ],
   "trailStops": [
@@ -814,76 +842,55 @@
       "supply": true
     },
     {
-      "id": "st_charles",
-      "name": "St. Charles",
+      "id": "council_bluff",
+      "name": "Council Bluffs",
       "pathIndex": 4,
-      "pct": 8,
+      "pct": 15,
       "supply": true
-    },
-    {
-      "id": "kansas_river",
-      "name": "Kansas River",
-      "pathIndex": 10,
-      "pct": 23,
-      "supply": false
-    },
-    {
-      "id": "platte_river",
-      "name": "Platte River",
-      "pathIndex": 15,
-      "pct": 35,
-      "supply": false
     },
     {
       "id": "fort_mandan",
       "name": "Fort Mandan",
-      "pathIndex": 20,
-      "pct": 47,
+      "pathIndex": 10,
+      "pct": 35,
       "supply": true
     },
     {
       "id": "great_falls",
       "name": "Great Falls",
-      "pathIndex": 25,
-      "pct": 58,
+      "pathIndex": 16,
+      "pct": 55,
       "supply": false
     },
     {
-      "id": "continental_divide",
-      "name": "Continental Divide",
-      "pathIndex": 30,
-      "pct": 70,
+      "id": "lemhi_pass",
+      "name": "Lemhi Pass",
+      "pathIndex": 20,
+      "pct": 65,
       "supply": false
     },
     {
-      "id": "columbia_river",
-      "name": "Columbia River",
-      "pathIndex": 35,
-      "pct": 82,
-      "supply": false
-    },
-    {
-      "id": "pacific_ocean",
-      "name": "Pacific Ocean",
-      "pathIndex": 42,
+      "id": "fort_clatsop",
+      "name": "Fort Clatsop",
+      "pathIndex": 28,
       "pct": 100,
       "supply": true
     }
   ],
-  "mapImage": "/faces/map_lewisclark.png",
+  "mapImage": "/faces/map_lewis_clark.png",
   "outfitConfig": {
     "budget": 2500,
-    "baseCrew": 25,
-    "baseHorses": 8,
-    "baseSupplies": 60,
+    "baseCrew": 20,
+    "baseHorses": 0,
+    "baseSupplies": 40,
     "costs": {
-      "soldier": 80,
-      "boat": 200,
-      "scientific_gear": 150,
-      "trade_goods": 15,
-      "ammunition": 25,
-      "medical_supplies": 120,
-      "surveying_tools": 180
+      "rifleman": 100,
+      "provisions": 5,
+      "ammunition": 30,
+      "medicalKit": 80,
+      "tradingGoods": 60,
+      "canoeRepairKit": 70,
+      "scientificInstruments": 120
     },
     "wageCosts": {
       "low": 0,
@@ -891,79 +898,124 @@
       "good": 400
     },
     "wageMorale": {
-      "low": 45,
-      "standard": 60,
-      "good": 75
+      "low": 30,
+      "standard": 50,
+      "good": 70
     },
-    "herdOptions": [
-      1,
-      2,
-      3,
-      4,
-      5
-    ]
+    "herdOptions": []
   },
-  "primaryResourceKey": "scientific_specimens",
-  "primaryResourceStart": 0,
-  "revenuePerUnit": 50,
-  "historicalContext": "The Lewis and Clark expedition (1804-1806) was the first official U.S. exploration of the western territory acquired in the Louisiana Purchase. Led by Meriwether Lewis and William Clark, the Corps of Discovery traveled over 8,000 miles to map the territory, study its natural resources, and establish relations with Native peoples. Their detailed journals and maps provided crucial knowledge that enabled American westward expansion and shaped the nation's understanding of the continent's geography, plants, animals, and peoples.",
+  "primaryResourceKey": "crew",
+  "primaryResourceStart": 30,
+  "revenuePerUnit": 1,
+  "historicalContext": "The Lewis and Clark Expedition (1804–1806) was the first American overland expedition to the Pacific coast and back. Commissioned by President Jefferson after the Louisiana Purchase, the Corps of Discovery covered nearly 8,000 miles, made first contact with dozens of Native nations, and produced the first detailed maps of the American West. The expedition's journals and maps directly fueled the westward expansion of the United States throughout the 19th century. Of the 33 permanent members, only one man died — from appendicitis — a remarkable record for the era.",
   "pixelColors": {
-    "skin": "#D4A574",
-    "hair_brown": "#8B4513",
-    "hair_black": "#2F1B14",
-    "eyes": "#4A4A4A",
-    "uniform": "#1E3A8A",
-    "leather": "#8B4513"
+    "skin": "#C68642",
+    "coat": "#5C4033",
+    "shirt": "#8B7355",
+    "hat": "#4A3728",
+    "pants": "#6B8E6B",
+    "boots": "#3B2A1A",
+    "background": "#D2B48C",
+    "water": "#4682B4",
+    "forest": "#2D5A27",
+    "mountain": "#8B8680"
   },
   "pixelFaces": {
-    "explorer": [
+    "captain": [
       {
-        "threshold": 0,
-        "sprite": "explorer_sick",
-        "label": "Sick"
-      },
-      {
-        "threshold": 25,
-        "sprite": "explorer_tired",
-        "label": "Tired"
+        "threshold": 80,
+        "sprite": "captain_great",
+        "label": "Bold"
       },
       {
         "threshold": 50,
-        "sprite": "explorer_fair",
-        "label": "Fair"
+        "sprite": "captain_ok",
+        "label": "Steady"
       },
       {
-        "threshold": 75,
-        "sprite": "explorer_good",
-        "label": "Good"
+        "threshold": 25,
+        "sprite": "captain_worn",
+        "label": "Worn"
       },
-      {
-        "threshold": 90,
-        "sprite": "explorer_excellent",
-        "label": "Excellent"
-      }
-    ],
-    "guide": [
       {
         "threshold": 0,
-        "sprite": "guide_poor",
+        "sprite": "captain_grim",
+        "label": "Desperate"
+      }
+    ],
+    "scout": [
+      {
+        "threshold": 80,
+        "sprite": "scout_sharp",
+        "label": "Sharp"
+      },
+      {
+        "threshold": 50,
+        "sprite": "scout_ok",
+        "label": "Alert"
+      },
+      {
+        "threshold": 25,
+        "sprite": "scout_tired",
+        "label": "Tired"
+      },
+      {
+        "threshold": 0,
+        "sprite": "scout_lost",
         "label": "Lost"
+      }
+    ],
+    "medic": [
+      {
+        "threshold": 80,
+        "sprite": "medic_ready",
+        "label": "Ready"
       },
       {
-        "threshold": 30,
-        "sprite": "guide_fair",
-        "label": "Uncertain"
+        "threshold": 50,
+        "sprite": "medic_ok",
+        "label": "Working"
       },
       {
-        "threshold": 60,
-        "sprite": "guide_good",
-        "label": "Confident"
+        "threshold": 25,
+        "sprite": "medic_low",
+        "label": "Low on supplies"
       },
       {
-        "threshold": 85,
-        "sprite": "guide_excellent",
-        "label": "Expert"
+        "threshold": 0,
+        "sprite": "medic_empty",
+        "label": "Out of medicine"
+      }
+    ],
+    "crew": [
+      {
+        "threshold": 80,
+        "sprite": "crew_strong",
+        "label": "Strong"
+      },
+      {
+        "threshold": 50,
+        "sprite": "crew_ok",
+        "label": "Holding"
+      },
+      {
+        "threshold": 25,
+        "sprite": "crew_weak",
+        "label": "Struggling"
+      },
+      {
+        "threshold": 0,
+        "sprite": "crew_broken",
+        "label": "Broken"
       }
     ]
+  },
+  "imageStyleKeyword": "engraving",
+  "backdropImage": {
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/8/85/Lewis_and_Clark.jpg",
+    "artist": "Unknown",
+    "license": "Public domain",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ALewis_and_Clark.jpg",
+    "searchQuery": "Lewis and Clark Expedition"
   }
 }
