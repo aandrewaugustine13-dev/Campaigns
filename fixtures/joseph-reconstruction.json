@@ -1,0 +1,224 @@
+{
+  "id": "joseph-reconstruction",
+  "title": "Joseph — Reconstruction",
+  "subtitle": "A freedman's first free year in the postwar South",
+  "introBody": "You are Joseph, freed at the end of the war. The fields are the same, the law is new and uncertain, and for the first time your name can mean something on paper. This is the story of one year, and of one choice that will decide who you become. (A hand-built test of the persistent-flag mechanic — an early choice changes the later story.)",
+  "trailFeedOpener": "Spring. The first free planting. The law says one thing; the road home says another.",
+  "theme": "broadsheet-sepia",
+  "isPublished": true,
+  "progressionMode": "project",
+
+  "totalDays": 7,
+  "daysPerTurn": 1,
+  "totalDistance": 0,
+  "distanceUnit": "season",
+
+  "initialResources": { "standing": 55, "spirit": 60 },
+  "resourceCaps": { "standing": 100, "spirit": 100 },
+  "resourceLabels": { "standing": "Standing in the Community", "spirit": "Spirit" },
+
+  "flags": [
+    { "id": "assertedRights", "type": "boolean", "initial": false, "label": "Let his name stand on the rolls in daylight" }
+  ],
+
+  "paces": [],
+
+  "events": [
+    {
+      "id": "registrars_book",
+      "phase_min": 0.0,
+      "phase_max": 0.3,
+      "weight": 5,
+      "title": "The Registrar's Book",
+      "text": "The registrar's office smells of ink and old smoke. The book lies open on the table, a column of names half filled. The clerk watches me over his spectacles; behind him, two men I do not know lean against the wall and say nothing. My wife waits outside with the children. To sign is to be counted — and to be counted is to be seen, by everyone, including men who would rather I vanish. This is the fork the whole year turns on.",
+      "type": "standard",
+      "choices": [
+        {
+          "text": "Register to vote, in daylight, where everyone can see.",
+          "flagWrites": { "assertedRights": true },
+          "result": "I take the pen. My hand wants to shake and I do not let it. The clerk writes my name out in full, and the two men by the wall watch me walk back into the sun. Whatever comes now, it comes to a man who is on the rolls."
+        },
+        {
+          "text": "Stay off the rolls this year. Keep the family whole.",
+          "flagWrites": { "assertedRights": false },
+          "result": "I tell the clerk I will think on it, and I take my wife's arm and we go. The book stays one name short. There is no shame in living to plant another season, I tell myself — and almost believe it."
+        }
+      ]
+    },
+    {
+      "id": "night_riders",
+      "phase_min": 0.35,
+      "phase_max": 0.5,
+      "weight": 5,
+      "title": "Hoofbeats After Midnight",
+      "text": {
+        "default": "Hooves on the road past midnight. I lie still in the dark and listen until they fade.",
+        "variants": [
+          {
+            "whenFlag": "assertedRights",
+            "equals": true,
+            "text": "Hooves on the road past midnight. The door is barred and the children are behind me, and I sit with the lamp dark because my name is on the registrar's list and every soul in the county knows it. The riders slow at our gate. For a long moment there is only the breathing of horses and the creak of leather. Then they move on — this time. I do not sleep. A man who steps forward learns the night is longer."
+          },
+          {
+            "whenFlag": "assertedRights",
+            "equals": false,
+            "text": "Hooves on the road past midnight. I lie still and listen. The riders do not slow at our gate — there is no name here to punish, nothing on any list to answer for. They pass, and we are safe, and the safety tastes like ashes. I kept us whole by keeping us small. I do not sleep either."
+          }
+        ]
+      },
+      "type": "standard",
+      "choices": [
+        { "text": "Sit up until dawn with what I have.", "result": "Morning comes gray and ordinary. The road is empty. We are still here." },
+        { "text": "Hold the children close and pray.", "result": "The lamp stays dark. I count breaths instead of hours until the window grays." }
+      ]
+    },
+    {
+      "id": "church_meeting",
+      "phase_min": 0.5,
+      "phase_max": 0.75,
+      "weight": 5,
+      "title": "Sunday, and the Talk Turns to the Courthouse",
+      "text": {
+        "default": "Sunday. The talk turns to the courthouse and who will speak for us. I listen from where I sit.",
+        "variants": [
+          {
+            "whenFlag": "assertedRights",
+            "equals": true,
+            "text": "Sunday. When the talk turns to the courthouse and who will speak for us, eyes find me — I am the one who signed, the man who let his name stand in daylight. An older woman takes my hand at the door: 'We watched you do it.' The weight of being looked to settles on my shoulders, heavier and finer than I expected."
+          },
+          {
+            "whenFlag": "assertedRights",
+            "equals": false,
+            "text": "Sunday. When the talk turns to the courthouse and who will speak for us, I keep to the back bench and study my hands. No one asks me; everyone knows I stayed off the rolls. There is no blame in their faces, which is somehow worse. I carry the cost of being unseen home with me, and it has no name I can say aloud."
+          }
+        ]
+      },
+      "type": "standard",
+      "choices": [
+        { "text": "Stand and say a word.", "result": "My voice is not as steady as I would like, but it is mine, and it is heard." },
+        { "text": "Keep my peace for now.", "result": "I let the moment pass. There will be others, I tell myself." }
+      ]
+    },
+    {
+      "id": "the_season_turns",
+      "phase_min": 0.75,
+      "phase_max": 1.0,
+      "weight": 5,
+      "title": "The Season Turns",
+      "text": {
+        "default": "The season turns. I take stock of the year and the man it made me.",
+        "variants": [
+          {
+            "whenFlag": "assertedRights",
+            "equals": true,
+            "text": "The season turns. I am not a famous man, and the work is far from finished — but when my son asks one day what I did when it mattered, I will tell him I let them write my name where anyone could read it. Some nights that feels like courage. Some nights it feels like a target I painted on my own back. Both are true. I chose to be counted, and that choice is who I am now."
+          },
+          {
+            "whenFlag": "assertedRights",
+            "equals": false,
+            "text": "The season turns. I kept my family whole through a hard year, and that is no small thing. But when my son asks one day what I did when it mattered, I will have to tell him I stayed off the rolls and waited for a safer day that did not come. I chose us over the book. Some nights I know it was wisdom. Some nights it is only the shame I swallowed at the registrar's door. Both are true. That choice, too, is who I am now."
+          }
+        ]
+      },
+      "type": "standard",
+      "choices": [
+        { "text": "Look my son in the eye.", "result": "He is too young to understand the year I have had. One day he will read it in my face." },
+        { "text": "Promise him next year will be different.", "result": "I make the promise quietly, to him and to myself, and mean to keep it." }
+      ]
+    }
+  ],
+
+  "sages": [
+    {
+      "id": "freedmens_teacher",
+      "name": "A Freedmen's Bureau Teacher",
+      "title": "Schoolteacher",
+      "portrait": "",
+      "threshold": 999,
+      "bio": "A Northern teacher sent to run a freedmen's school, paid little and watched closely.",
+      "greeting": "Sit a moment, Joseph. Learning to read your own name is the first freedom.",
+      "advice": "The law on paper and the law on the road are not always the same law. Know both.",
+      "question": {
+        "question": "During Reconstruction, what was a central purpose of the Freedmen's Bureau?",
+        "choices": [
+          "To return freedpeople to their former enslavers",
+          "To provide schooling, food, and legal aid to freedpeople",
+          "To collect taxes for the Confederacy",
+          "To build the Erie Canal"
+        ],
+        "correctIndex": 1,
+        "explanation": "The Freedmen's Bureau provided education, relief, labor contracts, and legal protection to formerly enslaved people in the postwar South.",
+        "teksRef": "TEKS 8.9"
+      },
+      "reward": {
+        "correct": { "standing": 5, "spirit": 5 },
+        "wrong": { "spirit": 1 },
+        "knowledgeCorrect": 5,
+        "knowledgeWrong": 1
+      }
+    }
+  ],
+
+  "route": [
+    {
+      "id": "start",
+      "title": "The Home Place",
+      "description": "A rented patch of the same land you once worked unfree. The year is yours to live now — for whatever that turns out to mean.",
+      "edges": []
+    }
+  ],
+
+  "eventTrivia": [
+    {
+      "id": "black_codes",
+      "question": "What were the 'Black Codes' passed by Southern states after the Civil War?",
+      "choices": [
+        "Laws restricting the freedom and labor of formerly enslaved people",
+        "Codes protecting the voting rights of freedpeople",
+        "Federal banking regulations",
+        "Rules for the transcontinental railroad"
+      ],
+      "correctIndex": 0,
+      "fact": "Black Codes were state laws that severely limited the rights of freedpeople, restricting their movement, labor, and ability to testify or vote."
+    },
+    {
+      "id": "fifteenth_amendment",
+      "question": "What did the Fifteenth Amendment (1870) establish?",
+      "choices": [
+        "The end of slavery",
+        "Birthright citizenship",
+        "That the right to vote could not be denied based on race",
+        "A federal income tax"
+      ],
+      "correctIndex": 2,
+      "fact": "The Fifteenth Amendment barred denying the vote on the basis of race, color, or previous condition of servitude — though enforcement collapsed after Reconstruction."
+    }
+  ],
+
+  "trailPath": [],
+  "trailStops": [],
+  "mapImage": "none",
+
+  "outfitConfig": {
+    "budget": 0,
+    "baseCrew": 0,
+    "baseHorses": 0,
+    "baseSupplies": 0,
+    "costs": {},
+    "wageCosts": {},
+    "wageMorale": {},
+    "herdOptions": []
+  },
+
+  "primaryResourceKey": "standing",
+  "primaryResourceStart": 55,
+  "revenuePerUnit": 0,
+  "historicalContext": "In the years after the Civil War, formerly enslaved people across the South weighed daily, dangerous choices about how openly to claim their new legal rights. Registering to vote, holding office, or speaking publicly could invite violence from groups like the Ku Klux Klan, even as the Reconstruction Amendments promised citizenship and the ballot. There was no clean answer: to assert one's rights was to risk everything, and to stay quiet was to survive at the cost of the very freedom the law now named. This single hand-built year dramatizes that fault line.",
+
+  "pixelColors": {},
+  "pixelFaces": {
+    "joseph": [
+      { "threshold": 0, "sprite": "steady", "label": "weary but standing" }
+    ]
+  }
+}
