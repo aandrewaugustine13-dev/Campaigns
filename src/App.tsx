@@ -7,6 +7,9 @@ import SilkRoad from "./SilkRoad";
 import Crusades from "./Crusades";
 import GeneratedCampaign from "./GeneratedCampaign";
 import GeneratorUI from "./GeneratorUI";
+import type { CampaignData } from "../generator/schema";
+import josephReconstruction from "../fixtures/joseph-reconstruction.json";
+import josephGenerated from "../generator/joseph-generated-output.json";
 import ChisholmTriviaEngine, { pickTriviaQuestion, type TriviaQuestion } from "./campaigns/chisholm/trivia";
 import type { Objective, RouteState, EventGateQuestion } from "./gameModels";
 import { generateObjective, tickObjectives, findNode } from "./gameLogic";
@@ -894,6 +897,8 @@ export default function App(){
     { id: "silkroad", title: "🐫 Silk Road — 130 BCE", subtitle: "Chang'an to Constantinople", config: { isPublished: true }, color: "bg-indigo-900 hover:bg-indigo-800", subColor: "text-indigo-300" },
     { id: "crusades", title: "✝ Third Crusade — 1190", subtitle: "Warwick to Jerusalem", config: CrusadesCampaign, color: "bg-red-900 hover:bg-red-800", subColor: "text-red-300" },
     { id: "lewisclark", title: "🧭 Lewis & Clark — 1804", subtitle: "St. Louis to the Pacific", config: { isPublished: true }, color: "bg-emerald-900 hover:bg-emerald-800", subColor: "text-emerald-300" },
+    { id: "joseph", title: "📖 Joseph — Reconstruction", subtitle: "A freedman's first free year (flag test)", config: josephReconstruction, color: "bg-stone-700 hover:bg-stone-600", subColor: "text-stone-300" },
+    { id: "joseph-generated", title: "📖 Joseph — Reconstruction (generated)", subtitle: "Same standard, generated end-to-end (flag test)", config: josephGenerated, color: "bg-stone-700 hover:bg-stone-600", subColor: "text-stone-300" },
   ];
 
   const visibleCampaigns = isTeacherMode 
@@ -903,6 +908,8 @@ export default function App(){
   if(campaignId==="silkroad")return <SilkRoad onBack={backToMenu}/>;
   if(campaignId==="crusades")return <Crusades onBack={backToMenu}/>;
   if(campaignId==="lewisclark")return <GeneratedCampaign onBack={backToMenu}/>;
+  if(campaignId==="joseph")return <GeneratedCampaign data={josephReconstruction as unknown as CampaignData} onBack={backToMenu}/>;
+  if(campaignId==="joseph-generated")return <GeneratedCampaign data={josephGenerated as unknown as CampaignData} onBack={backToMenu}/>;
   if(campaignId==="generator")return <GeneratorUI onBack={backToMenu}/>;
 
   if(!campaignId)return(
