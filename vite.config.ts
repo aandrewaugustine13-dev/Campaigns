@@ -166,6 +166,19 @@ function generatorApiPlugin(): Plugin {
         const { data, findings } = await generateCast(String(inputs.standard ?? ''), apiKey);
         return { data, findings };
       });
+
+      // Character campaigns only: propose the moral fault line for the chosen
+      // perspective. Takes { standard, perspective } and returns { data, findings }.
+      // The perspective is load-bearing — the fault line depends on whose eyes.
+      jsonPost(server, '/api/faultline', async (apiKey, inputs) => {
+        const { generateFaultLine } = await import('./generator/faultline.ts');
+        const { data, findings } = await generateFaultLine(
+          String(inputs.standard ?? ''),
+          String(inputs.perspective ?? ''),
+          apiKey,
+        );
+        return { data, findings };
+      });
     },
   };
 }

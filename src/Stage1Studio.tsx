@@ -3,6 +3,7 @@ import type { CampaignData } from "../generator/schema";
 import type { ProposedFrame, PlayerPerspective } from "../generator/frame";
 import type { SystemsEconomy } from "../generator/economy";
 import type { ProposedCast } from "../generator/cast";
+import type { FaultLineSpec } from "../generator/faultline";
 import { generateCampaignJob } from "./generateClient";
 
 // ═══════════════════════════════════════════════════════════════
@@ -96,6 +97,9 @@ export default function Stage1Studio({
   const [perspectiveIdx, setPerspectiveIdx] = useState(0);
   const [economy, setEconomy] = useState<SystemsEconomy | null>(null);
   const [cast, setCast] = useState<ProposedCast | null>(null);
+  // Character campaigns only: the moral fault line proposed for the chosen
+  // perspective. Null for systems campaigns (and reset whenever we re-propose).
+  const [faultLine, setFaultLine] = useState<FaultLineSpec | null>(null);
 
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -129,16 +133,32 @@ export default function Stage1Studio({
     }
   };
 
-  // ── Step 2 → propose the economy + cast in parallel ─────────────
+  // ── Step 2 → propose the economy + cast (+ fault line for character) ──
+  // For a CHARACTER campaign we also propose the moral fault line, using the
+  // chosen perspective (the fault line depends on whose eyes). It is locked
+  // into the generate payload as `faultLine`; core.ts compiles it.
   const proposeEconomyAndCast = async () => {
-    setBusy("Proposing the resource economy and historical cast…");
+    if (!frame) return;
+    const isCharacter = frame.campaignType === "character";
+    const persp = perspectives[perspectiveIdx] ?? frame.recommendedPerspective;
+    setBusy(
+      isCharacter
+        ? "Proposing the economy, cast, and the moral fault line…"
+        : "Proposing the resource economy and historical cast…",
+    );
     try {
-      const [eco, cst] = await Promise.all([
-        postJson<{ data: SystemsEconomy }>("/api/economy", { standard: inputs.standard }),
-        postJson<{ data: ProposedCast }>("/api/cast", { standard: inputs.standard }),
-      ]);
+      const ecoP = postJson<{ data: SystemsEconomy }>("/api/economy", { standard: inputs.standard });
+      const castP = postJson<{ data: ProposedCast }>("/api/cast", { standard: inputs.standard });
+      const flP: Promise<{ data: FaultLineSpec } | null> = isCharacter
+        ? postJson<{ data: FaultLineSpec }>("/api/faultline", {
+            standard: inputs.standard,
+            perspective: `${persp.role} — ${persp.description}`,
+          })
+        : Promise.resolve(null);
+      const [eco, cst, fl] = await Promise.all([ecoP, castP, flP]);
       setEconomy(eco.data);
       setCast(cst.data);
+      setFaultLine(fl ? fl.data : null);
       setBusy(null);
       setStep("build");
     } catch (e) {
@@ -168,6 +188,8 @@ export default function Stage1Studio({
         playerRole: `${persp.role} — ${persp.description}`,
         cast: cast?.cast,
         economy: economy ?? undefined,
+        // Character campaigns only: the compiled fault line core.ts splices in.
+        faultLine: faultLine ?? undefined,
       };
       const result = await generateCampaignJob(payload);
       if (timerRef.current) clearInterval(timerRef.current);
@@ -428,6 +450,28 @@ export default function Stage1Studio({
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {faultLine && (
+          <div className="bg-amber-950/20 border border-amber-800 rounded p-4 space-y-2">
+            <h2 className="text-xs font-bold text-amber-300 uppercase tracking-wide">The Moral Fault Line</h2>
+            <p className="text-sm text-stone-200 leading-relaxed">{faultLine.dilemma}</p>
+            <p className="text-[11px] text-stone-400 italic leading-relaxed">{faultLine.whyNoCleanAnswer}</p>
+            <div className="border border-stone-700 rounded px-2 py-1.5">
+              <p className="text-[11px] font-bold text-stone-300">
+                Defining choice — <span className="text-amber-300">{faultLine.setter.beat}</span>
+              </p>
+              <ul className="text-[11px] text-stone-400 mt-0.5 list-disc list-inside">
+                {faultLine.setter.options.map((o, i) => (
+                  <li key={i}>{o.choiceText}</li>
+                ))}
+              </ul>
+            </div>
+            <p className="text-[11px] text-stone-500">
+              Persistent flag <span className="font-mono text-stone-300">{faultLine.flag.id}</span> · later scenes that remember it:{" "}
+              {[...new Set(faultLine.readers.map((r) => r.beat))].join(" · ")}
+            </p>
           </div>
         )}
 
