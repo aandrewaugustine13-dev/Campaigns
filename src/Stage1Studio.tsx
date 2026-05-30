@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import type { CampaignData } from "../generator/schema";
-import type { ProposedFrame, PlayerPerspective } from "../generator/frame";
+import type { ProposedFrame, PlayerPerspective, CampaignType } from "../generator/frame";
 import type { SystemsEconomy } from "../generator/economy";
 import type { ProposedCast } from "../generator/cast";
 import type { FaultLineSpec } from "../generator/faultline";
@@ -27,6 +27,13 @@ interface Inputs {
 }
 
 const GRADES = ["4th grade", "5th grade", "6th grade", "7th grade", "8th grade"];
+
+// Humane, teacher-facing labels for the campaignType axis (the architecture
+// terms "character"/"systems" never reach the teacher).
+const TYPE_OPTIONS: { type: CampaignType; label: string; subtitle: string }[] = [
+  { type: "character", label: "Play as a person", subtitle: "a conscience and relationships" },
+  { type: "systems", label: "Run the system", subtitle: "resources and constraints" },
+];
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, {
@@ -94,6 +101,13 @@ export default function Stage1Studio({
   });
 
   const [frame, setFrame] = useState<ProposedFrame | null>(null);
+  // The generator's original campaignType recommendation, captured once on the
+  // first proposal so the "recommended" marker stays pinned to it even after a
+  // teacher overrides the type (which changes frame.campaignType).
+  const [recommendedType, setRecommendedType] = useState<CampaignType | null>(null);
+  // Non-null while a type-override re-proposal is in flight (drives the inline
+  // busy text and disables the selector).
+  const [switchingType, setSwitchingType] = useState<CampaignType | null>(null);
   const [perspectiveIdx, setPerspectiveIdx] = useState(0);
   const [economy, setEconomy] = useState<SystemsEconomy | null>(null);
   const [cast, setCast] = useState<ProposedCast | null>(null);
@@ -125,11 +139,39 @@ export default function Stage1Studio({
     try {
       const { data } = await postJson<{ data: ProposedFrame }>("/api/frame", { standard: inputs.standard });
       setFrame(data);
+      setRecommendedType(data.campaignType);
       setPerspectiveIdx(0);
       setBusy(null);
       setStep("frame");
     } catch (e) {
       fail(proposeFrame, e);
+    }
+  };
+
+  // ── Type override → regenerate the frame pinned to the chosen type ──
+  // Switching campaignType is NOT cosmetic: the frame prose, perspectives, and
+  // any proposed economy/cast/fault line belonged to the prior type. So we
+  // re-propose the frame with forceType and CLEAR the downstream artifacts.
+  // Re-confirming the same type (or a locked-out systems pick) is a no-op — no
+  // API call, nothing cleared.
+  const switchType = async (target: CampaignType) => {
+    if (!frame || target === frame.campaignType) return;
+    if (frame.typeLocked && target === "systems") return;
+    setSwitchingType(target);
+    try {
+      const { data } = await postJson<{ data: ProposedFrame }>("/api/frame", {
+        standard: inputs.standard,
+        forceType: target,
+      });
+      setFrame(data);
+      setPerspectiveIdx(0);
+      setEconomy(null);
+      setCast(null);
+      setFaultLine(null);
+      setSwitchingType(null);
+    } catch (e) {
+      setSwitchingType(null);
+      fail(() => switchType(target), e);
     }
   };
 
@@ -352,9 +394,54 @@ export default function Stage1Studio({
           <p className="text-stone-500 text-sm">Review the frame, then choose whose eyes the class plays through.</p>
         </div>
 
-        <div className="flex justify-center gap-2">
-          <Badge tone="amber">{frame.campaignType}</Badge>
-          <Badge tone="indigo">{frame.progressionMode}</Badge>
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            {TYPE_OPTIONS.map((opt) => {
+              const selected = frame.campaignType === opt.type;
+              const lockedOut = frame.typeLocked && opt.type === "systems";
+              const disabled = lockedOut || switchingType !== null;
+              return (
+                <button
+                  key={opt.type}
+                  onClick={() => switchType(opt.type)}
+                  disabled={disabled}
+                  className={`text-left rounded border p-3 transition-colors ${
+                    selected
+                      ? "bg-amber-950/40 border-amber-600"
+                      : lockedOut
+                        ? "bg-stone-900 border-stone-800 opacity-40 cursor-not-allowed"
+                        : disabled
+                          ? "bg-stone-800 border-stone-700 opacity-60 cursor-wait"
+                          : "bg-stone-800 border-stone-700 hover:border-stone-600"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={`w-3 h-3 rounded-full border-2 flex-shrink-0 ${selected ? "border-amber-400 bg-amber-400" : "border-stone-500"}`} />
+                    <span className="text-sm font-bold text-stone-100">{opt.label}</span>
+                    {recommendedType === opt.type && <span className="text-[10px] text-emerald-400 font-bold uppercase">recommended</span>}
+                    {lockedOut && <span className="text-[10px] text-stone-500 font-bold uppercase">locked</span>}
+                  </div>
+                  <p className="text-xs text-stone-400 mt-1 ml-5">{opt.subtitle}</p>
+                </button>
+              );
+            })}
+          </div>
+
+          {switchingType && (
+            <p className="text-[11px] text-amber-400 text-center">
+              Re-proposing the structure as {switchingType === "systems" ? "a system" : "a person"}…
+            </p>
+          )}
+
+          {frame.typeLocked && frame.lockReason && (
+            <p className="text-[11px] text-amber-300/90 leading-relaxed border border-amber-800/60 rounded px-2 py-1.5">
+              {frame.lockReason}
+            </p>
+          )}
+
+          <div className="flex justify-center">
+            <Badge tone="indigo">{frame.progressionMode}</Badge>
+          </div>
         </div>
 
         <div className="bg-stone-800 border border-stone-700 rounded p-4 space-y-2">
@@ -392,7 +479,7 @@ export default function Stage1Studio({
             <button onClick={() => setStep("input")} className="px-4 py-2.5 bg-stone-800 border border-stone-700 hover:border-stone-600 rounded text-sm text-stone-300 transition-colors">
               ← Edit standard
             </button>
-            <button onClick={proposeEconomyAndCast} className="flex-1 py-2.5 bg-amber-700 hover:bg-amber-600 rounded font-bold transition-colors">
+            <button onClick={proposeEconomyAndCast} disabled={switchingType !== null} className="flex-1 py-2.5 bg-amber-700 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed rounded font-bold transition-colors">
               Continue → propose economy & cast
             </button>
           </div>

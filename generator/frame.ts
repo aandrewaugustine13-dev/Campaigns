@@ -174,12 +174,18 @@ interface ProposedFrame { campaignType: CampaignType; progressionMode: Progressi
 
 RULES: campaignType is exactly "systems" or "character". progressionMode is exactly "journey" or "project". Provide 1–3 alternativePerspectives, each genuinely distinct from the recommended one. typeLocked is a boolean: true only when content-safety forced "character" (with a non-empty lockReason), never true for "systems". Output ONLY the JSON object.`;
 
-function buildUserMessage(standard: string): string {
+function buildUserMessage(standard: string, forceType?: CampaignType): string {
+  // When the teacher overrides the recommended type, pin the frame to that type
+  // — but the content-safety law in the system prompt still wins absolutely, so
+  // an override to "systems" can never gamify an atrocity.
+  const pin = forceType
+    ? `\n\nThe teacher has overridden the campaignType to "${forceType}". Produce the frame FOR campaignType "${forceType}" — the frame paragraph, perspectives, and rationale must all fit that type. OVERRIDE EXCEPTION: the CONTENT-SAFETY LAW still wins absolutely — if a "systems" framing of THIS topic would require optimizing an atrocity, keep campaignType "character", set typeLocked true with a lockReason, and disregard this override.`
+    : "";
   return `Propose the Stage 1 structural frame for a campaign built on THIS standard:
 
 ${standard}
 
-Choose campaignType and progressionMode honestly from the real shape of this specific standard's history, treating the two axes as independent. Write a frame that states the controlling structure plainly and says explicitly when it is not a journey. Propose a primary perspective plus 1–3 genuinely different alternatives, offering a non-dominant perspective where the history supports it. Apply the content-safety law: if a management framing would mean optimizing an atrocity, recommend "character" and name that reasoning in the rationale.
+Choose campaignType and progressionMode honestly from the real shape of this specific standard's history, treating the two axes as independent. Write a frame that states the controlling structure plainly and says explicitly when it is not a journey. Propose a primary perspective plus 1–3 genuinely different alternatives, offering a non-dominant perspective where the history supports it. Apply the content-safety law: if a management framing would mean optimizing an atrocity, recommend "character" and name that reasoning in the rationale.${pin}
 
 Output ONLY the JSON object conforming to ProposedFrame.`;
 }
@@ -193,6 +199,7 @@ export interface GenerateFrameResult {
 export async function generateFrame(
   standard: string,
   apiKey: string,
+  forceType?: CampaignType,
 ): Promise<GenerateFrameResult> {
   const client = new Anthropic({ apiKey });
 
@@ -200,7 +207,7 @@ export async function generateFrame(
     model: "claude-sonnet-4-6",
     max_tokens: 2000,
     system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: buildUserMessage(standard) }],
+    messages: [{ role: "user", content: buildUserMessage(standard, forceType) }],
   });
 
   let rawText = "";

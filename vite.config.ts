@@ -149,9 +149,15 @@ function generatorApiPlugin(): Plugin {
       });
 
       // Stage-1 proposers: each takes { standard } and returns { data, findings }.
+      // /api/frame also accepts an optional { forceType } — set when a teacher
+      // overrides the recommended campaignType — which pins the regenerated frame
+      // to that type (the content-safety law still overrides it in the prompt).
       jsonPost(server, '/api/frame', async (apiKey, inputs) => {
         const { generateFrame } = await import('./generator/frame.ts');
-        const { data, findings } = await generateFrame(String(inputs.standard ?? ''), apiKey);
+        const forceType = inputs.forceType === 'systems' || inputs.forceType === 'character'
+          ? inputs.forceType
+          : undefined;
+        const { data, findings } = await generateFrame(String(inputs.standard ?? ''), apiKey, forceType);
         return { data, findings };
       });
 
