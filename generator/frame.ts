@@ -50,6 +50,16 @@ export interface ProposedFrame {
   /** 1–3 sentences on why these choices fit the standard, including the
    * content-safety reasoning when it drove a "character" choice. */
   rationale: string;
+  /** True ONLY when the content-safety law FORCED campaignType "character" —
+   * a topic where a systems/management framing would gamify an atrocity. The
+   * lock is one-directional: it forbids SYSTEMS for atrocity topics. A systems
+   * campaign is never locked (any topic can be reframed through a person), and
+   * a character choice made for merely creative/pedagogical reasons is false. */
+  typeLocked: boolean;
+  /** Required when typeLocked: one teacher-facing sentence naming the specific
+   * harm and why it can only be lived through a person, not managed as a
+   * system. Omitted when not locked. */
+  lockReason?: string;
 }
 
 // ── Validation (mirrors generator/validate.ts + economy.ts discipline) ──
@@ -100,6 +110,20 @@ export function validateFrame(data: unknown): FrameFinding[] {
   if (typeof d.rationale !== "string" || (d.rationale as string).trim().length === 0)
     push("error", "rationale", "rationale must be a non-empty string");
 
+  // typeLocked is the one-directional content-safety guardrail: it may only
+  // lock a "character" campaign, and a lock must carry a teacher-facing reason.
+  const locked = d.typeLocked === true;
+  const hasReason = typeof d.lockReason === "string" && (d.lockReason as string).trim().length > 0;
+  if (typeof d.typeLocked !== "boolean") {
+    push("error", "typeLocked", "typeLocked must be a boolean");
+  } else if (locked && d.campaignType !== "character") {
+    push("error", "typeLocked", "typeLocked may only be true for a \"character\" campaign — a systems campaign is never safety-locked");
+  }
+  if (locked && !hasReason)
+    push("error", "lockReason", "lockReason is required (non-empty) when typeLocked is true");
+  if (!locked && hasReason)
+    push("warn", "lockReason", "lockReason is set but typeLocked is false — drop the reason or set the lock");
+
   validatePerspective(d.recommendedPerspective, "recommendedPerspective", push);
 
   const alts = d.alternativePerspectives;
@@ -134,6 +158,7 @@ AXIS 2 — progressionMode: how the campaign ADVANCES.
 
 CONTENT-SAFETY LAW (overrides any optimization instinct):
 - For topics where a "systems"/management/optimization framing would require a child to optimize an atrocity — the transatlantic slave trade, a genocide, the human toll of the Columbian Exchange, forced removal — you MUST recommend campaignType "character", experienced through a specific person, because gamifying the management of mass death is never acceptable. When this rule drives your choice, name that reasoning explicitly in the rationale.
+- EMIT typeLocked accordingly: set typeLocked true ONLY when this content-safety law forced the "character" choice (a systems framing of THIS topic would gamify an atrocity). When typeLocked is true, you MUST also give lockReason: ONE teacher-facing sentence naming the specific harm and why it can only be lived through a person, not managed as a system (plain language, no jargon). Set typeLocked false whenever "character" is merely the stronger creative or pedagogical fit but a systems framing would be ethically acceptable, and ALWAYS false for "systems" — omit lockReason when false. The lock is ONE-DIRECTIONAL: it forbids systems for atrocity topics; it never forbids character, and a systems campaign is never locked.
 
 DESIGN PRINCIPLES:
 1. THE FRAME STATES THE CONTROLLING STRUCTURE. Write "frame" as one short paragraph naming plainly what kind of experience this is and how it is shaped. When it is NOT a journey, say so explicitly (e.g. "A multi-year public-works project the player oversees through phases of construction and politics — NOT a journey from place to place.").
@@ -145,9 +170,9 @@ OUTPUT SHAPE (TypeScript for reference — output JSON only):
 type CampaignType = "systems" | "character";
 type ProgressionMode = "journey" | "project";
 interface PlayerPerspective { role: string; description: string; }
-interface ProposedFrame { campaignType: CampaignType; progressionMode: ProgressionMode; frame: string; recommendedPerspective: PlayerPerspective; alternativePerspectives: PlayerPerspective[]; rationale: string; }
+interface ProposedFrame { campaignType: CampaignType; progressionMode: ProgressionMode; frame: string; recommendedPerspective: PlayerPerspective; alternativePerspectives: PlayerPerspective[]; rationale: string; typeLocked: boolean; lockReason?: string; }
 
-RULES: campaignType is exactly "systems" or "character". progressionMode is exactly "journey" or "project". Provide 1–3 alternativePerspectives, each genuinely distinct from the recommended one. Output ONLY the JSON object.`;
+RULES: campaignType is exactly "systems" or "character". progressionMode is exactly "journey" or "project". Provide 1–3 alternativePerspectives, each genuinely distinct from the recommended one. typeLocked is a boolean: true only when content-safety forced "character" (with a non-empty lockReason), never true for "systems". Output ONLY the JSON object.`;
 
 function buildUserMessage(standard: string): string {
   return `Propose the Stage 1 structural frame for a campaign built on THIS standard:
