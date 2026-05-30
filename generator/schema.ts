@@ -43,6 +43,17 @@ export interface FlagVariant {
   text: string;
 }
 
+// The single flag reader. STRICT SUPERSET: a plain string resolves to
+// itself (so non-flag campaigns are byte-identical), and an empty/partial
+// flag map matches no variant and falls back to `default`.
+export function resolveFlagText(value: FlagText, flags: Record<string, FlagValue>): string {
+  if (typeof value === "string") return value;
+  for (const v of value.variants) {
+    if (flags[v.whenFlag] === v.equals) return v.text;
+  }
+  return value.default;
+}
+
 // ── Pace ────────────────────────────────────────────────────────
 
 export interface PaceConfig {
@@ -93,7 +104,7 @@ export interface GameEvent {
   phase_max: number;
   weight: number;
   title: string;
-  text: string;
+  text: FlagText;               // plain string, or flag-keyed variants (Stage B)
   type?: "standard" | "push_luck";
   choices?: Choice[];
   attempts?: PushAttempt[];

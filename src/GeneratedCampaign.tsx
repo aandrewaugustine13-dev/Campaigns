@@ -20,7 +20,8 @@ function ResourceIcon({ label, className }: { label: string; className?: string 
   if (l.includes("distance") || l.includes("progress")) return <Map className={className} />;
   return <Package className={className} />;
 }
-import type { CampaignData } from "../generator/schema";
+import type { CampaignData, FlagText, FlagValue, FlagWrites } from "../generator/schema";
+import { resolveFlagText } from "../generator/schema";
 import type { Objective, RouteState } from "./gameModels";
 import { generateObjective, tickObjectives, findNode } from "./gameLogic";
 import SageEncounter from "./SageEncounter";
@@ -454,10 +455,10 @@ function computeGenericTradeOffers(
 
 interface Resources { [key: string]: number }
 interface Outcome { weight: number; effects: Resources; result: string; earlyEnd?: boolean }
-interface Choice { text: string; effects?: Resources; result?: string; outcomes?: Outcome[]; earlyEnd?: boolean }
+interface Choice { text: string; effects?: Resources; flagWrites?: FlagWrites; result?: string; outcomes?: Outcome[]; earlyEnd?: boolean }
 interface GameEvent {
   id: string; phase_min: number; phase_max: number; weight: number;
-  title: string; text: string;
+  title: string; text: FlagText;
   type?: "standard" | "push_luck";
   choices?: Choice[];
   attempts?: { id: string; buttonText: string; successText: string; failureText: string; riskChance: number; rewards: Resources; penalties: Resources }[];
@@ -473,6 +474,7 @@ interface Decision { event: string; choice: string; day: number; text?: string; 
 
 interface GameState {
   day: number; turn: number; resources: Resources;
+  flags: Record<string, FlagValue>;
   phase: "intro" | "outfit" | "sailing" | "event" | "result" | "end" | "trivia" | "event_trivia" | "sage";
   pace: string; distance: number; currentEvent: GameEvent | null;
   resultText: string; decisions: Decision[];
@@ -648,6 +650,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
 
   const makeInit = useCallback((): GameState => ({
     day: 1, turn: 0, resources: { ...data.initialResources },
+    flags: Object.fromEntries((data.flags ?? []).map(f => [f.id, f.initial])),
     phase: "intro", pace: data.paces[1]?.id ?? data.paces[0]?.id ?? "",
     distance: 0, currentEvent: null, resultText: "", decisions: [],
     gameOver: false, survived: false, earlySale: false,
@@ -882,7 +885,9 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
           event: ev.title,
           choice: choice.text,
           day: s.day,
-          text: ev.text,
+          // Log the text the player actually saw — resolved with flags as
+          // they were BEFORE this choice's write (writes applied below).
+          text: resolveFlagText(ev.text, s.flags),
           detail: [outcome.result, fact].filter(Boolean).join("\n\n") || undefined,
         });
       }
@@ -891,6 +896,10 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
           if (s.resources[k] !== undefined) s.resources[k] = clampR(data, k, s.resources[k] + v);
         }
       }
+      // Flag writes: a separate system from numeric effects. Applied after
+      // them, from the Choice itself (not the random outcome). No flagWrites
+      // ⇒ flag map untouched, so non-flag campaigns are unaffected.
+      if (choice.flagWrites) s.flags = { ...s.flags, ...choice.flagWrites };
       if (insightBonus > 0) s.insight += insightBonus;
       if (choice.earlyEnd || outcome.earlyEnd) s.earlySale = true;
       s.resultText = insightBonus > 0
@@ -948,7 +957,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     setState(prev => {
       if (!prev.currentEvent) return prev;
       const s: GameState = { ...prev, decisions: [...prev.decisions] };
-      s.decisions.push({ event: s.currentEvent!.title, choice: `Pushed luck ${log.length - 1} times.`, day: s.day, text: s.currentEvent!.text });
+      s.decisions.push({ event: s.currentEvent!.title, choice: `Pushed luck ${log.length - 1} times.`, day: s.day, text: resolveFlagText(s.currentEvent!.text, prev.flags) });
       s.currentEvent = null;
       s.phase = "sailing";
       return s;
@@ -1039,6 +1048,13 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     || data.route?.[0]
     || { id: "start", title: "On the trail", description: "", edges: [] };
   const partyMembers = getPartyMembers(data, r);
+
+  // Read site: resolve flag-keyed event text for render. Plain-string text
+  // (every non-flag campaign) passes through resolveFlagText unchanged, so
+  // the rendered event is byte-identical to before.
+  const renderedEvent = state.currentEvent
+    ? { ...state.currentEvent, text: resolveFlagText(state.currentEvent.text, state.flags) }
+    : null;
 
   // ── Decision-driven progression ──────────────────────────────
   // No manual "advance" button. The expedition moves forward on its own
@@ -1457,12 +1473,12 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
               <SageEncounter sage={state.currentSage} onComplete={handleSageComplete} />
             )}
 
-            {state.phase === "event" && state.currentEvent && (
-              state.currentEvent.type === "push_luck" ? (
-                <PushYourLuckEngine event={state.currentEvent} onUpdate={handlePushUpdate} onLeave={handlePushLeave} backdropImage={data.backdropImage} />
+            {state.phase === "event" && renderedEvent && (
+              renderedEvent.type === "push_luck" ? (
+                <PushYourLuckEngine event={renderedEvent} onUpdate={handlePushUpdate} onLeave={handlePushLeave} backdropImage={data.backdropImage} />
               ) : (
                 <VisualNovelEngine
-                  currentEvent={state.currentEvent}
+                  currentEvent={renderedEvent}
                   handleChoice={handleChoice}
                   bossHealth={r.morale ?? 50}
                   scoutHealth={r.morale ?? 50}
