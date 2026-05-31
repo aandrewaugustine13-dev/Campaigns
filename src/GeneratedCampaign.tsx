@@ -57,6 +57,14 @@ function isProjectMode(data: CampaignData): boolean {
   return data.progressionMode === "project" || !(data.paces && data.paces.length);
 }
 
+// Character mode. Only the generator's character path compiles a fault line
+// into flags[]; the systems path (journey OR project, e.g. Erie) never emits
+// flags. So flags-present is the reliable character signal — deliberately NOT
+// progressionMode, which a systems project campaign also carries.
+function isCharacterMode(data: CampaignData): boolean {
+  return (data.flags?.length ?? 0) > 0;
+}
+
 // Percent-complete used for sages, flavor text, parallax and the map.
 // Journey divides by distance (unchanged); project divides by elapsed days.
 function deriveProgress(data: CampaignData, day: number, distance: number): number {
@@ -698,7 +706,14 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       .slice(0, 10);
   }, [data]);
 
-  const start = useCallback(() => { setState({ ...makeInit(), phase: "outfit" }); setExamPassed(false); setExamScore(0); setLeftTownId(null); }, [makeInit]);
+  // Character campaigns open straight into the story (no outfitting): resources
+  // stay at initialResources and trailFeed is already seeded by makeInit.
+  // Systems campaigns (journey or project) are unchanged → the outfit phase.
+  const start = useCallback(() => {
+    const firstPhase = isCharacterMode(data) ? "sailing" : "outfit";
+    setState({ ...makeInit(), phase: firstPhase });
+    setExamPassed(false); setExamScore(0); setLeftTownId(null);
+  }, [makeInit, data]);
   const backToMenu = useCallback(() => { onBack(); }, [onBack]);
 
   // ── Game juice ──
@@ -1072,7 +1087,11 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   // (set by advanceTurn) pause it by leaving the "sailing" phase.
   const supplyTown = nearestSupplyTown(data.trailStops, progress);
   const atRouteFork = currentRouteNode.edges.length >= 2;
-  const atTownStop = supplyTown.near && supplyTown.town !== leftTownId;
+  // Gate at the computation, not the render: a true atTownStop both shows the
+  // shop AND pauses auto-advance, so hiding only the render would freeze a
+  // character run at a stray supply town. Character mode never reaches the
+  // truthy state → no shop, no pause. Systems (journey or project) unchanged.
+  const atTownStop = !isCharacterMode(data) && supplyTown.near && supplyTown.town !== leftTownId;
   const awaitingDecision = atRouteFork || atTownStop;
   useEffect(() => {
     if (state.phase !== "sailing" || state.gameOver || awaitingDecision) return;
@@ -1152,7 +1171,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
         <h1 className={`text-3xl font-bold theme-display-font ${themeConfig.accent}`}>{data.title}</h1>
         <p className={themeConfig.subtext}>{data.subtitle}</p>
         <p className={`${themeConfig.subtext} text-sm`}>{data.introBody}</p>
-        <button onClick={start} className={`px-8 py-3 ${themeConfig.button} rounded font-bold transition-colors`}>BEGIN OUTFIT</button>
+        <button onClick={start} className={`px-8 py-3 ${themeConfig.button} rounded font-bold transition-colors`}>{isCharacterMode(data) ? "BEGIN" : "BEGIN OUTFIT"}</button>
         <button onClick={backToMenu} className={`block w-full ${themeConfig.subtext} opacity-60 hover:opacity-100 text-xs mt-2`}>&larr; Back to Campaigns</button>
       </div>
     </div>
