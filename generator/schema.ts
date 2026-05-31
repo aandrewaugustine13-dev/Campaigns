@@ -15,13 +15,26 @@ export type Resources = Record<string, number>;
 
 // A flag's stored value. boolean flags use false|true; tristate flags
 // add null to mean "unset" (the choice that would set it never fired),
-// which the reader must distinguish from an explicit false.
-export type FlagValue = boolean | null;
+// which the reader must distinguish from an explicit false. numeric flags
+// store a number — an ACCUMULATING track (moral weight, regard) that choices
+// nudge up/down across the run and the ending reads back as tiers.
+export type FlagValue = boolean | null | number;
 
 export interface FlagDecl {
-  id: string;                    // unique within campaign, camelCase
-  type: "boolean" | "tristate";
-  initial: FlagValue;            // boolean → false|true ; tristate → null|false|true
+  // unique within campaign, camelCase. NAMING CONVENTION for numeric (track)
+  // flags: end the id in an accumulating-noun suffix — `...Regard`, `...Weight`,
+  // or `...Standing` (e.g. familyRegard, communityRegard, moralWeight) — so a
+  // bare number in a campaign file reads as a track, not a one-off value.
+  id: string;
+  type: "boolean" | "tristate" | "numeric";
+  // boolean → false|true ; tristate → null|false|true ; numeric → a number
+  // (typically 0), the track's starting value.
+  initial: FlagValue;
+  // numeric only: optional inclusive clamp bounds for the accumulating track.
+  // When present, writes clamp to [min, max] (cf. resource caps). Strongly
+  // encouraged so accumulation and reader tiers stay bounded.
+  min?: number;
+  max?: number;
   label?: string;                // optional, editor/debug only
 }
 
@@ -37,10 +50,31 @@ export type FlagText =
   | string
   | { default: string; variants: FlagVariant[] };
 
+// A variant selects on EITHER an exact value (boolean/tristate) OR a numeric
+// threshold band (numeric flags) — exactly one mode per variant:
+//   - boolean/tristate: `equals` — strict equality (behavior unchanged).
+//   - numeric: `whenAtLeast` and/or `whenAtMost` — an inclusive band. With
+//     first-match-wins ordering, list the highest tier first.
 export interface FlagVariant {
   whenFlag: string;              // a declared flag id
-  equals: FlagValue;             // value that selects this variant
+  equals?: FlagValue;            // boolean/tristate: value that selects this variant
+  whenAtLeast?: number;          // numeric: select if flags[whenFlag] >= whenAtLeast
+  whenAtMost?: number;           // numeric: select if flags[whenFlag] <= whenAtMost
   text: string;
+}
+
+// True iff a variant selects against the flag's current value. boolean/
+// tristate variants use strict equality on `equals` (UNCHANGED — existing
+// campaigns resolve byte-identically); numeric variants use an inclusive
+// threshold band. A variant with neither form never matches (defensive;
+// validation forbids it).
+function flagVariantMatches(v: FlagVariant, actual: FlagValue | undefined): boolean {
+  if (v.equals !== undefined) return actual === v.equals;
+  if (v.whenAtLeast === undefined && v.whenAtMost === undefined) return false;
+  if (typeof actual !== "number") return false;
+  if (v.whenAtLeast !== undefined && actual < v.whenAtLeast) return false;
+  if (v.whenAtMost !== undefined && actual > v.whenAtMost) return false;
+  return true;
 }
 
 // The single flag reader. STRICT SUPERSET: a plain string resolves to
@@ -49,7 +83,7 @@ export interface FlagVariant {
 export function resolveFlagText(value: FlagText, flags: Record<string, FlagValue>): string {
   if (typeof value === "string") return value;
   for (const v of value.variants) {
-    if (flags[v.whenFlag] === v.equals) return v.text;
+    if (flagVariantMatches(v, flags[v.whenFlag])) return v.text;
   }
   return value.default;
 }

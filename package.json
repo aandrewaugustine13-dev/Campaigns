@@ -14,6 +14,7 @@
     "faultline": "npx tsx generator/inspect-faultline.ts",
     "joseph": "npx tsx generator/inspect-joseph.ts",
     "test:faultline": "npx tsx generator/faultlineCompile.test.ts",
+    "test:numeric-flag": "npx tsx generator/numericFlag.test.ts",
     "snapshot:prompt": "npx tsx generator/snapshot-systems-prompt.ts",
     "test:stage1-safety": "npx tsx generator/stage1-systems-safety.test.ts",
     "e2e:character": "npx tsx generator/stage2-character-e2e.ts",

@@ -22,6 +22,7 @@ function ResourceIcon({ label, className }: { label: string; className?: string 
 }
 import type { CampaignData, FlagText, FlagValue, FlagWrites } from "../generator/schema";
 import { resolveFlagText } from "../generator/schema";
+import { applyFlagWrites } from "./flagWrites";
 import type { Objective, RouteState } from "./gameModels";
 import { generateObjective, tickObjectives, findNode } from "./gameLogic";
 import SageEncounter from "./SageEncounter";
@@ -922,7 +923,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       // Flag writes: a separate system from numeric effects. Applied after
       // them, from the Choice itself (not the random outcome). No flagWrites
       // ⇒ flag map untouched, so non-flag campaigns are unaffected.
-      if (choice.flagWrites) s.flags = { ...s.flags, ...choice.flagWrites };
+      if (choice.flagWrites) s.flags = applyFlagWrites(data, s.flags, choice.flagWrites);
       if (insightBonus > 0) s.insight += insightBonus;
       if (choice.earlyEnd || outcome.earlyEnd) s.earlySale = true;
       s.resultText = insightBonus > 0

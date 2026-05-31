@@ -115,13 +115,23 @@ export function validate(data: unknown): ValidationReport {
   // ── Flags (declarations) ─────────────────────────────────────
   // Optional & additive: absent ⇒ no flag system, so existing
   // campaigns reference no flags and this whole block is a no-op.
-  const declaredFlags = new Map<string, "boolean" | "tristate">();
+  type FlagType = "boolean" | "tristate" | "numeric";
+  const declaredFlags = new Map<string, FlagType>();
+  const numericBounds = new Map<string, { min?: number; max?: number }>();
   const writtenFlags = new Set<string>();
   const readFlags = new Set<string>();
 
-  // A value is legal for a flag iff: tristate allows null|false|true,
-  // boolean allows only false|true.
-  function flagValueLegal(type: "boolean" | "tristate", v: unknown): boolean {
+  // Scorekeeping vocabulary — a numeric (track) flag must read as a reckoning,
+  // not a game score the player optimizes (same spirit as faultline's
+  // no-reward law). Scanned on the editor-facing label only (narration prose
+  // is left alone to avoid false positives like "point of no return").
+  const SCORE_RE = /\b(score|points?|leaderboard|high[- ]?score|rating)\b/i;
+
+  // A value is legal for a flag iff: tristate allows null|false|true, boolean
+  // allows only false|true, numeric allows any finite number (a set initial or
+  // a write delta).
+  function flagValueLegal(type: FlagType, v: unknown): boolean {
+    if (type === "numeric") return typeof v === "number" && isFinite(v);
     if (type === "tristate") return v === null || v === true || v === false;
     return v === true || v === false;
   }
@@ -135,17 +145,50 @@ export function validate(data: unknown): ValidationReport {
         const fp = `flags[${i}]`;
         const idOk = typeof f.id === "string" && (f.id as string).length > 0;
         check(`${fp}.id`, idOk, "Flag missing id");
-        const typeOk = f.type === "boolean" || f.type === "tristate";
-        check(`${fp}.type`, typeOk, 'Flag type must be "boolean" or "tristate"');
+        const typeOk = f.type === "boolean" || f.type === "tristate" || f.type === "numeric";
+        check(`${fp}.type`, typeOk, 'Flag type must be "boolean", "tristate", or "numeric"');
         if (idOk && typeOk) {
           const fid = f.id as string;
-          const ftype = f.type as "boolean" | "tristate";
+          const ftype = f.type as FlagType;
           check(`${fp}.id`, !declaredFlags.has(fid), `Duplicate flag id: "${fid}"`);
           declaredFlags.set(fid, ftype);
-          check(`${fp}.initial`, flagValueLegal(ftype, f.initial),
-            ftype === "tristate"
-              ? "tristate flag initial must be null, false, or true"
-              : "boolean flag initial must be false or true");
+
+          if (ftype === "numeric") {
+            // numeric (track) flag: number initial, optional [min,max] clamp.
+            const min = typeof f.min === "number" ? (f.min as number) : undefined;
+            const max = typeof f.max === "number" ? (f.max as number) : undefined;
+            numericBounds.set(fid, { min, max });
+            check(`${fp}.initial`, typeof f.initial === "number" && isFinite(f.initial as number),
+              "numeric flag initial must be a number");
+            if (f.min !== undefined)
+              check(`${fp}.min`, typeof f.min === "number", "numeric flag min must be a number");
+            if (f.max !== undefined)
+              check(`${fp}.max`, typeof f.max === "number", "numeric flag max must be a number");
+            if (min !== undefined && max !== undefined) {
+              check(`${fp}.min`, min <= max, `numeric flag min (${min}) must be <= max (${max})`);
+              if (typeof f.initial === "number")
+                check(`${fp}.initial`, (f.initial as number) >= min && (f.initial as number) <= max,
+                  `numeric flag initial ${f.initial} must be within [${min}, ${max}]`);
+            } else {
+              check(`${fp}`, false,
+                `numeric flag "${fid}" has no min/max bounds; accumulation and reader tiers are unbounded`, "warn");
+            }
+            // NO-SCORE LAW: a track is a reckoning, never a visible meter. It
+            // must NOT collide with a resource key (that would render it as a
+            // HUD stat / score). This is an ERROR, not a warning.
+            check(`${fp}.id`, !initKeys.has(fid),
+              `numeric flag "${fid}" collides with a resource key — a moral track must never be a visible resource/score`);
+            if (typeof f.label === "string")
+              check(`${fp}.label`, !SCORE_RE.test(f.label as string),
+                `numeric flag label "${f.label}" reads like a score; a track is a reckoning, not points`, "warn");
+          } else {
+            check(`${fp}.initial`, flagValueLegal(ftype, f.initial),
+              ftype === "tristate"
+                ? "tristate flag initial must be null, false, or true"
+                : "boolean flag initial must be false or true");
+            if (f.min !== undefined || f.max !== undefined)
+              check(`${fp}`, false, `min/max are only valid on numeric flags (flag "${fid}" is ${ftype})`, "warn");
+          }
         }
       }
     }
@@ -193,9 +236,31 @@ export function validate(data: unknown): ValidationReport {
               const wtype = declaredFlags.get(wf);
               check(`${vp}.whenFlag`, wtype !== undefined,
                 `Variant references undeclared flag "${wf}"`);
-              if (wtype !== undefined) {
+              if (wtype === "numeric") {
+                // numeric: an inclusive threshold band, never `equals`.
+                const hasBand = vr.whenAtLeast !== undefined || vr.whenAtMost !== undefined;
+                check(`${vp}.equals`, vr.equals === undefined,
+                  `numeric flag "${wf}" variant must use whenAtLeast/whenAtMost, not equals`);
+                check(`${vp}.whenAtLeast`, hasBand,
+                  `numeric flag "${wf}" variant needs whenAtLeast and/or whenAtMost`);
+                const bounds = numericBounds.get(wf);
+                for (const b of ["whenAtLeast", "whenAtMost"] as const) {
+                  if (vr[b] !== undefined) {
+                    const num = typeof vr[b] === "number" && isFinite(vr[b] as number);
+                    check(`${vp}.${b}`, num, `${b} must be a number`);
+                    if (num && bounds && bounds.min !== undefined && bounds.max !== undefined) {
+                      const val = vr[b] as number;
+                      check(`${vp}.${b}`, val >= bounds.min && val <= bounds.max,
+                        `${b} ${val} is outside flag "${wf}" range [${bounds.min}, ${bounds.max}]`, "warn");
+                    }
+                  }
+                }
+              } else if (wtype !== undefined) {
+                // boolean / tristate: exact equals only, never a threshold band.
                 check(`${vp}.equals`, flagValueLegal(wtype, vr.equals),
                   `Variant equals value is not legal for ${wtype} flag "${wf}"`);
+                check(`${vp}.whenAtLeast`, vr.whenAtLeast === undefined && vr.whenAtMost === undefined,
+                  `whenAtLeast/whenAtMost are only valid on numeric flags (flag "${wf}" is ${wtype})`);
               }
             } else {
               check(`${vp}.whenFlag`, false, "Variant missing whenFlag");
@@ -233,8 +298,18 @@ export function validate(data: unknown): ValidationReport {
                 check(`${prefix}.choices.flagWrites`, wtype !== undefined,
                   `Choice writes undeclared flag "${fk}"`);
                 if (wtype !== undefined) {
+                  // numeric writes are DELTAs (a finite number); boolean/tristate
+                  // writes SET a legal value. Both go through flagValueLegal.
                   check(`${prefix}.choices.flagWrites`, flagValueLegal(wtype, fv),
                     `flagWrites value for ${wtype} flag "${fk}" is not legal`);
+                  if (wtype === "numeric" && typeof fv === "number") {
+                    const bounds = numericBounds.get(fk);
+                    if (bounds && bounds.min !== undefined && bounds.max !== undefined) {
+                      const span = bounds.max - bounds.min;
+                      check(`${prefix}.choices.flagWrites`, Math.abs(fv) <= span,
+                        `numeric delta ${fv} for "${fk}" exceeds the track's full range ${span}; a single choice shouldn't max the track`, "warn");
+                    }
+                  }
                 }
               }
             }
@@ -260,6 +335,14 @@ export function validate(data: unknown): ValidationReport {
   for (const k of eventResourceKeys) {
     check("events→resources", initKeys.has(k),
       `Events reference resource key "${k}" not found in initialResources`);
+  }
+
+  // NO-SCORE LAW (cont.): a numeric track must never be wired into resource
+  // effects — that would make it a spendable/visible meter, not a reckoning.
+  for (const [fid, ftype] of declaredFlags) {
+    if (ftype === "numeric")
+      check("flags→effects", !eventResourceKeys.has(fid),
+        `numeric flag "${fid}" is referenced in resource effects; a moral track must not be a resource/score`);
   }
 
   // ── Flag usage warnings ──────────────────────────────────────
