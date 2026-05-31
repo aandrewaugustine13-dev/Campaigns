@@ -28,6 +28,10 @@ const STATIC_PORTRAIT_MAP: Record<string, string> = {
 export default function DoomHUD({ members, theme = 'default', campaignId = 'default' }: { members: PartyMember[], theme?: string, campaignId?: string }) {
   const previousHealth = useRef<Record<string, number>>({});
   const [damageTriggers, setDamageTriggers] = useState<Record<string, number>>({});
+  // Portrait load stage per member. Absent = try primary src; "fallback" = the
+  // primary 404'd, show the static map image; "failed" = no image resolved,
+  // render the letter fallback. React owns the whole subtree — no DOM mutation.
+  const [portraitStage, setPortraitStage] = useState<Record<string, "fallback" | "failed">>({});
 
   useEffect(() => {
     const nextTriggers: Record<string, number> = {};
@@ -71,6 +75,8 @@ export default function DoomHUD({ members, theme = 'default', campaignId = 'defa
           const faceSrc = historicalAsset ? historicalAsset.portrait : getDoomFace(m.id, m.health);
           const fallbackSrc = STATIC_PORTRAIT_MAP[m.id];
           const isCritical = m.health <= 25;
+          const stage = portraitStage[m.id];
+          const displaySrc = stage === "failed" ? "" : stage === "fallback" ? fallbackSrc : faceSrc;
 
           return (
             <div key={m.id} className={`w-[78px] flex-shrink-0 flex flex-col items-center ${themeClasses.card} border rounded p-1`}>
@@ -78,23 +84,18 @@ export default function DoomHUD({ members, theme = 'default', campaignId = 'defa
                 key={`portrait-${m.id}-${damageTriggers[m.id] ?? 0}`}
                 className={`w-12 h-12 flex-shrink-0 relative ${damageTriggers[m.id] ? "juice-portrait-hit" : ""}`}
               >
-                {faceSrc ? (
+                {displaySrc ? (
                   <img
-                    src={faceSrc}
+                    src={displaySrc}
                     alt={m.role}
                     className="w-full h-full object-cover rounded-sm"
-                    style={{ imageRendering: historicalAsset ? "auto" : "pixelated" }}
-                    onError={(e) => { 
-                      if (fallbackSrc) {
-                        (e.target as HTMLImageElement).src = fallbackSrc;
-                      } else {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                        const parent = (e.target as HTMLImageElement).parentElement;
-                        if (parent) {
-                          parent.classList.add('flex', 'items-center', 'justify-center', 'bg-stone-700', 'text-stone-400', 'text-lg', 'font-bold');
-                          parent.innerText = m.role.charAt(0);
-                        }
-                      }
+                    style={{ imageRendering: historicalAsset && stage !== "fallback" ? "auto" : "pixelated" }}
+                    onError={() => {
+                      setPortraitStage((prev) =>
+                        !prev[m.id] && fallbackSrc
+                          ? { ...prev, [m.id]: "fallback" }
+                          : { ...prev, [m.id]: "failed" }
+                      );
                     }}
                   />
                 ) : (
