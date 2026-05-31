@@ -98,12 +98,12 @@ export default function SageEncounter({ sage, onComplete }: Props) {
       {phase === "intro" && (
         <div className="space-y-3">
           <div className="border border-stone-700 rounded-lg p-3 bg-stone-800/80">
-            <p className="text-stone-300 text-sm leading-relaxed italic">
+            <p className="text-stone-300 text-base leading-relaxed italic">
               {sage.greeting}
             </p>
           </div>
           <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/30">
-            <p className="text-amber-200 text-sm leading-relaxed">
+            <p className="text-amber-200 text-base leading-relaxed">
               {sage.advice}
             </p>
           </div>
@@ -124,7 +124,7 @@ export default function SageEncounter({ sage, onComplete }: Props) {
             <p className="text-xs text-indigo-300 font-bold uppercase tracking-wider mb-2">
               📜 Trail Wisdom
             </p>
-            <p className="text-stone-200 text-sm leading-relaxed mb-3">
+            <p className="text-stone-200 text-base leading-relaxed mb-3">
               {sage.question.question}
             </p>
             <div className="space-y-2">
@@ -132,7 +132,7 @@ export default function SageEncounter({ sage, onComplete }: Props) {
                 <button
                   key={i}
                   onClick={() => handleAnswer(i)}
-                  className="w-full text-left text-sm px-3 py-2.5 rounded-lg bg-indigo-900/60 hover:bg-indigo-800/80 border border-indigo-700/40 hover:border-indigo-600/60 transition-all"
+                  className="w-full text-left text-base leading-snug px-3 py-2.5 rounded-lg bg-indigo-900/60 hover:bg-indigo-800/80 border border-indigo-700/40 hover:border-indigo-600/60 transition-all"
                   style={{ fontFamily: "'Georgia', serif" }}
                 >
                   <span className="text-indigo-300 font-bold mr-2">
@@ -189,7 +189,7 @@ export default function SageEncounter({ sage, onComplete }: Props) {
             <p className="text-xs text-amber-500 font-bold uppercase tracking-wider mb-1">
               📖 Historical Context
             </p>
-            <p className="text-stone-300 text-sm leading-relaxed">
+            <p className="text-stone-300 text-base leading-relaxed">
               {sage.question.explanation}
             </p>
           </div>

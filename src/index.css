@@ -21,6 +21,21 @@
 .bg-stone-900 .text-stone-400 { color: #cabfb1; }
 .bg-stone-900 .text-stone-300 { color: #e6decf; }
 
+/* ═══════════════════════════════════════════════════════════════
+   PLAYER-SCREEN TYPE SCALE
+   Bump every in-game screen up one step with roomier line spacing so
+   narration, questions, and choices read comfortably on the play
+   panel. Scoped to .theme-body-font, which ONLY the GeneratedCampaign
+   play shell carries — the setup/studio pages never use it, so they
+   keep their current sizing. !important matches the override style
+   used by .west-app / .bg-stone-900 above and guarantees these win
+   over Tailwind's utility layer.
+   ═══════════════════════════════════════════════════════════════ */
+.theme-body-font .text-xs   { font-size: 0.875rem !important; line-height: 1.3rem !important; }   /* 12 → 14 */
+.theme-body-font .text-sm   { font-size: 1rem !important;     line-height: 1.55rem !important; }  /* 14 → 16 */
+.theme-body-font .text-base { font-size: 1.125rem !important; line-height: 1.7rem !important; }    /* 16 → 18 */
+.theme-body-font .text-lg   { font-size: 1.25rem !important;  line-height: 1.85rem !important; }   /* 18 → 20 */
+
 @keyframes bgScroll {
   0% { background-position: 0 0; }
   100% { background-position: 1000px 0; }

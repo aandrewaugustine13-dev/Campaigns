@@ -167,7 +167,7 @@ export default function VisualNovelEngine({
       {/* Dialogue box — below the scene */}
       <div className="theme-dialogue-frame p-2">
         <div className="theme-dialogue-bg theme-dialogue-border border-4 rounded shadow-[4px_4px_0px_rgba(0,0,0,0.5)] p-3">
-          <p className="theme-dialogue-text font-bold text-sm mb-2 drop-shadow-sm leading-snug">
+          <p className="theme-dialogue-text font-bold text-base mb-2 drop-shadow-sm leading-relaxed">
             {currentEvent.text}
           </p>
 
@@ -214,7 +214,7 @@ export default function VisualNovelEngine({
               <button
                 key={i}
                 onClick={() => handleChoice(i)}
-                className="w-full text-left p-1.5 theme-dialogue-accent border-2 font-bold text-xs shadow-inner"
+                className="w-full text-left p-1.5 theme-dialogue-accent border-2 font-bold text-sm leading-snug shadow-inner"
               >
                 <span>▶ {c.text}</span>
                 {showRiskHints && riskHints[i] && (

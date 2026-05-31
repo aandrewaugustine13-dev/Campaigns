@@ -209,14 +209,14 @@ function GenericTriviaEngine({
       <p className="text-xs theme-text-accent font-bold uppercase tracking-wide">
         Knowledge Check {streak > 0 && <span className="text-emerald-500">(streak: {streak})</span>}
       </p>
-      <p className="text-sm theme-text">{question.question}</p>
+      <p className="text-base theme-text leading-relaxed">{question.question}</p>
       {answered === null ? (
         <div className="space-y-1">
           {question.choices.map((c, i) => (
             <button
               key={i}
               onClick={() => setAnswered(i)}
-              className="w-full text-left text-xs theme-bg-card theme-border border rounded px-3 py-2 transition-colors hover:opacity-90"
+              className="w-full text-left text-sm leading-snug theme-bg-card theme-border border rounded px-3 py-2 transition-colors hover:opacity-90"
             >
               {c}
             </button>
@@ -228,7 +228,7 @@ function GenericTriviaEngine({
             {correct ? "Correct!" : "Not quite."}
           </p>
           {(explanation || question.fact) && (
-            <p className="text-xs theme-text-muted">{explanation || question.fact}</p>
+            <p className="text-sm theme-text-muted leading-relaxed">{explanation || question.fact}</p>
           )}
           <button
             onClick={() => onComplete(correct, correct ? { [primaryResourceKey]: 5, morale: 3 } : {})}
