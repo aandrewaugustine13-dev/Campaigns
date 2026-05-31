@@ -93,6 +93,7 @@ THE END CHECK FOR UNDERSTANDING:
 - The difficulty parameter scales RIGOR, not fairness.
 
 STRUCTURAL RULES:
+- BREVITY FOR READABILITY: this text is read on a small in-game panel, so keep it tight. Event \`text\` is 2-3 short sentences (about 45 words max) — set the scene and the stakes, then stop. Each choice \`text\` is a single short line (about 12 words max). Each question is one sentence; each answer choice is one short line. Sage \`greeting\` and \`advice\` are at most 2 sentences each; question \`explanation\` and event/trivia \`fact\` are at most 2-3 sentences. Favor concrete, vivid economy over exposition; never pad. Brevity is a hard requirement, not a stylistic preference.
 - Every event must be either type "standard" (with choices array) or type "push_luck" (with attempts array + leaveText). Most should be standard; include 1-2 push_luck events for variety.
 - Each choice in a standard event should either have flat \`effects\` + \`result\` (deterministic) OR an \`outcomes\` array (weighted random). Never both.
 - Outcomes must have positive integer \`weight\` values. Higher weight = more likely.
