@@ -111,7 +111,11 @@ function buildTrailFeedEntries(
   day: number,
 ): string[] {
   const notes: string[] = [];
-  notes.push(`Day ${day}: ${Math.round(distanceGain)} ${data.distanceUnit} covered at ${paceId} pace.`);
+  // Distance/mileage is journey machinery; character mode advances by time, not
+  // distance, so this "N units covered at pace" line is meaningless there.
+  if (!isCharacterMode(data)) {
+    notes.push(`Day ${day}: ${Math.round(distanceGain)} ${data.distanceUnit} covered at ${paceId} pace.`);
+  }
 
   const resKeys = Object.keys(data.initialResources);
   for (const k of resKeys) {
@@ -1402,7 +1406,13 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
               <div className="flex items-center gap-3">
                 <div className={`${themeConfig.subtext} text-[10px] flex items-center gap-1`}>
                   <Map className="w-3 h-3" />
-                  <span>Day {state.day} &middot; {Math.round(state.distance)} {data.distanceUnit}</span>
+                  {/* Distance is journey-only; character mode advances by time,
+                      so show just the day counter (no meaningless "· 0 unit"). */}
+                  {isCharacterMode(data) ? (
+                    <span>Day {state.day}</span>
+                  ) : (
+                    <span>Day {state.day} &middot; {Math.round(state.distance)} {data.distanceUnit}</span>
+                  )}
                 </div>
                 <button
                   onClick={() => setState(s => ({ ...s, inventoryOpen: !s.inventoryOpen }))}
