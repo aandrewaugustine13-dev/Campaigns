@@ -484,9 +484,14 @@ interface GameState {
   knowledgeLog: string[];
   triviaCounter: number;
   currentTrivia: { id: string; question: string; choices: string[]; correctIndex: number; fact?: string } | null;
-  usedTriviaIds: Set<string>;
-  lastTriviaId: string | null;
-  usedGateIds: Set<string>;
+  // Single shared "seen" set across BOTH eventTrivia consumers — the
+  // knowledge-check path (phase "trivia") and the event-trivia gate
+  // (phase "event_trivia"). Both draw from data.eventTrivia, so one set
+  // is the source of truth that prevents a question retired in one path
+  // from reappearing in the other. lastQuestionId is the immediate-repeat
+  // guard, updated by whichever path asked last.
+  usedQuestionIds: Set<string>;
+  lastQuestionId: string | null;
   eventCounts: Record<string, number>;
   eventLastTurn: Record<string, number>;
   triviaStreak: number;
@@ -564,9 +569,11 @@ function selectEvent(
 function selectGateQuestion(
   pool: CampaignData["eventTrivia"],
   usedIds: Set<string>,
+  excludeId: string | null,
 ) {
   if (!pool || pool.length === 0) return null;
-  const available = pool.filter(q => !usedIds.has(q.id));
+  let available = pool.filter(q => !usedIds.has(q.id) && q.id !== excludeId);
+  if (available.length === 0) available = pool.filter(q => q.id !== excludeId);
   const choices = available.length > 0 ? available : pool;
   return choices[Math.floor(Math.random() * choices.length)];
 }
@@ -656,8 +663,8 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     gameOver: false, survived: false, earlySale: false,
     outfit: { allocations: {}, budgetSpent: 0 },
     historicalKnowledge: 0, knowledgeLog: [], triviaCounter: 0,
-    currentTrivia: null, usedTriviaIds: new Set(), triviaStreak: 0,
-    lastTriviaId: null, usedGateIds: new Set(),
+    currentTrivia: null, usedQuestionIds: new Set(), triviaStreak: 0,
+    lastQuestionId: null,
     eventCounts: {}, eventLastTurn: {},
     insight: 1, objectives: [],
     routeState: { currentNodeId: "start" }, routeTag: "SAFE",
@@ -826,13 +833,14 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       const event = selectEvent(s.day, data.totalDays, data.events as GameEvent[], s.routeTag, s.eventCounts, s.eventLastTurn, s.turn);
       if (event) {
         if (s.triviaCounter >= 2) {
-          const trivia = pickTriviaQuestion(data, s.usedTriviaIds, s.lastTriviaId);
+          const trivia = pickTriviaQuestion(data, s.usedQuestionIds, s.lastQuestionId);
           if (trivia) {
             s.currentTrivia = trivia;
-            const nextUsed = new Set(s.usedTriviaIds).add(trivia.id);
-            // Recycle once every question has been seen so checks keep coming.
-            s.usedTriviaIds = nextUsed.size >= data.eventTrivia.length ? new Set([trivia.id]) : nextUsed;
-            s.lastTriviaId = trivia.id;
+            const nextUsed = new Set(s.usedQuestionIds).add(trivia.id);
+            // Recycle once every question has been seen across BOTH paths so
+            // checks keep coming; keep the just-shown id so it isn't immediate.
+            s.usedQuestionIds = nextUsed.size >= data.eventTrivia.length ? new Set([trivia.id]) : nextUsed;
+            s.lastQuestionId = trivia.id;
             s.triviaCounter = 0;
             s.phase = "trivia";
             return s;
@@ -914,23 +922,25 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
 
   const handleChoice = useCallback((ci: number) => {
     if (state.currentEvent?.triviaGate && data.eventTrivia.length > 0) {
-      const q = selectGateQuestion(data.eventTrivia, state.usedGateIds);
+      const q = selectGateQuestion(data.eventTrivia, state.usedQuestionIds, state.lastQuestionId);
       if (q) {
         setState(prev => {
-          const nextUsed = new Set(prev.usedGateIds).add(q.id);
+          const nextUsed = new Set(prev.usedQuestionIds).add(q.id);
           return {
             ...prev,
             phase: "event_trivia" as const,
             pendingChoiceIndex: ci,
             pendingEventQuestion: q,
-            usedGateIds: nextUsed.size >= data.eventTrivia.length ? new Set([q.id]) : nextUsed,
+            // Same shared set + immediate-repeat guard as the knowledge-check path.
+            usedQuestionIds: nextUsed.size >= data.eventTrivia.length ? new Set([q.id]) : nextUsed,
+            lastQuestionId: q.id,
           };
         });
         return;
       }
     }
     finalizeChoice(ci, 0);
-  }, [finalizeChoice, state.currentEvent?.triviaGate, state.usedGateIds, data.eventTrivia]);
+  }, [finalizeChoice, state.currentEvent?.triviaGate, state.usedQuestionIds, state.lastQuestionId, data.eventTrivia]);
 
   const handleEventTriviaAnswer = useCallback((choiceIndex: number) => {
     const q = state.pendingEventQuestion;
