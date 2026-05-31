@@ -1338,27 +1338,35 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
         <FloatingNumbers floats={floats} />
       </div>
 
-      {/* Map sidebar */}
-      <div className="hidden md:flex w-[360px] lg:w-[430px] xl:w-[520px] 2xl:w-[580px] flex-shrink-0">
-        {Array.isArray(data.trailPath) && data.trailPath.length > 0 && (
+      {/* Map sidebar — systems-only furniture. Gated on character mode so a
+          character campaign never shows (or reserves width for) a trail map,
+          even if the generator leaked a stray trailPath. Also only rendered
+          when there's an actual map, so map-less systems campaigns don't
+          reserve an empty 360-580px gutter that shoves content right. */}
+      {!isCharacterMode(data) && Array.isArray(data.trailPath) && data.trailPath.length > 0 && (
+        <div className="hidden md:flex w-[360px] lg:w-[430px] xl:w-[520px] 2xl:w-[580px] flex-shrink-0">
           <TrailMap progress={progress} day={state.day} totalDays={data.totalDays} trailPath={data.trailPath} trailStops={data.trailStops ?? []} mapImage={data.mapImage} totalDistance={data.totalDistance} />
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Trail feed sidebar */}
-      <aside className={`hidden xl:flex w-72 2xl:w-80 flex-shrink-0 border-l ${themeConfig.sidebar} flex-col`}>
-        <div className={`px-3 py-2 border-b ${themeConfig.sidebar}`}>
-          <p className={`text-xs font-bold uppercase tracking-wide ${themeConfig.accent}`}>Expedition Log</p>
-          <p className={`text-[11px] ${themeConfig.subtext}`}>Recent notes from the journey.</p>
-        </div>
-        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2">
-          {[...state.trailFeed].slice(-12).reverse().map((entry, idx) => (
-            <div key={`${idx}-${entry.slice(0, 18)}`} className={`rounded border p-2 ${idx === 0 ? themeConfig.feedItemActive : themeConfig.feedItem}`}>
-              <p className={`text-[11px] leading-relaxed ${themeConfig.subtext}`}>{entry}</p>
-            </div>
-          ))}
-        </div>
-      </aside>
+      {/* Trail feed sidebar — systems-only "expedition log". A character story
+          isn't a journey with a mileage log; gated off in character mode (the
+          decisions log remains reachable via the Campaign Log button). */}
+      {!isCharacterMode(data) && (
+        <aside className={`hidden xl:flex w-72 2xl:w-80 flex-shrink-0 border-l ${themeConfig.sidebar} flex-col`}>
+          <div className={`px-3 py-2 border-b ${themeConfig.sidebar}`}>
+            <p className={`text-xs font-bold uppercase tracking-wide ${themeConfig.accent}`}>Expedition Log</p>
+            <p className={`text-[11px] ${themeConfig.subtext}`}>Recent notes from the journey.</p>
+          </div>
+          <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2">
+            {[...state.trailFeed].slice(-12).reverse().map((entry, idx) => (
+              <div key={`${idx}-${entry.slice(0, 18)}`} className={`rounded border p-2 ${idx === 0 ? themeConfig.feedItemActive : themeConfig.feedItem}`}>
+                <p className={`text-[11px] leading-relaxed ${themeConfig.subtext}`}>{entry}</p>
+              </div>
+            ))}
+          </div>
+        </aside>
+      )}
 
       {/* Main game column */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0 xl:px-4 2xl:px-8">
@@ -1440,7 +1448,10 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
           </div>
         </div>
 
-        <DoomHUD members={partyMembers} theme={theme} campaignId={data.id} />
+        {/* Party Status HUD — systems-only. A first-person character isn't a
+            party with hit points, so it's gated off in character mode. Nothing
+            else consumes partyMembers. */}
+        {!isCharacterMode(data) && <DoomHUD members={partyMembers} theme={theme} campaignId={data.id} />}
 
         <div className="flex-1 overflow-y-auto px-3 pb-3">
           <div className="max-w-4xl mx-auto space-y-3 mt-2">
