@@ -806,14 +806,18 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       const turnFeed = buildTrailFeedEntries(data, s.resources, pace?.id ?? s.pace, s.hardPaceStreak, distanceGain, s.day);
       s.trailFeed = [...s.trailFeed, ...turnFeed].slice(-18);
 
-      // Fail conditions: check key resources
-      const criticallyLow = Object.entries(s.resources).filter(([k, v]) => {
-        if (k === data.primaryResourceKey) return false;
-        const cap = data.resourceCaps[k] ?? 100;
-        return v <= 0 && cap > 10;
-      });
-      if (criticallyLow.length >= 2 || (s.resources.morale !== undefined && s.resources.morale <= 0)) {
-        return { ...s, phase: "end" as const, gameOver: true, survived: false };
+      // Fail conditions: check key resources. SYSTEMS-only — a character's
+      // small personal economy (cash, the larder) is friction, never a death
+      // bar; a first-person story ends by time/arc, not by a meter hitting 0.
+      if (!isCharacterMode(data)) {
+        const criticallyLow = Object.entries(s.resources).filter(([k, v]) => {
+          if (k === data.primaryResourceKey) return false;
+          const cap = data.resourceCaps[k] ?? 100;
+          return v <= 0 && cap > 10;
+        });
+        if (criticallyLow.length >= 2 || (s.resources.morale !== undefined && s.resources.morale <= 0)) {
+          return { ...s, phase: "end" as const, gameOver: true, survived: false };
+        }
       }
       if (hasReachedGoal(data, s.day, s.distance)) {
         return { ...s, phase: "end" as const, gameOver: true, survived: true };
@@ -997,13 +1001,16 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   const continueGame = useCallback(() => {
     setState(prev => {
       const s: GameState = { ...prev, currentEvent: null, resultText: "", objectiveNotice: "" };
-      // Check fail
-      const criticallyLow = Object.entries(s.resources).filter(([k, v]) => {
-        if (k === data.primaryResourceKey) return false;
-        return v <= 0 && (data.resourceCaps[k] ?? 100) > 10;
-      });
-      if (criticallyLow.length >= 2 || (s.resources.morale !== undefined && s.resources.morale <= 0)) {
-        return { ...s, phase: "end" as const, gameOver: true, survived: false };
+      // Check fail — systems-only (see advanceTurn: character mode has no
+      // resource-death; the run ends by reaching the time/arc goal).
+      if (!isCharacterMode(data)) {
+        const criticallyLow = Object.entries(s.resources).filter(([k, v]) => {
+          if (k === data.primaryResourceKey) return false;
+          return v <= 0 && (data.resourceCaps[k] ?? 100) > 10;
+        });
+        if (criticallyLow.length >= 2 || (s.resources.morale !== undefined && s.resources.morale <= 0)) {
+          return { ...s, phase: "end" as const, gameOver: true, survived: false };
+        }
       }
       if (hasReachedGoal(data, s.day, s.distance) || s.earlySale) {
         return { ...s, phase: "end" as const, gameOver: true, survived: true };
@@ -1104,9 +1111,14 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     return () => clearTimeout(t);
   }, [state.phase, state.turn, state.gameOver, awaitingDecision, advanceTurn]);
 
+  // Character mode runs a SMALL personal economy (money + 1–2 concrete
+  // resources). Those should be VISIBLE as always-on bars, not parked in the
+  // collapsed inventory — so character mode puts every resource in the bar
+  // row and leaves the inventory grid empty. Systems keeps the original
+  // first-6-in-inventory / 7th+-as-bars split (byte-identical behavior).
   const topResources = useMemo(() => {
-    const keys = Object.keys(data.initialResources);
-    return keys.slice(0, 6);
+    if (isCharacterMode(data)) return [];
+    return Object.keys(data.initialResources).slice(0, 6);
   }, [data]);
 
   // Trading post deals only in money + tangible supplies; show exactly those.
@@ -1122,7 +1134,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
 
   const barResources = useMemo(() => {
     const keys = Object.keys(data.initialResources);
-    return keys.slice(6);
+    return isCharacterMode(data) ? keys : keys.slice(6);
   }, [data]);
 
   const riskHints = (state.currentEvent?.choices || []).map((choice) => {
@@ -1414,14 +1426,16 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                     <span>Day {state.day} &middot; {Math.round(state.distance)} {data.distanceUnit}</span>
                   )}
                 </div>
-                <button
-                  onClick={() => setState(s => ({ ...s, inventoryOpen: !s.inventoryOpen }))}
-                  className="flex items-center gap-1 px-2 py-0.5 theme-bg-card-inner theme-border border rounded text-[10px] font-bold theme-text transition-colors hover:opacity-90"
-                >
-                  <Backpack className="w-3 h-3" />
-                  Inventory
-                  {state.inventoryOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                </button>
+                {!isCharacterMode(data) && (
+                  <button
+                    onClick={() => setState(s => ({ ...s, inventoryOpen: !s.inventoryOpen }))}
+                    className="flex items-center gap-1 px-2 py-0.5 theme-bg-card-inner theme-border border rounded text-[10px] font-bold theme-text transition-colors hover:opacity-90"
+                  >
+                    <Backpack className="w-3 h-3" />
+                    Inventory
+                    {state.inventoryOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                  </button>
+                )}
                 <button
                   onClick={() => setShowLog(true)}
                   className="flex items-center gap-1 px-2 py-0.5 theme-bg-card-inner theme-border border rounded text-[10px] font-bold theme-text-accent transition-colors hover:opacity-90"

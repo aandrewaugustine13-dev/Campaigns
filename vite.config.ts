@@ -167,6 +167,21 @@ function generatorApiPlugin(): Plugin {
         return { data, findings };
       });
 
+      // Character campaigns only: propose a small, concrete PERSONAL economy
+      // (money + 1–2 campaign-fit resources) for the chosen perspective, in
+      // place of the abstract systems macro-meters. Takes { standard,
+      // perspective, topic } and returns { data, findings }.
+      jsonPost(server, '/api/personal-economy', async (apiKey, inputs) => {
+        const { generatePersonalEconomy } = await import('./generator/personalEconomy.ts');
+        const { data, findings } = await generatePersonalEconomy(
+          String(inputs.standard ?? ''),
+          String(inputs.perspective ?? ''),
+          apiKey,
+          String(inputs.topic ?? ''),
+        );
+        return { data, findings };
+      });
+
       jsonPost(server, '/api/cast', async (apiKey, inputs) => {
         const { generateCast } = await import('./generator/cast.ts');
         const { data, findings } = await generateCast(String(inputs.standard ?? ''), apiKey, String(inputs.topic ?? ''));

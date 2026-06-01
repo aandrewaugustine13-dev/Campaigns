@@ -7,6 +7,7 @@ import { parseModelJson } from "./json.js";
 import { enrichSagePortraits, enrichEventImages } from "./wikimedia.js";
 import type { CastCharacter } from "./cast.js";
 import type { SystemsEconomy } from "./economy.js";
+import type { PersonalEconomy } from "./personalEconomy.js";
 import type { FaultLineSpec } from "./faultline.js";
 import { faultLineToCampaignPieces } from "./faultlineCompile.js";
 import { applyRelationshipTracks } from "./relationshipTracks.js";
@@ -32,6 +33,12 @@ export interface GenerateInputs {
   playerRole?: string;
   cast?: CastCharacter[];
   economy?: SystemsEconomy;
+  // CHARACTER-mode economy: a small, concrete, PERSONAL resource set
+  // (money + 1–2 campaign-fit things) that replaces the abstract systems
+  // macro-meters. Mutually exclusive with `economy` in practice — systems
+  // campaigns pass `economy`, character campaigns pass `personalEconomy`.
+  // Absent ⇒ no character economy block (systems prompt byte-identical).
+  personalEconomy?: PersonalEconomy;
   // Optional CHARACTER-campaign spine. When present, its validated fault
   // line is COMPILED (generator/faultlineCompile.ts) into concrete pieces —
   // a declared flag, an early setter event carrying flagWrites, and later
@@ -119,8 +126,8 @@ Output ONLY a single JSON object conforming to the CampaignData schema. No markd
 // build the campaign AROUND them — including OMITTING journey-only fields
 // honestly when the frame is not a journey, rather than faking them.
 function buildLockedConstraints(inputs: GenerateInputs): string {
-  const { frame, playerRole, cast, economy } = inputs;
-  if (!frame && !playerRole && !cast && !economy) return "";
+  const { frame, playerRole, cast, economy, personalEconomy } = inputs;
+  if (!frame && !playerRole && !cast && !economy && !personalEconomy) return "";
 
   const lines: string[] = [];
   lines.push("");
@@ -176,6 +183,33 @@ function buildLockedConstraints(inputs: GenerateInputs): string {
     lines.push("");
     lines.push(
       "The ratingRubric above is how the end rating is described. Reflect its basis in historicalContext and let its bands inform how the end grading reads.",
+    );
+    lines.push("");
+  }
+
+  // CHARACTER economy: small, concrete, personal resources (money + 1–2).
+  // Replaces the abstract systems macro-meters for a first-person campaign.
+  // Only emitted when a personalEconomy is supplied, so the systems `economy`
+  // block above is byte-identical for systems campaigns.
+  if (personalEconomy) {
+    const money = personalEconomy.resources.find((r) => r.isMoney);
+    const keyHints = personalEconomy.resources
+      .map((r) => `"${r.name}"${r.isMoney ? " (money — spendable cash)" : ""} → playerFacing "${r.playerFacing}"`)
+      .join("; ");
+    lines.push("--- PERSONAL ECONOMY (the player's concrete day-to-day stakes — use these and only these) ---");
+    lines.push(personalEconomy.premise);
+    lines.push(JSON.stringify(personalEconomy.resources, null, 2));
+    lines.push("");
+    lines.push(
+      `These are this PERSON's tangible, VISIBLE stakes — money they spend, things they can hold and lose — NOT abstract collective forces. For each resource, derive a stable camelCase identifier from its name and use THAT identifier consistently as the key in initialResources, resourceCaps, resourceLabels, and every choice's effects map. Resources: ${keyHints}. Set resourceLabels[key] to the resource's playerFacing string. Pick honest starting magnitudes that match each startsAt and the "${money?.playerFacing ?? "money"}" being a modest personal sum (the Okie-with-$20 feel), not a fortune. Do NOT add resources beyond these; do NOT rename or drop any.`,
+    );
+    lines.push("");
+    lines.push(
+      `PRIMARY RESOURCE: set primaryResourceKey to the derived identifier of "${personalEconomy.primaryResource}". The money resource ("${money?.name ?? ""}") is spent and shown but is NEVER primaryResourceKey — ending with more cash is NOT a high score, and hoarding money instead of helping people must never read as "winning". Set revenuePerUnit to 0.`,
+    );
+    lines.push("");
+    lines.push(
+      "FELT CONSEQUENCE, NOT A MONEY METER ON EVERYTHING: every choice must move at least ONE of — a personal resource above, OR the family relationship track, OR the community relationship track (see the RELATIONSHIP TRACKS section below). But do NOT make a choice move ALL of them, and do NOT spend or change money on every choice. Money moves only when a choice genuinely costs or earns cash; many choices land on a relationship track and nothing else. A choice whose whole weight is relational should carry family/community deltas and no resource effect at all. This keeps money from becoming a meter that ticks on every single decision.",
     );
     lines.push("");
   }

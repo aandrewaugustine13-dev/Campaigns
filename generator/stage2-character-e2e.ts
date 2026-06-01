@@ -23,7 +23,7 @@ import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { writeFileSync } from "fs";
 import { generateFrame } from "./frame.js";
-import { generateEconomy } from "./economy.js";
+import { generatePersonalEconomy } from "./personalEconomy.js";
 import { generateCast } from "./cast.js";
 import { generateFaultLine } from "./faultline.js";
 import { generateCampaign, type GenerateInputs } from "./core.js";
@@ -70,17 +70,27 @@ async function main() {
   console.log(`   perspective: ${perspString}\n`);
 
   // 2) Fault line (chosen perspective) + economy + cast, in parallel.
-  console.log("→ /api/faultline + /api/economy + /api/cast …");
-  const [flRes, ecoRes, castRes] = await Promise.all([
+  console.log("→ /api/faultline + /api/personal-economy + /api/cast …");
+  const [flRes, peRes, castRes] = await Promise.all([
     generateFaultLine(STANDARD, perspString, apiKey),
-    generateEconomy(STANDARD, apiKey),
+    generatePersonalEconomy(STANDARD, perspString, apiKey),
     generateCast(STANDARD, apiKey),
   ]);
   const flErrors = flRes.findings.filter((f) => f.level === "error");
   console.log(`   fault line: flag='${flRes.data.flag.id}' (${flRes.data.flag.type}), ${flRes.data.setter.options.length} setter options, ${flRes.data.readers.length} reader entries`);
-  console.log(`   fault-line validation: ${flErrors.length} errors, ${flRes.findings.length - flErrors.length} warnings\n`);
+  console.log(`   fault-line validation: ${flErrors.length} errors, ${flRes.findings.length - flErrors.length} warnings`);
+  const peErrors = peRes.findings.filter((f) => f.level === "error");
+  const moneyRes = peRes.data.resources.find((r) => r.isMoney);
+  console.log(`   personal economy: ${peRes.data.resources.map((r) => `${r.name}${r.isMoney ? "($)" : ""}`).join(", ")}; primary='${peRes.data.primaryResource}'`);
+  console.log(`   personal-economy validation: ${peErrors.length} errors, ${peRes.findings.length - peErrors.length} warnings\n`);
   check("proposed fault line has zero validation errors", flErrors.length === 0,
     flErrors.map((f) => `[${f.field}] ${f.message}`).join("; "));
+  check("proposed personal economy has zero validation errors", peErrors.length === 0,
+    peErrors.map((f) => `[${f.field}] ${f.message}`).join("; "));
+  check("personal economy is small (2–3 concrete resources), not 4 abstract macro-meters",
+    peRes.data.resources.length >= 2 && peRes.data.resources.length <= 3);
+  check("exactly one money resource; primary is NON-money",
+    !!moneyRes && peRes.data.primaryResource !== moneyRes.name);
 
   // 3) Full campaign generation (core.ts compiles + splices the fault line).
   const inputs: GenerateInputs = {
@@ -95,7 +105,7 @@ async function main() {
     frame: frame.frame,
     playerRole: perspString,
     cast: castRes.data.cast,
-    economy: ecoRes.data,
+    personalEconomy: peRes.data,
     faultLine: flRes.data,
   };
   console.log("→ generateCampaign (3–5 min) …");
@@ -169,6 +179,38 @@ async function main() {
   console.log("\nreader events:", JSON.stringify(readers, null, 2));
   console.log("\nAll event ids/titles (setter + readers are fl_*):");
   for (const e of events) console.log(`  - ${e.id} :: ${e.title}  [phase ${e.phase_min}-${e.phase_max}]`);
+
+  // ── Personal-economy proof (concrete, visible, money ≠ score) ──
+  console.log("\n\n=== PERSONAL ECONOMY (concrete, visible — money ≠ score) ===\n");
+  const initRes: Record<string, number> = data.initialResources ?? {};
+  const resKeys = Object.keys(initRes);
+  console.log("initialResources:", JSON.stringify(initRes));
+  console.log("resourceLabels  :", JSON.stringify(data.resourceLabels ?? {}));
+  console.log(`primaryResourceKey='${data.primaryResourceKey}'  revenuePerUnit=${data.revenuePerUnit}`);
+  check("campaign has a SMALL personal economy (2–3 resources), not 4 macro-meters",
+    resKeys.length >= 2 && resKeys.length <= 3, `keys: ${resKeys.join(", ")}`);
+  // Money key = the resource whose label matches the money resource's playerFacing.
+  const moneyKey = moneyRes
+    ? resKeys.find((k) => (data.resourceLabels?.[k] ?? "").toLowerCase() === moneyRes.playerFacing.toLowerCase())
+    : undefined;
+  console.log(`money key resolved to: '${moneyKey ?? "(unresolved)"}'`);
+  check("money is a VISIBLE resource (present in initialResources)", !!moneyKey);
+  check("primaryResourceKey is NOT money (cash is not the graded win condition)",
+    !!data.primaryResourceKey && data.primaryResourceKey !== moneyKey);
+  // Tracks invisible by construction: family/community are flags, never resources.
+  check("relationship tracks are INVISIBLE (family/community absent from initialResources)",
+    !("family" in initRes) && !("community" in initRes));
+  // Money must NOT tick on every choice (no new participation-meter).
+  const allChoices = events.flatMap((e) => (e.choices ?? []) as any[]);
+  const decisionChoices = events
+    .filter((e) => Array.isArray(e.choices) && e.choices.length > 1)
+    .flatMap((e) => e.choices as any[]);
+  const movesMoney = moneyKey ? decisionChoices.filter((c) => c.effects && moneyKey in c.effects).length : 0;
+  const relationalOnly = allChoices.filter((c) => c.flagWrites && (!c.effects || Object.keys(c.effects).length === 0)).length;
+  console.log(`multi-option decision choices: ${decisionChoices.length}; move money: ${movesMoney}; relational-only (flagWrites, no effects): ${relationalOnly}`);
+  check("money does NOT move on every decision choice (not a participation meter)",
+    moneyKey ? movesMoney < decisionChoices.length : true,
+    `${movesMoney}/${decisionChoices.length} move money`);
 
   // ── Relationship-track proof (Step 3 payoff) ──────────────────
   console.log("\n\n=== RELATIONSHIP TRACKS (family / community) ===\n");

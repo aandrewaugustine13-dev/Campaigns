@@ -4,6 +4,7 @@ import type { ProposedFrame, PlayerPerspective, CampaignType } from "../generato
 import type { SystemsEconomy } from "../generator/economy";
 import type { ProposedCast } from "../generator/cast";
 import type { FaultLineSpec } from "../generator/faultline";
+import type { PersonalEconomy } from "../generator/personalEconomy";
 import { generateCampaignJob } from "./generateClient";
 
 // ═══════════════════════════════════════════════════════════════
@@ -110,6 +111,10 @@ export default function Stage1Studio({
   const [switchingType, setSwitchingType] = useState<CampaignType | null>(null);
   const [perspectiveIdx, setPerspectiveIdx] = useState(0);
   const [economy, setEconomy] = useState<SystemsEconomy | null>(null);
+  // Character campaigns only: the small concrete PERSONAL economy (money +
+  // 1–2 resources) proposed in place of the systems macro-meters. Null for
+  // systems campaigns.
+  const [personalEconomy, setPersonalEconomy] = useState<PersonalEconomy | null>(null);
   const [cast, setCast] = useState<ProposedCast | null>(null);
   // Character campaigns only: the moral fault line proposed for the chosen
   // perspective. Null for systems campaigns (and reset whenever we re-propose).
@@ -167,6 +172,7 @@ export default function Stage1Studio({
       setFrame(data);
       setPerspectiveIdx(0);
       setEconomy(null);
+      setPersonalEconomy(null);
       setCast(null);
       setFaultLine(null);
       setSwitchingType(null);
@@ -191,17 +197,23 @@ export default function Stage1Studio({
     );
     try {
       const topic = inputs.topic.trim();
-      const ecoP = postJson<{ data: SystemsEconomy }>("/api/economy", { standard: inputs.standard, topic });
+      const perspective = `${persp.role} — ${persp.description}`;
+      // Character campaigns get a small concrete PERSONAL economy (money +
+      // 1–2 resources) for the chosen perspective; systems campaigns get the
+      // abstract macro-meter economy. Exactly one is proposed.
+      const sysEcoP = isCharacter
+        ? Promise.resolve(null)
+        : postJson<{ data: SystemsEconomy }>("/api/economy", { standard: inputs.standard, topic });
+      const persEcoP: Promise<{ data: PersonalEconomy } | null> = isCharacter
+        ? postJson<{ data: PersonalEconomy }>("/api/personal-economy", { standard: inputs.standard, topic, perspective })
+        : Promise.resolve(null);
       const castP = postJson<{ data: ProposedCast }>("/api/cast", { standard: inputs.standard, topic });
       const flP: Promise<{ data: FaultLineSpec } | null> = isCharacter
-        ? postJson<{ data: FaultLineSpec }>("/api/faultline", {
-            standard: inputs.standard,
-            topic,
-            perspective: `${persp.role} — ${persp.description}`,
-          })
+        ? postJson<{ data: FaultLineSpec }>("/api/faultline", { standard: inputs.standard, topic, perspective })
         : Promise.resolve(null);
-      const [eco, cst, fl] = await Promise.all([ecoP, castP, flP]);
-      setEconomy(eco.data);
+      const [sysEco, persEco, cst, fl] = await Promise.all([sysEcoP, persEcoP, castP, flP]);
+      setEconomy(sysEco ? sysEco.data : null);
+      setPersonalEconomy(persEco ? persEco.data : null);
       setCast(cst.data);
       setFaultLine(fl ? fl.data : null);
       setBusy(null);
@@ -233,6 +245,9 @@ export default function Stage1Studio({
         playerRole: `${persp.role} — ${persp.description}`,
         cast: cast?.cast,
         economy: economy ?? undefined,
+        // Character campaigns: the small personal economy (money + 1–2) in
+        // place of the systems macro-meters. Mutually exclusive with economy.
+        personalEconomy: personalEconomy ?? undefined,
         // Character campaigns only: the compiled fault line core.ts splices in.
         faultLine: faultLine ?? undefined,
       };
@@ -517,6 +532,27 @@ export default function Stage1Studio({
                 <div key={r.name} className="border border-stone-700 rounded px-2 py-1.5">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-bold text-stone-200">{r.playerFacing}</span>
+                    <span className="text-[10px] text-stone-500 uppercase">{r.startsAt}</span>
+                  </div>
+                  <p className="text-[11px] text-stone-400 mt-0.5">{r.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {personalEconomy && (
+          <div className="bg-stone-800 border border-stone-700 rounded p-4 space-y-2">
+            <h2 className="text-xs font-bold text-amber-300 uppercase tracking-wide">Personal Economy</h2>
+            <p className="text-xs text-stone-400 italic">{personalEconomy.premise}</p>
+            <div className="space-y-1.5">
+              {personalEconomy.resources.map((r) => (
+                <div key={r.name} className="border border-stone-700 rounded px-2 py-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-stone-200">
+                      {r.playerFacing}
+                      {r.isMoney && <span className="ml-1.5 text-[9px] text-emerald-400 uppercase font-bold">money</span>}
+                    </span>
                     <span className="text-[10px] text-stone-500 uppercase">{r.startsAt}</span>
                   </div>
                   <p className="text-[11px] text-stone-400 mt-0.5">{r.description}</p>
