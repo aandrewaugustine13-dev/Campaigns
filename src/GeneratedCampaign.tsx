@@ -554,6 +554,7 @@ function selectEvent(
   counts: Record<string, number>,
   lastTurn: Record<string, number>,
   turn: number,
+  maxRepeats: number,
 ): GameEvent | null {
   const p = totalDays > 0 ? day / totalDays : 0;
   const inPhase = events.filter(e => p >= e.phase_min && p <= e.phase_max);
@@ -567,9 +568,14 @@ function selectEvent(
   };
 
   const fresh = inPhase.filter(e => !counts[e.id]);
+  // Character moral dilemmas must fire EXACTLY ONCE (maxRepeats=1): a repeated
+  // dilemma reads as a bug, not content. With maxRepeats=1 this filter is always
+  // empty (any fired event has count ≥ 1), so each event plays once and the turn
+  // simply advances when the fresh pool is spent. Systems campaigns keep the 2×
+  // refire (resource events recurring is fine), so their behavior is unchanged.
   const reusable = inPhase.filter(e =>
     (counts[e.id] ?? 0) > 0 &&
-    (counts[e.id] ?? 0) < MAX_EVENT_REPEATS &&
+    (counts[e.id] ?? 0) < maxRepeats &&
     turn - (lastTurn[e.id] ?? -Infinity) >= EVENT_COOLDOWN_TURNS,
   );
   const pool = fresh.length > 0 ? fresh : reusable;
@@ -823,23 +829,29 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
         return { ...s, phase: "end" as const, gameOver: true, survived: true };
       }
 
-      // Objectives
-      const tick = tickObjectives(s.objectives, before, { turn: s.turn, day: s.day, distance: s.distance, resources: { ...s.resources } });
-      s.objectives = tick.active;
-      if (tick.completedNow.length > 0) {
-        const first = tick.completedNow[0];
-        s.insight += first.reward.insight;
-        for (const completed of tick.completedNow) {
-          if (completed.reward.resources) {
-            for (const [k, v] of Object.entries(completed.reward.resources)) {
-              s.resources[k] = clampR(data, k, (s.resources[k] || 0) + v);
+      // Objectives — "quests" are systems framing (timed sub-goals with Insight
+      // rewards). They don't belong in a first-person moral story, so the whole
+      // spawn/tick/reward block is gated off in character mode (same leak pattern
+      // as the HUD, outfitting, town-stops, and mileage). Systems campaigns are
+      // unchanged: the gate is true and the block runs exactly as before.
+      if (!isCharacterMode(data)) {
+        const tick = tickObjectives(s.objectives, before, { turn: s.turn, day: s.day, distance: s.distance, resources: { ...s.resources } });
+        s.objectives = tick.active;
+        if (tick.completedNow.length > 0) {
+          const first = tick.completedNow[0];
+          s.insight += first.reward.insight;
+          for (const completed of tick.completedNow) {
+            if (completed.reward.resources) {
+              for (const [k, v] of Object.entries(completed.reward.resources)) {
+                s.resources[k] = clampR(data, k, (s.resources[k] || 0) + v);
+              }
             }
           }
+          s.objectiveNotice = `Objective Complete! ${first.title} (+${first.reward.insight} Insight)`;
         }
-        s.objectiveNotice = `Objective Complete! ${first.title} (+${first.reward.insight} Insight)`;
-      }
-      if (s.turn % 3 === 0 && s.objectives.length < 2) {
-        s.objectives = [...s.objectives, generateObjective({ turn: s.turn, day: s.day, distance: s.distance, resources: s.resources })];
+        if (s.turn % 3 === 0 && s.objectives.length < 2) {
+          s.objectives = [...s.objectives, generateObjective({ turn: s.turn, day: s.day, distance: s.distance, resources: s.resources })];
+        }
       }
 
       // Sage check
@@ -854,7 +866,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       }
 
       // Event
-      const event = selectEvent(s.day, data.totalDays, data.events as GameEvent[], s.routeTag, s.eventCounts, s.eventLastTurn, s.turn);
+      const event = selectEvent(s.day, data.totalDays, data.events as GameEvent[], s.routeTag, s.eventCounts, s.eventLastTurn, s.turn, isCharacterMode(data) ? 1 : MAX_EVENT_REPEATS);
       if (event) {
         if (s.triviaCounter >= 2) {
           const trivia = pickTriviaQuestion(data, s.usedQuestionIds, s.lastQuestionId);
@@ -1572,8 +1584,8 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                   )}
                 </div>
 
-                {/* Objectives */}
-                {state.objectives.length > 0 && (
+                {/* Objectives — systems-only "quests"; gated off in character mode (they never spawn there, this is belt-and-suspenders matching the other chrome gates). */}
+                {!isCharacterMode(data) && state.objectives.length > 0 && (
                   <div className="space-y-2">
                     {state.objectives.map(obj => (
                       <div key={obj.id} className={`border ${themeConfig.questCard} rounded p-2`}>
