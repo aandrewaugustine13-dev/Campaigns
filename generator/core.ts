@@ -312,14 +312,41 @@ function buildRelationshipLaw(): string {
     "  - GENUINE COST IS REQUIRED. Real choices wound a relationship. Across the whole campaign BOTH tracks MUST be LOWERED by at least one choice — a track that only ever rises is a score, not a relationship, and the campaign is rejected. Do not make every choice flattering.",
   );
   lines.push(
+    "  - YOU CANNOT BE GOOD TO EVERYONE (the central trade). The biggest gains MUST conflict: the choice that most helps family must visibly COST community, and the choice that most helps community must COST family. Put your LARGEST deltas (±3) on these conflict choices. There must be NO single line of play that leaves BOTH family and community well-regarded at once — to earn one's high regard, the player must let the other slip. If a determined player can pin both tracks high, the campaign is rejected.",
+  );
+  lines.push(
+    "  - BUT NOT EVERY CHOICE IS A SEESAW. The independence above is real: help-both, hurt-both, and one-sided choices remain valid wherever the content warrants — sometimes there genuinely was no trade, sometimes a choice cost everyone, sometimes only one group was touched. Keep any mutual-gain (help-both) choices SMALL (±1) and uncommon so they can't quietly add up to a double-win. The rule is that the BIGGEST gains conflict and the good-to-everyone ending is impossible — NOT that every choice opposes.",
+  );
+  lines.push(
     "  - NOT A QUIZ. There is no 'correct' delta. Protecting family at the community's expense is not 'wrong' — it costs community and helps family. Author the cost honestly; never reward a 'right answer'.",
   );
   lines.push("");
   lines.push(
-    "(b) FILL THE `reckoning` FIELD. Output a top-level \"reckoning\": { \"family\": FlagText, \"community\": FlagText }. Each is a closing readout of how that group remembers this person, tiered by the accumulated track value using numeric variants (whenAtLeast / whenAtMost). Give each THREE bands covering the whole -10..+10 range — a high band (whenAtLeast: 4), a middle band (whenAtLeast: -3, whenAtMost: 3), and a low band (whenAtMost: -4) — listing the HIGH band FIRST (first-match-wins). Each band is 1-2 sentences of human memory: how they hold this person now. It is NOT a verdict, a score, or 'you win/lose'. Neither extreme is 'winning'; each is a different truth with its own cost. Keep the two readouts SEPARATE — never one combined judgment.",
+    "(b) FILL THE `reckoning` FIELD. Output a top-level \"reckoning\": { \"family\": FlagText, \"community\": FlagText }. Each is a closing readout of how that group remembers this person, tiered by the accumulated track value using numeric variants (whenAtLeast / whenAtMost). Give each FIVE bands covering the whole -10..+10 range, listed MOST-POSITIVE FIRST (first-match-wins):",
   );
   lines.push(
-    "    Shape: \"reckoning\": { \"family\": { \"default\": \"...\", \"variants\": [ { \"whenFlag\": \"family\", \"whenAtLeast\": 4, \"text\": \"...\" }, { \"whenFlag\": \"family\", \"whenAtLeast\": -3, \"whenAtMost\": 3, \"text\": \"...\" }, { \"whenFlag\": \"family\", \"whenAtMost\": -4, \"text\": \"...\" } ] }, \"community\": { \"default\": \"...\", \"variants\": [ … same three bands, each with \"whenFlag\": \"community\" … ] } }",
+    "      1. extreme-high (whenAtLeast: 9)              — single-minded DEVOTION that visibly COST this person; everything bent toward this group and the price shows.",
+  );
+  lines.push(
+    "      2. high         (whenAtLeast: 4, whenAtMost: 8) — you did right by them, steadily, without giving everything.",
+  );
+  lines.push(
+    "      3. middle       (whenAtLeast: -3, whenAtMost: 3) — recognizably human and inconsistent; some warmth, some unspoken hardness.",
+  );
+  lines.push(
+    "      4. low          (whenAtLeast: -8, whenAtMost: -4) — you drifted from them; the distance was built one choice at a time.",
+  );
+  lines.push(
+    "      5. extreme-low  (whenAtMost: -9)               — a RUPTURE, not a drift: a real break this group cannot pretend away.",
+  );
+  lines.push(
+    "  - THE TWO EXTREMES ARE A DIFFERENT KIND OF THING, NOT LOUDER VERSIONS. extreme-high is NOT 'high but more' — it names what the devotion COST (what was given up, who else went without). extreme-low is NOT 'low but more' — it names a severance, not mere distance. If you find yourself writing an intensifier (\"they REALLY respected you\", \"they were VERY hurt\"), the tier is wasted — write a different register instead: cost and sacrifice at the top, rupture and severance at the bottom.",
+  );
+  lines.push(
+    "  - Each band is 1-2 sentences of human memory: how they hold this person now. It is NOT a verdict, a score, or 'you win/lose'. Neither extreme is 'winning'; each is a different truth with its own cost. Keep the two readouts SEPARATE — never one combined judgment.",
+  );
+  lines.push(
+    "    Shape: \"reckoning\": { \"family\": { \"default\": \"...\", \"variants\": [ { \"whenFlag\": \"family\", \"whenAtLeast\": 9, \"text\": \"...devotion-with-cost...\" }, { \"whenFlag\": \"family\", \"whenAtLeast\": 4, \"whenAtMost\": 8, \"text\": \"...did right by them...\" }, { \"whenFlag\": \"family\", \"whenAtLeast\": -3, \"whenAtMost\": 3, \"text\": \"...inconsistent, human...\" }, { \"whenFlag\": \"family\", \"whenAtLeast\": -8, \"whenAtMost\": -4, \"text\": \"...drifted...\" }, { \"whenFlag\": \"family\", \"whenAtMost\": -9, \"text\": \"...rupture...\" } ] }, \"community\": { \"default\": \"...\", \"variants\": [ … same five bands, each with \"whenFlag\": \"community\" … ] } }",
   );
   lines.push("");
   lines.push(

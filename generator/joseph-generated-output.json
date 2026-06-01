@@ -70,9 +70,10 @@
             "larder": 10
           },
           "flagWrites": {
-            "family": 2
+            "family": 3,
+            "community": -2
           },
-          "result": "The sweet potatoes are safe through winter. Your youngest stops asking about supper twice a night."
+          "result": "The sweet potatoes are safe through winter. Your youngest stops asking about supper twice a night. Two doors down, the Hayes family loses their plot to the cotton, and they note you found the coin to keep yours."
         },
         {
           "text": "Refuse. Take the dispute to the Bureau agent.",
@@ -92,9 +93,9 @@
           },
           "flagWrites": {
             "community": 3,
-            "family": -1
+            "family": -2
           },
-          "result": "Three families tend it together now. The planter grumbles but does not move against all of you at once. Your children eat a little less so others can eat too."
+          "result": "Three families tend it together now. The planter grumbles but does not move against all of you at once. Your children eat a little less so others can eat too, and your youngest asks why."
         }
       ],
       "image": {
@@ -121,9 +122,10 @@
             "wages": -5
           },
           "flagWrites": {
-            "family": 3
+            "family": 3,
+            "community": -2
           },
-          "result": "She comes home spelling her name in the dirt by lamplight. You watch her and say nothing out loud."
+          "result": "She comes home spelling her name in the dirt by lamplight. You watch her and say nothing out loud. The Bureau teacher asked if other children from the quarters might come too; you said you could not take that on this year."
         },
         {
           "text": "Keep her in the field this season, school next year.",
@@ -140,9 +142,9 @@
           "effects": {},
           "flagWrites": {
             "community": 2,
-            "family": 1
+            "family": 0
           },
-          "result": "The teacher agrees. Three other children from the quarters join. The planter cannot complain about evenings."
+          "result": "The teacher agrees. Three other children from the quarters join. The planter cannot complain about evenings. Your own daughter is tired by lamplight after a full day in the field, but she learns alongside the others."
         }
       ],
       "image": {
@@ -233,9 +235,9 @@
           },
           "flagWrites": {
             "community": 2,
-            "family": 1
+            "family": -1
           },
-          "result": "You spend three Saturdays hauling timber. Your daughter swings a hammer beside you. The schoolhouse goes up."
+          "result": "You spend three Saturdays hauling timber. The schoolhouse goes up. Your own fences go unmended those weeks and the garden runs to weeds; your wife works them alone and does not say much about it."
         }
       ],
       "image": {
@@ -264,9 +266,9 @@
           },
           "flagWrites": {
             "family": 3,
-            "community": 1
+            "community": -1
           },
-          "result": "The agent files a counter-order. It takes ten days and two trips. Your son stays home. The planter is furious and docks your next wages on a pretext."
+          "result": "The agent files a counter-order. It takes ten days and two trips, and your son stays home. But the Bureau man has only so much standing to spend on these cases, and you spent it on your boy. The Dawsons are still fighting for their own bound children, and they watched whose name got called first."
         },
         {
           "text": "Send your son to stay with kin in the next county quietly.",

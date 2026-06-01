@@ -155,6 +155,91 @@ export function validateRelationshipTracks(data: unknown): RelationshipFinding[]
         `relationship track "${t.id}" is only ever increased — a relationship you can only improve is a score, not a relationship; at least one choice must cost it`);
   }
 
+  // ── FRONTIER: the "good to everyone" guard (the dodgeable-conflict honesty
+  //    check). Conflict choices EXISTING isn't enough — they can be dodgeable
+  //    (Joseph had 5 and still leaked). The honest test is ADVERSARIAL: simulate
+  //    the greedy "good to everyone" policy — one fire per event, pick the choice
+  //    maximizing family+community, accumulate+clamp — and ERROR if that single
+  //    line of play reaches BOTH tracks at/above the HIGH band. Being
+  //    well-regarded by family AND community at once is the exact falsehood the
+  //    feature exists to prevent. Both-MIDDLE stays legal (the "recognizably
+  //    human" outcome); the error fires only on both-HIGH, never both-present.
+  //    Single fire per event is CONSERVATIVE — the engine refires events up to
+  //    2×, which only amplifies, so if single-fire pins both, live play is worse.
+  const HIGH_BAND = 4; // mirrors the reckoning high-band threshold (whenAtLeast: 4)
+  const famDecl = byId.get("family");
+  const comDecl = byId.get("community");
+  const fMax = typeof famDecl?.max === "number" ? famDecl.max : TRACK_MAX;
+  const cMax = typeof comDecl?.max === "number" ? comDecl.max : TRACK_MAX;
+
+  // per-event (family, community) delta pairs for each choice
+  const eventPairs: { f: number; c: number }[][] = events.map((ev) => {
+    const choices = Array.isArray(ev.choices) ? (ev.choices as Record<string, unknown>[]) : [];
+    return choices.map((c) => {
+      const fw = c.flagWrites && typeof c.flagWrites === "object" ? (c.flagWrites as Record<string, unknown>) : {};
+      return {
+        f: typeof fw.family === "number" ? (fw.family as number) : 0,
+        c: typeof fw.community === "number" ? (fw.community as number) : 0,
+      };
+    });
+  });
+
+  // EXACT feasibility: is there ANY line of play (one choice per event) that
+  // ends with BOTH tracks ≥ HIGH? A greedy "maximize family+community" policy is
+  // itself dodgeable — a player chasing both maximizes the MINIMUM of the two,
+  // reaching both-high on a point greedy (which favors lopsided high-sum totals)
+  // never visits. So we enumerate exactly via DP: familySum → the MAX
+  // communitySum reachable at that familySum. Clamping to [min,max] is
+  // irrelevant to a "≥+HIGH" test (clamp only alters values past ±max, never a
+  // +4 threshold), so we accumulate raw sums. State count is tiny (bounded by
+  // Σ|delta|), so this is cheap for any realistic event bank.
+  const maxCommunityByFamily = (): Map<number, number> => {
+    let dp = new Map<number, number>([[0, 0]]);
+    for (const pairs of eventPairs) {
+      if (pairs.length === 0) continue;
+      const next = new Map<number, number>();
+      for (const [fs, cs] of dp) {
+        for (const p of pairs) {
+          const nf = fs + p.f;
+          const nc = cs + p.c;
+          const prev = next.get(nf);
+          if (prev === undefined || nc > prev) next.set(nf, nc);
+        }
+      }
+      dp = next;
+    }
+    return dp;
+  };
+
+  // Only meaningful once both tracks are actually exercised (the per-track
+  // checks above already error if a track is under-written).
+  if (deltas.family.length > 0 && deltas.community.length > 0) {
+    const pairsFlat = eventPairs.flat();
+    const famUpComDown = pairsFlat.some((p) => p.f > 0 && p.c < 0);
+    const comUpFamDown = pairsFlat.some((p) => p.c > 0 && p.f < 0);
+    // Structural floor: at least one genuine conflict choice in EACH direction.
+    if (!famUpComDown || !comUpFamDown)
+      push("error", "events\u2192conflict",
+        `no genuine CONFLICT choice in ${!famUpComDown ? "the family\u2191/community\u2193" : "the community\u2191/family\u2193"} direction — every gain for one track is free for the other, so the tracks never force a choice between them`);
+
+    // The teeth: does ANY line of play pin BOTH tracks high at once?
+    const dp = maxCommunityByFamily();
+    let winF = 0;
+    let winC = 0;
+    let doubleWin = false;
+    for (const [fs, cs] of dp) {
+      if (fs >= HIGH_BAND && cs >= HIGH_BAND) {
+        doubleWin = true;
+        winF = Math.min(fMax, fs);
+        winC = Math.min(cMax, cs);
+        break;
+      }
+    }
+    if (doubleWin)
+      push("error", "events\u2192frontier",
+        `a single line of play can reach family +${winF} AND community +${winC} (both \u2265+${HIGH_BAND}) — the player can be good to everyone, so the tracks never force a choice. The biggest gains for one track must COST the other, so being well-regarded by both at once is impossible. (Both-middle is fine; only both-high is the falsehood.)`);
+  }
+
   // ── Reckoning: REQUIRED, tiered, reads its own track, no scorekeeping ──
   // The closing payoff. Each track gets a FlagText whose numeric bands tier
   // the accumulated value into prose. (resolveFlagText reads these at the end.)

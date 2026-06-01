@@ -1216,6 +1216,74 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       );
     }
 
+    // ── Character mode: the Reckoning closes the campaign ──
+    // Two SEPARATE tiered readouts (family + community) read state.flags
+    // through resolveFlagText — never one combined verdict, so each
+    // relationship stays its own truth. NO grade, NO rating, NO ledger,
+    // NO win/lose framing: the ending is a reckoning, not a result. A
+    // factual personal-economy coda shows what the choices cost (never a
+    // target, never pass/fail). The relationship tracks themselves never
+    // surface as numbers — only as the prose. Runs AFTER the exam gate and
+    // BEFORE the systems results below, which stay byte-identical.
+    if (isCharacterMode(data) && data.reckoning) {
+      const familyText = resolveFlagText(data.reckoning.family, state.flags);
+      const communityText = resolveFlagText(data.reckoning.community, state.flags);
+      const coda = Object.entries(r).map(([k, v]) => {
+        const label = data.resourceLabels[k] ?? k;
+        const val = k === tradeMoneyKey ? `$${Math.round(v)}` : `${Math.round(v)}`;
+        return `${label} ${val}`;
+      });
+      return (
+        <div data-theme={theme} className="h-screen theme-bg-page theme-text p-4 overflow-y-auto theme-body-font">
+          <div className="max-w-xl mx-auto space-y-6 py-6">
+            <header className="text-center space-y-1">
+              <h1 className="text-3xl font-bold theme-text-accent theme-display-font">{data.title}</h1>
+              <p className="theme-text-muted text-base">The year is over.</p>
+            </header>
+
+            <section className="theme-bg-card theme-border border rounded p-5 space-y-2">
+              <h2 className="text-center theme-text-accent uppercase tracking-wide text-sm font-bold">Those closest to you</h2>
+              <p className="text-center theme-text-muted text-xs italic">how your family came to regard you</p>
+              <p className="theme-text text-lg leading-relaxed text-center pt-1 font-serif">{familyText}</p>
+            </section>
+
+            <section className="theme-bg-card theme-border border rounded p-5 space-y-2">
+              <h2 className="text-center theme-text-accent uppercase tracking-wide text-sm font-bold">The people around you</h2>
+              <p className="text-center theme-text-muted text-xs italic">how the wider community came to regard you</p>
+              <p className="theme-text text-lg leading-relaxed text-center pt-1 font-serif">{communityText}</p>
+            </section>
+
+            {coda.length > 0 && (
+              <div className="text-center space-y-1">
+                <p className="theme-text-muted text-[11px] uppercase tracking-wide">Where things stood at year's end</p>
+                <p className="theme-text-muted text-sm">{coda.join("  ·  ")}</p>
+              </div>
+            )}
+
+            <div className="theme-bg-card theme-border border rounded p-4">
+              <p className="text-sm theme-text-muted leading-relaxed">{data.historicalContext}</p>
+            </div>
+
+            {state.decisions.length > 0 && (
+              <button
+                onClick={() => setShowLog(true)}
+                className="w-full theme-bg-card theme-border border rounded p-3 text-left hover:brightness-110 transition-all"
+              >
+                <h3 className="text-xs font-bold theme-text-accent uppercase tracking-wide">Open Campaign Log</h3>
+                <p className="text-xs theme-text-muted mt-0.5">Look back through every decision you made this year.</p>
+              </button>
+            )}
+
+            <div className="text-center pb-4 space-y-2">
+              <button onClick={() => { setState(makeInit()); setExamPassed(false); setExamScore(0); setLeftTownId(null); }} className="px-5 py-2 theme-btn-action font-bold rounded transition-colors">Run It Again</button>
+              <br /><button onClick={backToMenu} className="text-xs theme-text-muted opacity-70 hover:opacity-100 transition-opacity">&larr; Back to Campaigns</button>
+            </div>
+          </div>
+          {showLog && <CampaignLogModal entries={state.decisions} themed onClose={() => setShowLog(false)} />}
+        </div>
+      );
+    }
+
     const primaryKey = data.primaryResourceKey;
     const primaryVal = r[primaryKey] ?? 0;
     const primaryStart = data.primaryResourceStart;
