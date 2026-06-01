@@ -155,18 +155,32 @@ export function validateRelationshipTracks(data: unknown): RelationshipFinding[]
         `relationship track "${t.id}" is only ever increased — a relationship you can only improve is a score, not a relationship; at least one choice must cost it`);
   }
 
-  // ── FRONTIER: the "good to everyone" guard (the dodgeable-conflict honesty
+  // ── FRONTIER: the "DEVOTED to everyone" guard (the dodgeable-conflict honesty
   //    check). Conflict choices EXISTING isn't enough — they can be dodgeable
-  //    (Joseph had 5 and still leaked). The honest test is ADVERSARIAL: simulate
-  //    the greedy "good to everyone" policy — one fire per event, pick the choice
-  //    maximizing family+community, accumulate+clamp — and ERROR if that single
-  //    line of play reaches BOTH tracks at/above the HIGH band. Being
-  //    well-regarded by family AND community at once is the exact falsehood the
-  //    feature exists to prevent. Both-MIDDLE stays legal (the "recognizably
-  //    human" outcome); the error fires only on both-HIGH, never both-present.
+  //    (Joseph had 5 and still leaked). The honest test is ADVERSARIAL: enumerate
+  //    every line of play (one choice per event) and ERROR if ANY of them reaches
+  //    BOTH tracks at/above the DEVOTION band (+9).
+  //
+  //    Why +9, not +4: the cutoff is anchored to the reckoning's prose seam. The
+  //    reckoning's 5 tiers put "high" at +4..+8 ("you did right by them, steadily,
+  //    WITHOUT giving everything" — a legitimate human outcome) and reserve +9 for
+  //    "single-minded DEVOTION that visibly COST this person." Rendered generated
+  //    reckonings confirm the seam: +4 through +8 read as steady decency, and only
+  //    +9 turns to "gave everything / a gift that cost the giver." The falsehood
+  //    the feature exists to prevent is being DEVOTED to BOTH at once — not being
+  //    decently-regarded by both. So the guard fires only where the prose itself
+  //    turns to devotion (+9), never inside the "did-right-by-them" band.
+  //
+  //    This makes the frontier guard a RARE BACKSTOP by design: honest campaigns
+  //    top out around +5 on the best both-line, so both-≥+9 almost never occurs.
+  //    "You can't be good to everyone" is enforced PRIMARILY by the conflict floor
+  //    (genuine family↑/community↓ tradeoffs must exist) and not-all-positive
+  //    (a track can fall) below/above; the frontier guard's narrowed job is to
+  //    catch the rare devoted-to-both outlier the other two would miss.
+  //
   //    Single fire per event is CONSERVATIVE — the engine refires events up to
   //    2×, which only amplifies, so if single-fire pins both, live play is worse.
-  const HIGH_BAND = 4; // mirrors the reckoning high-band threshold (whenAtLeast: 4)
+  const DEVOTION_BAND = 9; // reckoning extreme-high band (whenAtLeast: 9) — the devotion seam
   const famDecl = byId.get("family");
   const comDecl = byId.get("community");
   const fMax = typeof famDecl?.max === "number" ? famDecl.max : TRACK_MAX;
@@ -185,14 +199,14 @@ export function validateRelationshipTracks(data: unknown): RelationshipFinding[]
   });
 
   // EXACT feasibility: is there ANY line of play (one choice per event) that
-  // ends with BOTH tracks ≥ HIGH? A greedy "maximize family+community" policy is
-  // itself dodgeable — a player chasing both maximizes the MINIMUM of the two,
+  // ends with BOTH tracks ≥ DEVOTION? A greedy "maximize family+community" policy
+  // is itself dodgeable — a player chasing both maximizes the MINIMUM of the two,
   // reaching both-high on a point greedy (which favors lopsided high-sum totals)
   // never visits. So we enumerate exactly via DP: familySum → the MAX
   // communitySum reachable at that familySum. Clamping to [min,max] is
-  // irrelevant to a "≥+HIGH" test (clamp only alters values past ±max, never a
-  // +4 threshold), so we accumulate raw sums. State count is tiny (bounded by
-  // Σ|delta|), so this is cheap for any realistic event bank.
+  // irrelevant to a "≥+DEVOTION" test (clamp only alters values past ±max, never a
+  // +9 threshold below max), so we accumulate raw sums. State count is tiny
+  // (bounded by Σ|delta|), so this is cheap for any realistic event bank.
   const maxCommunityByFamily = (): Map<number, number> => {
     let dp = new Map<number, number>([[0, 0]]);
     for (const pairs of eventPairs) {
@@ -222,13 +236,13 @@ export function validateRelationshipTracks(data: unknown): RelationshipFinding[]
       push("error", "events\u2192conflict",
         `no genuine CONFLICT choice in ${!famUpComDown ? "the family\u2191/community\u2193" : "the community\u2191/family\u2193"} direction — every gain for one track is free for the other, so the tracks never force a choice between them`);
 
-    // The teeth: does ANY line of play pin BOTH tracks high at once?
+    // The teeth: does ANY line of play pin BOTH tracks into DEVOTION at once?
     const dp = maxCommunityByFamily();
     let winF = 0;
     let winC = 0;
     let doubleWin = false;
     for (const [fs, cs] of dp) {
-      if (fs >= HIGH_BAND && cs >= HIGH_BAND) {
+      if (fs >= DEVOTION_BAND && cs >= DEVOTION_BAND) {
         doubleWin = true;
         winF = Math.min(fMax, fs);
         winC = Math.min(cMax, cs);
@@ -237,7 +251,7 @@ export function validateRelationshipTracks(data: unknown): RelationshipFinding[]
     }
     if (doubleWin)
       push("error", "events\u2192frontier",
-        `a single line of play can reach family +${winF} AND community +${winC} (both \u2265+${HIGH_BAND}) — the player can be good to everyone, so the tracks never force a choice. The biggest gains for one track must COST the other, so being well-regarded by both at once is impossible. (Both-middle is fine; only both-high is the falsehood.)`);
+        `a single line of play can reach family +${winF} AND community +${winC} (both \u2265+${DEVOTION_BAND}) — the player can be DEVOTED to everyone, the exact falsehood the feature prevents. At +9 each track's reckoning reads as "gave everything / a gift that cost the giver"; no line of play should reach single-minded devotion to BOTH. The biggest gains for one track must COST the other. (Being decently-regarded by both — anywhere in the +4..+8 "did right by them" band — is fine and legitimate; only devotion-to-both is the lie.)`);
   }
 
   // ── Reckoning: REQUIRED, tiered, reads its own track, no scorekeeping ──

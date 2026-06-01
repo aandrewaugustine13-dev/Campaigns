@@ -142,6 +142,22 @@ function main() {
   check("all-positive deltas ERROR (only-improves = a score, not a relationship)",
     errs(allPos).some((e) => e.includes("only ever increased")));
 
+  // FRONTIER (devotion-anchored, +9): a dodgeable help-both line that reaches
+  // BOTH tracks ≥+9 ERRORs (devotion-to-both is the falsehood); a line that tops
+  // out in the "did right by them" band (+4..+8) must NOT — being decently
+  // regarded by both is the legitimate human outcome the prose endorses. We graft
+  // a costless help-both onto choices[0] of each event (leaving the conflict /
+  // negative choices intact, so not-all-positive and conflict-floor still pass).
+  const devotedBoth = clone(base);
+  for (const ev of devotedBoth.events) ev.choices[0].flagWrites = { family: 5, community: 5 };
+  check("a line reaching BOTH tracks ≥+9 ERRORs (devotion-to-both is the falsehood)",
+    errs(devotedBoth).some((e) => e.includes("[events\u2192frontier]")), errs(devotedBoth).join("; "));
+
+  const decentBoth = clone(base);
+  for (const ev of decentBoth.events) ev.choices[0].flagWrites = { family: 4, community: 4 };
+  check("a line topping out at +8/+8 (did-right-by-both band) does NOT trip the frontier",
+    !errs(decentBoth).some((e) => e.includes("[events\u2192frontier]")), errs(decentBoth).join("; "));
+
   // missing a track entirely
   const missing = clone(base);
   missing.flags = missing.flags.filter((fl: FlagDecl) => fl.id !== "community");

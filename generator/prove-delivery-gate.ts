@@ -81,19 +81,26 @@ const joseph = load("joseph-generated-output.json");
 report("joseph (full battery)", joseph, { faultLine: josephFaultLine, personalEconomy: josephPersonalEconomy });
 
 // ── Case 3: deliberately frontier-leaked Joseph ──
-// Make every family-positive delta ALSO move community up by the same amount,
-// so a single line of play can pin BOTH tracks high — the exact "good to
-// everyone" leak the frontier guard exists to catch.
-sep("CASE 3 — deliberately BROKEN Joseph (frontier leak: family gains made costless to community)");
+// The frontier guard now fires only on DEVOTION-to-both (both tracks ≥ +9), so
+// the break must pin both that high. We add a strong "help both" choice
+// (+5 family / +5 community) to every event that already moves a track, WITHOUT
+// removing the genuine conflict/negative choices. That's the true dodgeable
+// leak: real tradeoffs exist, but a player can dodge them all down one
+// help-both line and end DEVOTED to everyone. With ≥2 such events the best
+// both-line clears +9/+9, so the frontier guard must fire at the new threshold.
+sep("CASE 3 — deliberately BROKEN Joseph (frontier leak: dodgeable help-both line reaches devotion-to-both)");
 const broken = JSON.parse(JSON.stringify(joseph));
 for (const ev of broken.events ?? []) {
-  for (const c of ev.choices ?? []) {
-    const fw = c.flagWrites;
-    if (fw && typeof fw === "object" && typeof fw.family === "number") {
-      // mirror community to family; strip any genuine cost
-      fw.community = Math.abs(fw.family);
-    }
-  }
+  const choices = ev.choices;
+  if (!Array.isArray(choices) || choices.length === 0) continue;
+  const movesTrack = choices.some(
+    (c: any) => c.flagWrites && typeof c.flagWrites === "object" &&
+      (typeof c.flagWrites.family === "number" || typeof c.flagWrites.community === "number"),
+  );
+  if (!movesTrack) continue;
+  // Graft a costless help-both option onto the first choice (keep the rest,
+  // including conflicts/negatives, intact).
+  choices[0].flagWrites = { ...(choices[0].flagWrites ?? {}), family: 5, community: 5 };
 }
 report("broken joseph (frontier)", broken, { faultLine: josephFaultLine, personalEconomy: josephPersonalEconomy });
 

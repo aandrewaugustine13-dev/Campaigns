@@ -112,9 +112,11 @@ function generatorApiPlugin(): Plugin {
           void (async () => {
             try {
               const { generateValidatedCampaign } = await import('./generator/core.ts');
-              // maxRegen=0 for now: hard-reject so the raw frontier-leak rate is
-              // visible rather than masked by silent retries. Raise later.
-              const result = await generateValidatedCampaign(apiKey, inputs, { maxRegen: 0 });
+              // maxRegen=2: with the frontier cutoff at devotion (+9), real
+              // campaigns almost always ship, so a small retry budget catches the
+              // rare genuine outlier (or a transient inert/choiceless slip)
+              // without burning tokens. Per-attempt findings are logged regardless.
+              const result = await generateValidatedCampaign(apiKey, inputs, { maxRegen: 2 });
               const secs = ((Date.now() - job.startedAt) / 1000).toFixed(0);
               if (result.status === 'rejected') {
                 const lines = result.findings
