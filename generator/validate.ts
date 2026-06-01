@@ -13,6 +13,11 @@ export interface ValidationReport {
   warnings: number;
 }
 
+// Scorekeeping vocabulary — a numeric (track) flag must read as a reckoning,
+// not a game score the player optimizes (same spirit as faultline's no-reward
+// law). Exported so the relationship-track battery scans with the SAME regex.
+export const SCORE_RE = /\b(score|points?|leaderboard|high[- ]?score|rating)\b/i;
+
 function err(field: string, message: string): Finding {
   return { level: "error", field, message };
 }
@@ -121,12 +126,6 @@ export function validate(data: unknown): ValidationReport {
   const writtenFlags = new Set<string>();
   const readFlags = new Set<string>();
 
-  // Scorekeeping vocabulary — a numeric (track) flag must read as a reckoning,
-  // not a game score the player optimizes (same spirit as faultline's
-  // no-reward law). Scanned on the editor-facing label only (narration prose
-  // is left alone to avoid false positives like "point of no return").
-  const SCORE_RE = /\b(score|points?|leaderboard|high[- ]?score|rating)\b/i;
-
   // A value is legal for a flag iff: tristate allows null|false|true, boolean
   // allows only false|true, numeric allows any finite number (a set initial or
   // a write delta).
@@ -193,6 +192,25 @@ export function validate(data: unknown): ValidationReport {
       }
     }
   }
+
+  // ── Relationship tracks: reserved ids + paired-if-present ────────
+  // Additive: fires ONLY when a reserved track id appears. Systems campaigns
+  // and track-less character campaigns (e.g. hand-built Joseph) declare
+  // neither "family" nor "community", so this whole block is a no-op for them.
+  // Resource-key collision is already covered by the numeric no-score check
+  // above; here we guard the reserved ids against a NON-numeric flag (e.g. a
+  // fault-line boolean) squatting on them, and enforce the pair.
+  for (const tid of ["family", "community"] as const) {
+    const tt = declaredFlags.get(tid);
+    if (tt !== undefined && tt !== "numeric")
+      check(`flags.${tid}`, false,
+        `"${tid}" is a reserved relationship-track id and must be a numeric track, not a ${tt} flag`);
+  }
+  const hasFamily = declaredFlags.has("family");
+  const hasCommunity = declaredFlags.has("community");
+  if (hasFamily !== hasCommunity)
+    check("flags\u2192relationship", false,
+      `relationship tracks must be declared as a pair — found ${hasFamily ? "family" : "community"} but not ${hasFamily ? "community" : "family"}`);
 
   // Collect all resource keys referenced in events for cross-check
   const eventResourceKeys = new Set<string>();
@@ -319,6 +337,20 @@ export function validate(data: unknown): ValidationReport {
                   for (const k of Object.keys(o.effects as Record<string, number>)) eventResourceKeys.add(k);
                 }
               }
+            }
+            // NO INERT OPTION: in a multi-option event every choice must carry a
+            // felt consequence of SOME kind — a resource effect, a flag write, a
+            // branching outcome, or an early end. A plain `result` string is not
+            // a consequence (every choice has one). Single-option events are
+            // narration "continue" screens (e.g. the fault-line readers' "Go on.")
+            // and are intentionally exempt.
+            if ((ev.choices as unknown[]).length > 1) {
+              const hasEffect = !!ch.effects && typeof ch.effects === "object" && Object.keys(ch.effects as object).length > 0;
+              const hasFlagWrite = !!ch.flagWrites && typeof ch.flagWrites === "object" && Object.keys(ch.flagWrites as object).length > 0;
+              const hasOutcomes = Array.isArray(ch.outcomes) && (ch.outcomes as unknown[]).length > 0;
+              const hasEarlyEnd = ch.earlyEnd === true;
+              check(`${prefix}.choices`, hasEffect || hasFlagWrite || hasOutcomes || hasEarlyEnd,
+                `a choice writes nothing (no effects, flagWrites, outcomes, or earlyEnd); every option in a multi-option event must have a felt consequence`);
             }
           }
         }

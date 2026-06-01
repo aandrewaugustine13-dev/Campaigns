@@ -28,6 +28,7 @@ import { generateCast } from "./cast.js";
 import { generateFaultLine } from "./faultline.js";
 import { generateCampaign, type GenerateInputs } from "./core.js";
 import { validate } from "./validate.js";
+import { validateRelationshipTracks } from "./relationshipTracks.js";
 
 const __root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 loadEnv({ path: resolve(__root, ".env.local") });
@@ -120,20 +121,23 @@ async function main() {
     `flags=${JSON.stringify(flags)}`);
   const declaredIds = new Set(flags.map((f: any) => f?.id));
 
-  // exactly one setter event with flagWrites on >=2 options writing >=2 distinct values
+  // exactly one setter event writing the FAULT-LINE flag, on >=2 options /
+  // >=2 distinct values. (Model choices now also carry family/community
+  // flagWrites — the relationship tracks — so we key on the fault-line flag id.)
+  const faultFlagId = flRes.data.flag.id;
   const events: any[] = Array.isArray(data.events) ? data.events : [];
   const setters = events.filter(
-    (e) => Array.isArray(e.choices) && e.choices.some((c: any) => c && c.flagWrites),
+    (e) => Array.isArray(e.choices) && e.choices.some((c: any) => c && c.flagWrites && faultFlagId in c.flagWrites),
   );
-  check("exactly ONE event carries flagWrites (the setter)", setters.length === 1,
+  check("exactly ONE event writes the fault-line flag (the setter)", setters.length === 1,
     `found ${setters.length}: ${setters.map((e) => e.id).join(", ")}`);
   const setter = setters[0];
   if (setter) {
-    const writers = setter.choices.filter((c: any) => c.flagWrites);
-    check("setter has >=2 options writing the flag", writers.length >= 2,
-      `${writers.length} option(s) with flagWrites`);
-    const distinct = new Set(writers.map((c: any) => JSON.stringify(c.flagWrites)));
-    check("setter options write >=2 DISTINCT flag values", distinct.size >= 2,
+    const writers = setter.choices.filter((c: any) => c.flagWrites && faultFlagId in c.flagWrites);
+    check("setter has >=2 options writing the fault-line flag", writers.length >= 2,
+      `${writers.length} option(s) writing ${faultFlagId}`);
+    const distinct = new Set(writers.map((c: any) => JSON.stringify(c.flagWrites[faultFlagId])));
+    check("setter options write >=2 DISTINCT fault-line values", distinct.size >= 2,
       `distinct writes: ${[...distinct].join(" | ")}`);
     check("setter options carry NO resource effects (identity is a flag, not a score)",
       writers.every((c: any) => !("effects" in c)));
@@ -165,6 +169,45 @@ async function main() {
   console.log("\nreader events:", JSON.stringify(readers, null, 2));
   console.log("\nAll event ids/titles (setter + readers are fl_*):");
   for (const e of events) console.log(`  - ${e.id} :: ${e.title}  [phase ${e.phase_min}-${e.phase_max}]`);
+
+  // ── Relationship-track proof (Step 3 payoff) ──────────────────
+  console.log("\n\n=== RELATIONSHIP TRACKS (family / community) ===\n");
+  const relFindings = validateRelationshipTracks(data);
+  const relErrors = relFindings.filter((f) => f.level === "error");
+  const relWarns = relFindings.filter((f) => f.level === "warn");
+  check("validateRelationshipTracks: zero errors", relErrors.length === 0,
+    relErrors.map((f) => `[${f.field}] ${f.message}`).join("; "));
+  if (relWarns.length) console.log("  (warnings: " + relWarns.map((f) => `[${f.field}] ${f.message}`).join("; ") + ")");
+
+  // Echo every model-authored delta + its prose so the FEEL is readable.
+  console.log("\n--- Per-choice relationship deltas (read whether they're MEANINGFUL) ---");
+  const tally: Record<string, number[]> = { family: [], community: [] };
+  for (const e of events) {
+    for (const c of e.choices ?? []) {
+      const fw = c.flagWrites;
+      const fam = fw && typeof fw.family === "number" ? fw.family : undefined;
+      const com = fw && typeof fw.community === "number" ? fw.community : undefined;
+      if (fam === undefined && com === undefined) continue;
+      if (typeof fam === "number") tally.family.push(fam);
+      if (typeof com === "number") tally.community.push(com);
+      const d2 = [
+        fam !== undefined ? `family ${fam >= 0 ? "+" : ""}${fam}` : "",
+        com !== undefined ? `community ${com >= 0 ? "+" : ""}${com}` : "",
+      ].filter(Boolean).join(", ");
+      console.log(`  • [${e.title}] "${c.text}"  → { ${d2} }`);
+      if (c.result) console.log(`      result: ${c.result}`);
+    }
+  }
+  const fmt = (xs: number[]) => `${xs.length} writes [${xs.join(", ")}]  (min ${Math.min(...xs)}, max ${Math.max(...xs)})`;
+  console.log(`\n  family   : ${tally.family.length ? fmt(tally.family) : "NONE"}`);
+  console.log(`  community: ${tally.community.length ? fmt(tally.community) : "NONE"}`);
+  check("family written by >=2 choices with >=1 negative",
+    tally.family.length >= 2 && tally.family.some((v) => v < 0));
+  check("community written by >=2 choices with >=1 negative",
+    tally.community.length >= 2 && tally.community.some((v) => v < 0));
+
+  console.log("\n--- The reckoning (closing readout — read whether it's a MIRROR, not a scoreboard) ---");
+  console.log(JSON.stringify(data.reckoning, null, 2));
 
   console.log(`\n=== ${failed === 0 ? "ALL STRUCTURAL CHECKS PASSED" : `${failed} CHECK(S) FAILED`} ===`);
   console.log("(Stage 3 — play-testing — is the human's gate; this is NOT 'done'.)\n");

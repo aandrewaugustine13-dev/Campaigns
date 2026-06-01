@@ -9,6 +9,7 @@ import type { CastCharacter } from "./cast.js";
 import type { SystemsEconomy } from "./economy.js";
 import type { FaultLineSpec } from "./faultline.js";
 import { faultLineToCampaignPieces } from "./faultlineCompile.js";
+import { applyRelationshipTracks } from "./relationshipTracks.js";
 import type { FlagDecl } from "./schema.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -244,12 +245,74 @@ function buildFaultLineContext(fl: FaultLineSpec): string {
   return lines.join("\n");
 }
 
+// Read-only RELATIONSHIP-TRACK law. Emitted ONLY when a faultLine is supplied
+// (the same character gate as the fault-line context and the code-side track
+// injection). The two tracks themselves are declared in code
+// (relationshipTracks.ts); this block tells the model to (a) write small
+// family/community deltas onto its generated choices reflecting each choice's
+// real moral tradeoff, (b) fill the `reckoning` slot with tiered FlagText for
+// each track, and (c) carry relational cost in prose result text without any
+// number. It NEVER asks the model to declare the tracks (those are injected).
+function buildRelationshipLaw(): string {
+  const lines: string[] = [];
+  lines.push("");
+  lines.push("");
+  lines.push("=== RELATIONSHIP TRACKS (the character-mode payoff — REQUIRED) ===");
+  lines.push("");
+  lines.push(
+    "This character campaign carries TWO fixed, invisible relationship tracks, ALREADY DECLARED FOR YOU in code (do NOT output them in a \"flags\" field):",
+  );
+  lines.push("  - family    — how those closest to this person come to regard them");
+  lines.push("  - community — how the wider people around this person come to regard them");
+  lines.push(
+    "Both are numeric tracks on the range -10..+10, starting at 0. They are NEVER shown to the player as a number or bar; they surface only in the closing reckoning and, optionally, in prose.",
+  );
+  lines.push("");
+  lines.push(
+    "(a) ATTACH DELTAS TO YOUR CHOICES. On the standard events YOU generate, most choices should carry a `flagWrites` map that nudges one or both tracks, e.g. \"flagWrites\": { \"family\": 2, \"community\": -1 }. Each delta is a SMALL integer in -3..-1 or +1..+3, and must reflect the REAL moral meaning of that choice for THIS person — who it serves and who it costs.",
+  );
+  lines.push(
+    "  - INDEPENDENT, not a seesaw. A choice may help one and hurt the other, help both, hurt both, or move only one. Decide each from the choice's own content; do NOT mechanically mirror them.",
+  );
+  lines.push(
+    "  - GENUINE COST IS REQUIRED. Real choices wound a relationship. Across the whole campaign BOTH tracks MUST be LOWERED by at least one choice — a track that only ever rises is a score, not a relationship, and the campaign is rejected. Do not make every choice flattering.",
+  );
+  lines.push(
+    "  - NOT A QUIZ. There is no 'correct' delta. Protecting family at the community's expense is not 'wrong' — it costs community and helps family. Author the cost honestly; never reward a 'right answer'.",
+  );
+  lines.push("");
+  lines.push(
+    "(b) FILL THE `reckoning` FIELD. Output a top-level \"reckoning\": { \"family\": FlagText, \"community\": FlagText }. Each is a closing readout of how that group remembers this person, tiered by the accumulated track value using numeric variants (whenAtLeast / whenAtMost). Give each THREE bands covering the whole -10..+10 range — a high band (whenAtLeast: 4), a middle band (whenAtLeast: -3, whenAtMost: 3), and a low band (whenAtMost: -4) — listing the HIGH band FIRST (first-match-wins). Each band is 1-2 sentences of human memory: how they hold this person now. It is NOT a verdict, a score, or 'you win/lose'. Neither extreme is 'winning'; each is a different truth with its own cost. Keep the two readouts SEPARATE — never one combined judgment.",
+  );
+  lines.push(
+    "    Shape: \"reckoning\": { \"family\": { \"default\": \"...\", \"variants\": [ { \"whenFlag\": \"family\", \"whenAtLeast\": 4, \"text\": \"...\" }, { \"whenFlag\": \"family\", \"whenAtLeast\": -3, \"whenAtMost\": 3, \"text\": \"...\" }, { \"whenFlag\": \"family\", \"whenAtMost\": -4, \"text\": \"...\" } ] }, \"community\": { \"default\": \"...\", \"variants\": [ … same three bands, each with \"whenFlag\": \"community\" … ] } }",
+  );
+  lines.push("");
+  lines.push(
+    "(c) LET RESULT PROSE CARRY THE COST — WITHOUT NUMBERS. When a choice wounds a relationship, its `result` text may show it in human terms (\"your wife says nothing, but she counts the coins\") — NEVER a number, never \"+2 family\". This is what makes a choice FEEL consequential in the moment.",
+  );
+  lines.push("");
+  lines.push("=== END RELATIONSHIP TRACKS ===");
+  lines.push("");
+  return lines.join("\n");
+}
+
 export function buildUserMessage(inputs: GenerateInputs): string {
   const locked = buildLockedConstraints(inputs);
   // Gated solely on faultLine presence — never folded into the frame/economy/
   // cast conditionals, since systems campaigns carry those. Empty ⇒ the
   // systems prompt is byte-for-byte unchanged.
   const faultLineContext = inputs.faultLine ? buildFaultLineContext(inputs.faultLine) : "";
+  const relationshipLaw = inputs.faultLine ? buildRelationshipLaw() : "";
+  // The eventTrivia bank is DRAWN repeatedly (a knowledge-check every few
+  // turns), so its size must track the campaign's turn count — not a flat
+  // number. The model authors totalDays/daysPerTurn, so it alone knows the
+  // turn count at generation time; instruct it to self-size the bank. Gated on
+  // faultLine: the else-branch is byte-identical to the prior flat line, so the
+  // systems prompt is unchanged.
+  const triviaSpec = inputs.faultLine
+    ? `- Number of event trivia (gate questions): emit a DISTINCT bank of at least ${inputs.numQuestions}, but SIZED TO THIS CAMPAIGN'S LENGTH. The engine draws a short knowledge-check every few turns across the entire run, so a small bank will visibly repeat. For a time-based / project campaign, emit roughly ONE distinct question per THREE turns of your own totalDays \u00f7 daysPerTurn (e.g. a ~48-turn span \u2248 16 questions), capped at about 16 to stay within the output budget. Each is a brief factual check; a larger bank is strictly better than a repeating one.`
+    : `- Number of event trivia (gate questions): ${inputs.numQuestions}`;
   const exampleIntro = locked
     ? "Here is one example campaign (Chisholm Trail). Treat it as ONE possible shape among many — your structure follows the LOCKED CONSTRAINTS above, NOT this example:"
     : "Here is a complete example campaign (Chisholm Trail) so you can see the level of detail, tone, and structure expected:";
@@ -262,7 +325,7 @@ export function buildUserMessage(inputs: GenerateInputs): string {
 \`\`\`typescript
 ${schemaSource}
 \`\`\`
-${locked}${faultLineContext}
+${locked}${faultLineContext}${relationshipLaw}
 ${exampleIntro}
 
 ${loadExample()}
@@ -272,7 +335,7 @@ Now generate a new campaign with these parameters:
 - Standard: ${inputs.standard}
 - Grade / reading level: ${inputs.grade}
 - Number of events: ${inputs.length}
-- Number of event trivia (gate questions): ${inputs.numQuestions}
+${triviaSpec}
 - Number of sage encounters: ${inputs.numSages}
 - Difficulty: ${inputs.difficulty}
 - Art Style / Theme: ${inputs.artStyle}
@@ -333,6 +396,11 @@ export async function generateCampaign(
   // before validation, so validate() sees the full, final campaign. No-op
   // for systems campaigns (no faultLine).
   applyFaultLine(data, inputs.faultLine);
+  // Character path only: inject the two fixed relationship tracks (family,
+  // community) beside the fault line, gated on the SAME faultLine presence.
+  // Strict no-op for systems campaigns. (Step 1: declarations only — per-choice
+  // deltas and the reckoning are wired in later steps.)
+  applyRelationshipTracks(data, inputs.faultLine);
 
   const validation = validate(data);
 

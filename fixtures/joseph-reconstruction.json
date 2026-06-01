@@ -68,8 +68,8 @@
       },
       "type": "standard",
       "choices": [
-        { "text": "Sit up until dawn with what I have.", "result": "Morning comes gray and ordinary. The road is empty. We are still here." },
-        { "text": "Hold the children close and pray.", "result": "The lamp stays dark. I count breaths instead of hours until the window grays." }
+        { "text": "Sit up until dawn with what I have.", "effects": { "spirit": -4 }, "result": "Morning comes gray and ordinary. The road is empty. We are still here — but the long watch took something out of me that the daylight does not give back." },
+        { "text": "Hold the children close and pray.", "effects": { "spirit": 2 }, "result": "The lamp stays dark. I count breaths instead of hours until the window grays, and the warmth of them against me is a kind of answer." }
       ]
     },
     {
@@ -95,8 +95,8 @@
       },
       "type": "standard",
       "choices": [
-        { "text": "Stand and say a word.", "result": "My voice is not as steady as I would like, but it is mine, and it is heard." },
-        { "text": "Keep my peace for now.", "result": "I let the moment pass. There will be others, I tell myself." }
+        { "text": "Stand and say a word.", "effects": { "standing": 5, "spirit": 3 }, "result": "My voice is not as steady as I would like, but it is mine, and it is heard. Heads turn; a few nod. I sit back down a little more known than I stood up." },
+        { "text": "Keep my peace for now.", "effects": { "standing": -3, "spirit": -1 }, "result": "I let the moment pass. There will be others, I tell myself — but I feel the room settle me a notch lower in its reckoning, and I carry that home." }
       ]
     },
     {
@@ -122,8 +122,8 @@
       },
       "type": "standard",
       "choices": [
-        { "text": "Look my son in the eye.", "result": "He is too young to understand the year I have had. One day he will read it in my face." },
-        { "text": "Promise him next year will be different.", "result": "I make the promise quietly, to him and to myself, and mean to keep it." }
+        { "text": "Look my son in the eye.", "effects": { "spirit": 4 }, "result": "He is too young to understand the year I have had. One day he will read it in my face — and facing him now, without flinching, steadies something in me." },
+        { "text": "Promise him next year will be different.", "effects": { "spirit": 3, "standing": 1 }, "result": "I make the promise quietly, to him and to myself, and mean to keep it. Saying it aloud turns the dread of next year into something I can set my shoulder against." }
       ]
     }
   ],

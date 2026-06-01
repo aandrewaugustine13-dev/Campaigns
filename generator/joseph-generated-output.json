@@ -1,33 +1,33 @@
 {
   "id": "reconstruction_freedperson",
-  "title": "RECONSTRUCTION",
-  "subtitle": "The Postwar South, 1865–1877",
-  "introBody": "1865. The war is over, and the Thirteenth Amendment has made you legally free. But freedom is not yet a fact on the ground — it is a promise contested at every turn by the men who once enslaved you, the courts they still control, and a federal government whose commitment will prove shorter than the emergency demands. What you can build in the years ahead depends on forces far beyond your farm or your county — and on what you choose to risk.",
-  "trailFeedOpener": "Spring 1865: emancipation has arrived, but the planter still owns the land, and the county sheriff answers to him.",
+  "title": "FREEDOM'S GROUND",
+  "subtitle": "The South, 1865–1877",
+  "introBody": "Emancipation has come, but freedom must be built — contested deed by deed, season by season. You are a newly freed person in the postwar South. The Freedmen's Bureau has opened its doors. Washington has made promises. And the men who once owned you are already writing new laws. Every choice you make will shape what freedom actually means in this county.",
+  "trailFeedOpener": "Spring 1865: the war ends and the Bureau agent reads aloud General Order No. 3. You are free. What that means is still being decided.",
   "theme": "broadsheet-sepia",
-  "progressionMode": "project",
   "isPublished": false,
+  "progressionMode": "project",
   "totalDays": 4380,
   "daysPerTurn": 90,
   "totalDistance": 0,
   "distanceUnit": "",
   "initialResources": {
-    "federalPresence": 50,
-    "freedpeoplesAutonomy": 20,
-    "planterCompliance": 20,
-    "northernPoliticalWill": 55
+    "federalWill": 75,
+    "civilStanding": 45,
+    "communityResilience": 20,
+    "southernResistance": 50
   },
   "resourceCaps": {
-    "federalPresence": 100,
-    "freedpeoplesAutonomy": 100,
-    "planterCompliance": 100,
-    "northernPoliticalWill": 100
+    "federalWill": 100,
+    "civilStanding": 100,
+    "communityResilience": 100,
+    "southernResistance": 100
   },
   "resourceLabels": {
-    "federalPresence": "Bureau & Troop Strength",
-    "freedpeoplesAutonomy": "Community Self-Determination",
-    "planterCompliance": "Elite White Cooperation",
-    "northernPoliticalWill": "Congressional Resolve"
+    "federalWill": "Washington's Commitment",
+    "civilStanding": "Legal Ground",
+    "communityResilience": "Freedpeople's Networks",
+    "southernResistance": "Planter Opposition"
   },
   "paces": [],
   "events": [
@@ -36,579 +36,449 @@
       "phase_min": 0,
       "phase_max": 0.3,
       "weight": 5,
-      "title": "First harvest season after emancipation. A Freedmen's Bureau agent is present in the county — but everyone knows the planter still controls the land, the local court, and the night riders.",
-      "text": "The planter who once owned you offers a labor contract. Its terms are exploitative — shares that leave almost nothing, a clause requiring you to ask permission to leave the property — but the Bureau agent says signing it is better than vagrancy charges. That same week, a small group of freedpeople are quietly organizing a congregation in a brush arbor on the edge of the county, and they need someone willing to put their name on a piece of land for a church. Putting your name on that deed means the planter will know you refused his terms. Both paths are open for one more day.",
+      "title": "Early Reconstruction — a Freedmen's Bureau meeting in your county seat",
+      "text": "The Bureau agent has called freedpeople together to register labor contracts and hear grievances. You have walked miles to attend. Inside, a neighbor stands up and reads aloud, haltingly, the names of men who were beaten last week for leaving a planter's land under the terms a contract said they could. He asks everyone here to sign a letter to the Bureau's district superintendent — your names attached, visible, a formal complaint on record. Across the room a planter's overseer stands near the door taking note of who is present. You know what a signed name means in this county. You also know what silence has always meant.",
       "type": "standard",
       "choices": [
         {
-          "text": "Sign the labor contract. You need the harvest. You will find another way later.",
+          "text": "Walk to the front and sign the letter. Let your name stand with the others.",
           "flagWrites": {
-            "builds_outside_white_structures": false
+            "stands_publicly": true
           },
-          "result": "This person chose the calculus of survival over the risk of exposure — not from lack of courage, but from a clear-eyed reading of what violence the planter could bring down on everyone they love. They understand freedom as something that must be kept alive to be used later."
+          "result": "This person, at the first real test, chose to be counted — to make their freedom a public fact that others could hold onto, whatever the cost of being seen."
         },
         {
-          "text": "Refuse the contract and put your name on the church deed. Let him see it.",
+          "text": "Stay seated. Do not sign. When the meeting ends, slip out before the overseer can mark your face to a name.",
           "flagWrites": {
-            "builds_outside_white_structures": true
+            "stands_publicly": false
           },
-          "result": "This person chose to make their freedom legible and public even knowing the cost — not from recklessness, but from a conviction that freedom accepted only in secret is another form of bondage. They understand that the structure will never voluntarily yield what is not openly claimed."
+          "result": "This person, at the first real test, chose to protect what they could protect — calculating that survival of the private self was the only freedom they could actually hold onto, even if it meant leaving the public record bare."
         }
       ]
     },
     {
-      "id": "labor_contract_coercion",
+      "id": "black_codes_passed",
       "phase_min": 0.05,
       "phase_max": 0.25,
-      "weight": 5,
-      "title": "A Contract Written in Someone Else's Hand",
-      "text": "The Freedmen's Bureau agent has posted a notice that all freedpeople must have a lawful labor contract by month's end or risk vagrancy charges under the new Black Codes. A planter's agent rides up to your cabin with a printed form. You cannot fully read it, but the Bureau teacher whispered last week that these contracts often include clauses binding you to the land for a full year and requiring you to ask permission to leave the property — terms that mirror the old arrangements in everything but name. The Bureau agent is present in the county today. Tomorrow he may not be.",
+      "weight": 6,
+      "title": "Black Codes Posted at the Courthouse",
+      "text": "The state legislature has passed its new laws. Vagrancy, labor contracts, apprenticeship — every clause tightens around freedpeople. The Bureau agent says he can file an objection if you bring him witnesses.",
       "type": "standard",
-      "imageSearchQuery": "Freedmen's Bureau labor contract 1865",
-      "trivia": [
-        "Black Codes passed in Mississippi and South Carolina in 1865 required freedpeople to have annual labor contracts or face arrest for vagrancy.",
-        "The Freedmen's Bureau was authorized to negotiate and enforce labor contracts, but agents were vastly outnumbered — one agent might cover several counties."
-      ],
-      "sageAdvice": [
-        {
-          "name": "Oliver Otis Howard",
-          "role": "Commissioner, Freedmen's Bureau",
-          "line": "A contract the freedperson chose is the foundation of free labor. A contract signed under threat of arrest is the old system with new paper."
-        }
-      ],
+      "imageSearchQuery": "Black Codes 1865 Mississippi",
       "choices": [
         {
-          "text": "Demand the Bureau agent review the contract before you sign anything.",
+          "text": "Gather witnesses and file a formal Bureau objection.",
           "effects": {
-            "federalPresence": 3,
-            "freedpeoplesAutonomy": 6,
-            "planterCompliance": -5,
-            "northernPoliticalWill": 2
+            "federalWill": 5,
+            "civilStanding": 8,
+            "communityResilience": 4,
+            "southernResistance": -6
           },
-          "result": "The Bureau agent finds two clauses that violate federal guidelines and strikes them. The planter's agent leaves furious. Word spreads in the quarters that the Bureau will actually stand up — more freedpeople bring complaints the following week. But the planter has already written a letter to his congressman calling the Bureau an occupying tyranny."
+          "flagWrites": {
+            "community": 2,
+            "family": -1
+          },
+          "result": "The superintendent forwards your complaint north. Three clauses are suspended by a federal officer. Your family wonders what comes next for pushing back so openly."
         },
         {
-          "text": "Sign the contract. The vagrancy charge is a real threat and you have children to feed.",
+          "text": "Stay quiet. Work within the new terms for now.",
           "effects": {
-            "federalPresence": 0,
-            "freedpeoplesAutonomy": -8,
-            "planterCompliance": 8,
-            "northernPoliticalWill": -3
+            "federalWill": -4,
+            "civilStanding": -8,
+            "communityResilience": -3,
+            "southernResistance": 8
           },
-          "result": "You sign. The terms bind you to the land until next January with no exit clause. The planter nods, satisfied. You kept your family safe for now, but the contract gives him legal leverage over every hour of your labor through the harvest."
+          "flagWrites": {
+            "family": 1,
+            "community": -2
+          },
+          "result": "The codes take hold unopposed. You keep your head down and your family safer — for now. But neighbors notice who said nothing."
         },
         {
-          "text": "Organize three neighboring families to refuse together and present a collective complaint to the Bureau.",
+          "text": "Tell the Bureau agent; ask him to warn other freedpeople.",
+          "effects": {
+            "civilStanding": 4,
+            "communityResilience": 6,
+            "southernResistance": -3,
+            "federalWill": 2
+          },
+          "flagWrites": {
+            "community": 1,
+            "family": 1
+          },
+          "result": "Word spreads through the quarter. People know what they are facing. The Bureau agent thanks you for the intelligence."
+        }
+      ],
+      "trivia": [
+        "Black Codes were passed by Southern state legislatures in 1865 and 1866 to restrict the rights of freedpeople.",
+        "The Freedmen's Bureau was created by Congress in 1865 to assist formerly enslaved people with contracts, education, and legal disputes."
+      ]
+    },
+    {
+      "id": "labor_contract_season",
+      "phase_min": 0.1,
+      "phase_max": 0.45,
+      "weight": 5,
+      "title": "Labor Contract Season",
+      "text": "The planter's man arrives with a contract for the coming year. The terms give you a cabin and a share of the crop — but you cannot leave until harvest without forfeiting everything. The Bureau office is three hours' walk away.",
+      "type": "standard",
+      "imageSearchQuery": "Freedmen's Bureau labor contract 1866",
+      "choices": [
+        {
+          "text": "Walk to the Bureau office and have the agent review the contract.",
+          "effects": {
+            "civilStanding": 7,
+            "communityResilience": 3,
+            "federalWill": 2,
+            "southernResistance": -4
+          },
+          "flagWrites": {
+            "family": -1,
+            "community": 2
+          },
+          "result": "The agent crosses out two clauses that violate Bureau rules. You return with a better contract. The overseer watches you come back."
+        },
+        {
+          "text": "Sign as written. It is better than vagrancy charges.",
+          "effects": {
+            "civilStanding": -6,
+            "southernResistance": 5,
+            "communityResilience": -2,
+            "federalWill": -3
+          },
+          "flagWrites": {
+            "family": 2,
+            "community": -1
+          },
+          "result": "You have shelter and work. The terms are hard, but your family is not arrested. What you gave up stays with you quietly."
+        },
+        {
+          "text": "Refuse and seek land to rent independently.",
           "outcomes": [
             {
-              "weight": 6,
+              "weight": 5,
               "effects": {
-                "federalPresence": 5,
-                "freedpeoplesAutonomy": 10,
-                "planterCompliance": -8,
-                "northernPoliticalWill": 5
+                "civilStanding": 8,
+                "communityResilience": 5,
+                "southernResistance": -3,
+                "federalWill": 3
               },
-              "result": "The Bureau agent, faced with a collective refusal backed by four families, rewrites the contract terms. The planter complies, quietly, because he needs the labor. A small victory — but collective action just proved its worth."
+              "result": "A freedman two counties over rents you a half-acre. Hard, but yours."
             },
             {
-              "weight": 4,
+              "weight": 5,
               "effects": {
-                "federalPresence": -3,
-                "freedpeoplesAutonomy": -5,
-                "planterCompliance": -10,
-                "northernPoliticalWill": -2
+                "civilStanding": -5,
+                "southernResistance": 7,
+                "communityResilience": -3,
+                "federalWill": -4
               },
-              "result": "The planter calls in the county sheriff. Two of the families sign under threat of arrest. The collective front breaks. The lesson cuts both ways: solidarity is powerful, and the machinery to break it is right there."
+              "result": "Every landowner in the county refuses you. Vagrancy charges follow within a week."
             }
-          ]
+          ],
+          "flagWrites": {
+            "community": 2,
+            "family": -2
+          }
         }
+      ],
+      "trivia": [
+        "Freedmen's Bureau labor contracts were meant to protect freedpeople from exploitative terms, but enforcement depended on available agents.",
+        "Vagrancy laws under Black Codes could imprison freedpeople who were not under a labor contract, effectively restoring forced labor."
       ],
       "image": {
         "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/The_Freedmen%27s_Bureau_-_Drawn_by_A.R._Waud._LCCN92514996.jpg/960px-The_Freedmen%27s_Bureau_-_Drawn_by_A.R._Waud._LCCN92514996.jpg",
         "artist": "Waud, Alfred R. (Alfred Rudolph), 1828-1891, artist",
         "license": "Public domain",
         "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AThe_Freedmen's_Bureau_-_Drawn_by_A.R._Waud._LCCN92514996.jpg",
-        "searchQuery": "Freedmen's Bureau labor contract 1865"
+        "searchQuery": "Freedmen's Bureau labor contract 1866"
       }
     },
     {
-      "id": "schoolhouse_threat",
-      "phase_min": 0.15,
-      "phase_max": 0.45,
-      "weight": 5,
-      "title": "The Schoolhouse and the Torch",
-      "text": "The Freedmen's Bureau teacher — a Northern missionary woman who arrived three months ago — has been running literacy classes six days a week in a rented cabin at the edge of town. Forty children and a dozen adults attend. Last night someone nailed a warning note to the door: 'Close this school or we will close it for you.' The Bureau agent has one soldier he can post there. The planter whose former property sits nearest the school has said nothing publicly, but everyone knows he controls the men who ride at night. You have standing in the community. What you do next will be seen.",
-      "type": "standard",
-      "imageSearchQuery": "Freedmen's Bureau school 1866 engraving",
-      "trivia": [
-        "By 1870, the Freedmen's Bureau had helped establish over 4,000 schools serving more than 250,000 students across the South.",
-        "White supremacist groups burned dozens of freedpeople's schools between 1865 and 1871 in an effort to prevent Black literacy and political organization."
-      ],
-      "sageAdvice": [
-        {
-          "name": "Freedmen's Bureau teacher (representative)",
-          "role": "Northern missionary educator",
-          "line": "They burn schoolhouses because they understand what literacy means: it means freedpeople can read their own contracts, their own ballots, their own laws."
-        }
-      ],
-      "choices": [
-        {
-          "text": "Organize a community watch — freedpeople take turns sleeping at the schoolhouse.",
-          "outcomes": [
-            {
-              "weight": 5,
-              "effects": {
-                "federalPresence": 2,
-                "freedpeoplesAutonomy": 10,
-                "planterCompliance": -6,
-                "northernPoliticalWill": 4
-              },
-              "result": "The watch holds for two weeks. Night riders approach twice and turn back rather than confront an armed group. The teacher sends a letter to a Boston newspaper describing the community's determination. It is reprinted in three Northern papers."
-            },
-            {
-              "weight": 5,
-              "effects": {
-                "federalPresence": -2,
-                "freedpeoplesAutonomy": 4,
-                "planterCompliance": -10,
-                "northernPoliticalWill": 2
-              },
-              "result": "On the ninth night, riders come in number. They fire the school before the watch can respond. No one is killed, but the building is gone. The teacher vows to rebuild. The planter sends word that the Bureau soldier should have been elsewhere."
-            }
-          ]
-        },
-        {
-          "text": "Petition the Bureau commissioner directly — document the threat and demand a formal military guard.",
-          "effects": {
-            "federalPresence": 8,
-            "freedpeoplesAutonomy": 6,
-            "planterCompliance": -4,
-            "northernPoliticalWill": 6
-          },
-          "result": "Your written petition reaches the Bureau office with names and dates attached. Commissioner Howard forwards it to the district commander. Two soldiers are posted for a month. The school survives and enrollment doubles. The documentation also reaches a Congressional committee investigating Southern violence."
-        },
-        {
-          "text": "Quietly relocate the school to a freedperson's property deeper in the county — less visible, harder to find.",
-          "effects": {
-            "federalPresence": -3,
-            "freedpeoplesAutonomy": 3,
-            "planterCompliance": 4,
-            "northernPoliticalWill": -4
-          },
-          "result": "The school moves. Fewer students can reach it. The teacher is relieved nothing burned, but the retreat signals that threats work. The planter says nothing — which is its own kind of message."
-        }
-      ],
-      "image": {
-        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Edwin_McMasters_Stanton_Secretary_of_War.jpg/960px-Edwin_McMasters_Stanton_Secretary_of_War.jpg",
-        "artist": "The original uploader was The Mystery Man at English Wikipedia..",
-        "license": "Public domain",
-        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AEdwin_McMasters_Stanton_Secretary_of_War.jpg",
-        "searchQuery": "Freedmen's Bureau school 1866 engraving"
-      }
-    },
-    {
-      "id": "black_codes_vagrancy",
-      "phase_min": 0.25,
+      "id": "school_and_church",
+      "phase_min": 0.2,
       "phase_max": 0.55,
-      "weight": 6,
-      "title": "The Black Codes Take Effect",
-      "text": "Governor Humphreys's legislature has passed the Mississippi Black Codes. The vagrancy law says any freedperson who cannot prove 'lawful employment' may be arrested and hired out — to a white employer chosen by the county court — for up to one year. The apprenticeship clause allows judges to bind Black children to white households as 'apprentices,' with preference given to the child's former enslaver. A neighbor's twelve-year-old daughter has been seized under this law. Her mother stands in front of the Bureau office, paper in hand, asking what federal authority is actually worth.",
-      "type": "standard",
-      "imageSearchQuery": "Mississippi Black Codes 1865 Humphreys",
-      "trivia": [
-        "Mississippi's Black Codes of 1865 included vagrancy statutes and apprenticeship clauses that allowed courts to bind freedpeople — including children — to white employers, reproducing coerced labor under a legal fiction.",
-        "Congress responded to the Black Codes by passing the Civil Rights Act of 1866 and later the Fourteenth Amendment, explicitly to override state laws like Mississippi's."
-      ],
-      "sageAdvice": [
-        {
-          "name": "Benjamin G. Humphreys",
-          "role": "Governor of Mississippi",
-          "line": "These statutes restore order and protect the laboring class from idleness. The federal government has no authority over our domestic arrangements."
-        },
-        {
-          "name": "Thaddeus Stevens",
-          "role": "Radical Republican, U.S. House",
-          "line": "These Codes are slavery under another name. Congress must override every one of them or the war was fought for nothing."
-        }
-      ],
-      "choices": [
-        {
-          "text": "File a formal Bureau complaint with affidavits and push it up to the district commander.",
-          "effects": {
-            "federalPresence": 6,
-            "freedpeoplesAutonomy": 8,
-            "planterCompliance": -8,
-            "northernPoliticalWill": 7
-          },
-          "result": "The Bureau agent files the complaint. The district commander overrides the apprenticeship order and the child is returned. The ruling is a small legal precedent. But the county judge immediately writes to his congressman calling federal interference an outrage, and that letter will reach sympathetic ears in Washington."
-        },
-        {
-          "text": "Help the family gather enough freedpeople with written contracts to challenge the law's 'lawful employment' standard publicly.",
-          "outcomes": [
-            {
-              "weight": 6,
-              "effects": {
-                "federalPresence": 3,
-                "freedpeoplesAutonomy": 9,
-                "planterCompliance": -5,
-                "northernPoliticalWill": 5
-              },
-              "result": "A dozen families produce their Bureau-reviewed contracts. The county attorney backs down rather than test the ruling in federal court. The Black Code is nominally in force but practically obstructed — for now."
-            },
-            {
-              "weight": 4,
-              "effects": {
-                "federalPresence": -4,
-                "freedpeoplesAutonomy": -3,
-                "planterCompliance": -8,
-                "northernPoliticalWill": -3
-              },
-              "result": "The county judge declares the contracts invalid on a technicality and arrests two of the men who organized the challenge for 'incitement.' The Bureau agent lacks the troops to override a county court. The law wins this round."
-            }
-          ]
-        },
-        {
-          "text": "Advise the family to comply for now — challenge in court later when Bureau support is stronger.",
-          "effects": {
-            "federalPresence": 0,
-            "freedpeoplesAutonomy": -9,
-            "planterCompliance": 7,
-            "northernPoliticalWill": -5
-          },
-          "result": "The child remains bound. The family survives. You told them to wait for a better moment that may never come. Every family in the county watching this saw what 'lawful freedom' looks like when it yields to a county court."
-        }
-      ]
-    },
-    {
-      "id": "klan_violence_response",
-      "phase_min": 0.45,
-      "phase_max": 0.72,
       "weight": 5,
-      "title": "Night Riders",
-      "text": "Three freedpeople who registered to vote last month have been beaten. One is in the Bureau doctor's care with a broken arm. A note pinned to the church door says the 'Invisible Empire' will return for anyone who shows up at the polls. The name attached to the Klan in this district is an open secret — a former Confederate cavalry officer whose plantation sits three miles north. Federal troops are still garrisoned at the county seat, but the officer is socially connected to the post commander's superior in the state capital. There is a Congressional committee investigating Klan violence in Washington right now.",
+      "title": "A School Needs a Building",
+      "text": "A missionary teacher has arrived and wants to hold classes for children and adults. She needs a space. The AME church group says if you help them secure a building, the congregation will host school on Sundays.",
       "type": "standard",
-      "imageSearchQuery": "Ku Klux Klan Reconstruction 1868 engraving",
-      "trivia": [
-        "Nathan Bedford Forrest, a former Confederate general, became the first Grand Wizard of the Ku Klux Klan, which organized in 1865 and used systematic violence to suppress Black voting and officeholding.",
-        "Congress passed the Ku Klux Klan Act of 1871, giving federal courts jurisdiction over Klan crimes — but enforcement depended entirely on the political will to deploy troops and prosecutors."
-      ],
-      "sageAdvice": [
-        {
-          "name": "Oliver Otis Howard",
-          "role": "Commissioner, Freedmen's Bureau",
-          "line": "Every documented outrage we submit to Congress strengthens the argument for the troops and courts that can actually stop this. But that evidence must reach Washington intact."
-        }
-      ],
+      "imageSearchQuery": "freedmen's school 1866 engraving",
       "choices": [
         {
-          "text": "Compile sworn affidavits from the injured and witnesses and submit them directly to the Congressional investigating committee.",
+          "text": "Donate your free days to help raise the building.",
           "effects": {
-            "federalPresence": 4,
-            "freedpeoplesAutonomy": 5,
-            "planterCompliance": -7,
-            "northernPoliticalWill": 10
+            "communityResilience": 10,
+            "civilStanding": 4,
+            "federalWill": 3,
+            "southernResistance": -3
           },
-          "result": "Your affidavits reach the committee. A congressman from Ohio reads three names aloud on the House floor. Northern newspapers publish the account. The testimony contributes to the eventual passage of stronger enforcement legislation — but in your county, the Klan is still riding tonight."
+          "flagWrites": {
+            "community": 3,
+            "family": -1
+          },
+          "result": "Forty people show up the first Sunday. The teacher says it is the fastest school she has seen built. Your family sees less of you, but the community has a place."
         },
         {
-          "text": "Demand the post commander arrest the known Klan organizer under federal martial authority.",
-          "outcomes": [
-            {
-              "weight": 5,
-              "effects": {
-                "federalPresence": 8,
-                "freedpeoplesAutonomy": 7,
-                "planterCompliance": -10,
-                "northernPoliticalWill": 4
-              },
-              "result": "The post commander, under pressure, makes the arrest. The man is held for two weeks and released on bond. The arrest is more important than the outcome — it demonstrates federal authority is real. Night riding slows in your district for the next three months."
-            },
-            {
-              "weight": 5,
-              "effects": {
-                "federalPresence": -6,
-                "freedpeoplesAutonomy": -4,
-                "planterCompliance": -5,
-                "northernPoliticalWill": -3
-              },
-              "result": "The post commander declines, citing civilian jurisdiction. The Bureau agent has no authority to compel him. The organizer knows he is untouchable. The freedpeople who were beaten see the result and weigh what it means to register next cycle."
-            }
-          ]
+          "text": "Offer your cabin for night classes — smaller risk.",
+          "effects": {
+            "communityResilience": 5,
+            "civilStanding": 2,
+            "southernResistance": -1,
+            "federalWill": 1
+          },
+          "flagWrites": {
+            "family": 1,
+            "community": 1
+          },
+          "result": "Six adults learn to read by December. It is modest, but real. Your family is part of it."
         },
         {
-          "text": "Quietly advise freedpeople to defer voting this cycle — protect lives first.",
+          "text": "Stay away. A school is a target, and you cannot afford it.",
           "effects": {
-            "federalPresence": -2,
-            "freedpeoplesAutonomy": -10,
-            "planterCompliance": 8,
-            "northernPoliticalWill": -6
+            "communityResilience": -5,
+            "civilStanding": -2,
+            "federalWill": -2,
+            "southernResistance": 4
           },
-          "result": "Violence works. Turnout drops. The planter's preferred candidate wins without contest. The Klan does not need to ride election night because it already won. In Washington, the lack of visible Black civic activity is used as evidence that Reconstruction has 'succeeded' and troops can be reduced."
+          "flagWrites": {
+            "family": 2,
+            "community": -2
+          },
+          "result": "The building goes up without you. You protect what you have. The neighbors remember who was not there."
         }
       ],
+      "trivia": [
+        "African American churches were among the most important institutions freedpeople built during Reconstruction — anchors for education, mutual aid, and political organizing.",
+        "Northern missionary societies, including the American Missionary Association, sent teachers south after the war to establish freedpeople's schools."
+      ],
       "image": {
-        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d8/James_M._Hinds_%28cropped%29.jpg",
-        "artist": "Unknown",
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/1/11/Aged_black_Seminole_smokes_from_his_pipe-_Everglades%2C_Florida_%283311787651%29.jpg",
+        "artist": "State Library and Archives of Florida",
         "license": "Public domain",
-        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AJames_M._Hinds_(cropped).jpg",
-        "searchQuery": "Ku Klux Klan Reconstruction 1868 engraving"
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AAged_black_Seminole_smokes_from_his_pipe-_Everglades%2C_Florida_(3311787651).jpg",
+        "searchQuery": "freedmen's school 1866 engraving"
       }
     },
     {
-      "id": "black_political_power",
-      "phase_min": 0.4,
-      "phase_max": 0.65,
-      "weight": 5,
-      "title": "A Senator from Mississippi",
-      "text": "The Mississippi legislature, under the Reconstruction Acts with federal military enforcement of voter registration, has elected Hiram Revels to the United States Senate — the first African American senator in the nation's history. In your county, freedpeople are registering in numbers that could swing local offices. A freedperson candidate is running for county commissioner. The planter class is organizing a rival slate, and there are already reports of employer pressure on laborers: sign a pledge not to vote Republican or lose your house on the property. The Bureau still has agents here. This is the window.",
-      "type": "standard",
-      "imageSearchQuery": "Hiram Revels senator Mississippi 1870",
-      "trivia": [
-        "Hiram Revels was elected to the U.S. Senate by the Mississippi legislature in 1870, filling the seat that had once been held by Jefferson Davis. He served as the first African American member of Congress.",
-        "During Radical Reconstruction, more than 600 African Americans served in state legislatures across the South, and 16 served in the U.S. Congress between 1870 and 1877."
-      ],
-      "sageAdvice": [
-        {
-          "name": "Hiram Revels",
-          "role": "U.S. Senator, Mississippi",
-          "line": "Every freedman who walks to the polls and every child who reads a ballot is evidence that the republic can be what it claimed to be. We must make that evidence visible and undeniable."
-        }
-      ],
-      "choices": [
-        {
-          "text": "Organize voter registration drives and escort freedpeople to the polls under Bureau protection.",
-          "effects": {
-            "federalPresence": 3,
-            "freedpeoplesAutonomy": 12,
-            "planterCompliance": -10,
-            "northernPoliticalWill": 8
-          },
-          "result": "Registration in your district surges. The freedperson candidate wins county commissioner by a narrow margin. Letters poured into Northern newspapers describing the peaceful, orderly election — proof that Reconstruction could work when federal protection was present. The planter writes to his friends in Congress that the South is being 'dominated by ignorance.'"
-        },
-        {
-          "text": "Focus resources on protecting workers from employer retaliation — secure their jobs so they can vote without losing their homes.",
-          "outcomes": [
-            {
-              "weight": 6,
-              "effects": {
-                "federalPresence": 4,
-                "freedpeoplesAutonomy": 8,
-                "planterCompliance": -6,
-                "northernPoliticalWill": 5
-              },
-              "result": "The Bureau agent backs your effort with written warnings to planters that employer coercion violates federal law. Most back down. Turnout is solid. The strategy of protecting the economic preconditions for political participation proves sound."
-            },
-            {
-              "weight": 4,
-              "effects": {
-                "federalPresence": -2,
-                "freedpeoplesAutonomy": 3,
-                "planterCompliance": -4,
-                "northernPoliticalWill": 2
-              },
-              "result": "Several planters evict workers anyway and dare the Bureau to respond. The agent lacks authority to reverse private evictions quickly. Thirty families lose their housing before election day. Protection of the vote required protection of the economic ground it stood on — and that ground gave way."
-            }
-          ]
-        },
-        {
-          "text": "Counsel freedpeople to run candidates for local offices only — avoid Senate-level contests that provoke maximum white backlash.",
-          "effects": {
-            "federalPresence": 0,
-            "freedpeoplesAutonomy": 2,
-            "planterCompliance": 6,
-            "northernPoliticalWill": -4
-          },
-          "result": "The moderate strategy limits retaliation locally. But it also limits gains and signals to Washington that Black political ambition is self-restraining — reducing the urgency of continuing federal protection. Senator Revels's election happened over similar objections; the window for such victories is narrowing."
-        }
-      ],
-      "image": {
-        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Hiram_Rhodes_Revels_Brady-Handy2_%28cropped%29.jpg/960px-Hiram_Rhodes_Revels_Brady-Handy2_%28cropped%29.jpg",
-        "artist": "Mathew Brady or Levin Handy",
-        "license": "Public domain",
-        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AHiram_Rhodes_Revels_Brady-Handy2_(cropped).jpg",
-        "searchQuery": "Hiram Revels senator Mississippi 1870"
-      }
-    },
-    {
-      "id": "bureau_withdrawal",
-      "phase_min": 0.7,
-      "phase_max": 0.92,
+      "id": "johnson_vetoes_bureau",
+      "phase_min": 0.25,
+      "phase_max": 0.45,
       "weight": 6,
-      "title": "The Bureau Office Closes",
-      "text": "Congress has cut the Freedmen's Bureau's funding. The agent who covered your district is being reassigned. Before he leaves, he tells you that federal troops in the state will be reduced by a third before year's end, and that the Supreme Court has narrowed the Fourteenth Amendment's reach in a recent ruling. The local planter — who has been grudgingly complying with Bureau-reviewed contracts for three years — is already meeting with the county judge. You have one season to consolidate what has been built before the institutional protection disappears. Thaddeus Stevens is dying; the Radical Republican coalition in Congress is fracturing. The window is closing.",
+      "title": "President Johnson's Veto",
+      "text": "Word reaches the county: President Johnson has vetoed the bill extending the Freedmen's Bureau and the Civil Rights Act. The local Bureau agent looks shaken. He says his orders may not hold much longer.",
       "type": "standard",
-      "imageSearchQuery": "Freedmen's Bureau closing 1872 withdrawal",
-      "trivia": [
-        "Congress effectively ended the Freedmen's Bureau's operations in 1872, cutting off the main federal mechanism for enforcing labor contracts, adjudicating disputes, and protecting Black political rights in the South.",
-        "The Supreme Court's 1873 Slaughterhouse Cases narrowed the Fourteenth Amendment, and the 1876 United States v. Cruikshank ruling gutted federal prosecution of private violence against Black citizens — removing the legal architecture of Reconstruction protection."
-      ],
+      "imageSearchQuery": "Andrew Johnson veto Freedmen's Bureau 1866",
       "sageAdvice": [
         {
-          "name": "Thaddeus Stevens",
-          "role": "Radical Republican, U.S. House",
-          "line": "I have spent my strength pushing for land redistribution — forty acres as an economic foundation so freedom would not depend entirely on federal troops. We did not get it. Without property and without protection, I fear what comes next."
-        },
-        {
-          "name": "Freedwoman seeking land title (representative)",
-          "role": "Formerly enslaved woman navigating labor contracts and family reconstitution",
-          "line": "The agent helped me get my children back from that apprenticeship. When he leaves, who do I go to? The county judge? The same man who signed the order?"
+          "name": "Bureau agent",
+          "role": "Freedmen's Bureau officer",
+          "line": "Congress may override him — but until they do, every order I give is on uncertain ground."
         }
       ],
       "choices": [
         {
-          "text": "Use the last season of Bureau authority to convert as many labor contracts as possible into documented land purchases or long-term leases.",
+          "text": "Write to your congressman — document every Bureau case you know of.",
           "effects": {
-            "federalPresence": -3,
-            "freedpeoplesAutonomy": 12,
-            "planterCompliance": -8,
-            "northernPoliticalWill": 3
+            "federalWill": 8,
+            "civilStanding": 3,
+            "communityResilience": 3,
+            "southernResistance": -3
           },
-          "result": "Eleven families complete land purchases with Bureau-witnessed deeds before the office closes. The documentation gives them a legal instrument that survives the Bureau's departure — harder to erase than a verbal agreement. The planters are furious. Some will challenge these deeds in county court for the next decade, but ownership changes the terms of what can be taken."
+          "flagWrites": {
+            "community": 2,
+            "family": -1
+          },
+          "result": "Congress overrides the veto. The Civil Rights Act of 1866 becomes law. Your letter was one of hundreds that moved a vote."
         },
         {
-          "text": "Document every outstanding abuse and Bureau ruling in a formal record and send copies to the Bureau's national office and Northern newspapers before the agent departs.",
+          "text": "Focus on the Bureau cases you can win right now, while the agent still has authority.",
           "effects": {
-            "federalPresence": 2,
-            "freedpeoplesAutonomy": 5,
-            "planterCompliance": -4,
-            "northernPoliticalWill": 8
+            "civilStanding": 6,
+            "communityResilience": 4,
+            "federalWill": 2,
+            "southernResistance": -2
           },
-          "result": "The record is compiled and sent. Several Northern papers publish excerpts. A Congressional minority cites your documentation in a speech opposing troop withdrawal. The argument loses — but the record exists, and historians will read it. On the ground, protection is still ending."
+          "flagWrites": {
+            "family": 1,
+            "community": 1
+          },
+          "result": "You file three labor disputes and win two. The agent processes them before any change in orders arrives."
         },
         {
-          "text": "Negotiate a local agreement with the leading planters — offer predictable labor supply in exchange for written pledges not to use vagrancy laws against contracted workers.",
+          "text": "Accept that Washington's protection has limits and build locally instead.",
           "effects": {
-            "federalPresence": -2,
-            "freedpeoplesAutonomy": -5,
-            "planterCompliance": 12,
-            "northernPoliticalWill": -5
+            "communityResilience": 7,
+            "federalWill": -5,
+            "civilStanding": -3,
+            "southernResistance": 4
           },
-          "result": "Three planters sign the pledge. They honor it for eight months. Then the county political balance shifts, and the pledges become worthless paper. Without the Bureau behind the agreement, the only enforcement mechanism was the planters' goodwill — and goodwill is not a legal order."
+          "flagWrites": {
+            "family": 2,
+            "community": 1
+          },
+          "result": "The church mutual aid society doubles its membership. Federal protection shrinks, but neighbors watch out for each other."
         }
       ],
+      "trivia": [
+        "President Andrew Johnson vetoed both the Freedmen's Bureau extension and the Civil Rights Act of 1866; Congress overrode both vetoes.",
+        "Johnson's lenient Reconstruction policy quickly restored former Confederate officials to power in Southern states."
+      ],
       "image": {
-        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5e/Freedman%27s_Savings_Bank.jpg",
-        "artist": "Unknown author",
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Andrew_Johnson_photo_portrait_head_and_shoulders%2C_c1870-1880-Edit1.jpg/960px-Andrew_Johnson_photo_portrait_head_and_shoulders%2C_c1870-1880-Edit1.jpg",
+        "artist": "Mathew Benjamin Brady",
         "license": "Public domain",
-        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AFreedman's_Savings_Bank.jpg",
-        "searchQuery": "Freedmen's Bureau closing 1872 withdrawal"
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AAndrew_Johnson_photo_portrait_head_and_shoulders%2C_c1870-1880-Edit1.jpg",
+        "searchQuery": "Andrew Johnson veto Freedmen's Bureau 1866"
       }
     },
     {
-      "id": "push_luck_petition",
-      "phase_min": 0.3,
-      "phase_max": 0.6,
-      "weight": 3,
-      "type": "push_luck",
-      "title": "The Washington Petition",
-      "text": "Word has reached the county that a delegation of freedpeople is organizing a petition to Congress demanding sustained military protection, land redistribution, and enforcement of the Fourteenth Amendment. Adding more names and documented grievances increases its weight — but every name on that list is visible to the county sheriff and the night riders.",
-      "leaveText": "Keep your family's name off the list. The risk is too great right now.",
-      "imageSearchQuery": "Reconstruction petition Congress freedpeople 1867",
-      "attempts": [
+      "id": "klan_terror",
+      "phase_min": 0.55,
+      "phase_max": 0.8,
+      "weight": 6,
+      "title": "Night Riders in the County",
+      "text": "Three freedmen who registered voters last month have been beaten. The local sheriff refuses to investigate. The federal commander at the garrison says he needs written complaints from witnesses to act.",
+      "type": "standard",
+      "imageSearchQuery": "Ku Klux Klan Reconstruction 1868",
+      "choices": [
         {
-          "id": "petition_1",
-          "buttonText": "Sign the petition and recruit two neighbors",
-          "successText": "Three names added. The petition grows. Word reaches a sympathetic Northern congressman who reads it into the Congressional Record.",
-          "failureText": "The petition list was copied by a county official. The planter has your name. A warning arrives that your labor contract will not be renewed.",
-          "riskChance": 0.2,
-          "rewards": {
-            "northernPoliticalWill": 6,
-            "freedpeoplesAutonomy": 4
+          "text": "Collect signed witness statements and deliver them to the federal garrison.",
+          "effects": {
+            "federalWill": 6,
+            "civilStanding": 5,
+            "southernResistance": -7,
+            "communityResilience": 3
           },
-          "penalties": {
-            "planterCompliance": -8,
-            "freedpeoplesAutonomy": -5
-          }
+          "flagWrites": {
+            "community": 3,
+            "family": -2
+          },
+          "result": "Two riders are arrested under the military court. The terror slows — for now. Your name is known. Your wife says nothing, but she counts who has been watching the road."
         },
         {
-          "id": "petition_2",
-          "buttonText": "Organize a community meeting and collect sworn affidavits to attach",
-          "successText": "Twelve affidavits documenting specific contract violations and vagrancy arrests are attached. The petition now has documented evidence, not just names. It reaches the Bureau commissioner's desk.",
-          "failureText": "The meeting was reported to the county sheriff. Two attendees were arrested the next morning on invented vagrancy charges. The affidavits were not enough to protect them.",
-          "riskChance": 0.4,
-          "rewards": {
-            "northernPoliticalWill": 10,
-            "federalPresence": 5,
-            "freedpeoplesAutonomy": 6
+          "text": "Warn the community privately without signing anything.",
+          "effects": {
+            "communityResilience": 5,
+            "civilStanding": -2,
+            "federalWill": -3,
+            "southernResistance": 2
           },
-          "penalties": {
-            "federalPresence": -5,
-            "freedpeoplesAutonomy": -8,
-            "planterCompliance": -10
-          }
+          "flagWrites": {
+            "family": 2,
+            "community": 1
+          },
+          "result": "People hear the warning. Three families move their meetings indoors. No formal record is made and no arrest follows."
         },
         {
-          "id": "petition_3",
-          "buttonText": "Travel to the state capital to deliver the petition in person",
-          "successText": "You stand in the Bureau's state office and hand the petition to the district superintendent yourself. He promises to forward it with his personal endorsement. Your presence makes it real to him in a way paper alone cannot.",
-          "failureText": "You were stopped at the county line by two men who demanded to know where you were going. They took the petition. You returned with nothing and a threat that follows you home.",
-          "riskChance": 0.6,
-          "rewards": {
-            "northernPoliticalWill": 14,
-            "federalPresence": 8,
-            "freedpeoplesAutonomy": 8
+          "text": "Do nothing. Any action makes you the next target.",
+          "effects": {
+            "southernResistance": 8,
+            "federalWill": -5,
+            "civilStanding": -5,
+            "communityResilience": -5
           },
-          "penalties": {
-            "federalPresence": -6,
-            "freedpeoplesAutonomy": -10,
-            "northernPoliticalWill": -8
-          }
+          "flagWrites": {
+            "family": 1,
+            "community": -3
+          },
+          "result": "The riders return. Two more men are beaten. The garrison does not move without complaints. Your silence weighs on you."
         }
       ],
+      "trivia": [
+        "The Ku Klux Klan used targeted violence against Black political organizers, teachers, and community leaders to suppress Reconstruction.",
+        "The Ku Klux Klan Act of 1871 gave the federal government power to prosecute Klan violence — but enforcement required political will and military presence."
+      ],
       "image": {
-        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/8/8e/Josephine_Sophia_White_Griffing.jpg",
-        "artist": "sconosciuto",
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Ku_Klux_Klan_ceremony_in_London%2C_Ontario.jpg",
+        "artist": "Originally published by the Toronto Star. Unknown author.",
         "license": "Public domain",
-        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AJosephine_Sophia_White_Griffing.jpg",
-        "searchQuery": "Reconstruction petition Congress freedpeople 1867"
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AKu_Klux_Klan_ceremony_in_London%2C_Ontario.jpg",
+        "searchQuery": "Ku Klux Klan Reconstruction 1868"
+      }
+    },
+    {
+      "id": "reconstruction_collapses",
+      "phase_min": 0.82,
+      "phase_max": 0.98,
+      "weight": 7,
+      "title": "The Last Federal Troops Leave",
+      "text": "The new president has ordered federal troops withdrawn from the state. The Freedmen's Bureau has already closed most of its offices. The men who call themselves Redeemers take the statehouse this week.",
+      "type": "standard",
+      "imageSearchQuery": "Reconstruction end 1877 federal troops withdrawal",
+      "choices": [
+        {
+          "text": "Hold a community assembly. Document what was built and pledge to protect it.",
+          "effects": {
+            "communityResilience": 10,
+            "civilStanding": 3,
+            "federalWill": -2,
+            "southernResistance": -3
+          },
+          "flagWrites": {
+            "community": 3,
+            "family": -1
+          },
+          "result": "Fifty people gather in the church. The teacher reads the Fourteenth Amendment aloud. What was built here will not be surrendered without memory."
+        },
+        {
+          "text": "Transfer property and records to the church — protect what can be protected.",
+          "effects": {
+            "communityResilience": 6,
+            "civilStanding": 2,
+            "southernResistance": -2,
+            "federalWill": -3
+          },
+          "flagWrites": {
+            "family": 2,
+            "community": 2
+          },
+          "result": "The deed is in the church's name. The school's records are hidden beneath the floorboards. Some things survive the storm."
+        },
+        {
+          "text": "Move north while movement is still possible.",
+          "effects": {
+            "communityResilience": -6,
+            "civilStanding": -4,
+            "southernResistance": 5,
+            "federalWill": -4
+          },
+          "flagWrites": {
+            "family": 3,
+            "community": -3
+          },
+          "result": "You take your family out of reach. The people left behind face what is coming without you. You carry that with you."
+        }
+      ],
+      "trivia": [
+        "The Compromise of 1877 ended Reconstruction by withdrawing the last federal troops from the South in exchange for Republican electoral votes.",
+        "After Reconstruction collapsed, former Confederate Democrats known as Redeemers took control of Southern state governments and systematically rolled back freedpeople's political rights."
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/8/8f/Keppler-Conkling-Mephistopheles.jpg",
+        "artist": "Joseph Keppler",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AKeppler-Conkling-Mephistopheles.jpg",
+        "searchQuery": "Reconstruction end 1877 federal troops withdrawal"
       }
     },
     {
       "id": "fl_reader_0",
       "phase_min": 0.35,
-      "phase_max": 0.675,
-      "weight": 5,
-      "title": "The Black Codes pass. A sheriff arrives saying you need to produce proof of lawful employment or face arrest for vagrancy.",
-      "text": {
-        "default": "You have the contract. You hand it to him. He reads it, nods, and leaves. You stand in the doorway afterward and think about what the paper has just done — kept you out of the convict lease, yes, and also confirmed to every authority in the county that you are the kind of person who signs what they put in front of you. The children are safe tonight. You do not know what tonight's safety is costing the children you will raise.",
-        "variants": [
-          {
-            "whenFlag": "builds_outside_white_structures",
-            "equals": false,
-            "text": "You have the contract. You hand it to him. He reads it, nods, and leaves. You stand in the doorway afterward and think about what the paper has just done — kept you out of the convict lease, yes, and also confirmed to every authority in the county that you are the kind of person who signs what they put in front of you. The children are safe tonight. You do not know what tonight's safety is costing the children you will raise."
-          },
-          {
-            "whenFlag": "builds_outside_white_structures",
-            "equals": true,
-            "text": "You have no contract. You have a deed with your name on it and a congregation that meets twice a week in a building that is legally yours. The sheriff looks at the deed. He looks at you. He says the deed doesn't count as employment and you have three days to sign with a planter or he'll be back. Three days. You walk back to the church and sit in it a long time, knowing you built this, knowing they mean to take it, not sure yet whether the building or your name on it is the thing worth protecting."
-          }
-        ]
-      },
-      "type": "standard",
-      "choices": [
-        {
-          "text": "Go on."
-        }
-      ]
-    },
-    {
-      "id": "fl_reader_1",
-      "phase_min": 0.675,
       "phase_max": 1,
       "weight": 5,
-      "title": "Federal troops withdraw from the county. The Freedmen's Bureau office closes. A white neighbor warns you quietly that the night riders are making a list.",
+      "title": "Two years later — a night rider warning arrives at your door",
       "text": {
-        "default": "The planter tells you your contract is being 'renegotiated' — your share drops by a third. He says it plainly, without apology, because there is no longer anyone to complain to. You think about every concession you made under the Bureau's watch, every compromise that felt like strategy, and you understand now that the strategy was always his: he was waiting for the protection to end, and he always knew it would.",
+        "default": "Word comes before dawn: men on horses passed your neighbor's fence and left a burned post as a message. You have been named before — your signature is on record, your face is known at the courthouse. The community knows you as someone who stands. They come to you tonight not because you are brave but because you have already made yourself visible, and now that visibility is both the reason for the threat and the reason people believe something must be done together. You did not choose this moment. You chose the moment that made this one inevitable.",
         "variants": [
           {
-            "whenFlag": "builds_outside_white_structures",
-            "equals": false,
-            "text": "The planter tells you your contract is being 'renegotiated' — your share drops by a third. He says it plainly, without apology, because there is no longer anyone to complain to. You think about every concession you made under the Bureau's watch, every compromise that felt like strategy, and you understand now that the strategy was always his: he was waiting for the protection to end, and he always knew it would."
+            "whenFlag": "stands_publicly",
+            "equals": true,
+            "text": "Word comes before dawn: men on horses passed your neighbor's fence and left a burned post as a message. You have been named before — your signature is on record, your face is known at the courthouse. The community knows you as someone who stands. They come to you tonight not because you are brave but because you have already made yourself visible, and now that visibility is both the reason for the threat and the reason people believe something must be done together. You did not choose this moment. You chose the moment that made this one inevitable."
           },
           {
-            "whenFlag": "builds_outside_white_structures",
-            "equals": true,
-            "text": "Your name has been on that deed for two years. Every person in the county knows what you built. The night riders know too — that is why you are on the list. You look at the church, at the families who learned to read inside it, and you calculate the same thing you calculated the first day: whether what stands is worth what it costs to keep standing. The answer has not gotten easier. It has just become more completely yours to give."
+            "whenFlag": "stands_publicly",
+            "equals": false,
+            "text": "Word comes before dawn: men on horses passed your neighbor's fence and left a burned post as a message. Your name is not on the letter. You have been careful. But the burned post does not ask whose name is on what paper — it asks whose house sits on land that someone else wants. You have traded visibility for safety, and tonight the safety feels thinner than you believed it was. Your neighbor, the one whose name is on record, comes to ask if you will stand with them now, in the open, before it is too late. You have built something worth protecting. The question that has lived quietly inside you since the day of the meeting surfaces again."
           }
         ]
       },
@@ -623,75 +493,37 @@
   "sages": [
     {
       "id": "howard",
-      "name": "Oliver Otis Howard",
-      "title": "Commissioner, Bureau of Refugees, Freedmen, and Abandoned Lands",
-      "portrait": "/faces/sage_howard.png",
+      "name": "Oliver O. Howard",
+      "title": "Commissioner, Freedmen's Bureau",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/a/a6/Detail_of_Wilson_Chinn_photograph_%22VBM%22.jpg",
       "portraitAttribution": {
-        "artist": "Mathew Brady Studio",
-        "license": "Public Domain",
-        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Oliver_Otis_Howard.jpg"
+        "artist": "Myron Holly Kimball",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ADetail_of_Wilson_Chinn_photograph_%22VBM%22.jpg"
       },
       "threshold": 18,
-      "bio": "Oliver Otis Howard commanded the Bureau from its founding in 1865. A Union general and committed Christian, he believed in Black education and legal protection, but operated with chronic underfunding, hostile state governments, and a presidential administration that undermined him at every step. Howard University was named in his honor.",
-      "greeting": "A man in a Union officer's coat arrives at the county Bureau office — one sleeve pinned up where his arm was lost at Fair Oaks. He introduces himself and asks how the contracts are going.",
-      "advice": "\"The Bureau's authority is real but narrow. I can mediate a contract, post a notice, file a report. What I cannot do is replace the political will in Washington to sustain this work. Every abuse you document and every school that stays open is an argument for that will. Make the argument visible.\"",
+      "bio": "Oliver O. Howard commanded the Bureau of Refugees, Freedmen, and Abandoned Lands from its founding in 1865. A Union general known as the 'Christian General,' he genuinely supported freedpeople's rights — but operated with too few agents, too little funding, and executive resistance from President Johnson.",
+      "greeting": "The Bureau agent says his superintendent is passing through and wants to speak with freedpeople directly. You walk to the office and find a tall man in a worn uniform behind the desk.",
+      "advice": "\"The Bureau can do much — labor contracts, schooling, courts. But we need your testimony. Without it, I cannot act. Washington watches what we document.\"",
       "question": {
-        "question": "What was the primary purpose of the Freedmen's Bureau established by Congress in 1865?",
+        "question": "What was the Freedmen's Bureau created to do?",
         "choices": [
-          "To redistribute Confederate land equally among all freedpeople as permanent property",
-          "To provide legal, educational, and economic assistance to formerly enslaved people during the transition to free labor",
-          "To supervise the re-admission of Southern states to Congress on the fastest possible timeline",
-          "To prosecute Confederate military officers for war crimes"
+          "Redistribute all Southern plantation land to freedpeople",
+          "Help formerly enslaved people with contracts, education, and legal protection",
+          "Enforce loyalty oaths on Confederate soldiers",
+          "Manage railroad construction in the postwar South"
         ],
         "correctIndex": 1,
-        "explanation": "The Freedmen's Bureau was created to manage the enormous transition from enslaved to free labor — negotiating and enforcing labor contracts, establishing schools, providing food and medical care, and adjudicating legal disputes. It was not empowered to redistribute land permanently, and its limited staff and resources meant its reach was always far smaller than the need.",
-        "teksRef": "TEKS 8.9 — Reconstruction: the role of the Freedmen's Bureau and the experience of freedpeople"
+        "explanation": "The Bureau of Refugees, Freedmen, and Abandoned Lands (1865) assisted formerly enslaved people by negotiating labor contracts, establishing schools, and providing a legal forum when local courts refused freedpeople's testimony. It was underfunded and understaffed throughout its existence.",
+        "teksRef": "TEKS 8.9 — Reconstruction: federal protection and the Freedmen's Bureau"
       },
       "reward": {
         "correct": {
-          "federalPresence": 8,
-          "freedpeoplesAutonomy": 5
+          "federalWill": 8,
+          "civilStanding": 5
         },
         "wrong": {
-          "federalPresence": 3
-        },
-        "knowledgeCorrect": 4,
-        "knowledgeWrong": 2
-      }
-    },
-    {
-      "id": "stevens",
-      "name": "Thaddeus Stevens",
-      "title": "Radical Republican Floor Leader, U.S. House of Representatives",
-      "portrait": "/faces/sage_stevens.png",
-      "portraitAttribution": {
-        "artist": "Brady-Handy Photograph Collection",
-        "license": "Public Domain",
-        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Thaddeus_Stevens_-_NARA_-_528715.jpg"
-      },
-      "threshold": 45,
-      "bio": "Thaddeus Stevens of Pennsylvania was the most powerful Radical Republican in Congress. He led the impeachment of Andrew Johnson, pushed for the Fourteenth Amendment, and argued relentlessly for land redistribution to give freedpeople economic independence. He died in 1868 before Reconstruction's full collapse, but his legislative legacy shaped its brief successes.",
-      "greeting": "You receive a printed circular from a congressman's office. It summarizes the Reconstruction Acts and contains a handwritten note at the bottom: 'The window is open. Use it while it stands.'",
-      "advice": "\"Land is the only freedom that does not depend on another man's goodwill or another Congress's mood. A freedperson who owns forty acres cannot be re-enslaved by a contract. We fought for the amendment; we should have fought harder for the acres. Without property, political rights are always one election away from revocation.\"",
-      "question": {
-        "question": "What did the Reconstruction Acts of 1867 require Southern states to do before being readmitted to Congress?",
-        "choices": [
-          "Pay financial reparations to formerly enslaved people as a condition of re-entry",
-          "Ratify the Fourteenth Amendment and write new state constitutions granting Black male suffrage",
-          "Allow the federal government to permanently administer their state courts",
-          "Elect at least one African American representative to their state legislature"
-        ],
-        "correctIndex": 1,
-        "explanation": "The Reconstruction Acts divided the unreconstructed South into five military districts and required states to ratify the Fourteenth Amendment, hold new constitutional conventions with Black male participation, and grant Black male suffrage before their congressional delegations would be seated. This was the legal architecture of Radical Reconstruction.",
-        "teksRef": "TEKS 8.9 — Reconstruction: federal Reconstruction policy and the Reconstruction Acts"
-      },
-      "reward": {
-        "correct": {
-          "northernPoliticalWill": 10,
-          "federalPresence": 5
-        },
-        "wrong": {
-          "northernPoliticalWill": 3
+          "federalWill": 3
         },
         "knowledgeCorrect": 4,
         "knowledgeWrong": 2
@@ -700,36 +532,74 @@
     {
       "id": "revels",
       "name": "Hiram Revels",
-      "title": "First African American U.S. Senator, Mississippi",
-      "portrait": "/faces/sage_revels.png",
+      "title": "U.S. Senator, Mississippi",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/a/a6/Detail_of_Wilson_Chinn_photograph_%22VBM%22.jpg",
       "portraitAttribution": {
-        "artist": "Currier and Ives",
-        "license": "Public Domain",
-        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Hiram_Rhodes_Revels_-_Brady-Handy.jpg"
+        "artist": "Myron Holly Kimball",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ADetail_of_Wilson_Chinn_photograph_%22VBM%22.jpg"
       },
-      "threshold": 68,
-      "bio": "Hiram Revels was born free in North Carolina, educated in Ohio and Indiana, served as a chaplain for Black Union regiments, and was elected to the U.S. Senate by the Mississippi legislature in 1870 — filling the seat once held by Jefferson Davis. His election was proof that Reconstruction's promises could be made real, and a target for those determined to end them.",
-      "greeting": "A well-dressed man stops at the county courthouse steps and asks whether voter registration has begun yet. He says he is traveling the state to see how the elections are actually working. His name, he says, is Hiram Revels.",
-      "advice": "\"Every freedman who serves on a jury, every child who reads a statute, every woman who holds a deed — this is what we are building. They will try to tell the country it cannot work. We must make sure the country sees that it already does. The record of what we build here matters as much as the building itself.\"",
+      "threshold": 50,
+      "bio": "Hiram Revels of Mississippi became the first African American U.S. Senator in 1870, filling the seat once held by Jefferson Davis. An AME minister and educator, he represented what Congressional Reconstruction made briefly possible — Black political power at the highest levels of government.",
+      "greeting": "A man passing through your county stops to speak at the church. He has just come from Washington. Someone whispers that he sits in the United States Senate.",
+      "advice": "\"What you build here — the school, the church, the vote — that is what I carry to Washington. They cannot dismiss it if it is real and documented and present.\"",
       "question": {
-        "question": "Why was Hiram Revels's election to the U.S. Senate in 1870 historically significant?",
+        "question": "What made Hiram Revels's election to the U.S. Senate in 1870 historically significant?",
         "choices": [
-          "He was the first senator elected from a former Confederate state after the Civil War",
-          "He was the first African American to serve in the United States Congress",
-          "He replaced Thaddeus Stevens, who had died in 1868",
-          "He was elected without requiring state legislative approval, setting a new precedent"
+          "He was the first senator from Mississippi after the war",
+          "He was the first African American to serve in the U.S. Senate",
+          "He wrote the Fourteenth Amendment",
+          "He commanded federal troops during Reconstruction"
         ],
         "correctIndex": 1,
-        "explanation": "Hiram Revels became the first African American to serve in the United States Congress when the Mississippi legislature elected him to the Senate in 1870. His election was made possible by the Reconstruction Acts, which required Black male suffrage and new state constitutional conventions — demonstrating that when federal protection was present, Black political power was achievable.",
-        "teksRef": "TEKS 8.9 — Reconstruction: Black political participation and the promise of federal protection"
+        "explanation": "Revels became the first African American U.S. Senator in 1870, representing Mississippi. His election was made possible by the Fifteenth Amendment and Congressional Reconstruction's enforcement of Black voting rights — gains that were systematically reversed after federal protection collapsed.",
+        "teksRef": "TEKS 8.9 — Reconstruction: African American political participation"
       },
       "reward": {
         "correct": {
-          "freedpeoplesAutonomy": 10,
-          "northernPoliticalWill": 6
+          "civilStanding": 8,
+          "communityResilience": 5
         },
         "wrong": {
-          "freedpeoplesAutonomy": 4
+          "civilStanding": 3
+        },
+        "knowledgeCorrect": 4,
+        "knowledgeWrong": 2
+      }
+    },
+    {
+      "id": "stevens",
+      "name": "Thaddeus Stevens",
+      "title": "Radical Republican, U.S. House of Representatives",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Greater_coat_of_arms_of_the_United_States.svg/330px-Greater_coat_of_arms_of_the_United_States.svg.png",
+      "portraitAttribution": {
+        "artist": "Ssolbergj",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AGreater_coat_of_arms_of_the_United_States.svg"
+      },
+      "threshold": 75,
+      "bio": "Thaddeus Stevens of Pennsylvania was the most powerful Radical Republican in Congress. He championed land redistribution — 'forty acres and a mule' — as the only economic foundation for freedpeople's real independence, and he led the impeachment of Andrew Johnson. His redistribution proposals were blocked by moderate Republicans.",
+      "greeting": "A pamphlet arrives from a traveling preacher — an old congressman's speech reprinted in full. The words inside are the fiercest you have read from any white man in Washington.",
+      "advice": "\"Without land, freedom is a word on paper. The plantation system will reconstitute itself if freedpeople have no independent economic base. I have said this and been ignored. Do not ignore it yourselves.\"",
+      "question": {
+        "question": "Why did Thaddeus Stevens argue that land redistribution was essential to Reconstruction?",
+        "choices": [
+          "He wanted to punish Confederate planters financially",
+          "Without land, freedpeople would remain economically dependent on the same planters who had enslaved them",
+          "Land grants would fund the Freedmen's Bureau",
+          "He believed freedpeople should be resettled in the North"
+        ],
+        "correctIndex": 1,
+        "explanation": "Stevens argued that without land of their own, formerly enslaved people would have no economic independence and would be forced back into labor arrangements controlled by the same planter class. His redistribution proposals — forty acres from confiscated Confederate estates — were rejected by moderate Republicans who prioritized reconciliation with the South.",
+        "teksRef": "TEKS 8.9 — Reconstruction: land reform, Radical Republicans, and the limits of federal policy"
+      },
+      "reward": {
+        "correct": {
+          "communityResilience": 8,
+          "federalWill": 5
+        },
+        "wrong": {
+          "communityResilience": 3
         },
         "knowledgeCorrect": 4,
         "knowledgeWrong": 2
@@ -739,59 +609,187 @@
   "route": [
     {
       "id": "start",
-      "title": "The Postwar South, 1865–1877",
-      "description": "You are a freedperson navigating the years of Reconstruction — from emancipation's fragile promise through the collapse of federal protection.",
+      "title": "Freedom's Ground",
+      "description": "The war is over. What freedom means in this county is still being contested, season by season.",
       "edges": []
     }
   ],
   "eventTrivia": [
     {
       "id": "rt1",
-      "question": "What did Mississippi's 1865 Black Codes use to force freedpeople back into coerced labor?",
+      "question": "What did Black Codes do to freedpeople's legal rights?",
       "choices": [
-        "Debt peonage through inflated store prices",
-        "Vagrancy laws that allowed arrest and hiring-out of anyone without a written labor contract",
-        "A literacy requirement that disqualified freedpeople from owning land",
-        "A poll tax applied only to formerly enslaved people"
+        "Guaranteed them the right to vote",
+        "Restricted their movement, labor, and legal standing",
+        "Gave them ownership of plantation land"
       ],
       "correctIndex": 1,
-      "fact": "Mississippi's Black Codes included vagrancy statutes requiring freedpeople to show proof of annual employment or face arrest — after which courts could hire them out to white employers, recreating coerced labor under a legal guise."
+      "fact": "Black Codes, passed by Southern legislatures in 1865–1866, restricted freedpeople's ability to move, own property, or refuse labor contracts — legally re-subordinating them despite emancipation."
     },
     {
       "id": "rt2",
-      "question": "Why did the Freedmen's Bureau's effectiveness depend so heavily on federal troop presence?",
+      "question": "Which federal agency was set up to help freedpeople after the war?",
       "choices": [
-        "Bureau agents needed soldiers to collect labor contract fees from planters",
-        "Bureau rulings had no enforcement mechanism of their own — only federal military authority could compel local courts and planters to comply",
-        "Northern missionaries refused to work in counties without military escorts",
-        "Bureau schools could only operate on military bases"
+        "The Bureau of Indian Affairs",
+        "The Freedmen's Bureau",
+        "The U.S. Postal Service"
       ],
       "correctIndex": 1,
-      "fact": "The Bureau could investigate, mediate, and rule on disputes, but it had no independent enforcement power. When federal troops were present, planters and local courts complied with rulings. When troops withdrew, Bureau orders were simply ignored."
+      "fact": "The Bureau of Refugees, Freedmen, and Abandoned Lands — the Freedmen's Bureau — was created in 1865 to assist formerly enslaved people with labor contracts, education, and legal protection."
     },
     {
       "id": "rt3",
-      "question": "What was the main strategy white supremacist groups like the Ku Klux Klan used to undermine Reconstruction?",
+      "question": "What did vagrancy laws under Black Codes allow authorities to do?",
       "choices": [
-        "Lobbying Congress to reduce Bureau funding through legal petitions",
-        "Targeted violence against Black voters, officeholders, and community leaders to suppress political participation through terror",
-        "Organizing economic boycotts of Northern goods sold in Southern states",
-        "Challenging Reconstruction laws through Supreme Court appeals"
+        "Arrest freedpeople who were not under a labor contract",
+        "Confiscate plantation land for freedpeople",
+        "Require planters to pay fair wages"
       ],
-      "correctIndex": 1,
-      "fact": "The Klan and similar groups used systematic violence — beatings, arson of schools and churches, and murder — to terrorize freedpeople and their white Republican allies, suppressing Black voting and destroying the institutions that made Black civic life possible."
+      "correctIndex": 0,
+      "fact": "Vagrancy laws classified freedpeople without labor contracts as vagrants, allowing their arrest and forced labor — effectively restoring plantation conditions under a different legal name."
     },
     {
       "id": "rt4",
-      "question": "What was the primary reason Reconstruction ended and federal protection of Black rights collapsed in the 1870s?",
+      "question": "Why did President Johnson's vetoes weaken Reconstruction?",
       "choices": [
-        "Freedpeople voluntarily chose to return to plantation labor because farming was familiar",
-        "The Freedmen's Bureau won all its legal cases, making continued federal presence unnecessary",
-        "Northern political will eroded due to financial panic, fatigue with occupation costs, and shifting Congressional priorities — removing the federal enforcement that made Black freedom real",
-        "The Fourteenth Amendment was repealed by Congress after Southern states rejoined the Union"
+        "They disbanded the Union Army",
+        "They blocked legislation protecting freedpeople's rights and extending Bureau authority",
+        "They transferred Southern land to Northern investors"
       ],
-      "correctIndex": 2,
-      "fact": "Reconstruction collapsed not because it failed on its own terms, but because Northern political will to sustain the military and legal infrastructure of protection gave way. The 1873 economic panic, Congressional elections, and Supreme Court rulings that narrowed the Fourteenth Amendment all removed the federal architecture that had made Black political and civil rights enforceable."
+      "correctIndex": 1,
+      "fact": "Johnson vetoed the Freedmen's Bureau extension and the Civil Rights Act of 1866, undermining federal protection. Congress overrode both vetoes, but Johnson's actions emboldened Southern resistance."
+    },
+    {
+      "id": "rt5",
+      "question": "What was the Fourteenth Amendment's main guarantee for freedpeople?",
+      "choices": [
+        "The right to vote",
+        "Equal citizenship and protection under the law",
+        "Land redistribution to formerly enslaved people"
+      ],
+      "correctIndex": 1,
+      "fact": "Ratified in 1868, the Fourteenth Amendment granted citizenship to all persons born or naturalized in the United States and guaranteed equal protection of the laws — directly overturning the Dred Scott decision."
+    },
+    {
+      "id": "rt6",
+      "question": "What role did African American churches play during Reconstruction?",
+      "choices": [
+        "They served as headquarters for the Freedmen's Bureau",
+        "They were centers of education, mutual aid, and political organizing",
+        "They replaced local government courts"
+      ],
+      "correctIndex": 1,
+      "fact": "Black churches were the most durable institution freedpeople built — anchoring schools, mutual aid societies, and political meetings when federal institutions were absent or hostile."
+    },
+    {
+      "id": "rt7",
+      "question": "How did the Ku Klux Klan undermine Reconstruction?",
+      "choices": [
+        "By lobbying Congress to repeal the Civil Rights Act",
+        "By using violence and terror to suppress Black political participation",
+        "By organizing labor strikes on plantations"
+      ],
+      "correctIndex": 1,
+      "fact": "The Klan used targeted violence against Black voters, officeholders, teachers, and organizers to destroy the political gains Reconstruction had created — especially where federal troops were absent."
+    },
+    {
+      "id": "rt8",
+      "question": "What was sharecropping, and why was it problematic for freedpeople?",
+      "choices": [
+        "A form of land ownership that freedpeople purchased from the Bureau",
+        "A labor system that kept freedpeople in debt and dependent on planters",
+        "A federal program that distributed crop surpluses to freedpeople"
+      ],
+      "correctIndex": 1,
+      "fact": "Sharecropping replaced slavery with a cycle of debt: freedpeople farmed a planter's land in exchange for a share of the crop, but inflated supply costs and dishonest accounting kept them perpetually indebted and unable to leave."
+    },
+    {
+      "id": "rt9",
+      "question": "What did the Fifteenth Amendment guarantee?",
+      "choices": [
+        "That freedpeople could own land in Southern states",
+        "That citizens could not be denied the vote based on race",
+        "That Confederate states had to ratify new constitutions"
+      ],
+      "correctIndex": 1,
+      "fact": "The Fifteenth Amendment (1870) prohibited denying the right to vote based on race, color, or previous condition of servitude — the constitutional foundation for Black political participation during Reconstruction."
+    },
+    {
+      "id": "rt10",
+      "question": "Why did Thaddeus Stevens believe land redistribution was necessary?",
+      "choices": [
+        "To fund the Freedmen's Bureau schools",
+        "Because without land, freedpeople had no economic independence from planters",
+        "To compensate Union soldiers for their service"
+      ],
+      "correctIndex": 1,
+      "fact": "Stevens argued that unless freedpeople owned land, they would remain economically controlled by the same planter class — making political freedom hollow. His redistribution proposals were rejected by moderate Republicans."
+    },
+    {
+      "id": "rt11",
+      "question": "What happened to Reconstruction when federal troops were withdrawn in 1877?",
+      "choices": [
+        "Southern states continued enforcing civil rights laws on their own",
+        "Redeemer Democrats took control of Southern governments and reversed freedpeople's gains",
+        "The Freedmen's Bureau expanded its operations"
+      ],
+      "correctIndex": 1,
+      "fact": "The Compromise of 1877 ended federal military presence in the South. Redeemer Democrats quickly dismantled Black political representation, disenfranchised Black voters, and imposed the legal and economic subordination that became the Jim Crow era."
+    },
+    {
+      "id": "rt12",
+      "question": "What was the Compromise of 1877?",
+      "choices": [
+        "A deal in which Republicans withdrew federal troops from the South in exchange for electoral votes",
+        "A treaty between former Confederates and the Freedmen's Bureau",
+        "A law that ended sharecropping in three Southern states"
+      ],
+      "correctIndex": 0,
+      "fact": "The Compromise of 1877 resolved the disputed 1876 presidential election: Republicans kept the White House, but federal troops were withdrawn from the South — effectively ending Reconstruction and leaving freedpeople without federal protection."
+    },
+    {
+      "id": "rt13",
+      "question": "What made Hiram Revels's service in the U.S. Senate historically important?",
+      "choices": [
+        "He was the first senator to advocate for land redistribution",
+        "He was the first African American to serve in the U.S. Senate",
+        "He wrote the Ku Klux Klan Act of 1871"
+      ],
+      "correctIndex": 1,
+      "fact": "Revels's 1870 election to the Senate — filling the seat once held by Jefferson Davis — demonstrated what federal protection of Black voting rights made possible. His presence was erased after Reconstruction collapsed."
+    },
+    {
+      "id": "rt14",
+      "question": "Why did Southern resistance to Reconstruction grow stronger over time?",
+      "choices": [
+        "Because Congress reduced civil rights protections each year",
+        "Because federal enforcement weakened as Northern political will eroded, making resistance less costly",
+        "Because freedpeople stopped using the Freedmen's Bureau"
+      ],
+      "correctIndex": 1,
+      "fact": "Southern resistance intensified as Northern voters grew tired of Reconstruction's costs and as federal troop levels fell. Each reduction in enforcement signaled to planters and paramilitary groups that resistance would go unpunished."
+    },
+    {
+      "id": "rt15",
+      "question": "What were apprenticeship laws under the Black Codes designed to do?",
+      "choices": [
+        "Train freedpeople for skilled trades",
+        "Allow courts to bind freedpeople's children to planters as unpaid laborers",
+        "Provide freedpeople's children with access to public schools"
+      ],
+      "correctIndex": 1,
+      "fact": "Apprenticeship laws allowed local courts to remove children from freedpeople's families and assign them to former slaveholders as bound laborers — separating families and restoring plantation labor through the legal system."
+    },
+    {
+      "id": "rt16",
+      "question": "What did the Civil Rights Act of 1866 do that was historically unprecedented?",
+      "choices": [
+        "It banned the Ku Klux Klan",
+        "It declared all persons born in the United States to be citizens with equal legal rights",
+        "It gave freedpeople the right to vote in federal elections"
+      ],
+      "correctIndex": 1,
+      "fact": "The Civil Rights Act of 1866 was the first federal law to define citizenship and guarantee equal legal rights regardless of race — directly challenging Black Codes and setting the foundation for the Fourteenth Amendment."
     }
   ],
   "trailPath": [],
@@ -802,91 +800,152 @@
     "baseCrew": 0,
     "baseHorses": 0,
     "baseSupplies": 0,
-    "costs": {
-      "legalDocuments": 20,
-      "literacyMaterials": 15,
-      "churchDeedFiling": 30,
-      "communityFundContribution": 25
-    },
+    "costs": {},
     "wageCosts": {},
     "wageMorale": {},
     "herdOptions": []
   },
-  "primaryResourceKey": "freedpeoplesAutonomy",
+  "primaryResourceKey": "communityResilience",
   "primaryResourceStart": 20,
   "revenuePerUnit": 0,
-  "historicalContext": "Reconstruction lasted from 1865 to 1877. In that period, Black men voted in large numbers, served in state legislatures and the U.S. Congress, established thousands of schools, and built churches and civic institutions across the South. These gains were real — and they were conditional. Every right that freedpeople exercised depended on a federal military and legal infrastructure that the planter class never accepted and that Northern political will could not sustain indefinitely. When Congress withdrew the Freedmen's Bureau in 1872 and federal troops were reassigned, local white power structures moved quickly. Black Codes, Klan violence, fraudulent elections, and Supreme Court rulings that gutted the Fourteenth Amendment combined to produce what scholars call 'Redemption' — the restoration of white supremacist control over Southern political and economic life. The freedpeople did not fail. The architecture of their protection was dismantled. Understanding Reconstruction means understanding that distinction.",
-  "imageStyleKeyword": "engraving",
+  "historicalContext": "Reconstruction (1865–1877) was a genuine but incomplete attempt to build a multiracial democracy in the postwar South. Federal will and freedpeople's legal standing were interdependent — neither could hold without the other. Community resilience, built through churches, schools, and mutual aid, proved to be the only durable foundation when federal protection collapsed. Southern resistance was not inevitable: it was sustained by inaction in Washington and unpunished violence on the ground. Every uncontested Black Code and every unanswered act of terror was a step toward the Redeemer period — legal freedom without practical protection — and toward the century of Jim Crow that followed.",
   "pixelColors": {
-    "skin": "#C68642",
-    "skin2": "#8D5524",
-    "coat": "#3B2E1A",
-    "shirt": "#D4C9A8",
-    "hat": "#2C1F0E",
-    "hair": "#1A0A00",
-    "shadow": "#1C1209",
-    "paper": "#E8DDB5",
-    "ink": "#2B1D0E"
+    "skin": "#D4A574",
+    "darkSkin": "#8B5E3C",
+    "coat": "#4A3728",
+    "paper": "#F5E6C8",
+    "ink": "#2C1810",
+    "sepia": "#8B7355",
+    "federal": "#3B4F6B",
+    "highlight": "#C8A96E"
   },
   "pixelFaces": {
     "player": [
       {
+        "threshold": 75,
+        "sprite": "player_strong",
+        "label": "Standing Firm"
+      },
+      {
+        "threshold": 40,
+        "sprite": "player_mid",
+        "label": "Holding On"
+      },
+      {
         "threshold": 0,
         "sprite": "player_worn",
-        "label": "Exhausted"
+        "label": "Ground Down"
+      }
+    ],
+    "bureau": [
+      {
+        "threshold": 70,
+        "sprite": "bureau_active",
+        "label": "Bureau Active"
       },
       {
-        "threshold": 30,
-        "sprite": "player_cautious",
-        "label": "Watchful"
+        "threshold": 35,
+        "sprite": "bureau_stretched",
+        "label": "Bureau Stretched"
       },
       {
-        "threshold": 55,
-        "sprite": "player_steady",
-        "label": "Determined"
-      },
-      {
-        "threshold": 80,
-        "sprite": "player_strong",
-        "label": "Resolute"
+        "threshold": 0,
+        "sprite": "bureau_gutted",
+        "label": "Bureau Gutted"
       }
     ],
     "community": [
       {
+        "threshold": 70,
+        "sprite": "community_strong",
+        "label": "Networks Strong"
+      },
+      {
+        "threshold": 35,
+        "sprite": "community_fragile",
+        "label": "Networks Fragile"
+      },
+      {
         "threshold": 0,
         "sprite": "community_broken",
-        "label": "Dispersed"
-      },
-      {
-        "threshold": 25,
-        "sprite": "community_strained",
-        "label": "Under Pressure"
-      },
-      {
-        "threshold": 50,
-        "sprite": "community_holding",
-        "label": "Holding Together"
-      },
-      {
-        "threshold": 75,
-        "sprite": "community_organized",
-        "label": "Organized"
+        "label": "Networks Broken"
       }
     ]
   },
+  "imageStyleKeyword": "engraving",
+  "reckoning": {
+    "family": {
+      "default": "Your family remembers a person caught between duty and love, doing what they could.",
+      "variants": [
+        {
+          "whenFlag": "family",
+          "whenAtLeast": 4,
+          "text": "They remember you as the one who kept them safe when safety was rare. The children know your face as shelter. Whatever else happened, you were there."
+        },
+        {
+          "whenFlag": "family",
+          "whenAtLeast": -3,
+          "whenAtMost": 3,
+          "text": "They remember you as someone pulled in two directions who did not always land on their side — but tried. The love was real, even when the choices were hard."
+        },
+        {
+          "whenFlag": "family",
+          "whenAtMost": -4,
+          "text": "They remember your absence more than your presence. The cause, the neighbors, the fight — it took you from them in ways that could not always be repaid. They do not blame you. They just remember what was missing."
+        }
+      ]
+    },
+    "community": {
+      "default": "The community holds your memory as part of the larger story of what was attempted here.",
+      "variants": [
+        {
+          "whenFlag": "community",
+          "whenAtLeast": 4,
+          "text": "They remember you as someone who showed up — who put their name on the paper, stood in the meeting, helped raise the building. When the records of this time are read, yours is a name that held."
+        },
+        {
+          "whenFlag": "community",
+          "whenAtLeast": -3,
+          "whenAtMost": 3,
+          "text": "They remember you as someone who helped when they could and stepped back when they couldn't — a neighbor, not a leader. The community survived; you were part of that, in quiet ways."
+        },
+        {
+          "whenFlag": "community",
+          "whenAtMost": -4,
+          "text": "They remember you as someone who was there but not present — who protected your own while others bore the cost of standing up. They do not speak ill of you. They just do not speak of you."
+        }
+      ]
+    }
+  },
   "backdropImage": {
-    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Isis-Tempel-Mainz-Projektionen.jpg/960px-Isis-Tempel-Mainz-Projektionen.jpg",
-    "artist": "Bodow",
-    "license": "CC BY-SA 4.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AIsis-Tempel-Mainz-Projektionen.jpg",
-    "searchQuery": "a freedperson in the postwar South"
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Monomotapa_Map.jpg/960px-Monomotapa_Map.jpg",
+    "artist": "Willem Blaeu",
+    "license": "Public domain",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AMonomotapa_Map.jpg",
+    "searchQuery": "a newly freed person in the postwar South"
   },
   "flags": [
     {
-      "id": "builds_outside_white_structures",
+      "id": "family",
+      "type": "numeric",
+      "initial": 0,
+      "min": -10,
+      "max": 10,
+      "label": "How those closest to you come to regard you"
+    },
+    {
+      "id": "community",
+      "type": "numeric",
+      "initial": 0,
+      "min": -10,
+      "max": 10,
+      "label": "How the wider community comes to regard you"
+    },
+    {
+      "id": "stands_publicly",
       "type": "tristate",
       "initial": null,
-      "label": "How does this person choose to build a free life?"
+      "label": "Does this person stake their freedom openly in the community, or hold it close and private?"
     }
   ]
 }

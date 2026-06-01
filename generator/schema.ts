@@ -199,6 +199,18 @@ export interface SageEncounterData {
   };
 }
 
+// ── Reckoning (character-mode closing readout) ──────────────────
+// The end-of-campaign "how they remember you" for the two relationship
+// tracks. Each is a FlagText whose numeric variants (whenAtLeast/whenAtMost)
+// tier the accumulated track value into prose, read by resolveFlagText at the
+// close. Optional & additive: absent ⇒ no reckoning (systems and track-less
+// character campaigns are unaffected). The two readouts stay SEPARATE — never
+// a single combined verdict — so each relationship is its own truth.
+export interface Reckoning {
+  family: FlagText;
+  community: FlagText;
+}
+
 // ── Route ───────────────────────────────────────────────────────
 
 export interface RouteEdge {
@@ -316,4 +328,7 @@ export interface CampaignData {
   // Imagery (post-generation Commons enrichment)
   imageStyleKeyword?: string;
   backdropImage?: CommonsImage;
+
+  // Reckoning (character-mode closing readout; optional & additive)
+  reckoning?: Reckoning;
 }
