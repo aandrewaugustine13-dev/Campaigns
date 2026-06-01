@@ -111,13 +111,25 @@ function generatorApiPlugin(): Plugin {
           // Run in the background; the response returns right away.
           void (async () => {
             try {
-              const { generateCampaign } = await import('./generator/core.ts');
-              const result = await generateCampaign(apiKey, inputs);
-              job.data = result.data;
-              job.validation = result.validation;
-              job.status = 'done';
+              const { generateValidatedCampaign } = await import('./generator/core.ts');
+              // maxRegen=0 for now: hard-reject so the raw frontier-leak rate is
+              // visible rather than masked by silent retries. Raise later.
+              const result = await generateValidatedCampaign(apiKey, inputs, { maxRegen: 0 });
               const secs = ((Date.now() - job.startedAt) / 1000).toFixed(0);
-              console.log(`[generator-api] job ${jobId.slice(0, 8)} done in ${secs}s`);
+              if (result.status === 'rejected') {
+                const lines = result.findings
+                  .filter((f) => f.level === 'error')
+                  .map((f) => `[${f.field}] ${f.message}`)
+                  .join('\n');
+                job.error = `Campaign rejected after ${result.attempts} attempt${result.attempts === 1 ? '' : 's'} — failed validation:\n${lines}`;
+                job.status = 'error';
+                console.warn(`[generator-api] job ${jobId.slice(0, 8)} REJECTED after ${secs}s (${result.errorCount} error(s))`);
+              } else {
+                job.data = result.data;
+                job.validation = result.validation;
+                job.status = 'done';
+                console.log(`[generator-api] job ${jobId.slice(0, 8)} done in ${secs}s (${result.attempts} attempt(s))`);
+              }
             } catch (e: unknown) {
               job.error = e instanceof Error ? e.message : String(e);
               job.status = 'error';

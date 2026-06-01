@@ -7,10 +7,10 @@ import { parseModelJson } from "./json.js";
 import { enrichSagePortraits, enrichEventImages } from "./wikimedia.js";
 import type { CastCharacter } from "./cast.js";
 import type { SystemsEconomy } from "./economy.js";
-import type { PersonalEconomy } from "./personalEconomy.js";
-import type { FaultLineSpec } from "./faultline.js";
+import { type PersonalEconomy, validatePersonalEconomy } from "./personalEconomy.js";
+import { type FaultLineSpec, validateFaultLine } from "./faultline.js";
 import { faultLineToCampaignPieces } from "./faultlineCompile.js";
-import { applyRelationshipTracks } from "./relationshipTracks.js";
+import { applyRelationshipTracks, validateRelationshipTracks } from "./relationshipTracks.js";
 import type { FlagDecl } from "./schema.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -466,4 +466,113 @@ export async function generateCampaign(
   const validation = validate(data);
 
   return { data, validation, elapsedSeconds };
+}
+
+// All validator findings share one shape, so the batteries merge into the
+// universal report's findings without translation.
+export interface DeliveryFinding {
+  level: "error" | "warn";
+  field: string;
+  message: string;
+}
+
+// Run EVERY validator that applies to this campaign and unify their findings.
+// Universal validate() ALWAYS; the character batteries only when their inputs
+// are present — faultLine ⇒ the fault-line + relationship-track batteries
+// (the relationship battery is where the frontier "can't be good to everyone"
+// guard lives), personalEconomy ⇒ the personal-economy battery. A systems
+// campaign (no faultLine, no personalEconomy) therefore sees exactly the
+// universal validate() it always has — no behavior change.
+//
+// Note the two targets: validate() and validateRelationshipTracks() inspect the
+// PRODUCED campaign (`data`) — that is where the frontier/inert/choiceless
+// guards live — while validateFaultLine() and validatePersonalEconomy() check
+// the generation INPUT SPECS, which is what those validators are written to
+// accept. The field paths are namespaced so a rejection points at the right one.
+export function validateForDelivery(
+  data: unknown,
+  inputs: Pick<GenerateInputs, "faultLine" | "personalEconomy">,
+): { findings: DeliveryFinding[]; errorCount: number } {
+  const findings: DeliveryFinding[] = [...validate(data).findings];
+  if (inputs.faultLine) {
+    findings.push(...validateFaultLine(inputs.faultLine).map((f) => ({ ...f, field: `faultLine.${f.field}` })));
+    findings.push(...validateRelationshipTracks(data));
+  }
+  if (inputs.personalEconomy) {
+    findings.push(...validatePersonalEconomy(inputs.personalEconomy).map((f) => ({ ...f, field: `personalEconomy.${f.field}` })));
+  }
+  const errorCount = findings.filter((f) => f.level === "error").length;
+  return { findings, errorCount };
+}
+
+export interface GenerateValidatedResult {
+  status: "ok" | "rejected";
+  data: unknown;
+  validation: ValidationReport; // universal validate() of the final attempt
+  findings: DeliveryFinding[];  // unified findings across all applicable validators
+  errorCount: number;
+  attempts: number;
+  elapsedSeconds: number;
+}
+
+// The delivery gate. Runs the single-shot generator, validates the result with
+// EVERY applicable validator, and BLOCKS delivery on any ERROR-level finding
+// (warnings ship as advisory). `maxRegen` is the number of EXTRA attempts after
+// the first; DEFAULT 0 = hard reject with no regeneration. The 0 default is
+// deliberate: silent auto-regeneration would mask how often the generator
+// actually leaks the frontier, and reading that raw rate is the whole point of
+// wiring this in. Raise maxRegen later (e.g. 2) to smooth stochastic leaks once
+// the rate is known. EVERY attempt's error findings are logged server-side
+// regardless of maxRegen, so the leak rate stays measurable even after it goes up.
+export async function generateValidatedCampaign(
+  apiKey: string,
+  inputs: GenerateInputs,
+  opts: { maxRegen?: number } = {},
+): Promise<GenerateValidatedResult> {
+  const maxRegen = opts.maxRegen ?? 0;
+  const tag = inputs.faultLine ? "character" : "systems";
+  let last!: GenerateResult;
+  let lastFindings: DeliveryFinding[] = [];
+  let lastErrorCount = 0;
+  let totalElapsed = 0;
+
+  for (let attempt = 1; attempt <= maxRegen + 1; attempt++) {
+    last = await generateCampaign(apiKey, inputs);
+    totalElapsed += last.elapsedSeconds;
+    const { findings, errorCount } = validateForDelivery(last.data, inputs);
+    lastFindings = findings;
+    lastErrorCount = errorCount;
+
+    // Breadth-rate telemetry — log every attempt's verdict + error findings,
+    // always, so the frontier-leak rate is observable from the server logs.
+    const errs = findings.filter((f) => f.level === "error");
+    if (errs.length === 0) {
+      console.log(`[generate] ${tag} attempt ${attempt}/${maxRegen + 1}: PASS (0 errors)`);
+    } else {
+      console.warn(`[generate] ${tag} attempt ${attempt}/${maxRegen + 1}: REJECT (${errs.length} error${errs.length === 1 ? "" : "s"})`);
+      for (const f of errs) console.warn(`[generate]   [${f.field}] ${f.message}`);
+    }
+
+    if (errorCount === 0) {
+      return {
+        status: "ok",
+        data: last.data,
+        validation: last.validation,
+        findings,
+        errorCount,
+        attempts: attempt,
+        elapsedSeconds: totalElapsed,
+      };
+    }
+  }
+
+  return {
+    status: "rejected",
+    data: last.data,
+    validation: last.validation,
+    findings: lastFindings,
+    errorCount: lastErrorCount,
+    attempts: maxRegen + 1,
+    elapsedSeconds: totalElapsed,
+  };
 }
