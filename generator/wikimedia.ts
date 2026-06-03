@@ -262,10 +262,14 @@ function scoreCandidate(title: string, mime: string, queryTokens: Set<string>): 
 
 // Commons file search — the keyword-based strategy. Used for event imagery
 // and campaign backdrop, NOT for portraits (those use the WP-pageimages
-// flow in searchPortrait). Returns the first image hit whose license is
-// acceptable; null on no match, network error, or malformed response.
-async function searchCommonsFile(query: string): Promise<CommonsImageResult | null> {
-  if (!query.trim()) return null;
+// flow in searchPortrait). Returns ALL license-acceptable hits that clear the
+// relevance gate, ranked best-first (token overlap, junk/SVG penalized); empty
+// on no match, network error, or malformed response. The full ranked list (not
+// just the top hit) feeds enrichEventImages' cross-event dedupe: when an earlier
+// event already took the best hit, a later one falls to the next-best UNUSED
+// candidate here, breaking the article-funnel repeat.
+async function searchCommonsFileRanked(query: string): Promise<CommonsImageResult[]> {
+  if (!query.trim()) return [];
 
   const params = new URLSearchParams({
     action: "query",
@@ -288,17 +292,19 @@ async function searchCommonsFile(query: string): Promise<CommonsImageResult | nu
       headers: { "User-Agent": USER_AGENT, "Api-User-Agent": USER_AGENT },
       signal: controller.signal,
     });
-    if (!res.ok) return null;
+    if (!res.ok) return [];
 
     const data = (await res.json()) as CommonsResponse;
     const pages = data.query?.pages;
-    if (!pages) return null;
+    if (!pages) return [];
 
     const queryTokens = new Set(tokenize(query));
 
-    // Rank all license-acceptable image hits and take the best, rather than
-    // the first Commons hit (which is frequently a map/flag/diagram).
-    let best: { result: CommonsImageResult; score: number; index: number } | null = null;
+    // Score every license-acceptable hit; keep those that clear the relevance
+    // gate (score > 0 — at least one meaningful query↔title token match, net of
+    // junk/SVG penalties; a wrong image is worse than a repeat), ranked
+    // best-first with the original search rank breaking ties.
+    const scored: { result: CommonsImageResult; score: number; index: number }[] = [];
     for (const page of Object.values(pages)) {
       const info = page.imageinfo?.[0];
       if (!info?.extmetadata) continue;
@@ -308,7 +314,8 @@ async function searchCommonsFile(query: string): Promise<CommonsImageResult | nu
 
       const index = (page as any).index ?? 999;
       const score = scoreCandidate(page.title, mime, queryTokens);
-      const candidate = {
+      if (score <= 0) continue;
+      scored.push({
         result: {
           thumbUrl: info.thumburl,
           artist: stripHtml(info.extmetadata.Artist?.value ?? "Unknown"),
@@ -318,21 +325,13 @@ async function searchCommonsFile(query: string): Promise<CommonsImageResult | nu
         },
         score,
         index,
-      };
-
-      // Highest score wins; the original search rank breaks ties.
-      if (!best || score > best.score || (score === best.score && index < best.index)) {
-        best = candidate;
-      }
+      });
     }
 
-    // Relevance gate: require at least one meaningful query↔title token
-    // match (and net-positive after junk/SVG penalties). A wrong image is
-    // worse than no image — the engine falls back to the backdrop / none.
-    if (!best || best.score <= 0) return null;
-    return best.result;
+    scored.sort((a, b) => b.score - a.score || a.index - b.index);
+    return scored.map((s) => s.result);
   } catch {
-    return null;
+    return [];
   } finally {
     clearTimeout(timer);
   }
@@ -402,45 +401,67 @@ async function searchViaArticlePageimage(query: string): Promise<CommonsImageRes
   }
 }
 
-// Per-event + backdrop Commons enrichment. Runs every event query and the
-// backdrop query in a single Promise.allSettled — one failure can't affect
-// any other lookup. Each event's image (if found) lands at events[i].image;
-// the backdrop lands at data.backdropImage.
+// Per-event + backdrop Commons enrichment with CROSS-EVENT DEDUPE, lazy on
+// collision so API load stays at the old (proven-safe) ~1 call/event level:
+//  1. PARALLEL article-lead pass — fetch only the canonical article lead image
+//     for every event query + the backdrop (one call each). This is the same
+//     concurrency the old code used; the rich Commons pool is NOT fetched here.
+//  2. SEQUENTIAL assign — walk events in order. If an event's lead is unused,
+//     take it (no extra call — the common case). ONLY when its lead is missing
+//     or already used by an earlier event/the backdrop do we fetch THAT event's
+//     Commons pool and pick the best UNUSED candidate. This breaks the
+//     article-funnel (many queries → same dominant article → same lead, e.g.
+//     Pullman) while paying the Commons cost only where a collision forces it.
+// Tie-break when no unused candidate exists (or the query is genuinely thin):
+// keep the lead (or best Commons) duplicate — a relevant repeat beats an empty
+// frame. Systems and character campaigns share this path equally.
 export async function enrichEventImages(data: any, ctx: CampaignContext): Promise<void> {
   const events = Array.isArray(data.events) ? data.events : [];
   const styleKw = typeof data.imageStyleKeyword === "string" ? data.imageStyleKeyword.trim() : "";
-
   const appendStyle = (q: string) => styleKw ? `${q} ${styleKw}` : q;
 
-  // For each query: try the canonical article lead image first (raw query,
-  // no style keyword — that derails article search), then fall back to the
-  // ranked Commons file search (with style keyword) if the article pass
-  // finds nothing usable.
-  const resolveImage = async (rawQuery: string): Promise<CommonsImageResult | null> => {
-    const viaArticle = await searchViaArticlePageimage(rawQuery);
-    if (viaArticle) return viaArticle;
-    return searchCommonsFile(appendStyle(rawQuery));
-  };
-
-  const eventTasks = events.map((ev: any) =>
-    typeof ev.imageSearchQuery === "string" && ev.imageSearchQuery.trim()
-      ? resolveImage(ev.imageSearchQuery.trim())
-      : Promise.resolve<CommonsImageResult | null>(null),
+  const queries: (string | null)[] = events.map((ev: any) =>
+    typeof ev.imageSearchQuery === "string" && ev.imageSearchQuery.trim() ? ev.imageSearchQuery.trim() : null,
   );
 
-  const tasks = [...eventTasks, resolveImage(ctx.topic)];
+  // Pass 1 — parallel article-lead lookups (events + backdrop), ~1 call/event.
+  const leadTasks = queries.map((q) =>
+    q ? searchViaArticlePageimage(q) : Promise.resolve<CommonsImageResult | null>(null),
+  );
+  const settled = await Promise.allSettled([...leadTasks, searchViaArticlePageimage(ctx.topic)]);
+  const leadAt = (i: number): CommonsImageResult | null =>
+    settled[i]?.status === "fulfilled"
+      ? (settled[i] as PromiseFulfilledResult<CommonsImageResult | null>).value
+      : null;
 
-  const settled = await Promise.allSettled(tasks);
-
-  for (let i = 0; i < events.length; i++) {
-    const r = settled[i];
-    if (r.status !== "fulfilled" || !r.value) continue;
-    events[i].image = r.value;
+  // Pass 2 — sequential assign. Seed the used-set with the backdrop so events
+  // don't echo it (imageless events already fall back to the backdrop). The
+  // backdrop falls to its own Commons best only if it has no article lead.
+  const used = new Set<string>();
+  let backdrop = leadAt(events.length);
+  if (!backdrop) backdrop = (await searchCommonsFileRanked(appendStyle(ctx.topic)))[0] ?? null;
+  if (backdrop) {
+    data.backdropImage = backdrop;
+    used.add(backdrop.thumbUrl);
   }
 
-  const backdropResult = settled[events.length];
-  if (backdropResult?.status === "fulfilled" && backdropResult.value) {
-    data.backdropImage = backdropResult.value;
+  for (let i = 0; i < events.length; i++) {
+    const q = queries[i];
+    if (!q) continue;
+    const lead = leadAt(i);
+    // Fast path: a usable, unused article lead — no Commons call needed.
+    if (lead && !used.has(lead.thumbUrl)) {
+      events[i].image = lead;
+      used.add(lead.thumbUrl);
+      continue;
+    }
+    // Collision or no lead → consult the Commons pool for THIS event only now.
+    const pool = await searchCommonsFileRanked(appendStyle(q));
+    const chosen = pool.find((c) => !used.has(c.thumbUrl)) ?? lead ?? pool[0] ?? null;
+    if (chosen) {
+      events[i].image = chosen;
+      used.add(chosen.thumbUrl);
+    }
   }
 }
 
