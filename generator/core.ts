@@ -453,7 +453,7 @@ export async function generateCampaign(
     topic: inputs.topic,
     title: typeof data.title === "string" ? data.title : "",
   };
-  await enrichSagePortraits(data, imageryCtx);
+  await enrichSagePortraits(data);
   await enrichEventImages(data, imageryCtx);
 
   // Character path only: splice the compiled fault-line pieces in after

@@ -37,26 +37,23 @@ export interface CampaignContext {
   title: string;
 }
 
-// Builds the Wikipedia article-search query: sage name plus disambiguating
-// context tokens (topic + cleaned title), deduped. No "portrait" suffix —
-// this query targets article namespace, not file namespace.
-export function buildSearchQuery(sageName: string, ctx: CampaignContext): string {
-  // Strip punctuation from the LLM-authored title (colons, dashes, etc.);
-  // topic is user-typed and clean, and sage name keeps its periods so
-  // initials like "William B. Travis" still read as the real person.
-  const titleClean = ctx.title.replace(/[^\p{L}\p{N}\s]/gu, " ");
-
-  const tokens: string[] = [];
-  const seen = new Set<string>();
-  for (const token of `${ctx.topic} ${titleClean}`.split(/\s+/)) {
-    if (!token) continue;
-    const key = token.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    tokens.push(token);
-  }
-
-  return tokens.length ? `${sageName} ${tokens.join(" ")}` : sageName;
+// LEVER 1 — portrait relevance gate. Verifies the matched Wikipedia article is
+// actually THIS person before we accept its lead image. Bidirectional token
+// overlap (not "all name tokens present") so honorifics in the sage name
+// ("President" Jefferson, "Rev." Abernathy) and disambiguators in the article
+// title ("Annie Moore (immigrant)") don't false-reject. ≥2 overlapping
+// significant tokens = confident; a lone significant token (initials names like
+// "E. D. Nixon" → just "nixon") accepts only on an exact single-token match.
+// Reuses the event path's tokenize(). On reject, searchPortrait returns null and
+// the renderer falls through to a neutral monogram — better than a wrong face.
+function nameMatches(sageName: string, articleTitle: string): boolean {
+  let nameTokens = tokenize(sageName).filter((t) => t.length >= 4);
+  if (nameTokens.length === 0) nameTokens = tokenize(sageName);
+  const titleTokens = new Set(tokenize(articleTitle));
+  const overlap = nameTokens.filter((t) => titleTokens.has(t)).length;
+  if (overlap >= 2) return true;
+  if (nameTokens.length === 1 && overlap === 1) return true;
+  return false;
 }
 
 function isPublicDomain(meta: Record<string, ExtMetadataField>): boolean {
@@ -104,7 +101,7 @@ interface PortraitResult {
 async function findArticlePageimage(
   query: string,
   signal: AbortSignal,
-): Promise<string | null> {
+): Promise<{ pageimage: string; articleTitle: string } | null> {
   const params = new URLSearchParams({
     action: "query",
     generator: "search",
@@ -133,7 +130,8 @@ async function findArticlePageimage(
     (a, b) => (a.index ?? 999) - (b.index ?? 999),
   );
   const top = sorted[0];
-  return top?.pageimage ?? null;
+  if (!top?.pageimage || !top?.title) return null;
+  return { pageimage: top.pageimage, articleTitle: top.title };
 }
 
 // Commons file metadata for a known filename. Confirms image MIME and
@@ -183,16 +181,27 @@ async function lookupCommonsFile(
 
 async function searchPortrait(
   sageName: string,
-  ctx: CampaignContext,
 ): Promise<PortraitResult | null> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
   try {
-    const query = buildSearchQuery(sageName, ctx);
-    const pageimage = await findArticlePageimage(query, controller.signal);
-    if (!pageimage) return null;
-    return await lookupCommonsFile(pageimage, controller.signal);
+    // LEVER 2 — name-only article query. The old query appended topic +
+    // dramatic-title tokens to "disambiguate", but for minor figures that
+    // pulled the search toward the campaign's dominant article (E. D. Nixon →
+    // Rosa Parks, Lillian Wald → MLK, every Lewis & Clark sage → the expedition
+    // group shot). The bare name lands the person's own article.
+    const article = await findArticlePageimage(sageName.trim(), controller.signal);
+    if (!article) return null;
+    // LEVER 1 — the matched article must actually be this person, else reject
+    // to the monogram fallback.
+    if (!nameMatches(sageName, article.articleTitle)) return null;
+    // LEVER 3 — reject maps/flags/logos/seals/collages/SVGs by filename. Reuses
+    // the event path's JUNK_TITLE_RE; its "svg" alternative also catches .svg
+    // files (the FSA logo, flag SVGs) that the image-MIME check would otherwise
+    // pass. Hard gate for portraits, not the event path's soft down-rank.
+    if (JUNK_TITLE_RE.test(article.pageimage)) return null;
+    return await lookupCommonsFile(article.pageimage, controller.signal);
   } catch {
     return null;
   } finally {
@@ -437,13 +446,12 @@ export async function enrichEventImages(data: any, ctx: CampaignContext): Promis
 
 export async function enrichSagePortraits(
   data: any,
-  ctx: CampaignContext,
 ): Promise<void> {
   const sages = data.sages;
   if (!Array.isArray(sages)) return;
 
   const results = await Promise.allSettled(
-    sages.map((sage: any) => searchPortrait(sage.name, ctx)),
+    sages.map((sage: any) => searchPortrait(sage.name)),
   );
 
   for (let i = 0; i < sages.length; i++) {
