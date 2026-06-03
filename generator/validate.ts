@@ -58,14 +58,20 @@ export function validate(data: unknown): ValidationReport {
   }
 
   // ── Identity fields ──────────────────────────────────────────
-  for (const key of ["id", "title", "subtitle", "introBody", "trailFeedOpener", "mapImage", "primaryResourceKey", "historicalContext"] as const) {
+  for (const key of ["id", "title", "subtitle", "introBody", "trailFeedOpener", "primaryResourceKey", "historicalContext"] as const) {
     check(key, typeof d[key] === "string" && (d[key] as string).length > 0, `Missing or empty string: ${key}`);
   }
 
-  // distanceUnit is required only when the run advances by distance.
+  // distanceUnit and mapImage are journey-only: the distance unit and the trail
+  // map exist only when the run advances by distance. Character/project
+  // campaigns have no trail map (mapImage left empty), so requiring it in the
+  // universal identity loop above spuriously BLOCKED them — gate it like the
+  // other trail-only fields (paces, trailPath, trailStops, herdOptions).
   if (mode === "journey") {
     check("distanceUnit", typeof d.distanceUnit === "string" && (d.distanceUnit as string).length > 0,
       "Missing or empty string: distanceUnit");
+    check("mapImage", typeof d.mapImage === "string" && (d.mapImage as string).length > 0,
+      "Missing or empty string: mapImage");
   }
 
   if (d.theme !== undefined) {
