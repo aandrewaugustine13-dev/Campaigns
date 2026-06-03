@@ -1117,11 +1117,12 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   // truthy state → no shop, no pause. Systems (journey or project) unchanged.
   const atTownStop = !isCharacterMode(data) && supplyTown.near && supplyTown.town !== leftTownId;
   const awaitingDecision = atRouteFork || atTownStop;
-  useEffect(() => {
-    if (state.phase !== "sailing" || state.gameOver || awaitingDecision) return;
-    const t = setTimeout(() => advanceTurn(), 650);
-    return () => clearTimeout(t);
-  }, [state.phase, state.turn, state.gameOver, awaitingDecision, advanceTurn]);
+
+  // Travel is fully click-gated: every pure-travel ("sailing") interlude waits
+  // for the player to press Continue (see the button below). There is no
+  // auto-advance timer — players wanted full manual control of travel pacing.
+  // awaitingDecision (route forks / town stops) still renders its own UI and is
+  // not shown the Continue button, so those screens aren't double-gated.
 
   // Character mode runs a SMALL personal economy (money + 1–2 concrete
   // resources). Those should be VISIBLE as always-on bars, not parked in the
@@ -1580,7 +1581,12 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                     </div>
                   )}
                   {!awaitingDecision && (
-                    <p className={`text-xs mt-2 font-bold trail-traveling ${themeConfig.routeText}`}>The expedition presses onward…</p>
+                    <button
+                      onClick={() => advanceTurn()}
+                      className={`w-full mt-2 py-2 ${themeConfig.button} rounded text-sm font-bold transition-colors`}
+                    >
+                      Continue Expedition
+                    </button>
                   )}
                 </div>
 
