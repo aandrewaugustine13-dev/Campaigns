@@ -250,8 +250,8 @@
     },
     {
       "id": "apprenticeship_order",
-      "phase_min": 0.45,
-      "phase_max": 0.75,
+      "phase_min": 0.85,
+      "phase_max": 1,
       "weight": 6,
       "title": "The County Court and the Apprenticeship Order",
       "text": "A county judge has signed an apprenticeship order for your youngest son — a Black Code clause that lets courts bind children of freedpeople to white households as unpaid labor. The sheriff will collect him in three days unless you can get the Bureau agent to block the order.",
@@ -368,7 +368,7 @@
     {
       "id": "fl_reader_0",
       "phase_min": 0.35,
-      "phase_max": 0.675,
+      "phase_max": 0.6,
       "weight": 5,
       "title": "Winter — a county sheriff and two men ride into the quarters demanding to see labor papers",
       "text": {
@@ -395,8 +395,8 @@
     },
     {
       "id": "fl_reader_1",
-      "phase_min": 0.675,
-      "phase_max": 1,
+      "phase_min": 0.6,
+      "phase_max": 0.85,
       "weight": 5,
       "title": "Spring — word comes that the Bureau is closing its county office; the agent is leaving",
       "text": {

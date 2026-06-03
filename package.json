@@ -21,6 +21,8 @@
     "test:personal-economy": "npx tsx generator/personalEconomy.test.ts",
     "snapshot:prompt": "npx tsx generator/snapshot-systems-prompt.ts",
     "test:stage1-safety": "npx tsx generator/stage1-systems-safety.test.ts",
+    "prove:delivery-gate": "npx tsx generator/prove-delivery-gate.ts",
+    "prove:endgame-rhythm": "npx tsx generator/prove-endgame-rhythm.ts",
     "e2e:character": "npx tsx generator/stage2-character-e2e.ts",
     "e2e:systems": "npx tsx generator/stage2-systems-e2e.ts",
     "locked": "npx tsx generator/inspect-locked.ts"

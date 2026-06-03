@@ -522,6 +522,10 @@ interface GameState {
   trailFeed: string[];
   hardPaceStreak: number;
   inventoryOpen: boolean;
+  // Backstop for character endgame rhythm: true when the last fired event was a
+  // single-choice "reader" (a no-choice "Go on." reflection beat). selectEvent
+  // uses it to avoid firing two readers in a row (see the avoidReader path).
+  lastEventWasReader: boolean;
 }
 
 // ═════════════════════════════════════════════════════════════════
@@ -555,6 +559,7 @@ function selectEvent(
   lastTurn: Record<string, number>,
   turn: number,
   maxRepeats: number,
+  avoidReader = false,
 ): GameEvent | null {
   const p = totalDays > 0 ? day / totalDays : 0;
   const inPhase = events.filter(e => p >= e.phase_min && p <= e.phase_max);
@@ -578,8 +583,20 @@ function selectEvent(
     (counts[e.id] ?? 0) < maxRepeats &&
     turn - (lastTurn[e.id] ?? -Infinity) >= EVENT_COOLDOWN_TURNS,
   );
-  const pool = fresh.length > 0 ? fresh : reusable;
+  let pool = fresh.length > 0 ? fresh : reusable;
   if (pool.length === 0) return null;
+  // Endgame-rhythm backstop (character mode only; avoidReader is false for
+  // systems, so their selection is byte-identical). Never fire two no-choice
+  // "Go on." reader beats in a row: if the last event was a reader, prefer a
+  // real choice. If ONLY readers remain eligible, defer to travel (return null)
+  // rather than stacking a second reader — the deferred reader stays FRESH
+  // (uncounted) and fires next turn once a travel beat has separated them, so
+  // it's deferred, never DROPPED.
+  if (avoidReader) {
+    const withChoice = pool.filter(e => (e.choices?.length ?? 0) > 1);
+    if (withChoice.length > 0) pool = withChoice;
+    else return null;
+  }
   return weightedPick(pool.map(e => ({ ...e, weight: tilt(e) })));
 }
 
@@ -691,6 +708,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     objectiveNotice: "", sageIndex: 0, currentSage: null, sagesMet: [],
     trailFeed: [data.trailFeedOpener], hardPaceStreak: 0,
     inventoryOpen: false,
+    lastEventWasReader: false,
   }), [data]);
 
   const [state, setState] = useState<GameState>(makeInit);
@@ -865,8 +883,14 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
         }
       }
 
+      // Backstop bookkeeping: assume this turn is a NON-reader beat (travel,
+      // dilemma, or trivia); the reader case overrides below when one fires.
+      // Cleared here (read prev.lastEventWasReader for the avoid decision) so a
+      // deferred reader fires next turn — defer-don't-drop.
+      s.lastEventWasReader = false;
+
       // Event
-      const event = selectEvent(s.day, data.totalDays, data.events as GameEvent[], s.routeTag, s.eventCounts, s.eventLastTurn, s.turn, isCharacterMode(data) ? 1 : MAX_EVENT_REPEATS);
+      const event = selectEvent(s.day, data.totalDays, data.events as GameEvent[], s.routeTag, s.eventCounts, s.eventLastTurn, s.turn, isCharacterMode(data) ? 1 : MAX_EVENT_REPEATS, isCharacterMode(data) && prev.lastEventWasReader);
       if (event) {
         if (s.triviaCounter >= 2) {
           const trivia = pickTriviaQuestion(data, s.usedQuestionIds, s.lastQuestionId);
@@ -885,6 +909,9 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
         s.eventCounts = { ...s.eventCounts, [event.id]: (s.eventCounts[event.id] ?? 0) + 1 };
         s.eventLastTurn = { ...s.eventLastTurn, [event.id]: s.turn };
         s.currentEvent = { ...event, triviaGate: shouldGateTrivia(event.id, s.turn) };
+        // Mark a single-choice "Go on." reader so the next turn avoids stacking
+        // a second one (the no-consecutive-reader backstop).
+        s.lastEventWasReader = (event.choices?.length ?? 0) === 1;
         s.phase = "event";
         s.riskHintsOn = false;
         s.pendingChoiceIndex = null;

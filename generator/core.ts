@@ -9,7 +9,7 @@ import type { CastCharacter } from "./cast.js";
 import type { SystemsEconomy } from "./economy.js";
 import { type PersonalEconomy, validatePersonalEconomy } from "./personalEconomy.js";
 import { type FaultLineSpec, validateFaultLine } from "./faultline.js";
-import { faultLineToCampaignPieces } from "./faultlineCompile.js";
+import { faultLineToCampaignPieces, reserveClosingDilemma, validateEndgameRhythm } from "./faultlineCompile.js";
 import { applyRelationshipTracks, validateRelationshipTracks } from "./relationshipTracks.js";
 import type { FlagDecl } from "./schema.js";
 
@@ -353,6 +353,10 @@ function buildRelationshipLaw(): string {
     "(c) LET RESULT PROSE CARRY THE COST — WITHOUT NUMBERS. When a choice wounds a relationship, its `result` text may show it in human terms (\"your wife says nothing, but she counts the coins\") — NEVER a number, never \"+2 family\". This is what makes a choice FEEL consequential in the moment.",
   );
   lines.push("");
+  lines.push(
+    "(d) END ON A CHOICE — ONE CLIMACTIC CLOSING DILEMMA. The reckoning at the very end is the campaign's REFLECTION; the PLAY must therefore CLIMAX on a hard decision, never trail off into reflection beats. Author ONE late, climactic standard event — this person's hardest, most defining choice, where the central tension comes to a head — and place it in the campaign's TAIL with \"phase_min\": 0.85 and \"phase_max\": 1.0. It carries \u22652 real choices bearing the LARGEST moral weight (your biggest family/community deltas). Any quieter reflection/consequence beats stay EARLIER (before phase 0.85); the LAST thing the player does before the reckoning is CHOOSE, not read.",
+  );
+  lines.push("");
   lines.push("=== END RELATIONSHIP TRACKS ===");
   lines.push("");
   return lines.join("\n");
@@ -462,6 +466,12 @@ export async function generateCampaign(
   // Strict no-op for systems campaigns. (Step 1: declarations only — per-choice
   // deltas and the reckoning are wired in later steps.)
   applyRelationshipTracks(data, inputs.faultLine);
+  // Character path only: reserve the campaign's TAIL [0.85, 1.0] for a climactic
+  // closing DILEMMA so the final beat before the reckoning is a CHOICE, not a
+  // reflection "Go on." (the reckoning is the reflection). Prefers the model's
+  // authored climax (the prompt nudges for one); degrades to re-windowing the
+  // latest dilemma. Gated on faultLine — strict no-op for systems campaigns.
+  if (inputs.faultLine) reserveClosingDilemma(data);
 
   const validation = validate(data);
 
@@ -497,6 +507,9 @@ export function validateForDelivery(
   if (inputs.faultLine) {
     findings.push(...validateFaultLine(inputs.faultLine).map((f) => ({ ...f, field: `faultLine.${f.field}` })));
     findings.push(...validateRelationshipTracks(data));
+    // Endgame-rhythm guard: campaign must END ON A DILEMMA, readers capped and
+    // off the tail. Inspects the PRODUCED data (post reserveClosingDilemma).
+    findings.push(...validateEndgameRhythm(data));
   }
   if (inputs.personalEconomy) {
     findings.push(...validatePersonalEconomy(inputs.personalEconomy).map((f) => ({ ...f, field: `personalEconomy.${f.field}` })));
