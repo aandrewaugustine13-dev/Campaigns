@@ -1661,7 +1661,18 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                   bossHealth={r.morale ?? 50}
                   scoutHealth={r.morale ?? 50}
                   insight={state.insight}
-                  onSpendInsightForHints={spendInsightForHints}
+                  onSpendInsightForHints={
+                    // Hide the "Ask a Sage (Spend 1 Insight)" risk-hints button on
+                    // character READER beats (single-choice "Go on." reflections):
+                    // a sage advises on a CHOICE, and a reader has none — spending
+                    // Insight for per-choice hints on a non-decision is meaningless.
+                    // Character-gated so systems is a strict no-op (isCharacterMode
+                    // false → always spendInsightForHints, byte-identical); Chisholm
+                    // uses a separate call site in App.tsx and is untouched.
+                    isCharacterMode(data) && (renderedEvent.choices?.length ?? 0) < 2
+                      ? undefined
+                      : spendInsightForHints
+                  }
                   showRiskHints={state.riskHintsOn}
                   riskHints={riskHints}
                   backdropImage={data.backdropImage}
