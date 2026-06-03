@@ -70,16 +70,19 @@ export default function VisualNovelEngine({
 
   return (
     <div className="border-4 theme-dialogue-frame-border">
-      {/* Scene — historical image, themed fallback, or Chisholm parallax */}
-      <div className="relative w-full overflow-hidden" style={{ height: 200 }}>
+      {/* Scene — historical image, themed fallback, or Chisholm parallax.
+          Fixed 3:2 aspect-ratio frame (shared ratio language with the intro
+          banner 16:9 and sage portrait 1:1) so every scene renders identically
+          proportioned regardless of source image size, instead of the old flat
+          200px height whose aspect drifted with panel width. All children are
+          inset-0 (fill) or bottom-anchored (portraits/cattle), so the ratio
+          swap keeps them placed. */}
+      <div className="relative w-full overflow-hidden" style={{ aspectRatio: "3 / 2" }}>
         {sceneImage ? (
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `url("${sceneImage.thumbUrl}")`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
+          <img
+            src={sceneImage.thumbUrl}
+            alt={currentEvent.title ?? ""}
+            className="absolute inset-0 w-full h-full object-cover"
           />
         ) : showCharacterOverlay ? (
           <>

@@ -1204,13 +1204,11 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       <div className="max-w-md text-center space-y-4 p-4">
         {data.backdropImage && (
           <div className="space-y-1">
-            <div
-              className="w-full h-40 rounded overflow-hidden border theme-border"
-              style={{
-                backgroundImage: `url("${data.backdropImage.thumbUrl}")`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}
+            <img
+              src={data.backdropImage.thumbUrl}
+              alt=""
+              className="w-full rounded border theme-border object-cover"
+              style={{ aspectRatio: "16 / 9" }}
             />
             <p className="theme-text-muted leading-tight text-left" style={{ fontSize: "11px" }}>
               {data.backdropImage.artist} · {data.backdropImage.license} ·{" "}

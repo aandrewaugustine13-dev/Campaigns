@@ -41,6 +41,7 @@ export default function SageEncounter({ sage, onComplete }: Props) {
             <div
               className="w-20 h-20 rounded-lg overflow-hidden border-2 border-amber-800/60"
               style={{
+                aspectRatio: "1 / 1",
                 background: "linear-gradient(135deg, #3d2516, #2d1b11)",
               }}
             >
