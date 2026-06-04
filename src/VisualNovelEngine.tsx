@@ -78,12 +78,16 @@ export default function VisualNovelEngine({
           200px height whose aspect drifted with panel width. All children are
           inset-0 (fill) or bottom-anchored (portraits/cattle), so the ratio
           swap keeps them placed. */}
-      <div className="relative w-full overflow-hidden" style={{ aspectRatio: "3 / 2" }}>
+      <div className="relative w-full overflow-hidden theme-dialogue-frame" style={{ aspectRatio: "3 / 2" }}>
         {sceneImage ? (
+          // object-contain (not cover): event lithographs are often tall
+          // portraits; cover cropped their top/bottom (heads/feet). Contain
+          // shows the whole image, letterboxed against the dialogue-frame matte
+          // so the bars read as intentional framing, not a gap.
           <img
             src={sceneImage.thumbUrl}
             alt={currentEvent.title ?? ""}
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-contain"
           />
         ) : showCharacterOverlay ? (
           <>

@@ -75,11 +75,14 @@ export default function PushYourLuckEngine({ event, onUpdate, onLeave, backdropI
   return (
     <div className="border theme-border rounded theme-bg-card shadow-lg overflow-hidden">
       {commonsImage ? (
-        <div className="w-full h-32 relative border-b theme-border">
+        // object-contain + matte: Commons lithographs are often tall and were
+        // being cropped top/bottom by cover. The Silk Road legacy pixel-art
+        // branch below keeps object-cover (contain would letterbox pixel art).
+        <div className="w-full h-32 relative border-b theme-border theme-dialogue-frame">
           <img
             src={commonsImage.thumbUrl}
             alt={event.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
             style={{ objectPosition: "center" }}
           />
         </div>
