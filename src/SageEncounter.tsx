@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { SageEncounterData } from "./campaigns/types";
+import { truncateCredit } from "./lib/attribution";
 
 // ═══════════════════════════════════════════════════════════════
 // SAGE ENCOUNTER — full encounter flow
@@ -63,7 +64,7 @@ export default function SageEncounter({ sage, onComplete }: Props) {
             </div>
             {sage.portraitAttribution && (
               <p className="w-20 mt-0.5 text-stone-500 leading-tight" style={{ fontSize: "11px" }}>
-                {sage.portraitAttribution.artist}
+                {truncateCredit(sage.portraitAttribution.artist)}
                 {" · "}
                 <a
                   href={sage.portraitAttribution.sourceUrl}

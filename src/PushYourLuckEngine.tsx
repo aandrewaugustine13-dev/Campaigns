@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { truncateCredit } from "./lib/attribution";
 
 interface Resources { [key: string]: number; }
 interface PushAttempt {
@@ -95,7 +96,7 @@ export default function PushYourLuckEngine({ event, onUpdate, onLeave, backdropI
 
       {commonsImage && (
         <div className="theme-bg-card-inner theme-text-muted px-3 py-1 border-b theme-divider leading-tight" style={{ fontSize: "11px" }}>
-          {commonsImage.artist} · {commonsImage.license} ·{" "}
+          {truncateCredit(commonsImage.artist)} · {commonsImage.license} ·{" "}
           <a
             href={commonsImage.sourceUrl}
             target="_blank"

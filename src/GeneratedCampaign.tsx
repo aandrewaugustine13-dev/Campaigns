@@ -4,6 +4,7 @@ import {
   Shield, Coins, Heart, Smile, Zap, BookOpen, Map,
   ChevronRight, ChevronDown, Package
 } from "lucide-react";
+import { truncateCredit } from "./lib/attribution";
 
 function ResourceIcon({ label, className }: { label: string; className?: string }) {
   const l = label.toLowerCase();
@@ -1211,7 +1212,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
               style={{ aspectRatio: "16 / 9" }}
             />
             <p className="theme-text-muted leading-tight text-left" style={{ fontSize: "11px" }}>
-              {data.backdropImage.artist} · {data.backdropImage.license} ·{" "}
+              {truncateCredit(data.backdropImage.artist)} · {data.backdropImage.license} ·{" "}
               <a
                 href={data.backdropImage.sourceUrl}
                 target="_blank"

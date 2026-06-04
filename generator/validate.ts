@@ -525,9 +525,17 @@ export function validate(data: unknown): ValidationReport {
   if (typeof oc === "object" && oc !== null) {
     check("outfitConfig.budget", typeof oc.budget === "number", "Missing outfitConfig.budget");
     check("outfitConfig.costs", typeof oc.costs === "object" && oc.costs !== null, "Missing outfitConfig.costs");
-    if (mode === "journey") {
-      check("outfitConfig.herdOptions", Array.isArray(oc.herdOptions) && (oc.herdOptions as unknown[]).length > 0,
-        "Missing or empty outfitConfig.herdOptions");
+    // herdOptions is a CATTLE-DRIVE-specific field (how many cattle to drive),
+    // not a journey-universal one — Lewis & Clark, the Oregon Trail, a military
+    // march, or any project campaign are all herd-less. So it is no longer
+    // required by mode: validate its SHAPE only when present (cf.
+    // theme/isPublished/flags above), and accept an EMPTY array as the honest
+    // herd-less value (project mode is explicitly instructed to emit []).
+    // Absent ⇒ skipped. A non-array is still malformed. Chisholm emits a
+    // non-empty array ⇒ validates exactly as before.
+    if (oc.herdOptions !== undefined) {
+      check("outfitConfig.herdOptions", Array.isArray(oc.herdOptions),
+        "outfitConfig.herdOptions must be an array if present");
     }
   }
 

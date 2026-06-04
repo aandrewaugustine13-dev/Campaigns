@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { getDoomFace } from "./AssetConfig";
+import { truncateCredit } from "./lib/attribution";
 
 interface SageAdvice {
   name: string;
@@ -155,7 +156,7 @@ export default function VisualNovelEngine({
       {/* Attribution — shown only when a Commons image is displayed */}
       {sceneImage && (
         <div className="theme-dialogue-frame theme-dialogue-attribution px-2 pt-1 leading-tight" style={{ fontSize: "11px" }}>
-          {sceneImage.artist} · {sceneImage.license} ·{" "}
+          {truncateCredit(sceneImage.artist)} · {sceneImage.license} ·{" "}
           <a
             href={sceneImage.sourceUrl}
             target="_blank"

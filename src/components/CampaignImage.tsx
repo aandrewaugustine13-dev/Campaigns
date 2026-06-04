@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from "react";
 import type { CampaignImageTreatment } from "../campaigns/treatments";
+import { truncateCredit } from "../lib/attribution";
 
 // ════════════════════════════════════════════════════════════════
 // CampaignImage — the per-campaign visual treatment layer.
@@ -70,7 +71,7 @@ function MissingArt({ src, fill }: { src: string; fill?: boolean }) {
 function Caption({ meta, treatment }: { meta: CampaignImageMeta; treatment: CampaignImageTreatment }) {
   const { align = "left", muted = "#a8a29e", link = "#d6d3d1" } = treatment.caption;
   const parts: string[] = [];
-  if (meta.artist) parts.push(meta.artist);
+  if (meta.artist) parts.push(truncateCredit(meta.artist));
   if (meta.license) parts.push(meta.license);
   return (
     <figcaption
