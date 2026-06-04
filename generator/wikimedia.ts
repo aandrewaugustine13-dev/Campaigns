@@ -101,6 +101,11 @@ interface PortraitResult {
 async function findArticlePageimage(
   query: string,
   signal: AbortSignal,
+  // Event/backdrop path opts in to scanning past top[0] for the first hit that
+  // actually carries a lead image (see below). Defaults to false so the sage
+  // portrait path stays byte-identical: it inspects strictly top[0], then
+  // applies its own nameMatches relevance gate downstream.
+  scanAllHits = false,
 ): Promise<{ pageimage: string; articleTitle: string } | null> {
   const params = new URLSearchParams({
     action: "query",
@@ -129,9 +134,14 @@ async function findArticlePageimage(
   const sorted = Object.values(pages).sort(
     (a, b) => (a.index ?? 999) - (b.index ?? 999),
   );
-  const top = sorted[0];
-  if (!top?.pageimage || !top?.title) return null;
-  return { pageimage: top.pageimage, articleTitle: top.title };
+  // Event/backdrop path (scanAllHits): take the FIRST best-ranked hit that
+  // actually carries a lead image, not strictly top[0] — a #1 article without a
+  // pageimage (a list, stub, or disambiguation page outranking the real
+  // subject) shouldn't blank the event when #2/#3 have a canonical lead. Sage
+  // path (default): strictly top[0], unchanged.
+  const hit = scanAllHits ? sorted.find((p) => p.pageimage && p.title) : sorted[0];
+  if (!hit?.pageimage || !hit?.title) return null;
+  return { pageimage: hit.pageimage, articleTitle: hit.title };
 }
 
 // Commons file metadata for a known filename. Confirms image MIME and
@@ -391,9 +401,9 @@ async function searchViaArticlePageimage(query: string): Promise<CommonsImageRes
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const pageimage = await findArticlePageimage(query, controller.signal);
-    if (!pageimage) return null;
-    return await lookupCommonsFileForEvent(pageimage, query, controller.signal);
+    const article = await findArticlePageimage(query, controller.signal, true);
+    if (!article) return null;
+    return await lookupCommonsFileForEvent(article.pageimage, query, controller.signal);
   } catch {
     return null;
   } finally {
