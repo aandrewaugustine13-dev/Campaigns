@@ -58,11 +58,23 @@ function nameMatches(sageName: string, articleTitle: string): boolean {
 
 function isPublicDomain(meta: Record<string, ExtMetadataField>): boolean {
   const license = (meta.LicenseShortName?.value ?? "").trim();
+  const usage = (meta.UsageTerms?.value ?? "").trim();
   const copyrighted = (meta.Copyrighted?.value ?? "").trim();
 
-  if (copyrighted.toLowerCase() !== "false") return false;
-
   const l = license.toLowerCase();
+  const u = usage.toLowerCase();
+
+  // PD-equivalent institutional tags (LoC / Flickr Commons "No restrictions",
+  // CC Public Domain Mark). These carry Copyrighted="True" in extmetadata even
+  // though no copyright is asserted, so they're admitted regardless of that
+  // flag — but ONLY for these specific PD-equivalent strings. This recovers
+  // correct-but-rejected LoC portraits (e.g. Ralph Abernathy) that previously
+  // fell through to a monogram. CC-BY-attribution images are NOT admitted here.
+  if (l === "no restrictions" || u === "no known copyright restrictions") return true;
+  if (l.startsWith("pdm") || u.includes("public domain mark")) return true;
+
+  // Standard public-domain path: copyright flag must be explicitly false.
+  if (copyrighted.toLowerCase() !== "false") return false;
   if (l.startsWith("public domain")) return true;
   if (l.startsWith("pd")) return true;
   if (l === "cc0") return true;
