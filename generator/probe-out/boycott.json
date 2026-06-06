@@ -1,0 +1,812 @@
+{
+  "id": "montgomery_boycott",
+  "title": "WALKING IN MONTGOMERY",
+  "subtitle": "381 Days of Courage, 1955–1956",
+  "introBody": "December 1955, Montgomery, Alabama. You are a Black domestic worker who crosses town six days a week to cook and clean in a white household. Rosa Parks has been arrested. The leaflets are out. Monday morning, you have pledged to walk. Every blister is a vote — but the miles are long, your employer is watching, and the coins in your purse are thin.",
+  "trailFeedOpener": "Monday, December 5, 1955: the buses run nearly empty through Montgomery's Black neighborhoods.",
+  "theme": "broadsheet-sepia",
+  "isPublished": false,
+  "progressionMode": "project",
+  "totalDays": 381,
+  "daysPerTurn": 8,
+  "totalDistance": 0,
+  "distanceUnit": "",
+  "initialResources": {
+    "weeklyWages": 18,
+    "standingInTheCommunity": 50,
+    "jobSecurity": 55
+  },
+  "resourceCaps": {
+    "weeklyWages": 60,
+    "standingInTheCommunity": 100,
+    "jobSecurity": 100
+  },
+  "resourceLabels": {
+    "weeklyWages": "The cash in your purse — what you earn, what you spend to keep the household running.",
+    "standingInTheCommunity": "How much your neighbors, your church, and the boycott's organizers trust and rely on you.",
+    "jobSecurity": "How safe your position in the white household is — whether your employer still needs you enough to keep you on."
+  },
+  "paces": [],
+  "events": [
+    {
+      "id": "fl_setter",
+      "phase_min": 0,
+      "phase_max": 0.3,
+      "weight": 5,
+      "title": "Week two of the boycott — your feet are blistered, the carpool is unreliable, and you have arrived late twice. Your employer, Mrs. Hendricks, sets down her coffee cup and looks at you across the kitchen table with something between concern and warning in her face.",
+      "text": "Mrs. Hendricks says she has heard talk, that she has noticed you arriving worn out, and that she needs to know straight: are you one of the ones refusing to ride? She says she has nothing against you personally, but she cannot have 'that kind of disruption' brought into her home, and she needs a girl she can count on. She is not shouting. She is waiting. The kitchen is quiet.",
+      "type": "standard",
+      "choices": [
+        {
+          "text": "Look her in the eye and say: 'Yes, ma'am, I am walking. And I mean to keep walking.'",
+          "flagWrites": {
+            "told_employer_truth": true
+          },
+          "result": "She has placed her own name on the line — she does not separate her body's act from her mouth's account of it. Whatever comes next, she has refused to be two different people in the same room."
+        },
+        {
+          "text": "Hold her gaze and say: 'I've just been having trouble with my feet, Mrs. Hendricks. I'll be on time from now on.'",
+          "flagWrites": {
+            "told_employer_truth": false
+          },
+          "result": "She has chosen the survival of the household over the coherence of her self-presentation — she will go on walking those miles, but she will carry the weight of what she did not say every step of the way."
+        }
+      ]
+    },
+    {
+      "id": "first_monday_walk",
+      "phase_min": 0,
+      "phase_max": 0.15,
+      "weight": 6,
+      "title": "The First Monday Morning",
+      "text": "It is barely light when you lace your shoes and step out. The buses roll past full of white riders and nearly empty of Black ones — it is working. A neighbor calls from her porch: she hurt her ankle and cannot walk five miles today. Her shift starts at seven.",
+      "type": "standard",
+      "imageSearchQuery": "Montgomery bus boycott 1955",
+      "choices": [
+        {
+          "text": "Help her find a carpool ride, even if it makes you late.",
+          "flagWrites": {
+            "family": -1,
+            "community": 2
+          },
+          "effects": {
+            "standingInTheCommunity": 7,
+            "jobSecurity": -5
+          },
+          "result": "You spend twenty minutes working the phone tree. She gets a ride; you arrive forty minutes late and Mrs. Hendricks notices."
+        },
+        {
+          "text": "Walk on. She will find her own way.",
+          "flagWrites": {
+            "family": 1,
+            "community": -2
+          },
+          "effects": {
+            "standingInTheCommunity": -6,
+            "jobSecurity": 5
+          },
+          "result": "You arrive on time. But word travels in this neighborhood, and the carpool coordinator heard you walked past."
+        }
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Rosa_Parks_1956.jpg/960px-Rosa_Parks_1956.jpg",
+        "artist": "UPI",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ARosa_Parks_1956.jpg",
+        "searchQuery": "Montgomery bus boycott 1955"
+      }
+    },
+    {
+      "id": "leaflet_distribution",
+      "phase_min": 0.05,
+      "phase_max": 0.2,
+      "weight": 5,
+      "title": "Jo Ann Robinson's Stack of Papers",
+      "text": "Jo Ann Robinson drops a bundle of leaflets at your door — the Women's Political Council printed 52,000 overnight. She needs people to pass them in your block before sunrise. It means losing an hour of sleep on a work night.",
+      "type": "standard",
+      "imageSearchQuery": "Jo Ann Robinson Women's Political Council Montgomery",
+      "choices": [
+        {
+          "text": "Take the whole bundle. Walk every door before dawn.",
+          "flagWrites": {
+            "community": 3
+          },
+          "effects": {
+            "standingInTheCommunity": 10,
+            "weeklyWages": -2
+          },
+          "result": "You are running on three hours of sleep, but every neighbor on your block has a leaflet. Robinson thanks you by name at the mass meeting."
+        },
+        {
+          "text": "Take a small stack — just your close neighbors.",
+          "flagWrites": {
+            "community": 1
+          },
+          "effects": {
+            "standingInTheCommunity": 3
+          },
+          "result": "You cover half the block. It is something, and you make it to work without stumbling."
+        },
+        {
+          "text": "Leave them on your step. You need the sleep.",
+          "flagWrites": {
+            "community": -1,
+            "family": 1
+          },
+          "effects": {
+            "standingInTheCommunity": -4
+          },
+          "result": "The bundle sits in the cold. A child from down the street picks it up eventually, but the moment has passed."
+        }
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Types_of_Canadian_Women.djvu/page1-500px-Types_of_Canadian_Women.djvu.jpg",
+        "artist": "Henry J. (Henry James) Morgan",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ATypes_of_Canadian_Women.djvu",
+        "searchQuery": "Jo Ann Robinson Women's Political Council Montgomery photograph"
+      }
+    },
+    {
+      "id": "shoe_money",
+      "phase_min": 0.2,
+      "phase_max": 0.45,
+      "weight": 5,
+      "title": "Your Shoes Are Giving Out",
+      "text": "Six weeks of walking five miles each way have worn through the soles of your only good pair. Your feet hurt with every step. A church collection is also happening this Sunday — the MIA needs money for the carpool fund.",
+      "type": "standard",
+      "imageSearchQuery": "Montgomery Improvement Association mass meeting 1956",
+      "choices": [
+        {
+          "text": "Buy new shoes. Your feet cannot take more.",
+          "flagWrites": {
+            "family": 2
+          },
+          "effects": {
+            "weeklyWages": -6,
+            "jobSecurity": 4
+          },
+          "result": "Your feet stop bleeding. You arrive at work looking presentable. Mrs. Hendricks says nothing, but the tension eases slightly."
+        },
+        {
+          "text": "Put what you have into the carpool collection plate.",
+          "flagWrites": {
+            "community": 3,
+            "family": -2
+          },
+          "effects": {
+            "weeklyWages": -5,
+            "standingInTheCommunity": 8
+          },
+          "result": "You drop your last few dollars in the plate. Your feet ache all week, but Reverend Abernathy calls it the collection that kept twelve families rolling."
+        },
+        {
+          "text": "Do neither. Wrap your feet in cloth and keep walking.",
+          "flagWrites": {
+            "family": -1,
+            "community": -1
+          },
+          "effects": {
+            "jobSecurity": -4
+          },
+          "result": "You limp through Tuesday. Mrs. Hendricks asks if you are sick. You say no. She watches you differently after that."
+        }
+      ]
+    },
+    {
+      "id": "claudette_colvin_story",
+      "phase_min": 0.3,
+      "phase_max": 0.55,
+      "weight": 4,
+      "title": "Claudette Colvin's Name Comes Up",
+      "text": "At the church distribution table, E. D. Nixon mentions Claudette Colvin — a teenager arrested nine months before Rosa Parks for refusing to give up her bus seat. Some women whisper she was the wrong face for the movement. A young woman nearby looks stricken.",
+      "type": "standard",
+      "imageSearchQuery": "Claudette Colvin Montgomery arrest 1955",
+      "choices": [
+        {
+          "text": "Speak up: Colvin resisted first — her courage matters.",
+          "flagWrites": {
+            "community": 2
+          },
+          "effects": {
+            "standingInTheCommunity": 6
+          },
+          "result": "The young woman lifts her chin. Nixon nods slowly. You have said what needed saying."
+        },
+        {
+          "text": "Stay quiet. Nixon knows what he is doing.",
+          "flagWrites": {
+            "community": -1
+          },
+          "effects": {
+            "standingInTheCommunity": -3
+          },
+          "result": "The conversation moves on. The young woman slips out the side door. You will wonder about that for a while."
+        }
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Claudette_Colvin.jpg/960px-Claudette_Colvin.jpg",
+        "artist": "The Visibility Project, Claudette Colvin",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AClaudette_Colvin.jpg",
+        "searchQuery": "Claudette Colvin Montgomery arrest 1955"
+      }
+    },
+    {
+      "id": "kings_house_bombed",
+      "phase_min": 0.45,
+      "phase_max": 0.65,
+      "weight": 6,
+      "title": "They Bombed King's House",
+      "text": "Word reaches you on a Tuesday: Dr. King's home was bombed the night before. His wife and baby daughter were inside. He came out and told the crowd gathering outside to put down their weapons. Fear and fury are equal in the air.",
+      "type": "standard",
+      "imageSearchQuery": "Martin Luther King house bombing Montgomery 1956",
+      "choices": [
+        {
+          "text": "Go to the mass meeting tonight, however tired you are.",
+          "flagWrites": {
+            "community": 2,
+            "family": -1
+          },
+          "effects": {
+            "standingInTheCommunity": 7,
+            "weeklyWages": -1
+          },
+          "result": "The church is packed past the walls. King speaks without notes. You walk home at midnight through streets that feel different — heavier and steadier at once."
+        },
+        {
+          "text": "Stay home. Your family is scared and needs you there.",
+          "flagWrites": {
+            "family": 3,
+            "community": -2
+          },
+          "effects": {
+            "standingInTheCommunity": -5
+          },
+          "result": "You sit with your family through the night. Outside it is quiet. Inside, the warmth is real and you needed it too. No one at the meeting asks where you were — they know some people had to stay."
+        }
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Rosa_Parks_1956.jpg/960px-Rosa_Parks_1956.jpg",
+        "artist": "UPI",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ARosa_Parks_1956.jpg",
+        "searchQuery": "Martin Luther King house bombing Montgomery 1956"
+      }
+    },
+    {
+      "id": "supreme_court_ruling_climax",
+      "phase_min": 0.85,
+      "phase_max": 1,
+      "weight": 8,
+      "title": "The Ruling Arrives — November 1956",
+      "text": "The Supreme Court has struck down Alabama's bus segregation laws. The boycott has won. Tonight the mass meeting will overflow into the street. A reporter from a Northern paper wants to interview you — a woman who walked every day for a year. Your employer has heard the news on the radio and called to say she is 'not sure what this means' for your arrangement.",
+      "type": "standard",
+      "imageSearchQuery": "Browder v Gayle Supreme Court decision 1956",
+      "choices": [
+        {
+          "text": "Give the interview. Let the reporter tell your story.",
+          "flagWrites": {
+            "community": 3,
+            "family": -2
+          },
+          "effects": {
+            "standingInTheCommunity": 12,
+            "jobSecurity": -15
+          },
+          "result": "Your name runs in a Northern paper. Women in Chicago write to say your walk moved them. Mrs. Hendricks does not call again. Your family's next weeks are harder. But something you did cannot be taken back."
+        },
+        {
+          "text": "Decline the interview. Walk to the mass meeting with your neighbors.",
+          "flagWrites": {
+            "community": 2,
+            "family": 1
+          },
+          "effects": {
+            "standingInTheCommunity": 8
+          },
+          "result": "You are no headline, but you are in that room when King announces the ruling. The woman beside you grabs your hand. You have been here the whole time."
+        },
+        {
+          "text": "Call Mrs. Hendricks back first. Secure the job before anything else.",
+          "flagWrites": {
+            "family": 3,
+            "community": -3
+          },
+          "effects": {
+            "jobSecurity": 12,
+            "weeklyWages": 4,
+            "standingInTheCommunity": -8
+          },
+          "result": "She sounds relieved you called. The job holds. Your family breathes easier. At the meeting, someone asks if you heard about the woman who walked every day — you do not say it was you."
+        }
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/a/ad/Seal_of_the_United_States_District_Court_for_the_Middle_District_of_Alabama.gif",
+        "artist": "United States Federal Government",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ASeal_of_the_United_States_District_Court_for_the_Middle_District_of_Alabama.gif",
+        "searchQuery": "Browder v Gayle Supreme Court decision 1956"
+      }
+    },
+    {
+      "id": "fl_reader_0",
+      "phase_min": 0.35,
+      "phase_max": 0.85,
+      "weight": 5,
+      "title": "Six weeks in — the boycott holds. A neighbor's teenage daughter asks you directly, in front of other women at the church distribution table, whether you lost your job for standing up, meaning to honor you. Everyone is listening.",
+      "text": {
+        "default": "You nod, and the girl's face opens into something that looks like courage borrowed from yours. You feel the cost and the weight of it at the same moment — you did not choose this tribute, but you did choose the truth that made it possible. You are the version of yourself who can be named here, in this room, without flinching.",
+        "variants": [
+          {
+            "whenFlag": "told_employer_truth",
+            "equals": true,
+            "text": "You nod, and the girl's face opens into something that looks like courage borrowed from yours. You feel the cost and the weight of it at the same moment — you did not choose this tribute, but you did choose the truth that made it possible. You are the version of yourself who can be named here, in this room, without flinching."
+          },
+          {
+            "whenFlag": "told_employer_truth",
+            "equals": false,
+            "text": "You smile and say you are still employed, thank the Lord. The girl nods, moves on, and no one knows what those five miles each way cost you or what you left unsaid in that kitchen. You have kept your family and kept walking — and you have kept a part of yourself behind a door that only you know is there. The boycott does not require your confession. But you feel the shape of that door every time someone speaks of courage."
+          }
+        ]
+      },
+      "type": "standard",
+      "choices": [
+        {
+          "text": "Go on."
+        }
+      ]
+    }
+  ],
+  "sages": [
+    {
+      "id": "rosa_parks",
+      "name": "Rosa Parks",
+      "title": "NAACP Secretary; Spark of the Boycott",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Rosa_Parks%2C_November_1956_%28cropped%29.jpg/330px-Rosa_Parks%2C_November_1956_%28cropped%29.jpg",
+      "portraitAttribution": {
+        "artist": "Unknown author",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ARosa_Parks%2C_November_1956_(cropped).jpg"
+      },
+      "threshold": 12,
+      "bio": "Rosa Parks was the NAACP Secretary in Montgomery whose arrest on December 1, 1955 for refusing to yield her bus seat ignited the boycott. Her act was not spontaneous — she had trained at the Highlander Folk School and had been quietly planning resistance.",
+      "greeting": "You are waiting at the carpool pickup corner when a small woman stops beside you. She has a calm face and tired eyes. She says she heard you have been walking every day.",
+      "advice": "She says: 'People always say I was tired that evening. I was not tired of my feet. I was tired of giving in.' She looks at you. 'You know the difference.'",
+      "question": {
+        "question": "Why was Rosa Parks's arrest on December 1, 1955 the moment the MIA chose to build a case around?",
+        "choices": [
+          "She was the first person ever arrested on a Montgomery bus",
+          "She was a trained activist with a clean record — organizers believed her case would hold up in court",
+          "The city offered to negotiate only if Parks was the plaintiff",
+          "She was Dr. King's personal choice before the arrest happened"
+        ],
+        "correctIndex": 1,
+        "explanation": "Parks was an NAACP secretary trained in nonviolent resistance. E. D. Nixon and others felt her character and record made her the strongest possible plaintiff for a legal challenge, unlike earlier cases such as Claudette Colvin's.",
+        "teksRef": "8.29(C) — Civil Rights movement; role of individuals in historical change"
+      },
+      "reward": {
+        "correct": {
+          "standingInTheCommunity": 8,
+          "weeklyWages": 2
+        },
+        "wrong": {
+          "standingInTheCommunity": 3
+        },
+        "knowledgeCorrect": 4,
+        "knowledgeWrong": 2
+      }
+    },
+    {
+      "id": "ed_nixon",
+      "name": "E. D. Nixon",
+      "title": "NAACP Chapter Leader; Pullman Porter",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Rosa_Parks_1956.jpg/330px-Rosa_Parks_1956.jpg",
+      "threshold": 40,
+      "bio": "E. D. Nixon posted bail for Rosa Parks and spent the days after her arrest on the phone uniting Montgomery's Black community leaders. A Pullman porter, he understood both organizing across distances and the price of visible resistance.",
+      "greeting": "Nixon is loading boxes of leaflets into the back of a station wagon when you arrive to help. He does not stop moving. He hands you a box and keeps talking.",
+      "advice": "He says: 'Somebody had to put up the money and make the calls. The movement does not run on speeches alone. It runs on people who show up and do the part nobody claps for.'",
+      "question": {
+        "question": "What critical action did E. D. Nixon take immediately after Rosa Parks's arrest?",
+        "choices": [
+          "He organized the first sit-in at a Montgomery lunch counter",
+          "He posted Parks's bail and began calling leaders to organize a boycott",
+          "He filed the federal lawsuit that became Browder v. Gayle",
+          "He printed the 52,000 leaflets distributed before the first boycott Monday"
+        ],
+        "correctIndex": 1,
+        "explanation": "Nixon posted Parks's bail and then worked the phones to unite Black community leaders — ministers, lawyers, and civic figures — around the boycott. His organizing infrastructure made the December 5 action possible.",
+        "teksRef": "8.29(C) — Roles of organizations and individuals in the Civil Rights movement"
+      },
+      "reward": {
+        "correct": {
+          "standingInTheCommunity": 8,
+          "jobSecurity": 3
+        },
+        "wrong": {
+          "standingInTheCommunity": 3
+        },
+        "knowledgeCorrect": 4,
+        "knowledgeWrong": 2
+      },
+      "portraitAttribution": {
+        "artist": "UPI",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ARosa_Parks_1956.jpg"
+      }
+    },
+    {
+      "id": "ralph_abernathy",
+      "name": "Rev. Ralph Abernathy",
+      "title": "Co-founder, Montgomery Improvement Association",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Jesse_Jackson%2C_half-length_portrait_of_Jackson_seated_at_a_table%2C_July_1%2C_1983_edit.jpg/330px-Jesse_Jackson%2C_half-length_portrait_of_Jackson_seated_at_a_table%2C_July_1%2C_1983_edit.jpg",
+      "threshold": 72,
+      "bio": "Ralph Abernathy co-founded the MIA with King and coordinated the church networks that kept the carpool system and mass meetings running for 381 days. He understood that a boycott is not one dramatic moment — it is a thousand small logistical decisions made under pressure.",
+      "greeting": "Abernathy is writing names on a clipboard outside First Baptist when you stop to check the carpool schedule. He finds your name without being asked and confirms your pickup time.",
+      "advice": "He says: 'King speaks for us in the newspapers. But what keeps this moving is every woman who shows up for her shift driving and every man who holds the church open on a Tuesday night. You are the movement — not the headline.'",
+      "question": {
+        "question": "How did the Montgomery Improvement Association keep Black workers moving during the boycott?",
+        "choices": [
+          "They negotiated free taxi service from the city government",
+          "They organized a private carpool network funded by church collections",
+          "They arranged for all workers to be paid double wages during the boycott",
+          "They chartered buses from neighboring cities to run parallel routes"
+        ],
+        "correctIndex": 1,
+        "explanation": "The MIA organized a volunteer carpool system with dozens of pickup stations, funded largely by church collections. It moved tens of thousands of people daily for 381 days and was the logistical backbone of the boycott.",
+        "teksRef": "8.29(C) — Strategies and tactics of the Civil Rights movement"
+      },
+      "reward": {
+        "correct": {
+          "standingInTheCommunity": 8,
+          "weeklyWages": 3
+        },
+        "wrong": {
+          "standingInTheCommunity": 3
+        },
+        "knowledgeCorrect": 4,
+        "knowledgeWrong": 2
+      },
+      "portraitAttribution": {
+        "artist": "Jesse_Jackson,_half-length_portrait_of_Jackson_seated_at_a_table,_July_1,_1983.jpg: Leffler, Warren K. derivative work: Fletcher6 (talk)",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AJesse_Jackson%2C_half-length_portrait_of_Jackson_seated_at_a_table%2C_July_1%2C_1983_edit.jpg"
+      }
+    }
+  ],
+  "route": [
+    {
+      "id": "start",
+      "title": "Montgomery, Alabama — December 1955",
+      "description": "The boycott has begun. You are here for the duration.",
+      "edges": []
+    }
+  ],
+  "eventTrivia": [
+    {
+      "id": "mt1",
+      "question": "Who was arrested on December 1, 1955, sparking the Montgomery Bus Boycott?",
+      "choices": [
+        "Claudette Colvin",
+        "Jo Ann Robinson",
+        "Rosa Parks",
+        "Coretta Scott King"
+      ],
+      "correctIndex": 2,
+      "fact": "Rosa Parks, an NAACP secretary, was arrested for refusing to give up her bus seat, triggering the organized boycott."
+    },
+    {
+      "id": "mt2",
+      "question": "How many leaflets did the Women's Political Council distribute before the first boycott Monday?",
+      "choices": [
+        "5,000",
+        "52,000",
+        "12,000",
+        "100,000"
+      ],
+      "correctIndex": 1,
+      "fact": "Jo Ann Robinson and the WPC printed and distributed 52,000 flyers overnight calling for the boycott."
+    },
+    {
+      "id": "mt3",
+      "question": "Who was chosen as president of the Montgomery Improvement Association to lead the boycott?",
+      "choices": [
+        "E. D. Nixon",
+        "Ralph Abernathy",
+        "Martin Luther King Jr.",
+        "Claudette Colvin"
+      ],
+      "correctIndex": 2,
+      "fact": "The MIA elected the young Reverend King as president, partly because he was new to Montgomery and had fewer local enemies."
+    },
+    {
+      "id": "mt4",
+      "question": "What was Claudette Colvin's significance to the boycott's legal strategy?",
+      "choices": [
+        "She organized the first carpool pickup station",
+        "She was arrested nine months before Parks and later became a plaintiff in Browder v. Gayle",
+        "She printed the first leaflets calling for the boycott",
+        "She negotiated directly with the Montgomery City Commission"
+      ],
+      "correctIndex": 1,
+      "fact": "Colvin was arrested in March 1955 for the same act as Parks. She became one of the plaintiffs in Browder v. Gayle, the federal case that ultimately ended bus segregation."
+    },
+    {
+      "id": "mt5",
+      "question": "What legal case ended bus segregation in Montgomery?",
+      "choices": [
+        "Brown v. Board of Education",
+        "Plessy v. Ferguson",
+        "Browder v. Gayle",
+        "Parks v. City of Montgomery"
+      ],
+      "correctIndex": 2,
+      "fact": "Browder v. Gayle was the federal lawsuit brought by MIA attorneys. The Supreme Court ruled Alabama's bus segregation laws unconstitutional in November 1956."
+    },
+    {
+      "id": "mt6",
+      "question": "How long did the Montgomery Bus Boycott last?",
+      "choices": [
+        "30 days",
+        "100 days",
+        "381 days",
+        "2 years"
+      ],
+      "correctIndex": 2,
+      "fact": "The boycott lasted 381 days — from December 5, 1955, until December 20, 1956, when the Supreme Court ruling took effect."
+    },
+    {
+      "id": "mt7",
+      "question": "What role did Black churches play in the boycott's logistics?",
+      "choices": [
+        "They housed the city's legal team",
+        "They served as carpool stations and collection points for the MIA fund",
+        "They negotiated with the bus company on behalf of riders",
+        "They provided meals only to boycott organizers"
+      ],
+      "correctIndex": 1,
+      "fact": "Black churches served as pickup stations for the carpool network and as collection points for the funds that kept the carpools running."
+    },
+    {
+      "id": "mt8",
+      "question": "Why did city officials try to break the carpool system late in the boycott?",
+      "choices": [
+        "They claimed it was an unlicensed taxi service operating without permits",
+        "They said it violated federal highway regulations",
+        "They argued carpools spread disease",
+        "They banned all private vehicles from downtown Montgomery"
+      ],
+      "correctIndex": 0,
+      "fact": "Montgomery officials sought an injunction calling the MIA carpool an unlicensed municipal bus system. The Supreme Court ruling arrived before the injunction could take effect."
+    },
+    {
+      "id": "mt9",
+      "question": "What were the original demands the MIA presented to the bus company?",
+      "choices": [
+        "Complete desegregation immediately and free passes for all Black riders",
+        "Courteous treatment, first-come seating without forcing Black riders to stand over empty seats, and Black drivers on Black routes",
+        "Equal pay for Black and white bus drivers",
+        "A new bus line running through Black neighborhoods only"
+      ],
+      "correctIndex": 1,
+      "fact": "The MIA's initial demands were moderate: polite treatment, first-come-first-served seating within the segregated system, and Black drivers on predominantly Black routes. The city refused all three."
+    },
+    {
+      "id": "mt10",
+      "question": "What happened to Dr. King's home during the boycott?",
+      "choices": [
+        "It was seized by the city for unpaid taxes",
+        "It was bombed while his wife and baby daughter were inside",
+        "It was used as the MIA headquarters and later raided",
+        "It was bought by the NAACP to protect his family"
+      ],
+      "correctIndex": 1,
+      "fact": "King's home was bombed on January 30, 1956, while Coretta and their infant daughter were inside. King came out and urged the crowd that gathered to remain nonviolent."
+    },
+    {
+      "id": "mt11",
+      "question": "Who co-founded the Montgomery Improvement Association alongside King?",
+      "choices": [
+        "E. D. Nixon",
+        "Ralph Abernathy",
+        "Jo Ann Robinson",
+        "Claudette Colvin"
+      ],
+      "correctIndex": 1,
+      "fact": "Ralph Abernathy co-founded the MIA with King and coordinated church networks and mass meetings throughout the 381-day boycott."
+    },
+    {
+      "id": "mt12",
+      "question": "What economic pressure did Black domestic workers face during the boycott?",
+      "choices": [
+        "The city froze all wages for Black workers",
+        "Employers could fire them without cause, dock pay for lateness, or demand they condemn the boycott",
+        "Banks refused loans to any household participating in the boycott",
+        "The bus company charged double fares to Black workers who returned to riding"
+      ],
+      "correctIndex": 1,
+      "fact": "Black domestic workers depended on white employers who could dismiss them without notice. Arriving late after long walks, or being seen at boycott meetings, could cost a woman her only income."
+    },
+    {
+      "id": "mt13",
+      "question": "What nonviolent principle guided the boycott's public response to violence and threats?",
+      "choices": [
+        "Retaliate proportionally to show strength",
+        "Refuse all contact with white citizens until demands are met",
+        "Respond to hatred with dignity and refuse to answer violence with violence",
+        "Escalate protests until the federal government intervened"
+      ],
+      "correctIndex": 2,
+      "fact": "King and the MIA consistently preached nonviolent resistance. When King's house was bombed, he stood before an armed crowd and asked them to put down their weapons and answer hatred with love."
+    },
+    {
+      "id": "mt14",
+      "question": "What was the significance of the Women's Political Council in starting the boycott?",
+      "choices": [
+        "They filed the first legal brief in Browder v. Gayle",
+        "They had already drafted boycott plans and distributed 52,000 leaflets within hours of Parks's arrest",
+        "They organized the first march on the Montgomery City Hall",
+        "They secured federal funding for the carpool network"
+      ],
+      "correctIndex": 1,
+      "fact": "Jo Ann Robinson and the WPC had pre-prepared boycott plans. Within hours of Parks's arrest, they printed and distributed 52,000 flyers — the logistical feat that made the December 5 action possible."
+    }
+  ],
+  "trailPath": [],
+  "trailStops": [],
+  "mapImage": "/faces/map_montgomery.png",
+  "outfitConfig": {
+    "budget": 40,
+    "baseCrew": 0,
+    "baseHorses": 0,
+    "baseSupplies": 0,
+    "costs": {
+      "sturdy_shoes": 8,
+      "raincoat": 5,
+      "church_dues": 3,
+      "carpool_contribution": 4,
+      "extra_food": 3
+    },
+    "wageCosts": {},
+    "wageMorale": {},
+    "herdOptions": []
+  },
+  "primaryResourceKey": "standingInTheCommunity",
+  "primaryResourceStart": 50,
+  "revenuePerUnit": 0,
+  "historicalContext": "The Montgomery Bus Boycott lasted 381 days, from December 5, 1955, to December 20, 1956. It began when Rosa Parks was arrested for refusing to surrender her bus seat to a white passenger. The Women's Political Council, led by Jo Ann Robinson, printed 52,000 leaflets overnight. The Montgomery Improvement Association, led by the 26-year-old Reverend Martin Luther King Jr., organized a carpool network that moved tens of thousands of workers daily. The Supreme Court ruled in Browder v. Gayle that Alabama's bus segregation laws were unconstitutional. The boycott became a founding moment of the modern Civil Rights Movement — sustained not by its leaders alone but by ordinary Black working people, most of them women, who walked miles each day for over a year.",
+  "pixelColors": {
+    "skin": "#8B5E3C",
+    "hair": "#1C1008",
+    "dress": "#3B2A1A",
+    "apron": "#D4C5A9",
+    "coat": "#4A3728",
+    "shoes": "#2C1A0E",
+    "background": "#F5EED8",
+    "shadow": "#7A5C3E"
+  },
+  "pixelFaces": {
+    "worker": [
+      {
+        "threshold": 80,
+        "sprite": "worker_proud",
+        "label": "Steady"
+      },
+      {
+        "threshold": 50,
+        "sprite": "worker_tired",
+        "label": "Worn"
+      },
+      {
+        "threshold": 20,
+        "sprite": "worker_weary",
+        "label": "Fraying"
+      },
+      {
+        "threshold": 0,
+        "sprite": "worker_low",
+        "label": "Hollow"
+      }
+    ]
+  },
+  "imageStyleKeyword": "photograph",
+  "reckoning": {
+    "family": {
+      "default": "Your family holds a complicated memory of this year.",
+      "variants": [
+        {
+          "whenFlag": "family",
+          "whenAtLeast": 9,
+          "text": "Your children grew up knowing you chose them first — that you bent something in yourself so the rent was paid and the meals were on the table. They will not say it was easy. They will say you were there."
+        },
+        {
+          "whenFlag": "family",
+          "whenAtLeast": 4,
+          "whenAtMost": 8,
+          "text": "Your family watched you walk out the door every morning and trusted you to come back. You were not always easy to live with that year, but you were steady, and they felt it."
+        },
+        {
+          "whenFlag": "family",
+          "whenAtLeast": -3,
+          "whenAtMost": 3,
+          "text": "Your family remembers a woman stretched thin — sometimes present, sometimes somewhere else in her mind. They loved you. They also learned to wait."
+        },
+        {
+          "whenFlag": "family",
+          "whenAtLeast": -8,
+          "whenAtMost": -4,
+          "text": "The year drew you away from them in ways you did not always see. They are proud of what you stood for — and quiet about what the cost felt like from their side of the kitchen table."
+        },
+        {
+          "whenFlag": "family",
+          "whenAtMost": -9,
+          "text": "Something broke in those 381 days that did not mend cleanly. They do not call it a betrayal. They call it a long absence — and they are still waiting for the part of you that did not come home."
+        }
+      ]
+    },
+    "community": {
+      "default": "The neighborhood holds a complicated memory of you.",
+      "variants": [
+        {
+          "whenFlag": "community",
+          "whenAtLeast": 9,
+          "text": "They remember you as someone who gave the movement more than it asked — who showed up after everyone else had gone home and passed leaflets on nights when you had nothing left. What you gave, you did not get back. They know that."
+        },
+        {
+          "whenFlag": "community",
+          "whenAtLeast": 4,
+          "whenAtMost": 8,
+          "text": "The women at the carpool table know your name. You did your part steadily, without fanfare. When they speak of the people who held the boycott together, you are in that number."
+        },
+        {
+          "whenFlag": "community",
+          "whenAtLeast": -3,
+          "whenAtMost": 3,
+          "text": "You walked, and that counts. But there were days you were not there when you might have been, and the neighborhood noticed in the quiet way neighbors do — without saying so directly."
+        },
+        {
+          "whenFlag": "community",
+          "whenAtLeast": -8,
+          "whenAtMost": -4,
+          "text": "The carpool coordinator stopped saving you a seat sometime in the spring. Not out of cruelty — out of a slow reckoning with who she could rely on. The distance between you and the church grew one small absence at a time."
+        },
+        {
+          "whenFlag": "community",
+          "whenAtMost": -9,
+          "text": "There is no anger in how the neighborhood remembers you — just a careful silence. You were there at the beginning. Then, one day, you were not really there anymore, and enough people saw why that the silence became its own kind of verdict."
+        }
+      ]
+    }
+  },
+  "backdropImage": {
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Rosa_Parks_1956.jpg/960px-Rosa_Parks_1956.jpg",
+    "artist": "UPI",
+    "license": "Public domain",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ARosa_Parks_1956.jpg",
+    "searchQuery": "a Black domestic worker in Montgomery"
+  },
+  "flags": [
+    {
+      "id": "family",
+      "type": "numeric",
+      "initial": 0,
+      "min": -10,
+      "max": 10,
+      "label": "How those closest to you come to regard you"
+    },
+    {
+      "id": "community",
+      "type": "numeric",
+      "initial": 0,
+      "min": -10,
+      "max": 10,
+      "label": "How the wider community comes to regard you"
+    },
+    {
+      "id": "told_employer_truth",
+      "type": "tristate",
+      "initial": null,
+      "label": "Told employer the truth about boycott participation"
+    }
+  ]
+}

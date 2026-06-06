@@ -1,0 +1,61 @@
+
+> campaigns@1.0.0 generate
+> npx tsx generator/generate.ts
+
+◇ injected env (1) from .env.local // tip: ⌘ suppress logs { quiet: true }
+╔══════════════════════════════════════════════════════╗
+║           CAMPAIGN GENERATOR — TEST HARNESS         ║
+╚══════════════════════════════════════════════════════╝
+
+  Topic:      Lewis and Clark Expedition
+  Standard:   TEKS 5.1(A), 5.1(B) — Historical significance of the Lewis and Clark Expedition, its role in westward expansion, and its interactions with Native peoples
+  Grade:      5th grade
+  Events:     5
+  Trivia:     3
+  Sages:      3
+  Difficulty: medium
+
+  Calling Anthropic API (this may take 30-90 seconds)...
+
+[img-diag] ===== RAW QUERIES  topic="Lewis and Clark Expedition"  styleKw="painting"  events=5 =====
+[img-diag]   ev0 [4w] query="Mandan village 1804 Catlin"
+[img-diag]   ev1 [7w] query="Great Falls Missouri River Lewis Clark 1805"
+[img-diag]   ev2 [4w] query="Sacagawea Lewis Clark Shoshone"
+[img-diag]   ev3 [5w] query="Bitterroot Mountains Lewis Clark 1805"
+[img-diag]   ev4 [6w] query="Pacific Ocean Columbia River mouth 1805"
+[img-diag]   commons "Lewis and Clark Expedition painting": raw=20 mimeRej=0 licRej=0 gateRej(score<=0)=0 → kept=20
+[img-diag] BACKDROP topic="Lewis and Clark Expedition" articleLead=MISS → base=Lewis_and_clark-expedition  thumb=960px-Lewis_and_clark-expedition.jpg
+[img-diag] ev0 "Mandan village 1804 Catlin" → lead MISS → fetching Commons pool…
+[img-diag]   commons "Mandan village 1804 Catlin painting": raw=18 mimeRej=17 licRej=0 gateRej(score<=0)=1 → kept=0
+[img-diag] ev0 "Mandan village 1804 Catlin" → ASSIGN base=(none) [path=NOTHING (blank → backdrop fallback)]
+[img-diag] ev1 "Great Falls Missouri River Lewis Clark 1805" → lead MISS → fetching Commons pool…
+[img-diag]   commons "Great Falls Missouri River Lewis Clark 1805 painting": raw=20 mimeRej=17 licRej=0 gateRej(score<=0)=2 → kept=1
+[img-diag] ev1 "Great Falls Missouri River Lewis Clark 1805" → ASSIGN base=Lewis_and_clark-expedition  ⚠ DUP-IMAGE (same underlying file as backdrop; thumbUrl-dedupe missed it) [path=commons-DUP (poolSize=1, all thumbUrls used)]
+[img-diag] ev2 "Sacagawea Lewis Clark Shoshone" → lead MISS → fetching Commons pool…
+[img-diag]   commons "Sacagawea Lewis Clark Shoshone painting": raw=3 mimeRej=3 licRej=0 gateRej(score<=0)=0 → kept=0
+[img-diag] ev2 "Sacagawea Lewis Clark Shoshone" → ASSIGN base=(none) [path=NOTHING (blank → backdrop fallback)]
+[img-diag] ev3 "Bitterroot Mountains Lewis Clark 1805" → lead MISS → fetching Commons pool…
+[img-diag]   commons "Bitterroot Mountains Lewis Clark 1805 painting": raw=12 mimeRej=12 licRej=0 gateRej(score<=0)=0 → kept=0
+[img-diag] ev3 "Bitterroot Mountains Lewis Clark 1805" → ASSIGN base=(none) [path=NOTHING (blank → backdrop fallback)]
+[img-diag] ev4 "Pacific Ocean Columbia River mouth 1805" → lead MISS → fetching Commons pool…
+[img-diag]   commons "Pacific Ocean Columbia River mouth 1805 painting": raw=20 mimeRej=19 licRej=0 gateRej(score<=0)=1 → kept=0
+[img-diag] ev4 "Pacific Ocean Columbia River mouth 1805" → ASSIGN base=(none) [path=NOTHING (blank → backdrop fallback)]
+  API call completed in 113.3s
+  Raw output saved to: /home/andrewa/projects/Campaigns/generator/output_raw.json
+  Parsed output saved to: /home/andrewa/projects/Campaigns/generator/output.json
+
+╔══════════════════════════════════════════════════════╗
+║           CAMPAIGN DATA VALIDATION REPORT           ║
+╚══════════════════════════════════════════════════════╝
+
+  ✓ All 207 checks passed.
+
+  CONTENT SUMMARY:
+    Title:     CORPS OF DISCOVERY
+    Subtitle:  St. Louis to the Pacific, 1804–1806
+    Events:    5
+    Sages:     3
+    Trivia:    3
+    Resources: rations, crew, horses, ammunition, medicine, morale, goodwillNative, journalProgress
+    Route:     start → missouri_river → plains_fast → mandan → rockies → columbia_river → finish
+

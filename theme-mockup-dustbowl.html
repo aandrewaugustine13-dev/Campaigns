@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Theme mockup — Dust Bowl vs current (default/Chisholm chrome)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<!-- Existing app fonts + Oswald/Roboto Slab (the proposed Dust Bowl display candidates) -->
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Roboto+Slab:wght@600;700&family=Rye&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet" />
+<style>
+  /* ── DEFAULT THEME (= what a Dust Bowl campaign shows TODAY: no fitting
+       allowlist value, so the LLM falls to "default", which IS the dark
+       leather-and-amber Chisholm chrome). Copied verbatim from themes.css. ── */
+  [data-theme="default"] {
+    --bg-page: #1c130f;
+    --bg-card: #2b1f18;
+    --bg-card-inner: rgba(26, 19, 15, 0.55);
+    --bg-button-action: #8f5323;
+    --bg-button-action-hover: #a2602b;
+    --text-button-action: #fff7e6;
+    --text-primary: #f6ecd8;
+    --text-muted: #cabb9f;
+    --text-accent: #f0cd82;
+    --text-accent-2: #9fd9ab;
+    --border-card: #5b4534;
+    --border-divider: #3a2a20;
+    --font-display: Georgia, "Times New Roman", serif;
+    --font-body: Georgia, "Times New Roman", serif;
+    --parallax-fallback: radial-gradient(circle at top, #2b1f19 0%, #16100d 65%);
+  }
+
+  /* ── PROPOSED NEW ALLOWLIST THEME: depression-fsa (1930s Dust Bowl / FSA
+       documentary / WPA). Sun-bleached dust paper, weathered ink, faded WPA
+       brick-red action, faded work-blue secondary, Oswald condensed display. ── */
+  [data-theme="depression-fsa"] {
+    --bg-page: #d6c8a8;
+    --bg-card: #c6b58f;
+    --bg-card-inner: rgba(232, 223, 199, 0.88);
+    --bg-button-action: #8a3b22;
+    --bg-button-action-hover: #a14a2b;
+    --text-button-action: #f3e9d2;
+    --text-primary: #2c2418;
+    --text-muted: #6b5d44;
+    --text-accent: #8a3b22;
+    --text-accent-2: #3e5266;
+    --border-card: #9a8862;
+    --border-divider: #b8a884;
+    --font-display: "Oswald", "Archivo Narrow", Georgia, sans-serif;
+    --font-body: Georgia, "Times New Roman", serif;
+    --parallax-fallback: linear-gradient(180deg, #d9cca7 0%, #cdbb8f 40%, #b39c6c 72%, #8f7a4f 100%);
+  }
+
+  /* ── theme helper classes (subset, mirrors themes.css) ── */
+  .theme-bg-page       { background-color: var(--bg-page); }
+  .theme-bg-card       { background-color: var(--bg-card); }
+  .theme-bg-card-inner { background-color: var(--bg-card-inner); }
+  .theme-text          { color: var(--text-primary); }
+  .theme-text-muted    { color: var(--text-muted); }
+  .theme-text-accent   { color: var(--text-accent); }
+  .theme-text-accent-2 { color: var(--text-accent-2); }
+  .theme-border        { border-color: var(--border-card); }
+  .theme-divider       { border-color: var(--border-divider); }
+  .theme-display-font  { font-family: var(--font-display); }
+  .theme-body-font     { font-family: var(--font-body); }
+  .theme-parallax      { background: var(--parallax-fallback); }
+  .theme-btn-action {
+    background-color: var(--bg-button-action);
+    color: var(--text-button-action);
+    transition: background-color .15s ease;
+  }
+  .theme-btn-action:hover { background-color: var(--bg-button-action-hover); }
+
+  /* ── page scaffolding (not part of the app; just to lay out the comparison) ── */
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #444; color: #eee;
+    font-family: -apple-system, system-ui, sans-serif; padding: 24px;
+  }
+  h1.page-title { font-weight: 700; font-size: 20px; margin: 0 0 4px; }
+  p.page-sub { margin: 0 0 20px; color: #bbb; font-size: 13px; max-width: 900px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 980px; }
+  .col-label {
+    font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    margin: 0 0 8px; padding: 4px 8px; border-radius: 4px;
+  }
+  .col-label.current  { background: #5a2b22; color: #f3d9d0; }
+  .col-label.proposed { background: #2b4a3a; color: #d6f0e2; }
+  .screen { border-radius: 8px; overflow: hidden; border: 1px solid #000; margin-bottom: 18px; }
+  .screen-cap { font-size: 11px; color: #999; margin: 0 0 6px; }
+
+  /* ── intro-screen mock (mirrors GeneratedCampaign intro: lines 1203-1233) ── */
+  .intro { padding: 22px 18px; text-align: center; }
+  .intro .scene {
+    width: 100%; aspect-ratio: 16/9; border-radius: 4px; border: 1px solid;
+    margin: 0 auto 14px; display: flex; align-items: flex-end; justify-content: flex-start;
+  }
+  .intro .scene-tag {
+    font-size: 10px; padding: 3px 6px; margin: 6px; border-radius: 3px;
+    background: rgba(0,0,0,.35); color: #fff;
+  }
+  .intro h1 { font-size: 28px; font-weight: 700; margin: 0 0 8px; line-height: 1.1; }
+  .intro .subtitle { font-size: 14px; margin: 0 0 10px; }
+  .intro .body { font-size: 13px; line-height: 1.5; margin: 0 0 16px; text-align: left; }
+  .intro button {
+    border: none; padding: 12px 32px; border-radius: 5px; font-weight: 700; font-size: 14px;
+    cursor: pointer; letter-spacing: .03em;
+  }
+
+  /* ── sage-card mock ── */
+  .sage { padding: 12px; }
+  /* CURRENT sage card = the HARDCODED Chisholm chrome in SageEncounter.tsx today
+     (dark gradient header + amber text), identical in EVERY theme. */
+  .sage-current .card {
+    border-radius: 10px; overflow: hidden; border: 2px solid #3d2516;
+    background: linear-gradient(135deg, #2d1b11, #1a1408);
+    padding: 12px; display: flex; gap: 12px;
+  }
+  .sage-current .mono {
+    width: 72px; height: 72px; border-radius: 8px; border: 2px solid rgba(146,64,14,.6);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    font-family: Georgia, serif; font-weight: 700; font-size: 24px; color: #d97706;
+    background: linear-gradient(135deg, #3d2516, #2d1b11);
+  }
+  .sage-current .name { font-family: Georgia, serif; font-weight: 700; font-size: 18px; color: #fbbf24; margin: 0; line-height: 1.1; }
+  .sage-current .role { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #b45309; margin: 2px 0 6px; }
+  .sage-current .bio  { font-size: 12px; line-height: 1.45; color: #d6c4a8; margin: 0; }
+
+  /* PROPOSED sage card = themed (consumes the theme variables). */
+  .sage-themed .card {
+    border-radius: 10px; overflow: hidden; border: 2px solid var(--border-card);
+    background: var(--bg-card); padding: 12px; display: flex; gap: 12px;
+  }
+  .sage-themed .mono {
+    width: 72px; height: 72px; border-radius: 8px; border: 2px solid var(--border-card);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    font-family: var(--font-display); font-weight: 700; font-size: 24px;
+    color: var(--text-button-action); background: var(--bg-button-action);
+  }
+  .sage-themed .name { font-family: var(--font-display); font-weight: 700; font-size: 19px; color: var(--text-accent); margin: 0; line-height: 1.1; letter-spacing: .02em; }
+  .sage-themed .role { font-family: var(--font-display); font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); margin: 2px 0 6px; }
+  .sage-themed .bio  { font-size: 12px; line-height: 1.45; color: var(--text-primary); margin: 0; }
+</style>
+</head>
+<body>
+  <h1 class="page-title">Dust Bowl theme — current vs proposed</h1>
+  <p class="page-sub">
+    Same generated campaign content on both sides; only the <b>chrome</b> changes.
+    LEFT = what a 1930s Dust Bowl campaign shows <b>today</b> (no fitting allowlist value → falls to
+    <code>default</code>, which is the dark leather-and-amber Chisholm chrome — the "cattle drive" look).
+    RIGHT = proposed new <code>depression-fsa</code> theme. The scene boxes show the
+    <b>themed parallax fallback</b> (requirement&nbsp;2) — what an imageless event would show instead of a repeated backdrop photo.
+    Body prose stays the same readable serif on both sides; only display type + palette change.
+  </p>
+
+  <div class="grid">
+    <!-- ══════════ CURRENT ══════════ -->
+    <div data-theme="default">
+      <div class="col-label current">Current — default / Chisholm chrome</div>
+
+      <p class="screen-cap">Intro screen</p>
+      <div class="screen theme-bg-page theme-body-font intro">
+        <div class="scene theme-parallax theme-border">
+          <span class="scene-tag">imageless event → fallback</span>
+        </div>
+        <h1 class="theme-display-font theme-text-accent">NO RAIN, NO BREAD</h1>
+        <p class="subtitle theme-text-muted">The Oklahoma Panhandle, 1935</p>
+        <p class="body theme-text-muted">Spring, 1935. Cimarron County. The wheat failed again and the dust comes most every day now. The bank holds the note on the quarter-section, and the children are hungry. What you choose this season decides whether you hold the land or load the truck for California.</p>
+        <button class="theme-btn-action">BEGIN</button>
+      </div>
+
+      <p class="screen-cap">Sage encounter card (hardcoded today)</p>
+      <div class="screen theme-bg-page sage sage-current">
+        <div class="card">
+          <div class="mono">DL</div>
+          <div>
+            <p class="name">Dorothea Lange</p>
+            <p class="role">FSA Photographer</p>
+            <p class="bio">Sent by the Farm Security Administration to document the drought. Her photographs put faces to the migration west — and pushed Washington to act.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ PROPOSED ══════════ -->
+    <div data-theme="depression-fsa">
+      <div class="col-label proposed">Proposed — depression-fsa</div>
+
+      <p class="screen-cap">Intro screen</p>
+      <div class="screen theme-bg-page theme-body-font intro">
+        <div class="scene theme-parallax theme-border">
+          <span class="scene-tag">imageless event → fallback</span>
+        </div>
+        <h1 class="theme-display-font theme-text-accent">NO RAIN, NO BREAD</h1>
+        <p class="subtitle theme-text-muted">The Oklahoma Panhandle, 1935</p>
+        <p class="body theme-text-muted">Spring, 1935. Cimarron County. The wheat failed again and the dust comes most every day now. The bank holds the note on the quarter-section, and the children are hungry. What you choose this season decides whether you hold the land or load the truck for California.</p>
+        <button class="theme-btn-action">BEGIN</button>
+      </div>
+
+      <p class="screen-cap">Sage encounter card (themed)</p>
+      <div class="screen theme-bg-page sage sage-themed">
+        <div class="card">
+          <div class="mono">DL</div>
+          <div>
+            <p class="name">Dorothea Lange</p>
+            <p class="role">FSA Photographer</p>
+            <p class="bio">Sent by the Farm Security Administration to document the drought. Her photographs put faces to the migration west — and pushed Washington to act.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

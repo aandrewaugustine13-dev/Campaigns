@@ -1,0 +1,997 @@
+{
+  "id": "dust_bowl_migration",
+  "title": "GRAPES OF WRATH",
+  "subtitle": "Oklahoma to California, 1936",
+  "introBody": "Spring, 1936. The bank took the farm last Tuesday. The drought took everything else three years ago. You've got a coffee tin with $38, a 1929 Hudson loaded past its springs, and six people counting on you to get them to California before the money runs out.",
+  "trailFeedOpener": "Route 66 stretches west through the dust. You check the oil, count the coins, and pull onto the highway.",
+  "theme": "broadsheet-sepia",
+  "isPublished": false,
+  "progressionMode": "journey",
+  "totalDays": 120,
+  "daysPerTurn": 5,
+  "totalDistance": 1600,
+  "distanceUnit": "miles",
+  "initialResources": {
+    "roadMoney": 38,
+    "theJalopy": 55,
+    "neighbors": 10
+  },
+  "resourceCaps": {
+    "roadMoney": 150,
+    "theJalopy": 100,
+    "neighbors": 100
+  },
+  "resourceLabels": {
+    "roadMoney": "Cash on hand",
+    "theJalopy": "Truck condition",
+    "neighbors": "Bonds with other migrant families"
+  },
+  "paces": [
+    {
+      "id": "careful",
+      "label": "Careful",
+      "desc": "10 mi/day · Engine rests, money held",
+      "mpd": 10,
+      "fx": {
+        "theJalopy": 3,
+        "roadMoney": -1
+      }
+    },
+    {
+      "id": "steady",
+      "label": "Steady",
+      "desc": "18 mi/day · Standard pace",
+      "mpd": 18,
+      "fx": {
+        "theJalopy": -2,
+        "roadMoney": -2
+      }
+    },
+    {
+      "id": "push",
+      "label": "Push Hard",
+      "desc": "28 mi/day · Burns oil and rubber",
+      "mpd": 28,
+      "fx": {
+        "theJalopy": -7,
+        "roadMoney": -3
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "fl_setter",
+      "phase_min": 0,
+      "phase_max": 0.3,
+      "weight": 5,
+      "title": "First night in the roadside ditch camp, Route 66, somewhere past the Texas panhandle",
+      "text": "Your jalopy has thrown a fan belt. You are stopped in a ditch camp of a dozen families. While the belt soaks in water trying to stretch back to shape, a woman from an Arkansas family two fires over comes to yours. Her husband is too sick to drive. They have three children and no food. She is not asking directly — she is just standing at the edge of your firelight. Your own family has two days of food if you ration it, and the belt may not hold, and no one knows how far the next town is. Your oldest child is watching you to see what you do.",
+      "type": "standard",
+      "choices": [
+        {
+          "text": "Tell her you are sorry, but you cannot spare anything — you have your own children to get through, and you do not know what is ahead.",
+          "flagWrites": {
+            "family_circle_closed": true
+          },
+          "result": "This person has decided that the family is the irreducible unit — that love has a boundary, and that boundary is where survival becomes possible. The choice is not cruelty; it is the decision that the faces around their own fire are the ones they are answerable for. They will carry the image of that woman walking back to her fire."
+        },
+        {
+          "text": "Divide what you have and bring half to her fire, then stay and help figure out the husband's sickness together.",
+          "flagWrites": {
+            "family_circle_closed": false
+          },
+          "result": "This person has decided that the boundary of the family is porous — that surviving alone is not survival in any sense they can live with. The choice is not nobility; it is a bet that connection is the only real resource any of them have. They have just made their own children's margin thinner, and they know it."
+        }
+      ]
+    },
+    {
+      "id": "desert_heat_breakdown",
+      "phase_min": 0.3,
+      "phase_max": 0.65,
+      "weight": 5,
+      "title": "Radiator Boiling on the Mojave Grade",
+      "text": "The temperature gauge hits the peg somewhere east of Needles. Steam pours from the hood. You coast to the shoulder and let the engine tick in the desert silence. Every hour you sit here costs daylight and water.",
+      "type": "standard",
+      "imageSearchQuery": "Route 66 Mojave Desert 1930s",
+      "choices": [
+        {
+          "text": "Wait it out — let the engine cool slow.",
+          "effects": {
+            "theJalopy": 5
+          },
+          "flagWrites": {
+            "family": 1
+          },
+          "result": "Two hours lost but the family rests in the shade of the truck. The engine starts clean."
+        },
+        {
+          "text": "Pour the last canteen in the radiator and push on.",
+          "effects": {
+            "theJalopy": -12,
+            "roadMoney": -3
+          },
+          "flagWrites": {
+            "family": -2
+          },
+          "result": "She runs but you can hear something new rattling underneath. The kids are thirsty. You'll need water soon."
+        },
+        {
+          "text": "Flag down a passing Okie for help.",
+          "outcomes": [
+            {
+              "weight": 6,
+              "effects": {
+                "theJalopy": 8,
+                "neighbors": 6
+              },
+              "result": "A Kansas family stops with a spare hose clamp and a bucket. You exchange names. This is how people survive out here."
+            },
+            {
+              "weight": 4,
+              "effects": {
+                "theJalopy": 3,
+                "roadMoney": -5
+              },
+              "result": "A man stops but charges two dollars for his tools and time. You pay. The engine holds."
+            }
+          ]
+        }
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Needles%2C_California_%283226903381%29_%28cropped%29.jpg/960px-Needles%2C_California_%283226903381%29_%28cropped%29.jpg",
+        "artist": "Ken Lund from Reno, Nevada, USA",
+        "license": "CC BY-SA 2.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ANeedles%2C_California_(3226903381)_(cropped).jpg",
+        "searchQuery": "Route 66 Mojave Desert 1930s"
+      }
+    },
+    {
+      "id": "camp_fee_shake",
+      "phase_min": 0.15,
+      "phase_max": 0.55,
+      "weight": 4,
+      "title": "The Camp Fee Collector",
+      "text": "You pull into a roadside ditch camp for the night. A man with a badge — not quite a deputy, not quite not — says the fee is fifty cents a night per car. Last week it was a quarter. He's watching your wife hold the baby.",
+      "type": "standard",
+      "imageSearchQuery": "Dust Bowl migrant camp California 1936",
+      "choices": [
+        {
+          "text": "Pay the fifty cents. Not worth the trouble.",
+          "effects": {
+            "roadMoney": -1
+          },
+          "flagWrites": {
+            "family": 1,
+            "community": -1
+          },
+          "result": "You hand it over. The man moves on to the next car. Another family with less than you argues and gets shoved."
+        },
+        {
+          "text": "Refuse and camp in the open field instead.",
+          "effects": {
+            "theJalopy": -3
+          },
+          "flagWrites": {
+            "family": -1
+          },
+          "result": "You pull off into rough ground in the dark. The truck bottoms out twice. No fee paid, but the night is harder."
+        },
+        {
+          "text": "Organize the camp. Everyone pays two cents each.",
+          "effects": {
+            "roadMoney": 0,
+            "neighbors": 8
+          },
+          "flagWrites": {
+            "community": 2
+          },
+          "result": "Seventeen families pool together and negotiate the fee down. The collector scowls but takes it. The camp knows your name now."
+        }
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/2009-0820-WeedpatchCamp-CommunityHall.jpg/960px-2009-0820-WeedpatchCamp-CommunityHall.jpg",
+        "artist": "Bobak Ha'Eri",
+        "license": "CC BY 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3A2009-0820-WeedpatchCamp-CommunityHall.jpg",
+        "searchQuery": "Dust Bowl migrant camp California 1936"
+      }
+    },
+    {
+      "id": "day_labor_offer",
+      "phase_min": 0.1,
+      "phase_max": 0.7,
+      "weight": 5,
+      "title": "Cotton Work on the Texas Panhandle",
+      "text": "A man in a truck is shouting from the road — he needs hands for two days of cotton topping, seventy-five cents a day per person. It's real money. It's also two days off the road, and the weather to the west has been clear.",
+      "type": "standard",
+      "imageSearchQuery": "cotton workers Texas Panhandle 1930s",
+      "choices": [
+        {
+          "text": "Work two days. Take the full wage.",
+          "effects": {
+            "roadMoney": 9,
+            "theJalopy": 4
+          },
+          "flagWrites": {
+            "family": 2
+          },
+          "result": "Four family members work. $4.50 in the tin and the engine rests. The younger kids sleep on actual hay."
+        },
+        {
+          "text": "Work one day, then move on.",
+          "effects": {
+            "roadMoney": 4
+          },
+          "flagWrites": {
+            "family": 1
+          },
+          "result": "Half wages, half delay. Enough to fix the slow leak in the rear tire."
+        },
+        {
+          "text": "Keep driving. California is the plan.",
+          "effects": {
+            "roadMoney": -2
+          },
+          "flagWrites": {
+            "family": -1
+          },
+          "result": "You burn another two days of gas money on the road instead. California is still very far away."
+        }
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Farmer_walking_in_dust_storm_Cimarron_County_Oklahoma2.jpg/960px-Farmer_walking_in_dust_storm_Cimarron_County_Oklahoma2.jpg",
+        "artist": "Arthur Rothstein",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AFarmer_walking_in_dust_storm_Cimarron_County_Oklahoma2.jpg",
+        "searchQuery": "cotton workers Texas Panhandle 1930s"
+      }
+    },
+    {
+      "id": "fsa_camp_arrival",
+      "phase_min": 0.55,
+      "phase_max": 0.85,
+      "weight": 4,
+      "title": "The Government Camp at Arvin",
+      "text": "A sign on the road says FARM SECURITY ADMINISTRATION CAMP — hot showers, a clinic, no fees. But a man outside the gate says the growers' association has blacklisted families who stay here. They call it a 'red camp.'",
+      "type": "standard",
+      "imageSearchQuery": "Farm Security Administration migrant camp Arvin California",
+      "choices": [
+        {
+          "text": "Go in. The family needs the showers and clinic.",
+          "effects": {
+            "theJalopy": 5,
+            "neighbors": 10
+          },
+          "flagWrites": {
+            "community": 2,
+            "family": 2
+          },
+          "result": "Inside the gate is a different world — clean water, a nurse, and families from every state organizing their own camp committee."
+        },
+        {
+          "text": "Camp outside the fence. Stay off the growers' list.",
+          "effects": {
+            "roadMoney": -2
+          },
+          "flagWrites": {
+            "family": -1,
+            "community": -2
+          },
+          "result": "You set up in the ditch outside. Mosquitoes, no water. You don't get blacklisted. You don't get clean either."
+        }
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/US-FarmSecurityAdministration-Logo.svg/960px-US-FarmSecurityAdministration-Logo.svg.png",
+        "artist": "Original: U.S. Government, Vectorization: Clindberg",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AUS-FarmSecurityAdministration-Logo.svg",
+        "searchQuery": "Farm Security Administration migrant camp Arvin California"
+      }
+    },
+    {
+      "id": "tire_blowout_generosity",
+      "phase_min": 0.05,
+      "phase_max": 0.45,
+      "weight": 4,
+      "title": "Blowout on the Oklahoma Flats",
+      "text": "The rear tire lets go with a sound like a rifle shot. You get it changed, but the spare is now the only spare. A family fifty yards back has no spare at all — their axle is on a rock and three kids are sitting in the dust.",
+      "type": "push_luck",
+      "imageSearchQuery": "jalopy blowout Route 66 Oklahoma 1930s",
+      "leaveText": "You can't help. Wave and drive on.",
+      "attempts": [
+        {
+          "id": "loan_tools",
+          "buttonText": "Lend them your jack and help for an hour.",
+          "successText": "Their tire patches. They give you a jar of peaches and the name of a friendly camp boss in Barstow.",
+          "failureText": "The patch fails. You lose two hours and the jack handle breaks. You need that jack.",
+          "riskChance": 0.2,
+          "rewards": {
+            "neighbors": 8,
+            "roadMoney": 1
+          },
+          "penalties": {
+            "theJalopy": -4,
+            "roadMoney": -2
+          }
+        },
+        {
+          "id": "share_spare",
+          "buttonText": "Give them your last spare tube.",
+          "successText": "They get moving. The father shakes your hand without letting go for a long moment. You drive on with no spare.",
+          "failureText": "The tube doesn't fit their rim. Now you've given away something precious for nothing, and your hands are bleeding.",
+          "riskChance": 0.35,
+          "rewards": {
+            "neighbors": 15
+          },
+          "penalties": {
+            "theJalopy": -8,
+            "neighbors": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "california_border_checkpoint",
+      "phase_min": 0.85,
+      "phase_max": 1,
+      "weight": 6,
+      "title": "The Bum Blockade at Needles",
+      "text": "California Highway Patrol and a county deputy are stopping every car with Oklahoma plates. The deputy says you need to prove you have $50 or 'means of support' to enter the state. You have less than that. He is not asking politely.",
+      "type": "standard",
+      "imageSearchQuery": "California border patrol Needles Okies 1936",
+      "choices": [
+        {
+          "text": "Show everything you have and ask to pass.",
+          "effects": {
+            "roadMoney": -5
+          },
+          "flagWrites": {
+            "family": -2,
+            "community": -1
+          },
+          "result": "He takes five dollars as an informal 'processing fee.' You get through. Your wife counts what's left and says nothing."
+        },
+        {
+          "text": "Find a back road — other families know a way around.",
+          "outcomes": [
+            {
+              "weight": 5,
+              "effects": {
+                "theJalopy": -6,
+                "neighbors": 5
+              },
+              "result": "A family from Tulsa leads you down a dry riverbed track. The truck groans but makes it. You're in California."
+            },
+            {
+              "weight": 5,
+              "effects": {
+                "theJalopy": -14,
+                "roadMoney": -4
+              },
+              "result": "The back road is rocks and ruts. The truck throws a tie rod. You make it but the front end is badly hurt."
+            }
+          ]
+        },
+        {
+          "text": "Stand your ground. You have a legal right to enter.",
+          "effects": {
+            "neighbors": 10
+          },
+          "flagWrites": {
+            "community": 3,
+            "family": -3
+          },
+          "result": "You refuse to move. Three other families stop behind you. The deputy eventually waves you through, muttering. Word spreads through the camp that your family held the line."
+        }
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/US_66_1963_%28AZ%29.svg/960px-US_66_1963_%28AZ%29.svg.png",
+        "artist": "Matthew Anderson (based on an original .JPG format picture found at the AARoads shield gallery.)",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AUS_66_1963_(AZ).svg",
+        "searchQuery": "California border patrol Needles Okies 1936"
+      }
+    },
+    {
+      "id": "fl_reader_0",
+      "phase_min": 0.35,
+      "phase_max": 0.85,
+      "weight": 5,
+      "title": "The strike at the peach orchard — growers have cut the piece-rate again, and a committee of pickers is passing through camp asking every family to walk out at dawn",
+      "text": {
+        "default": "You have kept your family whole by not spending what you could not afford to spend. The committee men are strangers to you — you do not know if they are reliable, and a strike means days without pay, and days without pay means the children eat nothing. You have made this calculation before, at the ditch camp, and it held. You tell them you cannot join. Standing at your tent flap watching them move to the next fire, you feel neither proud nor ashamed — only the specific loneliness of someone who has learned that the circle is the only thing that does not break.",
+        "variants": [
+          {
+            "whenFlag": "family_circle_closed",
+            "equals": true,
+            "text": "You have kept your family whole by not spending what you could not afford to spend. The committee men are strangers to you — you do not know if they are reliable, and a strike means days without pay, and days without pay means the children eat nothing. You have made this calculation before, at the ditch camp, and it held. You tell them you cannot join. Standing at your tent flap watching them move to the next fire, you feel neither proud nor ashamed — only the specific loneliness of someone who has learned that the circle is the only thing that does not break."
+          },
+          {
+            "whenFlag": "family_circle_closed",
+            "equals": false,
+            "text": "You know two of the committee men — one is the husband you helped nurse back in the ditch camp, who never forgot it. When they reach your fire there is no speech needed. You say yes before the ask is finished. In the morning, standing in a line with people whose names you now know, you understand that the choice at the ditch camp was also this choice — that you have been building toward this line for weeks without knowing it. The strike may break. The growers have broken strikes before. But the line is real, and you are in it, and the faces beside you are faces you fed and who fed you."
+          }
+        ]
+      },
+      "type": "standard",
+      "choices": [
+        {
+          "text": "Go on."
+        }
+      ]
+    }
+  ],
+  "sages": [
+    {
+      "id": "hugh_bennett",
+      "name": "Hugh Hammond Bennett",
+      "title": "Chief, Soil Conservation Service",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Paul_Sample%27s_America%2C_its_soil_LOC_2012588336.jpg/330px-Paul_Sample%27s_America%2C_its_soil_LOC_2012588336.jpg",
+      "portraitAttribution": {
+        "artist": "Sample, Paul; Associated American Artists",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3APaul_Sample's_America%2C_its_soil_LOC_2012588336.jpg"
+      },
+      "threshold": 15,
+      "bio": "Hugh Hammond Bennett spent decades warning that plowing the fragile Great Plains would end in catastrophe. When the Black Sunday dust storm rolled through Washington in 1935, he used it to win passage of the Soil Conservation Act — creating the agency he then led.",
+      "greeting": "You pull over to check the oil. A government man in a Ford truck stops to ask if you need help. He has maps of the county soil survey and a look on his face like a man who saw this coming.",
+      "advice": "\"We plowed every inch of sod the rain would allow, and some the rain wouldn't. The grass held the soil down for ten thousand years. We broke it in ten.\" He hands you a road map with water stops marked.",
+      "question": {
+        "question": "What farming practice most directly caused the Dust Bowl conditions of the 1930s?",
+        "choices": [
+          "Farmers planted too many crops in a single season",
+          "Deep plowing destroyed the native grassroots that held Plains topsoil in place",
+          "Farmers refused to use irrigation on dry land",
+          "The government required farmers to burn their fields each fall"
+        ],
+        "correctIndex": 1,
+        "explanation": "Decades of deep plowing destroyed the native grasses whose roots had anchored the Great Plains topsoil for thousands of years. When the drought of the 1930s hit and the rains stopped, there was nothing holding the soil down — and the wind took it.",
+        "teksRef": "8.29(A) — Environmental and economic causes of the Dust Bowl"
+      },
+      "reward": {
+        "correct": {
+          "roadMoney": 4,
+          "theJalopy": 3
+        },
+        "wrong": {
+          "roadMoney": 2
+        },
+        "knowledgeCorrect": 4,
+        "knowledgeWrong": 2
+      }
+    },
+    {
+      "id": "dorothea_lange",
+      "name": "Dorothea Lange",
+      "title": "FSA Documentary Photographer",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/US-FarmSecurityAdministration-Logo.svg/330px-US-FarmSecurityAdministration-Logo.svg.png",
+      "portraitAttribution": {
+        "artist": "Original: U.S. Government, Vectorization: Clindberg",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AUS-FarmSecurityAdministration-Logo.svg"
+      },
+      "threshold": 48,
+      "bio": "Dorothea Lange was hired by the Farm Security Administration to document the lives of migrant workers and displaced farmers. Her photographs — including 'Migrant Mother' — forced middle-class Americans to see what was happening in the labor camps.",
+      "greeting": "A woman with a large camera is set up on the roadside. She doesn't point it at you right away — she just watches how you walk to the water pump. Then she asks if she can take your picture.",
+      "advice": "\"I want people in cities to see what this road looks like from your side of the windshield.\" She puts a print in your hand — a woman about your wife's age, staring at something you can't see. \"That's what I'm trying to do.\"",
+      "question": {
+        "question": "Why did the federal government send photographers like Dorothea Lange to document migrant camps?",
+        "choices": [
+          "To collect evidence for criminal charges against migrant workers",
+          "To create visual records that could build public and political support for relief programs",
+          "To map which roads were most crowded for highway planning",
+          "To prove that California's farms were productive and well-managed"
+        ],
+        "correctIndex": 1,
+        "explanation": "The Farm Security Administration used documentary photography as advocacy — showing Americans the human cost of displacement to build support for New Deal relief programs. Lange's photographs helped shift public opinion toward treating migrants with dignity rather than as a criminal threat.",
+        "teksRef": "8.29(B) — Government response to the Great Depression and the role of media"
+      },
+      "reward": {
+        "correct": {
+          "neighbors": 8
+        },
+        "wrong": {
+          "neighbors": 3
+        },
+        "knowledgeCorrect": 4,
+        "knowledgeWrong": 2
+      }
+    },
+    {
+      "id": "fdr",
+      "name": "Franklin D. Roosevelt",
+      "title": "U.S. President, New Deal Architect",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/New_Deal_collage.jpg/330px-New_Deal_collage.jpg",
+      "portraitAttribution": {
+        "artist": "LordHarris at English Wikipedia",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ANew_Deal_collage.jpg"
+      },
+      "threshold": 75,
+      "bio": "Franklin Roosevelt took office in 1933 as one in four Americans was unemployed. His New Deal created the CCC, FSA, Social Security, and dozens of other federal programs. He was elected to four terms — a record — partly because displaced families saw him as fighting for them.",
+      "greeting": "Someone has a battery radio going in the next campsite. Roosevelt's voice comes through the static — a fireside chat about the people on the road and the camps in California. A few families pull their chairs closer.",
+      "advice": "\"The test of our progress is not whether we add more to the abundance of those who have much — it is whether we provide enough for those who have too little.\" A man nearby says it sounds good on the radio. His shoes have no soles.",
+      "question": {
+        "question": "Which New Deal program was created specifically to help displaced farmers and migrant workers like your family?",
+        "choices": [
+          "The Civilian Conservation Corps (CCC)",
+          "The Farm Security Administration (FSA)",
+          "The Tennessee Valley Authority (TVA)",
+          "The Securities and Exchange Commission (SEC)"
+        ],
+        "correctIndex": 1,
+        "explanation": "The Farm Security Administration was created in 1937 to provide low-interest loans to tenant farmers and sharecroppers and to establish federal migrant labor camps — the clean government camps that offered migrants an alternative to exploitative private camps.",
+        "teksRef": "8.30(A) — New Deal programs and their effects on specific groups"
+      },
+      "reward": {
+        "correct": {
+          "roadMoney": 6,
+          "neighbors": 5
+        },
+        "wrong": {
+          "roadMoney": 3
+        },
+        "knowledgeCorrect": 4,
+        "knowledgeWrong": 2
+      }
+    }
+  ],
+  "route": [
+    {
+      "id": "start",
+      "title": "Oklahoma to California, Route 66",
+      "description": "The road west. 1,600 miles of highway, desert, and hard choices.",
+      "edges": []
+    }
+  ],
+  "eventTrivia": [
+    {
+      "id": "dt01",
+      "question": "What crop failure combined with drought turned Oklahoma topsoil into blowing dust?",
+      "choices": [
+        "Wheat monoculture had replaced native grassland",
+        "Tobacco fields were burned each season",
+        "Cotton grew too tall and blocked rain"
+      ],
+      "correctIndex": 0,
+      "fact": "Wheat farming had replaced the native sod across millions of acres. Without grassroots, the bare soil blew away when rain stopped."
+    },
+    {
+      "id": "dt02",
+      "question": "Why did tenant farmers like your family lose land they had worked for years?",
+      "choices": [
+        "They voluntarily sold to the government",
+        "Bank foreclosure after debt and crop failure left them unable to pay rent",
+        "The government forced them off to plant new forests"
+      ],
+      "correctIndex": 1,
+      "fact": "Tenant farmers rented land and paid with a share of the crop. When drought wiped out crops and banks called in loans, families had nothing to pay with and were evicted."
+    },
+    {
+      "id": "dt03",
+      "question": "What did migrants call the roadside ditch camps along Route 66?",
+      "choices": [
+        "Hoovervilles",
+        "Bonus camps",
+        "Freight towns"
+      ],
+      "correctIndex": 0,
+      "fact": "Makeshift camps of displaced families were called 'Hoovervilles' — a bitter reference to President Hoover, who many blamed for the Depression's misery."
+    },
+    {
+      "id": "dt04",
+      "question": "Where did most Dust Bowl migrants head in search of agricultural wage work?",
+      "choices": [
+        "The Florida citrus groves",
+        "The Great Plains wheat belt",
+        "California's San Joaquin Valley"
+      ],
+      "correctIndex": 2,
+      "fact": "California's San Joaquin Valley had large fruit and vegetable farms that needed seasonal pickers. Handbills advertising work drew hundreds of thousands of migrants west."
+    },
+    {
+      "id": "dt05",
+      "question": "What derogatory term did many Californians use for Dust Bowl migrants?",
+      "choices": [
+        "Drifters",
+        "Okies",
+        "Hobos"
+      ],
+      "correctIndex": 1,
+      "fact": "'Okies' was used to dismiss all Dust Bowl migrants as poor, dirty outsiders — regardless of which state they came from. It became a badge of hostility and, eventually, of pride."
+    },
+    {
+      "id": "dt06",
+      "question": "What was the Black Sunday storm of April 14, 1935?",
+      "choices": [
+        "A hurricane that flooded Oklahoma City",
+        "A massive dust storm that buried towns across the Southern Plains in darkness",
+        "A railroad strike that blocked food shipments"
+      ],
+      "correctIndex": 1,
+      "fact": "On April 14, 1935, a wall of dust a mile high turned the afternoon sky black across Kansas, Oklahoma, and Texas. It was the worst single storm of the Dust Bowl era."
+    },
+    {
+      "id": "dt07",
+      "question": "What did the Farm Security Administration camps offer migrants that private camps did not?",
+      "choices": [
+        "Higher wages from nearby growers",
+        "Clean water, sanitation, and self-governance with no camp boss",
+        "Free train tickets back to Oklahoma"
+      ],
+      "correctIndex": 1,
+      "fact": "FSA camps provided running water, toilets, and elected camp committees — migrants governed themselves. Private camps were often filthy and run by company men who charged high fees."
+    },
+    {
+      "id": "dt08",
+      "question": "What book published in 1939 told the story of the Joad family migrating from Oklahoma to California?",
+      "choices": [
+        "Of Mice and Men",
+        "The Grapes of Wrath",
+        "In Dubious Battle"
+      ],
+      "correctIndex": 1,
+      "fact": "John Steinbeck's 'The Grapes of Wrath' followed the fictional Joad family and drew national attention to the conditions migrants faced. It won the Pulitzer Prize in 1940."
+    },
+    {
+      "id": "dt09",
+      "question": "Which federal agency employed Dorothea Lange to photograph migrant workers?",
+      "choices": [
+        "The Works Progress Administration",
+        "The Farm Security Administration",
+        "The Civilian Conservation Corps"
+      ],
+      "correctIndex": 1,
+      "fact": "The FSA's photography project hired photographers to document rural poverty. Their images became among the most powerful records of the Depression era."
+    },
+    {
+      "id": "dt10",
+      "question": "Why did California officials set up checkpoints at the Arizona border in 1936?",
+      "choices": [
+        "To collect taxes on goods imported from other states",
+        "To turn back poor migrants who couldn't prove financial means",
+        "To inspect trucks for agricultural pests"
+      ],
+      "correctIndex": 1,
+      "fact": "The so-called 'bum blockade' was organized by Los Angeles police to turn back migrants without money, which was later ruled unconstitutional — but not before thousands were turned away."
+    },
+    {
+      "id": "dt11",
+      "question": "What made Route 66 the primary path west for Dust Bowl migrants?",
+      "choices": [
+        "The government paid families to use it",
+        "It connected Oklahoma and Texas directly to California with gas stations and towns along the way",
+        "It was the only paved road in the entire Southwest"
+      ],
+      "correctIndex": 1,
+      "fact": "Route 66 ran from Chicago to Los Angeles through Oklahoma, Texas, New Mexico, and Arizona — passing through the heart of the Dust Bowl and offering a navigable path to California's agricultural valleys."
+    },
+    {
+      "id": "dt12",
+      "question": "What was a labor contractor's role in the California agricultural system?",
+      "choices": [
+        "He supervised soil conservation on behalf of the government",
+        "He recruited and managed migrant workers, often taking a cut of wages and controlling camp housing",
+        "He inspected crops for the FDA"
+      ],
+      "correctIndex": 1,
+      "fact": "Labor contractors recruited workers, brokered them to growers, and often controlled the camps where workers lived — creating conditions where migrants were dependent on the same man who set their wages."
+    },
+    {
+      "id": "dt13",
+      "question": "What New Deal program offered young men from struggling families wages for conservation work?",
+      "choices": [
+        "The Civilian Conservation Corps (CCC)",
+        "The Agricultural Adjustment Administration (AAA)",
+        "The Federal Deposit Insurance Corporation (FDIC)"
+      ],
+      "correctIndex": 0,
+      "fact": "The CCC employed about 3 million young men planting trees, building trails, and doing erosion control. The wages — $30 a month — were sent home to families, providing critical income during the Depression."
+    },
+    {
+      "id": "dt14",
+      "question": "How did Hugh Bennett use the Black Sunday storm to win support for soil conservation?",
+      "choices": [
+        "He organized farmers to file lawsuits against the government",
+        "He timed his Senate testimony so dust clouds were rolling over Washington as he spoke",
+        "He wrote a bestselling novel about the Plains"
+      ],
+      "correctIndex": 1,
+      "fact": "Bennett was testifying before Congress when word reached him that a dust cloud from the plains was approaching Washington. He stalled until the sky darkened, then pointed out the window. The Soil Conservation Act passed shortly after."
+    },
+    {
+      "id": "dt15",
+      "question": "What happened to piece-rate wages in California orchards when too many migrants arrived?",
+      "choices": [
+        "Growers raised wages to attract the best pickers",
+        "Wages fell because desperate workers competed for every available job",
+        "The government set a minimum piece rate that held steady"
+      ],
+      "correctIndex": 1,
+      "fact": "When hundreds of thousands of migrants flooded California's labor market, growers could cut wages and still fill every row — workers took whatever they could get or went hungry. This is why organizers tried to build collective action."
+    }
+  ],
+  "trailPath": [
+    [
+      62,
+      72
+    ],
+    [
+      58,
+      70
+    ],
+    [
+      54,
+      68
+    ],
+    [
+      49,
+      66
+    ],
+    [
+      44,
+      65
+    ],
+    [
+      39,
+      63
+    ],
+    [
+      35,
+      61
+    ],
+    [
+      30,
+      60
+    ],
+    [
+      25,
+      58
+    ],
+    [
+      20,
+      57
+    ],
+    [
+      16,
+      55
+    ],
+    [
+      13,
+      53
+    ],
+    [
+      10,
+      51
+    ],
+    [
+      8,
+      49
+    ],
+    [
+      7,
+      47
+    ]
+  ],
+  "trailStops": [
+    {
+      "id": "okc",
+      "name": "Oklahoma City, OK",
+      "pathIndex": 1,
+      "pct": 7,
+      "supply": true
+    },
+    {
+      "id": "amarillo",
+      "name": "Amarillo, TX",
+      "pathIndex": 4,
+      "pct": 25,
+      "supply": true
+    },
+    {
+      "id": "albuquerque",
+      "name": "Albuquerque, NM",
+      "pathIndex": 7,
+      "pct": 47,
+      "supply": true
+    },
+    {
+      "id": "flagstaff",
+      "name": "Flagstaff, AZ",
+      "pathIndex": 10,
+      "pct": 63,
+      "supply": true
+    },
+    {
+      "id": "needles",
+      "name": "Needles, CA",
+      "pathIndex": 12,
+      "pct": 80,
+      "supply": false
+    },
+    {
+      "id": "bakerfield",
+      "name": "Bakersfield, CA",
+      "pathIndex": 14,
+      "pct": 100,
+      "supply": true
+    }
+  ],
+  "mapImage": "/faces/map_route66.png",
+  "outfitConfig": {
+    "budget": 38,
+    "baseCrew": 1,
+    "baseHorses": 0,
+    "baseSupplies": 10,
+    "costs": {
+      "gasCan": 3,
+      "spareFan Belt": 4,
+      "foodSack": 5,
+      "tirePatch": 2,
+      "engineOil": 3
+    },
+    "wageCosts": {},
+    "wageMorale": {},
+    "herdOptions": []
+  },
+  "primaryResourceKey": "neighbors",
+  "primaryResourceStart": 10,
+  "revenuePerUnit": 0,
+  "historicalContext": "Between 1930 and 1940, roughly 3.5 million people left the Southern Plains. About 300,000 settled permanently in California, most in the San Joaquin Valley. They arrived in a state that had posted deputies at its borders to keep them out, worked for wages cut by their own desperate numbers, and built communities in labor camps that the growers' associations called communist organizing grounds. The Dust Bowl was not a natural disaster alone — it was the product of a speculative land economy that plowed grassland that should never have been broken. The people who paid the highest price were the ones who had the least say in any of it.",
+  "pixelColors": {
+    "skin": "#D4A574",
+    "hair": "#5C3A1E",
+    "shirt": "#8B7355",
+    "pants": "#6B5B45",
+    "hat": "#7A6248",
+    "shadow": "#3E2A1A",
+    "highlight": "#F0D9B5",
+    "background": "#C8A96E"
+  },
+  "pixelFaces": {
+    "parent": [
+      {
+        "threshold": 75,
+        "sprite": "parent_strong",
+        "label": "Holding together"
+      },
+      {
+        "threshold": 45,
+        "sprite": "parent_worn",
+        "label": "Tired but moving"
+      },
+      {
+        "threshold": 20,
+        "sprite": "parent_desperate",
+        "label": "Running on nothing"
+      },
+      {
+        "threshold": 0,
+        "sprite": "parent_broken",
+        "label": "At the end"
+      }
+    ],
+    "spouse": [
+      {
+        "threshold": 75,
+        "sprite": "spouse_strong",
+        "label": "Standing with you"
+      },
+      {
+        "threshold": 45,
+        "sprite": "spouse_quiet",
+        "label": "Going quiet"
+      },
+      {
+        "threshold": 20,
+        "sprite": "spouse_distant",
+        "label": "Counting the cost"
+      },
+      {
+        "threshold": 0,
+        "sprite": "spouse_gone",
+        "label": "Something broken"
+      }
+    ]
+  },
+  "imageStyleKeyword": "photograph",
+  "reckoning": {
+    "family": {
+      "default": "They remember you as someone who tried.",
+      "variants": [
+        {
+          "whenFlag": "family",
+          "whenAtLeast": 9,
+          "text": "They built their whole lives on what you gave them on that road — and they know what it cost you, the things you didn't do and the people you couldn't help because the family came first. They don't call it sacrifice. They call it love, and they mean it."
+        },
+        {
+          "whenFlag": "family",
+          "whenAtLeast": 4,
+          "whenAtMost": 8,
+          "text": "They remember you kept them fed and moving when everything was against it. There were hard nights, but you were there for them. That counts."
+        },
+        {
+          "whenFlag": "family",
+          "whenAtLeast": -3,
+          "whenAtMost": 3,
+          "text": "They remember you as someone who tried — sometimes for them, sometimes for others, never quite enough of either. The road changed all of you in ways nobody named."
+        },
+        {
+          "whenFlag": "family",
+          "whenAtLeast": -8,
+          "whenAtMost": -4,
+          "text": "They made it to California and they're grateful for that. But your wife counts the days you weren't there for the children, and your oldest learned not to ask you for things."
+        },
+        {
+          "whenFlag": "family",
+          "whenAtMost": -9,
+          "text": "There is a thing that happened on the road that nobody in the family talks about. They don't blame you out loud. They don't have to."
+        }
+      ]
+    },
+    "community": {
+      "default": "Some remember your name. Most have moved on.",
+      "variants": [
+        {
+          "whenFlag": "community",
+          "whenAtLeast": 9,
+          "text": "In three different camps, people still tell the story of your family — the checkpoint, the strike morning, the night you shared the last of something. They tell it as a small proof that people didn't have to be broken by this, that somebody held the line. Your family ate less so others could eat at all, and the camps remember."
+        },
+        {
+          "whenFlag": "community",
+          "whenAtLeast": 4,
+          "whenAtMost": 8,
+          "text": "People along the road remember you as someone who did right when they could have looked away. A jar of peaches shared, a warning passed along, a name given when someone needed a friend. That adds up."
+        },
+        {
+          "whenFlag": "community",
+          "whenAtLeast": -3,
+          "whenAtMost": 3,
+          "text": "You passed through people's lives the way everyone did on Route 66 — present for a night, gone by morning. Some remember you warmly. Most just remember the road."
+        },
+        {
+          "whenFlag": "community",
+          "whenAtLeast": -8,
+          "whenAtMost": -4,
+          "text": "Word travels in the camps. People noticed when you kept moving, when you didn't stop, when you had something to spare and didn't. Nobody's angry. Nobody comes looking for you either."
+        },
+        {
+          "whenFlag": "community",
+          "whenAtMost": -9,
+          "text": "There is a family somewhere in the San Joaquin Valley who remember the night your truck pulled away. They got through it. But when your name comes up — and it does — the conversation stops."
+        }
+      ]
+    }
+  },
+  "backdropImage": {
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Corbett_Infobox_%28cropped%29.jpg/960px-Corbett_Infobox_%28cropped%29.jpg",
+    "artist": "Russell Lee",
+    "license": "Public domain",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ACorbett_Infobox_(cropped).jpg",
+    "searchQuery": "an Oklahoma tenant farming family"
+  },
+  "flags": [
+    {
+      "id": "family",
+      "type": "numeric",
+      "initial": 0,
+      "min": -10,
+      "max": 10,
+      "label": "How those closest to you come to regard you"
+    },
+    {
+      "id": "community",
+      "type": "numeric",
+      "initial": 0,
+      "min": -10,
+      "max": 10,
+      "label": "How the wider community comes to regard you"
+    },
+    {
+      "id": "family_circle_closed",
+      "type": "tristate",
+      "initial": null,
+      "label": "Did the family draw the line at blood — or dissolve it?"
+    }
+  ]
+}

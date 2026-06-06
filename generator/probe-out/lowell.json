@@ -1,0 +1,878 @@
+{
+  "id": "lowell_mill_girl",
+  "title": "THE LOWELL MILL GIRLS",
+  "subtitle": "Lowell, Massachusetts, 1834–1845",
+  "introBody": "You are a young woman from a Vermont farm family. You have come to Lowell for wages and a chance to help pay off your family's debts. The mill promises steady pay, a boardinghouse bed, and improving lectures on Sunday. What it does not advertise is the cotton dust, the fourteen-hour bell, the overseer's eye, or the girls already whispering about a turnout.",
+  "trailFeedOpener": "January 1834: You arrive at the Lowell boardinghouse, trunk in hand, and hear the looms before you see them.",
+  "theme": "broadsheet-sepia",
+  "isPublished": false,
+  "progressionMode": "project",
+  "totalDays": 1440,
+  "daysPerTurn": 30,
+  "totalDistance": 0,
+  "distanceUnit": "",
+  "initialResources": {
+    "wages": 12,
+    "standingAmongTheGirls": 50,
+    "health": 75
+  },
+  "resourceCaps": {
+    "wages": 40,
+    "standingAmongTheGirls": 100,
+    "health": 100
+  },
+  "resourceLabels": {
+    "wages": "Your weekly pay envelope",
+    "standingAmongTheGirls": "Your reputation on the floor and in the boardinghouse",
+    "health": "Your body's ability to endure the work"
+  },
+  "paces": [],
+  "events": [
+    {
+      "id": "fl_setter",
+      "phase_min": 0,
+      "phase_max": 0.3,
+      "weight": 5,
+      "title": "The First Turnout — morning of the wage-cut notice",
+      "text": "It is before dawn. A notice posted on the counting-house door announces a fifteen-percent wage cut effective next week. By breakfast, the older hands are whispering: walk out today, all together, make them feel it. Your overseer has already told you quietly that any girl who leaves her frame will have her name sent to the Agent and the mill's blacklist. You know your mother's last letter mentioned the mortgage payment due in March. The bell is about to ring.",
+      "type": "standard",
+      "choices": [
+        {
+          "text": "You set down your shuttle, look at the woman beside you, and walk out into the yard with the others.",
+          "flagWrites": {
+            "stands_with_collective": true
+          },
+          "result": "She has chosen to let her identity be shaped by solidarity rather than security — she will carry the knowledge of that choice, and its cost, into every decision that follows."
+        },
+        {
+          "text": "You stay at your frame when the bell rings, keeping your eyes on the thread while the others file past you toward the door.",
+          "flagWrites": {
+            "stands_with_collective": false
+          },
+          "result": "She has chosen to let her obligations — and her fear — hold her in place rather than abandon the people at home who depend on her; she will carry the weight of that too, in every exchange with her co-workers afterward."
+        }
+      ]
+    },
+    {
+      "id": "speedup_order",
+      "phase_min": 0.05,
+      "phase_max": 0.35,
+      "weight": 5,
+      "title": "The Overseer Adds a Frame",
+      "text": "The overseer stops at your station and announces you will tend three frames instead of two starting Monday. No extra pay — just the expectation that you keep up. The girl beside you, Lucy Larcom, catches your eye and says nothing.",
+      "type": "standard",
+      "imageSearchQuery": "Lowell mill weaving room 1830s",
+      "choices": [
+        {
+          "text": "Accept quietly and tend the extra frame.",
+          "effects": {
+            "wages": 2,
+            "health": -8
+          },
+          "flagWrites": {
+            "community": -1
+          },
+          "result": "You keep pace, mostly. But by Friday your fingers tremble and you miss threads the overseer fines you for. The extra frame costs more than it pays."
+        },
+        {
+          "text": "Ask Lucy to share the load with you.",
+          "effects": {
+            "health": -4
+          },
+          "flagWrites": {
+            "community": 2
+          },
+          "result": "Lucy agrees without a word. You split the hardest work between shifts. The frames are tended; you are both exhausted, but not alone."
+        },
+        {
+          "text": "Complain to the overseer directly.",
+          "effects": {
+            "standingAmongTheGirls": 8,
+            "wages": -3
+          },
+          "flagWrites": {
+            "community": 2,
+            "family": -1
+          },
+          "result": "He docks your pay for 'insolence' and makes it clear your name is now noticed. But the girls on the floor heard you speak, and at supper they move closer."
+        }
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/1850_Lowell_Co_Mills_Lowell_Massachusetts_detail_of_map_by_Sidney_and_Neff_BPL_11051.png/960px-1850_Lowell_Co_Mills_Lowell_Massachusetts_detail_of_map_by_Sidney_and_Neff_BPL_11051.png",
+        "artist": "Sidney & Neff",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3A1850_Lowell_Co_Mills_Lowell_Massachusetts_detail_of_map_by_Sidney_and_Neff_BPL_11051.png",
+        "searchQuery": "Lowell mill weaving room 1830s"
+      }
+    },
+    {
+      "id": "sick_roommate",
+      "phase_min": 0.1,
+      "phase_max": 0.5,
+      "weight": 4,
+      "title": "Fever in the Boardinghouse",
+      "text": "Your roommate has been coughing for three days. She cannot work, which means she cannot pay the boardinghouse keeper. The keeper says she has one more day before her trunk goes to the curb.",
+      "type": "standard",
+      "imageSearchQuery": "Lowell boardinghouse 1840s engraving",
+      "choices": [
+        {
+          "text": "Pay her week's board from your own wages.",
+          "effects": {
+            "wages": -4
+          },
+          "flagWrites": {
+            "community": 3,
+            "family": -2
+          },
+          "result": "She keeps her bed. Your envelope home to Vermont is thinner than you promised your mother. That night you write the letter and do not explain why."
+        },
+        {
+          "text": "Ask the other girls to each give a little.",
+          "effects": {
+            "standingAmongTheGirls": 6
+          },
+          "flagWrites": {
+            "community": 2
+          },
+          "result": "Six girls each chip in a few cents. It covers the week. Your roommate cries. So do two of the others."
+        },
+        {
+          "text": "Tell the keeper you cannot help.",
+          "effects": {
+            "health": 5
+          },
+          "flagWrites": {
+            "community": -2
+          },
+          "result": "You protect your envelope. Your roommate finds a place with her cousin across town. The remaining girls eat supper without much talk for several days."
+        }
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Albert_Gallatin_%28by_Gilbert_Stuart%29.jpg/960px-Albert_Gallatin_%28by_Gilbert_Stuart%29.jpg",
+        "artist": "The Metropolitan Museum of Art",
+        "license": "CC0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AAlbert_Gallatin_(by_Gilbert_Stuart).jpg",
+        "searchQuery": "Lowell boardinghouse 1840s engraving"
+      }
+    },
+    {
+      "id": "company_store",
+      "phase_min": 0.2,
+      "phase_max": 0.55,
+      "weight": 4,
+      "title": "The Mill Store's Price on Thread",
+      "text": "A shuttle reed on your frame snaps mid-shift. The company store charges twice what you could pay in town, and the overseer says you must replace it before the end of the day or face a fine. Kirk Boott's rules allow no exceptions.",
+      "type": "standard",
+      "imageSearchQuery": "Lowell Massachusetts mill store 1840",
+      "choices": [
+        {
+          "text": "Pay the company store price.",
+          "effects": {
+            "wages": -3
+          },
+          "flagWrites": {
+            "family": -1
+          },
+          "result": "The fine is avoided, but the money is gone. You skip the lending library subscription this month and do not mention it in your letter home."
+        },
+        {
+          "text": "Ask a girl leaving for her dinner break to buy it in town.",
+          "effects": {
+            "wages": -1,
+            "standingAmongTheGirls": 5
+          },
+          "flagWrites": {
+            "community": 1
+          },
+          "result": "She runs and makes it back in time. The store loses a sale. Boott's clerk makes a note but says nothing today."
+        },
+        {
+          "text": "Splice the old reed and take the risk.",
+          "effects": {
+            "health": -5,
+            "wages": -1
+          },
+          "flagWrites": {},
+          "result": "It holds for four hours, then snaps again — mid-inspection. You earn the fine and a cut finger and a story the girls retell for weeks."
+        }
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Lowell%2C_Massachusetts.jpg/960px-Lowell%2C_Massachusetts.jpg",
+        "artist": "Quintin Soloviev",
+        "license": "CC BY 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ALowell%2C_Massachusetts.jpg",
+        "searchQuery": "Lowell Massachusetts mill store 1840"
+      }
+    },
+    {
+      "id": "sarah_bagley_meeting",
+      "phase_min": 0.45,
+      "phase_max": 0.72,
+      "weight": 5,
+      "title": "Sarah Bagley's Petition",
+      "text": "Sarah Bagley stands outside the counting-house at dinner break, a paper in her hand. She is collecting names for the Lowell Female Labor Reform Association's petition to the Massachusetts legislature: a ten-hour workday. She looks you in the eye.",
+      "type": "standard",
+      "imageSearchQuery": "Sarah Bagley Lowell Female Labor Reform Association",
+      "choices": [
+        {
+          "text": "Sign the petition.",
+          "effects": {
+            "standingAmongTheGirls": 10
+          },
+          "flagWrites": {
+            "community": 3,
+            "family": -1
+          },
+          "result": "Bagley writes your name carefully. Across the street, a clerk from Boott's office watches. You walk back to your frame with your chin up."
+        },
+        {
+          "text": "Read it but do not sign — not yet.",
+          "effects": {},
+          "flagWrites": {
+            "community": -1
+          },
+          "result": "Bagley nods without judgment. You return to your frame. That evening, two girls who did sign give you a look you cannot quite read."
+        },
+        {
+          "text": "Tell her a petition will only anger the agents.",
+          "effects": {
+            "wages": 2
+          },
+          "flagWrites": {
+            "community": -3,
+            "family": 1
+          },
+          "result": "She listens, then says quietly: 'The agents are already angry — at us, for being here at all.' You keep your place. The girls who signed do not eat supper near you that week."
+        }
+      ]
+    },
+    {
+      "id": "immigrant_workers_arrive",
+      "phase_min": 0.6,
+      "phase_max": 0.85,
+      "weight": 4,
+      "title": "New Faces on the Floor",
+      "text": "A group of Irish immigrant workers — men and women — begins on the frames beside you. The overseer explains the new Irish operative will tend four frames for the same wage you earn on three. The Yankee girls around you are furious.",
+      "type": "standard",
+      "imageSearchQuery": "Irish immigrants Lowell mill 1845",
+      "choices": [
+        {
+          "text": "Introduce yourself and show her the frame's quirks.",
+          "effects": {
+            "standingAmongTheGirls": -4
+          },
+          "flagWrites": {
+            "community": 2
+          },
+          "result": "The other Yankee girls are cold with you for days. The new operative learns your name and remembers it. Something shifts, slowly, in how you think about who 'the girls' are."
+        },
+        {
+          "text": "Keep to your work and say nothing.",
+          "effects": {},
+          "flagWrites": {
+            "family": 1
+          },
+          "result": "You avoid the argument. The new operative figures out the frame herself. Nothing between you changes — which is its own kind of answer."
+        },
+        {
+          "text": "Join the Yankee girls in complaining to the overseer.",
+          "effects": {
+            "standingAmongTheGirls": 6,
+            "wages": -2
+          },
+          "flagWrites": {
+            "community": -2
+          },
+          "result": "The overseer reminds you that you are also replaceable. The complaint fails. The Irish operative stays. You have made an enemy of someone whose only crime was needing work."
+        }
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/1850_Lowell_Co_Mills_Lowell_Massachusetts_detail_of_map_by_Sidney_and_Neff_BPL_11051.png/960px-1850_Lowell_Co_Mills_Lowell_Massachusetts_detail_of_map_by_Sidney_and_Neff_BPL_11051.png",
+        "artist": "Sidney & Neff",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3A1850_Lowell_Co_Mills_Lowell_Massachusetts_detail_of_map_by_Sidney_and_Neff_BPL_11051.png",
+        "searchQuery": "Irish immigrants Lowell mill 1845"
+      }
+    },
+    {
+      "id": "winter_overcrowding",
+      "phase_min": 0.7,
+      "phase_max": 0.95,
+      "weight": 3,
+      "title": "Eight to a Room in February",
+      "text": "Two more girls are assigned to your boardinghouse room. Eight in a space meant for four. The windows are nailed shut against the cold, and lint from the day hangs in the air all night. You wake coughing.",
+      "type": "push_luck",
+      "imageSearchQuery": "Lowell boardinghouse room operatives 1840s",
+      "leaveText": "Endure it. Complain to no one.",
+      "attempts": [
+        {
+          "id": "open_window",
+          "buttonText": "Crack the window open an inch at night.",
+          "successText": "The keeper doesn't notice. Cold air clears your lungs and you sleep better for a week.",
+          "failureText": "The keeper finds the window open and threatens to report you to Boott's office for damaging property.",
+          "riskChance": 0.3,
+          "rewards": {
+            "health": 8
+          },
+          "penalties": {
+            "wages": -2,
+            "standingAmongTheGirls": -3
+          }
+        },
+        {
+          "id": "petition_keeper",
+          "buttonText": "Ask the keeper to move two girls to another room.",
+          "successText": "She grumbles but moves one girl. It is still crowded. It is slightly less likely to kill you.",
+          "failureText": "She reminds you that the Corporation assigns beds, not her — and your complaint has been noted.",
+          "riskChance": 0.45,
+          "rewards": {
+            "health": 5,
+            "standingAmongTheGirls": 4
+          },
+          "penalties": {
+            "wages": -3
+          }
+        },
+        {
+          "id": "speak_at_meeting",
+          "buttonText": "Raise the overcrowding at a boardinghouse meeting.",
+          "successText": "Three other girls back you up. The keeper writes a letter to the Corporation. Nothing changes this week — but you spoke, and they heard you.",
+          "failureText": "The meeting turns against you. One girl says you'll get everyone's rent raised. You sit down. The room stays eight.",
+          "riskChance": 0.55,
+          "rewards": {
+            "standingAmongTheGirls": 10,
+            "health": 3
+          },
+          "penalties": {
+            "standingAmongTheGirls": -6
+          }
+        }
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Lowell%2C_Massachusetts.jpg/960px-Lowell%2C_Massachusetts.jpg",
+        "artist": "Quintin Soloviev",
+        "license": "CC BY 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ALowell%2C_Massachusetts.jpg",
+        "searchQuery": "Lowell boardinghouse room operatives 1840s"
+      }
+    },
+    {
+      "id": "fl_reader_0",
+      "phase_min": 0.35,
+      "phase_max": 1,
+      "weight": 5,
+      "title": "A co-worker asks you to sign the petition against the new speed-up",
+      "text": {
+        "default": "She slides the paper across the table to you without a word — she already knows your name will be on it. After the turnout, you are one of the women the others watch. Signing costs you nothing new; being watched costs you something you did not expect. Every eye in the weave room is a reminder that you have become, whether you chose it or not, a kind of answer to a question the mill keeps asking.",
+        "variants": [
+          {
+            "whenFlag": "stands_with_collective",
+            "equals": true,
+            "text": "She slides the paper across the table to you without a word — she already knows your name will be on it. After the turnout, you are one of the women the others watch. Signing costs you nothing new; being watched costs you something you did not expect. Every eye in the weave room is a reminder that you have become, whether you chose it or not, a kind of answer to a question the mill keeps asking."
+          },
+          {
+            "whenFlag": "stands_with_collective",
+            "equals": false,
+            "text": "She slides the paper across the table without looking at you. You understand the silence. You pick up your shuttle again and say nothing. The women around you are not cruel — they know what it is to need a wage — but there is a careful distance now, the distance of people who have learned not to ask too much of someone who has already told them, without words, where her limits are. You understand that too. Understanding it does not make it lighter."
+          }
+        ]
+      },
+      "type": "standard",
+      "choices": [
+        {
+          "text": "Go on."
+        }
+      ]
+    }
+  ],
+  "sages": [
+    {
+      "id": "francis_cabot_lowell",
+      "name": "Francis Cabot Lowell",
+      "title": "Boston Merchant & Mill Founder",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Francis_Cabot_Lowell.jpg/330px-Francis_Cabot_Lowell.jpg",
+      "portraitAttribution": {
+        "artist": "United States National Park Service",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AFrancis_Cabot_Lowell.jpg"
+      },
+      "threshold": 12,
+      "bio": "Francis Cabot Lowell built America's first fully integrated textile mill at Waltham in 1814, combining spinning and weaving under one roof. He modeled the boardinghouse system on English mills but added paternalistic rules meant to reassure New England families their daughters would be morally supervised. He died in 1817 before his system expanded to the city that bears his name.",
+      "greeting": "You find an old portrait of the mill's founder in the counting-house hallway. The overseer sees you looking and says, 'Lowell designed every rule you live under — the bell, the boardinghouse, all of it.'",
+      "advice": "Lowell's design assumed that farm daughters would cycle through the mills for a few years, send wages home, and return to respectable life. He built a system that depended on that belief — and on the girls never organizing.",
+      "question": {
+        "question": "What made the Lowell mill system different from earlier American manufacturing?",
+        "choices": [
+          "It used child labor exclusively and paid no wages",
+          "It combined spinning and weaving in one factory, with workers housed in company boardinghouses",
+          "It was owned and operated by the state of Massachusetts",
+          "It imported finished cloth from England and resold it"
+        ],
+        "correctIndex": 1,
+        "explanation": "Lowell's Waltham-Lowell system put every step of cloth production under one roof — a first in America — and added company boardinghouses to attract respectable farm daughters whose families would not send them to unregulated city tenements.",
+        "teksRef": "8.9(A) — The Industrial Revolution and the development of American manufacturing"
+      },
+      "reward": {
+        "correct": {
+          "standingAmongTheGirls": 8,
+          "health": 5
+        },
+        "wrong": {
+          "standingAmongTheGirls": 3
+        },
+        "knowledgeCorrect": 4,
+        "knowledgeWrong": 2
+      }
+    },
+    {
+      "id": "harriet_hanson_robinson",
+      "name": "Harriet Hanson Robinson",
+      "title": "Mill Operative & Witness to the 1836 Turnout",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/2_Young_Women.jpg/330px-2_Young_Women.jpg",
+      "portraitAttribution": {
+        "artist": "Unknown author",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3A2_Young_Women.jpg"
+      },
+      "threshold": 42,
+      "bio": "Harriet Hanson Robinson began working in the Lowell mills as a child and walked out in the 1836 turnout — one of the youngest operatives to do so. She later wrote 'Loom and Spindle,' one of the most detailed firsthand accounts of mill life, recording both the literary culture the girls built and the grinding conditions that drove them to collective action.",
+      "greeting": "A slight young woman catches up to you on the way back from the dinner break. 'I was eleven when I walked out,' she says, as if continuing a conversation you hadn't started. 'I'll tell you what it felt like, if you want to know.'",
+      "advice": "The 1836 turnout failed — the mill brought in new girls and the strikers came back or left for good. But Robinson says it changed something: the girls knew they could refuse, even if they couldn't win yet.",
+      "question": {
+        "question": "What triggered the 1836 Lowell mill girls' turnout?",
+        "choices": [
+          "The mills announced a reduction in wages",
+          "The boardinghouse keeper raised the rent without permission",
+          "A fire destroyed one of the weaving rooms",
+          "The Massachusetts legislature banned women from factory work"
+        ],
+        "correctIndex": 0,
+        "explanation": "The 1836 turnout — one of the earliest factory strikes in American history — was triggered by a wage cut. Hundreds of mill girls walked off their frames in protest, though the action ultimately failed when the Corporation held firm and replaced departing workers.",
+        "teksRef": "8.9(B) — Early labor organizing and workers' responses to industrial conditions"
+      },
+      "reward": {
+        "correct": {
+          "standingAmongTheGirls": 10,
+          "wages": 2
+        },
+        "wrong": {
+          "standingAmongTheGirls": 4
+        },
+        "knowledgeCorrect": 4,
+        "knowledgeWrong": 2
+      }
+    },
+    {
+      "id": "sarah_bagley",
+      "name": "Sarah Bagley",
+      "title": "Operative & Founder of the LFLRA",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/2_Young_Women.jpg/330px-2_Young_Women.jpg",
+      "threshold": 72,
+      "bio": "Sarah Bagley worked in the Lowell mills through the 1840s and founded the Lowell Female Labor Reform Association in 1845, the first women's labor organization in the United States. She led the campaign for a ten-hour workday, collected thousands of signatures on petitions to the Massachusetts legislature, and testified before the first-ever legislative committee hearing on labor conditions in American history.",
+      "greeting": "Bagley finds you at the pump behind the boardinghouse. She doesn't waste time: 'The legislature will hear us if we give them enough names. How many girls on your floor will sign?'",
+      "advice": "She says the ten-hour day is not a luxury — it is the difference between a woman who can read, think, and choose, and one who can only survive. She expects you to decide which kind of woman you intend to be.",
+      "question": {
+        "question": "What was the main goal of Sarah Bagley's Lowell Female Labor Reform Association?",
+        "choices": [
+          "To win the right for women to vote in Massachusetts elections",
+          "To petition the legislature for a ten-hour workday limit",
+          "To negotiate higher wages directly with mill owners",
+          "To open a school for mill operatives' children"
+        ],
+        "correctIndex": 1,
+        "explanation": "The LFLRA, founded in 1845, focused on the ten-hour workday as its central demand, arguing that twelve to fourteen hours of mill labor left women no time for education, rest, or civic life. Bagley led the petition campaign and testified before the Massachusetts legislature.",
+        "teksRef": "8.9(B) — Labor organizing and the ten-hour movement in antebellum America"
+      },
+      "reward": {
+        "correct": {
+          "standingAmongTheGirls": 12,
+          "health": 4
+        },
+        "wrong": {
+          "standingAmongTheGirls": 5
+        },
+        "knowledgeCorrect": 4,
+        "knowledgeWrong": 2
+      },
+      "portraitAttribution": {
+        "artist": "Unknown author",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3A2_Young_Women.jpg"
+      }
+    }
+  ],
+  "route": [
+    {
+      "id": "start",
+      "title": "Lowell, Massachusetts",
+      "description": "You are here for the duration of your contract. There is no trail — only the turning of the seasons and the turning of the frames.",
+      "edges": []
+    }
+  ],
+  "eventTrivia": [
+    {
+      "id": "lt01",
+      "question": "What was the main product made in the Lowell mills?",
+      "choices": [
+        "Woolen blankets",
+        "Cotton cloth",
+        "Silk ribbons",
+        "Iron tools"
+      ],
+      "correctIndex": 1,
+      "fact": "The Lowell mills specialized in cotton textiles, spinning raw cotton into thread and weaving it into cloth — all under one roof."
+    },
+    {
+      "id": "lt02",
+      "question": "Why did mill owners require operatives to live in company boardinghouses?",
+      "choices": [
+        "To reduce commuting time",
+        "To reassure farm families their daughters were morally supervised",
+        "To keep operatives from spending wages in town",
+        "Because there was no other housing in Lowell"
+      ],
+      "correctIndex": 1,
+      "fact": "The boardinghouse system was designed to convince New England farm families that mill life was respectable and supervised — without it, many parents would not have permitted their daughters to come."
+    },
+    {
+      "id": "lt03",
+      "question": "What did a 'speedup' mean for a mill operative?",
+      "choices": [
+        "She was promoted to a faster loom",
+        "She was required to tend more frames for the same pay",
+        "Her workday was shortened",
+        "She received a bonus for faster output"
+      ],
+      "correctIndex": 1,
+      "fact": "A speedup meant the operative was assigned additional frames without additional wages — a common way mill owners extracted more output while holding labor costs flat."
+    },
+    {
+      "id": "lt04",
+      "question": "What health hazard was most common in the Lowell weaving rooms?",
+      "choices": [
+        "Lead paint fumes from the machinery",
+        "Cotton dust and lint in the air",
+        "Extreme cold from open windows",
+        "Noise-induced deafness only"
+      ],
+      "correctIndex": 1,
+      "fact": "Cotton dust and lint filled the weaving-room air. Windows were often nailed shut to maintain humidity for the threads. Long-term exposure caused serious lung disease among operatives."
+    },
+    {
+      "id": "lt05",
+      "question": "What happened to an operative placed on the mill's blacklist?",
+      "choices": [
+        "She was fined one week's wages",
+        "She was transferred to a harder frame assignment",
+        "She could not be hired at any mill in the region",
+        "She was required to repay her boardinghouse fees"
+      ],
+      "correctIndex": 2,
+      "fact": "The blacklist circulated among mill corporations. A blacklisted operative could not find mill work in Lowell or at competing mills — an effective tool for suppressing labor action."
+    },
+    {
+      "id": "lt06",
+      "question": "Who held direct managerial authority over the Lowell mills and their workers in the 1820s and 1830s?",
+      "choices": [
+        "Francis Cabot Lowell himself",
+        "The Massachusetts state government",
+        "Kirk Boott, the mill agent and superintendent",
+        "The boardinghouse keepers"
+      ],
+      "correctIndex": 2,
+      "fact": "Kirk Boott served as the Corporation's agent and superintendent, controlling the mills' physical layout, discipline rules, and daily operations — making him the face of corporate authority the girls encountered directly."
+    },
+    {
+      "id": "lt07",
+      "question": "What distinguished the 1845 LFLRA petition campaign from earlier mill protests?",
+      "choices": [
+        "It included armed resistance at the mill gates",
+        "It brought the ten-hour demand before the Massachusetts legislature for the first time",
+        "It was organized by male labor leaders from Boston",
+        "It successfully won a wage increase for all operatives"
+      ],
+      "correctIndex": 1,
+      "fact": "Sarah Bagley's LFLRA brought petitions signed by thousands of operatives to the Massachusetts legislature — triggering the first-ever legislative committee hearings on factory labor conditions in U.S. history."
+    },
+    {
+      "id": "lt08",
+      "question": "Why did New England farm daughters begin leaving the Lowell mills in the late 1840s?",
+      "choices": [
+        "The mills were shut down by a new state law",
+        "Wages rose so high that work was no longer necessary",
+        "Conditions worsened and Irish immigrant workers replaced them",
+        "They were expelled by the boardinghouse keepers"
+      ],
+      "correctIndex": 2,
+      "fact": "As speedups increased and wages fell, the original Yankee farm-daughter workforce left for other opportunities. Irish immigrants arriving after the 1845 famine were hired at lower wages under harder conditions, fundamentally changing the mills' workforce."
+    },
+    {
+      "id": "lt09",
+      "question": "What did Lucy Larcom later write about her time in the Lowell mills?",
+      "choices": [
+        "That she earned enough to buy a farm for her family",
+        "That the mills were a place of misery with no redeeming qualities",
+        "That she found both intellectual community and growing conditions of exploitation",
+        "That she organized the 1836 turnout and won better wages"
+      ],
+      "correctIndex": 2,
+      "fact": "Larcom's memoir captures the genuine complexity of Lowell: the lending libraries, the Lowell Offering literary magazine, and real friendships alongside the cotton dust, the deafening looms, and the tightening grip of the Corporation."
+    },
+    {
+      "id": "lt10",
+      "question": "What was the 'Lowell Offering'?",
+      "choices": [
+        "The weekly wage envelope handed to operatives",
+        "A literary magazine written and published by mill operatives",
+        "The annual report of the Boston Manufacturing Company",
+        "A religious pamphlet distributed at the boardinghouse"
+      ],
+      "correctIndex": 1,
+      "fact": "The Lowell Offering was a literary magazine written entirely by mill operatives — proof, its editors argued, that factory women were educated and thoughtful. Critics like Harriet Martineau noted it was also used to reassure outsiders that conditions were tolerable."
+    },
+    {
+      "id": "lt11",
+      "question": "How did the mill system deduct boardinghouse costs from operatives?",
+      "choices": [
+        "Operatives paid the keeper directly from their wages each Friday",
+        "The Corporation deducted board automatically before paying the remainder",
+        "Board was optional and only charged to operatives who chose a private room",
+        "The state of Massachusetts paid the boardinghouse costs"
+      ],
+      "correctIndex": 1,
+      "fact": "The Corporation deducted boardinghouse fees directly from wages before the operative ever saw the money — ensuring the company recovered housing costs and giving operatives less control over their own pay."
+    },
+    {
+      "id": "lt12",
+      "question": "What was a 'turnout' in the Lowell mills?",
+      "choices": [
+        "A shift rotation where workers swapped frames",
+        "A collective work stoppage — what we now call a strike",
+        "An annual inspection of looms by the Corporation",
+        "A formal request to the overseer for a day off"
+      ],
+      "correctIndex": 1,
+      "fact": "'Turnout' was the era's term for a collective work stoppage. Mill girls who 'turned out' walked off their frames together — a risky act because it could result in blacklisting and immediate loss of boardinghouse eligibility."
+    },
+    {
+      "id": "lt13",
+      "question": "What economic purpose did the Lowell mills serve for their Boston investors?",
+      "choices": [
+        "To provide raw cotton to British manufacturers",
+        "To produce cheap cloth for export to Europe at a profit",
+        "To manufacture textiles for American markets at prices that undercut British imports",
+        "To train skilled craftsmen for the New England shipbuilding industry"
+      ],
+      "correctIndex": 2,
+      "fact": "The Boston Associates who financed Lowell aimed to produce American cotton cloth cheaply enough to compete with British imports and supply the growing domestic market — an industrial strategy that deliberately kept wages low to maximize returns."
+    },
+    {
+      "id": "lt14",
+      "question": "What did Harriet Hanson Robinson mean when she described walking out in 1836 as a child?",
+      "choices": [
+        "She left work early because she was ill",
+        "She joined the turnout despite being one of the youngest operatives on the floor",
+        "She was sent home by the overseer for missing her quota",
+        "She walked to another mill that offered better wages"
+      ],
+      "correctIndex": 1,
+      "fact": "Robinson was eleven years old when she joined the 1836 turnout. She later wrote that when the older girls hesitated, she started walking and they followed — a moment she described as the first time she felt the power of collective action."
+    },
+    {
+      "id": "lt15",
+      "question": "What role did Kirk Boott play in shaping daily life in Lowell beyond the factory floor?",
+      "choices": [
+        "He had no authority outside the mill buildings",
+        "He controlled the town's physical layout, housing rules, and discipline — the Corporation governed everything",
+        "He served only as a financial manager for the Boston investors",
+        "He was elected by the operatives to represent their interests"
+      ],
+      "correctIndex": 1,
+      "fact": "Boott's authority extended to the town itself — he supervised street layouts, boardinghouse rules, church attendance requirements, and curfews. The Corporation's paternalism was total: it owned the buildings, the rules, and the moral framework operatives lived inside."
+    },
+    {
+      "id": "lt16",
+      "question": "Why did the 1836 Lowell turnout ultimately fail?",
+      "choices": [
+        "The Massachusetts legislature passed a law ordering the girls back to work",
+        "A fire destroyed the striking girls' boardinghouse",
+        "The Corporation held firm and replaced or waited out the striking operatives",
+        "The girls could not agree on a common wage demand"
+      ],
+      "correctIndex": 2,
+      "fact": "The Corporation had the decisive advantage: operatives who did not return lost their jobs and their boardinghouse places, and the mills had a large pool of potential replacements. The 1836 turnout failed — but it planted the seeds of the organizing that followed."
+    }
+  ],
+  "trailPath": [],
+  "trailStops": [],
+  "mapImage": "/faces/map_lowell.png",
+  "outfitConfig": {
+    "budget": 0,
+    "baseCrew": 0,
+    "baseHorses": 0,
+    "baseSupplies": 0,
+    "costs": {
+      "medicineCabinet": 3,
+      "lendingLibrarySubscription": 1,
+      "extraBoardingFee": 2,
+      "warmClothing": 2
+    },
+    "wageCosts": {},
+    "wageMorale": {},
+    "herdOptions": []
+  },
+  "primaryResourceKey": "standingAmongTheGirls",
+  "primaryResourceStart": 50,
+  "revenuePerUnit": 0,
+  "historicalContext": "The Lowell mill system, founded in the 1820s, was America's first large-scale factory enterprise. Young women from New England farm families made up the majority of its early workforce, drawn by wages and the promise of self-improvement. By the 1830s, speedups, wage cuts, and overcrowded boardinghouses produced some of the earliest organized labor actions in American history — including the 1834 and 1836 turnouts. Sarah Bagley's Lowell Female Labor Reform Association (1845) brought the ten-hour workday before the Massachusetts legislature, pioneering a form of political labor organizing that would define the movement for generations. By 1850, Irish immigrant workers had largely replaced the original Yankee workforce, and the paternalistic promises of the early mill era were gone.",
+  "pixelColors": {
+    "skin": "#D4A574",
+    "hair": "#3B2314",
+    "dress": "#4A3728",
+    "apron": "#C8B89A",
+    "accent": "#7A4F3A",
+    "shadow": "#2C1810",
+    "background": "#F5E6C8"
+  },
+  "pixelFaces": {
+    "operative": [
+      {
+        "threshold": 80,
+        "sprite": "operative_bright",
+        "label": "Thriving"
+      },
+      {
+        "threshold": 55,
+        "sprite": "operative_steady",
+        "label": "Steady"
+      },
+      {
+        "threshold": 30,
+        "sprite": "operative_worn",
+        "label": "Worn"
+      },
+      {
+        "threshold": 0,
+        "sprite": "operative_exhausted",
+        "label": "Exhausted"
+      }
+    ],
+    "overseer": [
+      {
+        "threshold": 70,
+        "sprite": "overseer_calm",
+        "label": "Watchful"
+      },
+      {
+        "threshold": 40,
+        "sprite": "overseer_stern",
+        "label": "Stern"
+      },
+      {
+        "threshold": 0,
+        "sprite": "overseer_angry",
+        "label": "Hostile"
+      }
+    ]
+  },
+  "imageStyleKeyword": "engraving",
+  "reckoning": {
+    "family": {
+      "default": "Your family remembers you as someone who came home changed — they cannot say how.",
+      "variants": [
+        {
+          "whenFlag": "family",
+          "whenAtLeast": 9,
+          "text": "Every coin you sent home meant a meal on the table or a debt held off one more month. Your mother kept your letters in a tin box. When neighbors asked about you, she said only: 'She gave everything she had.' You did — and they know it, in the way a family knows a gift that cost the giver."
+        },
+        {
+          "whenFlag": "family",
+          "whenAtLeast": 4,
+          "whenAtMost": 8,
+          "text": "Your family received your wages and your letters with genuine gratitude. They understood that Lowell was hard and that you were steady through it. When you came home, there was a warmth at the table that had not always been there."
+        },
+        {
+          "whenFlag": "family",
+          "whenAtLeast": -3,
+          "whenAtMost": 3,
+          "text": "Your family loves you and they are glad you came back. But there were months when the letters grew thin and the money thinner, and weeks they wondered whether Lowell had changed what they could count on. They hold both things at once, as families do."
+        },
+        {
+          "whenFlag": "family",
+          "whenAtLeast": -8,
+          "whenAtMost": -4,
+          "text": "The months in Lowell took you somewhere your family could not follow. The gaps between letters grew long. When you came home, the conversation had to relearn itself. Something that had been simple between you no longer was."
+        },
+        {
+          "whenFlag": "family",
+          "whenAtMost": -9,
+          "text": "There is a letter your mother wrote that you never answered. She has not thrown it away. The distance between you did not happen all at once — it was built out of silences, missing envelopes, and choices you made for other people that left your own people behind. Your family does not hate you. They have simply stopped expecting."
+        }
+      ]
+    },
+    "community": {
+      "default": "The girls on the floor remember you as someone who was there — present, but hard to place.",
+      "variants": [
+        {
+          "whenFlag": "community",
+          "whenAtLeast": 9,
+          "text": "Years later, some of the Lowell girls still say your name when they talk about who stood up and what it cost. You signed when others wouldn't, spoke when it was dangerous, gave what you had when it made your own weeks harder. They remember you not as a saint but as the real thing: someone who chose the collective over her own comfort, again and again, and paid for it."
+        },
+        {
+          "whenFlag": "community",
+          "whenAtLeast": 4,
+          "whenAtMost": 8,
+          "text": "The girls on your floor trusted you, and that trust was earned one ordinary act at a time — a covered frame, a shared meal, a signature on a petition when it mattered. They remember you as a woman who did right by the people around her."
+        },
+        {
+          "whenFlag": "community",
+          "whenAtLeast": -3,
+          "whenAtMost": 3,
+          "text": "Some of the girls remember you fondly; others less so. You were neither the one who stood tallest nor the one who turned away hardest. You were human and inconsistent, and the floor reflects that back at you without quite forgiving or quite condemning."
+        },
+        {
+          "whenFlag": "community",
+          "whenAtLeast": -8,
+          "whenAtMost": -4,
+          "text": "By the end, you ate your meals at the edge of the table and heard about things last. The distance between you and the other girls was not declared — it accumulated. They did not dislike you; they had simply stopped counting on you, and stopped telling you things they needed to keep safe."
+        },
+        {
+          "whenFlag": "community",
+          "whenAtMost": -9,
+          "text": "There is a kind of loneliness that is not about being alone. You were in the room, at the frame, at the supper table — and still the other girls had built a world that moved around you rather than with you. The break was real. Some of it was fear, some of it was circumstance, and some of it was choices you made that they could not forget, even if they never said so."
+        }
+      ]
+    }
+  },
+  "backdropImage": {
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/b/bd/2_Young_Women.jpg",
+    "artist": "Unknown author",
+    "license": "Public domain",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3A2_Young_Women.jpg",
+    "searchQuery": "a Lowell mill girl"
+  },
+  "flags": [
+    {
+      "id": "family",
+      "type": "numeric",
+      "initial": 0,
+      "min": -10,
+      "max": 10,
+      "label": "How those closest to you come to regard you"
+    },
+    {
+      "id": "community",
+      "type": "numeric",
+      "initial": 0,
+      "min": -10,
+      "max": 10,
+      "label": "How the wider community comes to regard you"
+    },
+    {
+      "id": "stands_with_collective",
+      "type": "tristate",
+      "initial": null,
+      "label": "Solidarity or Survival"
+    }
+  ]
+}

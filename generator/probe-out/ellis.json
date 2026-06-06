@@ -1,0 +1,1012 @@
+{
+  "id": "ellis_island_lower_east_side",
+  "title": "THE GOLDEN DOOR",
+  "subtitle": "Ellis Island to the Lower East Side, 1903",
+  "introBody": "You have crossed the Atlantic in steerage with a few dollars sewn into your coat lining and the name your father gave you at your bar mitzvah. The ship is pulling into New York Harbor. Everything that follows depends on what you do next.",
+  "trailFeedOpener": "The ship slows as the harbor opens up. You grip the railing and watch the island grow closer.",
+  "theme": "broadsheet-sepia",
+  "isPublished": false,
+  "progressionMode": "project",
+  "totalDays": 365,
+  "daysPerTurn": 7,
+  "totalDistance": 0,
+  "distanceUnit": "",
+  "initialResources": {
+    "savings": 18,
+    "landsmanshaftStanding": 50,
+    "physicalCondition": 55
+  },
+  "resourceCaps": {
+    "savings": 200,
+    "landsmanshaftStanding": 100,
+    "physicalCondition": 100
+  },
+  "resourceLabels": {
+    "savings": "The coins and folded bills sewn into your coat lining — your entire liquid world.",
+    "landsmanshaftStanding": "Your place inside the web of neighbors, relatives, and mutual-aid society members from the old country who share your block.",
+    "physicalCondition": "The state of your body after steerage, inspections, and the relentless pace of tenement labor."
+  },
+  "paces": [],
+  "events": [
+    {
+      "id": "fl_setter",
+      "phase_min": 0,
+      "phase_max": 0.3,
+      "weight": 5,
+      "title": "First week on the Lower East Side — the foreman encounter",
+      "text": "You have found a lead on work at a garment workshop on Orchard Street. The foreman, himself a German Jew who arrived a generation earlier, looks at your name on the slip of paper — Avrum Leibowitz — and tells you flatly that on this floor they call men by American names, that he himself became Albert, and that if you want the job you will be Morris by Monday. He is not cruel; he is matter-of-fact. He says the bosses upstairs are not Jewish and that a name like yours is a door that doesn't open. You need the work. You also know what your father called you at your bar mitzvah, and you know your mother sewed that name into the lining of your coat before you left.",
+      "type": "standard",
+      "choices": [
+        {
+          "text": "Tell him your name is Morris. You will learn to answer to it.",
+          "flagWrites": {
+            "identity_remade": true
+          },
+          "result": "You chose the door over the name. That is a transaction only you can weigh — you know what the work means for your survival, and you know what the name meant to your mother. You have begun the long process of becoming someone new, and it is not clear yet whether that someone is more free or more lost."
+        },
+        {
+          "text": "Tell him your name is Avrum. If he cannot hire Avrum, you will find another workshop.",
+          "flagWrites": {
+            "identity_remade": false
+          },
+          "result": "You chose the name over the door. That is a refusal only you can fully account for — you know what you are walking away from, and you know what you are refusing to walk away from. You have drawn a boundary around yourself in a place that did not ask your permission to redraw it, and it is not clear yet whether that boundary will hold you together or hold you back."
+        }
+      ]
+    },
+    {
+      "id": "steerage_crossing",
+      "phase_min": 0,
+      "phase_max": 0.12,
+      "weight": 6,
+      "title": "Fourteen Days in Steerage",
+      "text": "Below the waterline, six hundred people share the air. A man two bunks over coughs through the night. You ration the bread you brought from Hamburg and try to keep your coat — and what is sewn inside it — dry.",
+      "type": "standard",
+      "imageSearchQuery": "Ellis Island steerage immigrants 1900",
+      "choices": [
+        {
+          "text": "Share your bread with the coughing man's children.",
+          "effects": {
+            "savings": -2,
+            "physicalCondition": -3
+          },
+          "flagWrites": {
+            "family": -1,
+            "community": 2
+          },
+          "result": "The children eat. You go to sleep hungry. The man tells you his cousin has a room on Hester Street."
+        },
+        {
+          "text": "Keep the bread. You will need your strength.",
+          "effects": {
+            "physicalCondition": 2
+          },
+          "flagWrites": {
+            "family": 1,
+            "community": -1
+          },
+          "result": "You arrive in better shape than most in your compartment. The coughing man does not look at you when you disembark."
+        },
+        {
+          "text": "Trade your extra shirt for a place near the porthole.",
+          "effects": {
+            "savings": -1,
+            "physicalCondition": 4
+          },
+          "flagWrites": {
+            "community": 0
+          },
+          "result": "Fresh air is worth more than a shirt. You breathe something close to clean for the last four days of the crossing."
+        }
+      ],
+      "trivia": [
+        "Most Eastern European Jews traveled in steerage — the lowest deck — where conditions were dangerously overcrowded.",
+        "The Atlantic crossing from Hamburg typically took 10 to 14 days by the early 1900s."
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Aerial_view_of_Ellis_Island%2C_Jersey_City%2C_New_Jersey_LCCN2011635626_-_cropped_balance.jpg/960px-Aerial_view_of_Ellis_Island%2C_Jersey_City%2C_New_Jersey_LCCN2011635626_-_cropped_balance.jpg",
+        "artist": "Carol M. Highsmith",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AAerial_view_of_Ellis_Island%2C_Jersey_City%2C_New_Jersey_LCCN2011635626_-_cropped_balance.jpg",
+        "searchQuery": "Ellis Island steerage immigrants 1900"
+      }
+    },
+    {
+      "id": "medical_inspection_line",
+      "phase_min": 0.08,
+      "phase_max": 0.2,
+      "weight": 8,
+      "title": "The Chalk Mark",
+      "text": "In the Great Hall a Public Health Service doctor watches you climb the stairs. He has six seconds to decide. You have heard the letters — H for heart, L for lameness, X for the mind. A chalk mark means a second inspection room, and a second room means the wire cage.",
+      "type": "standard",
+      "imageSearchQuery": "Ellis Island registry hall inspection 1903",
+      "choices": [
+        {
+          "text": "Walk straight and breathe steady. Show nothing.",
+          "effects": {
+            "physicalCondition": -2
+          },
+          "flagWrites": {
+            "family": 0,
+            "community": 1
+          },
+          "result": "The doctor's eyes move past you. No chalk. You exhale at the top of the stairs."
+        },
+        {
+          "text": "Help the old woman beside you — she is stumbling.",
+          "effects": {
+            "physicalCondition": -3
+          },
+          "flagWrites": {
+            "family": 0,
+            "community": 2
+          },
+          "result": "The doctor marks her L but waves you through. She grips your sleeve and whispers a blessing."
+        },
+        {
+          "text": "Hang back. Let the stronger-looking immigrants go first.",
+          "outcomes": [
+            {
+              "weight": 6,
+              "effects": {
+                "physicalCondition": 2
+              },
+              "result": "You go through with the next group. No chalk."
+            },
+            {
+              "weight": 4,
+              "effects": {
+                "physicalCondition": -5,
+                "savings": -4
+              },
+              "result": "An inspector pulls you aside for extra questioning. It costs you two hours and a fee to a fixer who says he can help."
+            }
+          ]
+        }
+      ],
+      "trivia": [
+        "PHS doctors watched immigrants climb a staircase, using posture and movement to spot illness in seconds.",
+        "Common chalk marks included H (heart), L (lameness), E (eyes), and X (suspected mental illness)."
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Aerial_view_of_Ellis_Island%2C_Jersey_City%2C_New_Jersey_LCCN2011635626_-_cropped_balance.jpg/960px-Aerial_view_of_Ellis_Island%2C_Jersey_City%2C_New_Jersey_LCCN2011635626_-_cropped_balance.jpg",
+        "artist": "Carol M. Highsmith",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AAerial_view_of_Ellis_Island%2C_Jersey_City%2C_New_Jersey_LCCN2011635626_-_cropped_balance.jpg",
+        "searchQuery": "Ellis Island registry hall inspection 1903"
+      }
+    },
+    {
+      "id": "legal_inspection_registry",
+      "phase_min": 0.12,
+      "phase_max": 0.25,
+      "weight": 7,
+      "title": "Twenty-Nine Questions",
+      "text": "A registry inspector reads from a manifest and fires questions through an interpreter. Name. Occupation. Who are you meeting? How much money do you carry? The man ahead of you was turned back because he had only two dollars. You have more, but not much more.",
+      "type": "standard",
+      "imageSearchQuery": "Ellis Island registry inspector 1900 immigrants",
+      "choices": [
+        {
+          "text": "Answer plainly. Give your uncle's address on Orchard Street.",
+          "effects": {},
+          "flagWrites": {
+            "family": 2,
+            "community": 0
+          },
+          "result": "The inspector stamps your card. You are admitted. Your uncle's name on the paper made the difference."
+        },
+        {
+          "text": "Claim you have a job waiting. The labor agent told you to say this.",
+          "outcomes": [
+            {
+              "weight": 5,
+              "effects": {
+                "savings": -3
+              },
+              "result": "The inspector frowns — contract labor is illegal under the Foran Act — and asks more questions. A fixer smooths it for a fee."
+            },
+            {
+              "weight": 5,
+              "effects": {},
+              "result": "The inspector waves it through. You are in. But you feel the luck of it."
+            }
+          ]
+        },
+        {
+          "text": "Say as little as possible. Nod. Look calm.",
+          "effects": {
+            "physicalCondition": -2
+          },
+          "flagWrites": {
+            "community": -1
+          },
+          "result": "The interpreter shrugs and moves you forward. You made it, but you look like a man hiding something."
+        }
+      ],
+      "trivia": [
+        "The Foran Act of 1885 made it illegal for employers to pre-arrange labor contracts with immigrants.",
+        "Inspectors asked 29 questions from the ship manifest; a wrong answer could trigger a Board of Special Inquiry hearing."
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Aerial_view_of_Ellis_Island%2C_Jersey_City%2C_New_Jersey_LCCN2011635626_-_cropped_balance.jpg/960px-Aerial_view_of_Ellis_Island%2C_Jersey_City%2C_New_Jersey_LCCN2011635626_-_cropped_balance.jpg",
+        "artist": "Carol M. Highsmith",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AAerial_view_of_Ellis_Island%2C_Jersey_City%2C_New_Jersey_LCCN2011635626_-_cropped_balance.jpg",
+        "searchQuery": "Ellis Island registry inspector 1900 immigrants"
+      }
+    },
+    {
+      "id": "tenement_room_search",
+      "phase_min": 0.22,
+      "phase_max": 0.4,
+      "weight": 6,
+      "title": "A Room on Ludlow Street",
+      "text": "Your uncle's place is already five people in two rooms. You need to find your own floor. A landlord on Ludlow Street shows you a rear room — no window, three dollars a month. A neighbor says there is a better room upstairs but the landlord there does not rent to greenhorns.",
+      "type": "standard",
+      "imageSearchQuery": "Lower East Side tenement 1900 Ludlow Street",
+      "choices": [
+        {
+          "text": "Take the windowless room. You need a place tonight.",
+          "effects": {
+            "savings": -3,
+            "physicalCondition": -3
+          },
+          "flagWrites": {
+            "community": 1
+          },
+          "result": "Three dollars gone. The room smells of the last tenant's work. You roll your coat into a pillow."
+        },
+        {
+          "text": "Ask the landsmanshaft if anyone has a spare corner.",
+          "effects": {
+            "landsmanshaftStanding": -5
+          },
+          "flagWrites": {
+            "community": 2,
+            "family": 1
+          },
+          "result": "A family from Minsk fits you behind their curtain. You owe them now, and you know it."
+        },
+        {
+          "text": "Sleep in the hallway and keep looking. Save the money.",
+          "effects": {
+            "physicalCondition": -6
+          },
+          "flagWrites": {
+            "community": -1
+          },
+          "result": "Three nights in the hallway. You find a cheaper room on Hester Street, but your body is paying the cost."
+        }
+      ],
+      "trivia": [
+        "Dumbbell tenements packed dozens of families into buildings with minimal light and shared outhouses in the yard.",
+        "Jacob Riis documented rooms in Mulberry Bend where a single family of eight lived and worked in a space meant for storage."
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Orchard_St_looking_south_at_Rivington_St.jpg/960px-Orchard_St_looking_south_at_Rivington_St.jpg",
+        "artist": "Unknown",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AOrchard_St_looking_south_at_Rivington_St.jpg",
+        "searchQuery": "Lower East Side tenement 1900 Ludlow Street"
+      }
+    },
+    {
+      "id": "piecework_sweatshop",
+      "phase_min": 0.35,
+      "phase_max": 0.65,
+      "weight": 6,
+      "title": "Twelve Hours at the Machine",
+      "text": "The garment workshop on Orchard Street runs from six in the morning until the light fails. The foreman pays by the piece — three cents a shirt. A co-worker slips you a note: the workers are talking about stopping work on Saturday until the boss pays a living rate.",
+      "type": "standard",
+      "imageSearchQuery": "Lower East Side sweatshop garment workers 1900",
+      "choices": [
+        {
+          "text": "Join the work stoppage. Stand with your neighbors.",
+          "effects": {
+            "savings": -4,
+            "landsmanshaftStanding": 8
+          },
+          "flagWrites": {
+            "community": 3,
+            "family": -2
+          },
+          "result": "Two days without pay. The foreman caves on Saturday hours. Your neighbors remember who stood."
+        },
+        {
+          "text": "Keep working. You cannot afford to miss a day's pay.",
+          "effects": {
+            "savings": 5,
+            "landsmanshaftStanding": -10
+          },
+          "flagWrites": {
+            "community": -3,
+            "family": 2
+          },
+          "result": "You earn when others do not. The foreman notices. Your neighbors notice too, and the word shkab follows you down the block."
+        },
+        {
+          "text": "Stay home sick that day. Take no side.",
+          "effects": {
+            "physicalCondition": 3
+          },
+          "flagWrites": {
+            "community": -1,
+            "family": 0
+          },
+          "result": "You rest. The stoppage fails without full numbers. Nobody confronts you, but the silence on your landing has a shape."
+        }
+      ],
+      "trivia": [
+        "Garment piecework paid by the item, not the hour — workers could labor 70 hours a week and still not cover rent.",
+        "Jewish labor activists helped organize the International Ladies' Garment Workers' Union, founded in 1900."
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a8/Sweatshop-1890.jpg",
+        "artist": "Unknown",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ASweatshop-1890.jpg",
+        "searchQuery": "Lower East Side sweatshop garment workers 1900"
+      }
+    },
+    {
+      "id": "henry_street_clinic",
+      "phase_min": 0.55,
+      "phase_max": 0.8,
+      "weight": 5,
+      "title": "Lillian Wald's Door",
+      "text": "You have had a fever for four days. A neighbor says Lillian Wald's nurses on Henry Street will see you without money. But the clinic is busy and there is a family on your landing sicker than you, with young children.",
+      "type": "standard",
+      "imageSearchQuery": "Lillian Wald Henry Street Settlement 1895",
+      "choices": [
+        {
+          "text": "Go to the clinic. You cannot work if you collapse.",
+          "effects": {
+            "savings": 0,
+            "physicalCondition": 12
+          },
+          "flagWrites": {
+            "community": -1,
+            "family": 1
+          },
+          "result": "A nurse gives you quinine and tells you to rest two days. You recover. The family on your landing waited another day."
+        },
+        {
+          "text": "Send the sick family first. Wait your turn.",
+          "effects": {
+            "physicalCondition": -5
+          },
+          "flagWrites": {
+            "community": 2,
+            "family": -1
+          },
+          "result": "The children get seen. You wait outside in the cold. Your fever breaks on its own — barely."
+        },
+        {
+          "text": "Bring the whole family with you. Walk them there yourself.",
+          "effects": {
+            "savings": 0,
+            "physicalCondition": -3,
+            "landsmanshaftStanding": 5
+          },
+          "flagWrites": {
+            "community": 2,
+            "family": 1
+          },
+          "result": "Wald's nurse sees you all. It takes most of the day. You leave weaker but the children leave with medicine."
+        }
+      ],
+      "trivia": [
+        "Lillian Wald founded the Henry Street Settlement in 1895, offering free nursing care to Lower East Side residents.",
+        "The Henry Street nurses made home visits to tenements, treating tuberculosis, typhoid, and infant malnutrition."
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Henry_Street_Settlement_263-267_Henry_Street.jpg/960px-Henry_Street_Settlement_263-267_Henry_Street.jpg",
+        "artist": "Beyond My Ken",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AHenry_Street_Settlement_263-267_Henry_Street.jpg",
+        "searchQuery": "Lillian Wald Henry Street Settlement 1895"
+      }
+    },
+    {
+      "id": "landlord_rent_day",
+      "phase_min": 0.65,
+      "phase_max": 0.85,
+      "weight": 5,
+      "title": "Rent Day",
+      "text": "The landlord wants this month's four dollars and hints at raising it to five come spring. He says the building is worth more now that the neighborhood is filling up. You have the money, but barely. A widow downstairs does not.",
+      "type": "standard",
+      "imageSearchQuery": "tenement landlord rent Lower East Side 1900",
+      "choices": [
+        {
+          "text": "Pay your rent and say nothing about the widow.",
+          "effects": {
+            "savings": -4
+          },
+          "flagWrites": {
+            "family": 1,
+            "community": -1
+          },
+          "result": "You keep your room. The widow is put out by Thursday. You hear her children in the hallway."
+        },
+        {
+          "text": "Pay your rent and lend the widow two dollars.",
+          "effects": {
+            "savings": -6
+          },
+          "flagWrites": {
+            "community": 2,
+            "family": -1
+          },
+          "result": "She stays another month. You are short for food this week. She will repay you when she can — she says this, and means it."
+        },
+        {
+          "text": "Organize the tenants to refuse the proposed increase together.",
+          "effects": {
+            "savings": -4,
+            "landsmanshaftStanding": 6
+          },
+          "flagWrites": {
+            "community": 3,
+            "family": -2
+          },
+          "result": "Seven families hold the line. The landlord backs down for now. He will remember your face at next month's collection."
+        }
+      ],
+      "trivia": [
+        "Landlords of dumbbell tenements regularly subdivided rooms and raised rents as immigrant demand exceeded supply.",
+        "Jacob Riis reported some Lower East Side lots had population densities exceeding 290,000 people per square mile."
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Airshaft_of_a_dumbbell_tenement%2C_New_York_City%2C_taken_from_the_roof%2C_ca._1900_-_NARA_-_535468.jpg/960px-Airshaft_of_a_dumbbell_tenement%2C_New_York_City%2C_taken_from_the_roof%2C_ca._1900_-_NARA_-_535468.jpg",
+        "artist": "Unknown author or not provided",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AAirshaft_of_a_dumbbell_tenement%2C_New_York_City%2C_taken_from_the_roof%2C_ca._1900_-_NARA_-_535468.jpg",
+        "searchQuery": "tenement landlord rent Lower East Side 1900"
+      }
+    },
+    {
+      "id": "closing_dilemma_shabbos_foreman",
+      "phase_min": 0.85,
+      "phase_max": 1,
+      "weight": 8,
+      "title": "Saturday Morning — The Factory Whistle",
+      "text": "The factory manager posts a notice: Saturday shifts are now mandatory or your place is given away. You have kept Shabbos every week since you arrived. Your mother kept it in the shtetl through everything. But the rent is due and your sibling needs passage money.",
+      "type": "standard",
+      "imageSearchQuery": "garment factory Saturday workers 1900 New York",
+      "choices": [
+        {
+          "text": "Refuse the Saturday shift. Shabbos is not negotiable.",
+          "effects": {
+            "savings": -8,
+            "landsmanshaftStanding": 8
+          },
+          "flagWrites": {
+            "community": 3,
+            "family": -3
+          },
+          "result": "You lose the job. The rabbi hears what you did. Neighbors pass the word. Your sibling's passage waits another season."
+        },
+        {
+          "text": "Work the Saturday shift. Your family needs the money.",
+          "effects": {
+            "savings": 10,
+            "landsmanshaftStanding": -8
+          },
+          "flagWrites": {
+            "family": 3,
+            "community": -3
+          },
+          "result": "You keep the job and send money for the ticket. At sundown you do not light candles. You do not know what you are becoming."
+        },
+        {
+          "text": "Work until noon, then leave — a compromise nobody will be happy with.",
+          "effects": {
+            "savings": 4,
+            "landsmanshaftStanding": -3
+          },
+          "flagWrites": {
+            "family": 1,
+            "community": -1
+          },
+          "result": "The foreman docks your pay. The shul hears you left. No one calls it keeping Shabbos, but no one calls it forsaking it either."
+        }
+      ],
+      "trivia": [
+        "Sabbath observance cost many Jewish workers their jobs because most factories ran six days including Saturday.",
+        "By 1905 the Lower East Side had over 300 synagogues serving a neighborhood of nearly 350,000 people."
+      ]
+    },
+    {
+      "id": "fl_reader_0",
+      "phase_min": 0.35,
+      "phase_max": 0.85,
+      "weight": 5,
+      "title": "Six months later — your younger sibling arrives at Ellis Island and asks whether they should change their name too",
+      "text": {
+        "default": "You answer without hesitation that yes, they should pick something American before they even leave the island — Cohen can stay, but Feyge becomes Fanny, Yakov becomes Jacob. You hear yourself giving advice that costs nothing to say now, and you wonder for a moment whether you are offering them a gift or teaching them to do what you could not admit was a loss.",
+        "variants": [
+          {
+            "whenFlag": "identity_remade",
+            "equals": true,
+            "text": "You answer without hesitation that yes, they should pick something American before they even leave the island — Cohen can stay, but Feyge becomes Fanny, Yakov becomes Jacob. You hear yourself giving advice that costs nothing to say now, and you wonder for a moment whether you are offering them a gift or teaching them to do what you could not admit was a loss."
+          },
+          {
+            "whenFlag": "identity_remade",
+            "equals": false,
+            "text": "You tell them to keep their name. You have kept yours, and you are still here, still working, even if the path has been harder. You do not tell them how many doors you knocked on before one opened, or that sometimes at night you calculate what Morris might have earned by now. You tell them their name is theirs, and you believe it, and you also know belief is not the same as easy."
+          }
+        ]
+      },
+      "type": "standard",
+      "choices": [
+        {
+          "text": "Go on."
+        }
+      ]
+    }
+  ],
+  "sages": [
+    {
+      "id": "annie_moore",
+      "name": "Annie Moore",
+      "title": "First Registered Immigrant, Ellis Island — January 1, 1892",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Emmalazarusengraving.jpg/330px-Emmalazarusengraving.jpg",
+      "portraitAttribution": {
+        "artist": "T. Johnson and W. Kurtz",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AEmmalazarusengraving.jpg"
+      },
+      "threshold": 15,
+      "bio": "Annie Moore, a teenager from County Cork, was the first immigrant officially registered at Ellis Island on January 1, 1892. Her passage opened the island's formal inspection process that would process over 12 million people in the decades that followed.",
+      "greeting": "A young woman waits near the currency exchange window, watching the inspectors work the long lines.",
+      "advice": "\"Keep your papers inside your coat, not in your bag. And remember the number they give you — it is on the manifest. If they call a number and you do not answer, they will not look for you.\"",
+      "question": {
+        "question": "Why did Congress establish Ellis Island as an immigration station in 1892?",
+        "choices": [
+          "To welcome all immigrants without restriction",
+          "To process and inspect the massive wave of Southern and Eastern European arrivals",
+          "To replace the transcontinental railroad as the main entry point",
+          "To collect taxes from arriving immigrants"
+        ],
+        "correctIndex": 1,
+        "explanation": "By the 1880s, immigration from Southern and Eastern Europe surged dramatically. The federal government built Ellis Island to handle the volume and to screen for disease, poverty, and criminal background before admitting arrivals.",
+        "teksRef": "8.8(A) — Immigration patterns of the late 19th century and the federal response"
+      },
+      "reward": {
+        "correct": {
+          "landsmanshaftStanding": 8,
+          "physicalCondition": 5
+        },
+        "wrong": {
+          "landsmanshaftStanding": 3
+        },
+        "knowledgeCorrect": 4,
+        "knowledgeWrong": 2
+      }
+    },
+    {
+      "id": "jacob_riis",
+      "name": "Jacob Riis",
+      "title": "Journalist and Photographer — How the Other Half Lives, 1890",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Meandros_flag.svg/330px-Meandros_flag.svg.png",
+      "portraitAttribution": {
+        "artist": "Stlemur",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AMeandros_flag.svg"
+      },
+      "threshold": 45,
+      "bio": "Jacob Riis was a Danish-born journalist and photographer whose 1890 book How the Other Half Lives exposed the brutal conditions of New York tenement life to a middle-class audience, helping spark the Progressive reform movement.",
+      "greeting": "A man with a camera and a notebook stops you on Mulberry Street, squinting at the light between the buildings.",
+      "advice": "\"You think no one on Fifth Avenue knows you exist. They don't — until a photograph makes them look. The landlord counts on invisibility. So does the foreman. Name what you see and it becomes harder to ignore.\"",
+      "question": {
+        "question": "What was Jacob Riis's main argument in How the Other Half Lives?",
+        "choices": [
+          "Immigrants should return to their home countries",
+          "Tenement overcrowding was caused by immigrant laziness",
+          "Poor housing conditions were a public danger that reform could fix",
+          "The police should have more power in immigrant neighborhoods"
+        ],
+        "correctIndex": 2,
+        "explanation": "Riis argued that terrible tenement conditions were structural, not personal failures, and that society had both the ability and the responsibility to fix them through housing reform, better sanitation, and public investment.",
+        "teksRef": "8.9(B) — Progressive Era reform movements and their causes"
+      },
+      "reward": {
+        "correct": {
+          "landsmanshaftStanding": 6,
+          "savings": 0
+        },
+        "wrong": {
+          "landsmanshaftStanding": 2
+        },
+        "knowledgeCorrect": 4,
+        "knowledgeWrong": 2
+      }
+    },
+    {
+      "id": "lillian_wald",
+      "name": "Lillian Wald",
+      "title": "Founder, Henry Street Settlement — Lower East Side, 1895",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/March_on_Washington_for_Jobs_and_Freedom%2C_Martin_Luther_King%2C_Jr._and_Joachim_Prinz_1963.jpg/330px-March_on_Washington_for_Jobs_and_Freedom%2C_Martin_Luther_King%2C_Jr._and_Joachim_Prinz_1963.jpg",
+      "portraitAttribution": {
+        "artist": "Center for Jewish History, NYC",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AMarch_on_Washington_for_Jobs_and_Freedom%2C_Martin_Luther_King%2C_Jr._and_Joachim_Prinz_1963.jpg"
+      },
+      "threshold": 72,
+      "bio": "Lillian Wald founded the Henry Street Settlement in 1895, providing free nursing care and social services to the Lower East Side's immigrant poor. She pioneered the concept of public health nursing and lobbied for child labor laws and workplace safety.",
+      "greeting": "A woman in a nurse's apron answers the door herself, looking you over with professional calm.",
+      "advice": "\"The landlord's profit depends on your silence. The foreman's profit depends on your exhaustion. Your health is not just yours — when one family on a floor gets typhoid, five families do. Coming here is not weakness. It is sense.\"",
+      "question": {
+        "question": "What role did settlement houses like Henry Street play in immigrant communities?",
+        "choices": [
+          "They enforced English-only rules and discouraged native languages",
+          "They provided health care, education, and advocacy to poor immigrant neighborhoods",
+          "They recruited immigrants for factory work on behalf of employers",
+          "They reported immigrants with unpaid debts to city authorities"
+        ],
+        "correctIndex": 1,
+        "explanation": "Settlement houses brought educated reformers to live in immigrant neighborhoods, offering free clinics, English classes, childcare, and political advocacy. Lillian Wald's Henry Street nurses made home visits and pushed city and state governments to improve housing and labor conditions.",
+        "teksRef": "8.9(C) — Settlement houses and Progressive Era social reform"
+      },
+      "reward": {
+        "correct": {
+          "physicalCondition": 10,
+          "landsmanshaftStanding": 5
+        },
+        "wrong": {
+          "physicalCondition": 4
+        },
+        "knowledgeCorrect": 4,
+        "knowledgeWrong": 2
+      }
+    }
+  ],
+  "route": [
+    {
+      "id": "start",
+      "title": "The Golden Door",
+      "description": "A year of survival and self-definition in the teeming city. There is no road map, only the choices you make from one week to the next.",
+      "edges": []
+    }
+  ],
+  "eventTrivia": [
+    {
+      "id": "et1",
+      "question": "What did the chalk marks on Ellis Island's inspection line mean?",
+      "choices": [
+        "The immigrant had paid a fee",
+        "A doctor flagged the immigrant for further medical review",
+        "The immigrant spoke English",
+        "The immigrant had family in New York"
+      ],
+      "correctIndex": 1,
+      "fact": "PHS doctors used chalk letters — H for heart, L for lameness, E for eyes — to flag immigrants for secondary inspection. A chalk mark could lead to detention or deportation."
+    },
+    {
+      "id": "et2",
+      "question": "What was a landsmanshaft in Lower East Side immigrant life?",
+      "choices": [
+        "A type of tenement building",
+        "A mutual-aid society of immigrants from the same hometown or region",
+        "A labor union for garment workers",
+        "A settlement house funded by the city"
+      ],
+      "correctIndex": 1,
+      "fact": "Landsmanshaftn were mutual-aid societies organized around shared hometown origins. They provided loans, sick benefits, burial insurance, and social connection to newly arrived immigrants."
+    },
+    {
+      "id": "et3",
+      "question": "Why were dumbbell tenements considered dangerous?",
+      "choices": [
+        "They were built too close to the docks",
+        "Most rooms had no windows or ventilation, spreading disease",
+        "They were made of wood and burned easily",
+        "They were owned by the city and poorly patrolled"
+      ],
+      "correctIndex": 1,
+      "fact": "Dumbbell tenements — named for their narrow-waisted floor plan — had interior rooms with no outside air. Tuberculosis and other airborne diseases spread rapidly in these conditions."
+    },
+    {
+      "id": "et4",
+      "question": "What was piecework in the Lower East Side garment trade?",
+      "choices": [
+        "Being paid by the hour regardless of output",
+        "Being paid per finished garment, not per hour worked",
+        "Sharing one machine between two workers",
+        "Sewing only parts of a garment and passing it on"
+      ],
+      "correctIndex": 1,
+      "fact": "Piecework paid workers per finished item — sometimes only a few cents per shirt. Workers could labor sixty or seventy hours a week and still not earn enough to cover rent."
+    },
+    {
+      "id": "et5",
+      "question": "What did the Foran Act of 1885 make illegal?",
+      "choices": [
+        "Immigrants owning property in New York",
+        "Employers pre-arranging labor contracts with immigrants before they arrived",
+        "Immigrants working in government jobs",
+        "Steerage travel on American ships"
+      ],
+      "correctIndex": 1,
+      "fact": "The Foran Act, also called the Alien Contract Labor Law, barred employers from importing workers under pre-arranged labor contracts. Ellis Island inspectors questioned arrivals specifically about such arrangements."
+    },
+    {
+      "id": "et6",
+      "question": "What was the main purpose of Ellis Island's Registry Hall?",
+      "choices": [
+        "To house immigrants while they waited for jobs",
+        "To conduct legal questioning and check manifest records before admitting immigrants",
+        "To sell train tickets to immigrants heading west",
+        "To assign immigrants to specific neighborhoods in New York"
+      ],
+      "correctIndex": 1,
+      "fact": "In the Registry Hall, inspectors cross-examined arrivals against ship manifests, asking 29 questions about identity, finances, and contacts. Most immigrants passed in a few hours; others faced Board of Special Inquiry hearings."
+    },
+    {
+      "id": "et7",
+      "question": "Why did many Jewish immigrants on the Lower East Side observe Shabbos at great personal cost?",
+      "choices": [
+        "City law required it on that block",
+        "Sabbath observance was a central communal practice connecting them to identity and community under pressure",
+        "Factory owners gave Jewish workers Saturdays off by custom",
+        "The settlement houses organized Saturday rest days for health reasons"
+      ],
+      "correctIndex": 1,
+      "fact": "For many Eastern European Jews, Shabbos was not simply a religious rule but the thread connecting them to family, language, and identity. Refusing Saturday work could mean losing a job — a real and painful cost."
+    },
+    {
+      "id": "et8",
+      "question": "What argument did Jacob Riis make about tenement conditions in How the Other Half Lives?",
+      "choices": [
+        "Immigrants chose poor housing because of cultural habits",
+        "Overcrowding was a structural problem requiring public reform, not a personal failing",
+        "The best solution was to move immigrants out of New York",
+        "Landlords had no legal responsibility for building conditions"
+      ],
+      "correctIndex": 1,
+      "fact": "Riis used photographs and investigative reporting to show that deadly tenement conditions were the product of landlord greed and city neglect — and that reform through law and public action could change them."
+    },
+    {
+      "id": "et9",
+      "question": "What was the Henry Street Settlement primarily known for providing?",
+      "choices": [
+        "Job placement for garment workers",
+        "Free public health nursing and social services for Lower East Side residents",
+        "English-language newspapers for immigrants",
+        "Legal defense against deportation orders"
+      ],
+      "correctIndex": 1,
+      "fact": "Lillian Wald's nurses at Henry Street made home visits to tenement apartments, treating disease and advocating for better housing and labor laws. The settlement became a model for public health nursing across the country."
+    },
+    {
+      "id": "et10",
+      "question": "What does the term 'shkab' (scab) meant in Lower East Side labor culture?",
+      "choices": [
+        "A worker who informed on others to the foreman",
+        "A worker who crossed a picket line or worked while neighbors struck",
+        "A newcomer who did not yet know the neighborhood",
+        "A landlord who rented to too many tenants"
+      ],
+      "correctIndex": 1,
+      "fact": "Crossing a picket line while neighbors struck was seen as a serious betrayal of community solidarity. The social cost — loss of standing, exclusion from mutual-aid networks — could be as severe as the economic gain."
+    },
+    {
+      "id": "et11",
+      "question": "What pushed most Eastern European Jews to emigrate in the 1880s–1900s?",
+      "choices": [
+        "A U.S. government invitation program offering free land",
+        "Violent anti-Jewish pogroms and legal persecution in the Russian Pale of Settlement",
+        "Famine caused by three consecutive crop failures across the region",
+        "A religious movement encouraging pilgrimage to the United States"
+      ],
+      "correctIndex": 1,
+      "fact": "The Pale of Settlement was a region of the Russian Empire where Jews were legally confined. Waves of government-tolerated pogroms — violent mob attacks on Jewish communities — drove over two million Jews to emigrate between 1880 and 1914."
+    },
+    {
+      "id": "et12",
+      "question": "What was the population density of the Lower East Side around 1900?",
+      "choices": [
+        "Roughly the same as a modern American suburb",
+        "Among the highest in the world — over 300 people per acre in some blocks",
+        "Similar to other New York neighborhoods of the time",
+        "Lower than average because immigrants preferred to spread out"
+      ],
+      "correctIndex": 1,
+      "fact": "The Lower East Side in 1900 was one of the most densely populated places on earth. Jacob Riis estimated some lots held the equivalent of 290,000 people per square mile — a density produced by subdivision of every available room."
+    },
+    {
+      "id": "et13",
+      "question": "Why did Ellis Island inspectors specifically ask how much money an immigrant was carrying?",
+      "choices": [
+        "To calculate a customs duty on personal wealth",
+        "Federal law barred immigrants likely to become public charges — too little money was grounds for rejection",
+        "The money was held in escrow until the immigrant found work",
+        "To determine which neighborhood the immigrant would be assigned to"
+      ],
+      "correctIndex": 1,
+      "fact": "The Immigration Act of 1882 allowed inspectors to reject immigrants deemed 'likely to become a public charge.' Carrying too little money — even a few dollars short of what an inspector expected — could trigger a detention hearing."
+    },
+    {
+      "id": "et14",
+      "question": "What did the International Ladies' Garment Workers' Union, founded in 1900, seek to change?",
+      "choices": [
+        "Immigration quotas at Ellis Island",
+        "Wages, hours, and safety conditions in the garment industry",
+        "Rents charged by Lower East Side landlords",
+        "English-language requirements in public schools"
+      ],
+      "correctIndex": 1,
+      "fact": "The ILGWU organized mostly Jewish and Italian immigrant garment workers to fight for shorter hours, higher piece rates, and safer factories. The 1911 Triangle Shirtwaist Fire, which killed 146 workers, accelerated their demands for reform."
+    }
+  ],
+  "trailPath": [],
+  "trailStops": [],
+  "mapImage": "/faces/map_lower_east_side.png",
+  "outfitConfig": {
+    "budget": 18,
+    "baseCrew": 0,
+    "baseHorses": 0,
+    "baseSupplies": 0,
+    "costs": {
+      "extraSavings": 5,
+      "warmCoat": 4,
+      "addressLetter": 2,
+      "medicineBundle": 3
+    },
+    "wageCosts": {},
+    "wageMorale": {},
+    "herdOptions": []
+  },
+  "primaryResourceKey": "landsmanshaftStanding",
+  "primaryResourceStart": 50,
+  "revenuePerUnit": 0,
+  "historicalContext": "Between 1880 and 1914, over two million Eastern European Jews fled pogroms in the Russian Pale of Settlement and settled in New York's Lower East Side. Ellis Island processed 12 million immigrants in this era using a medical and legal inspection system that could admit or reject a family in hours. Those who passed found themselves in the most densely packed urban district in the world, working piecework in garment sweatshops and relying on landsmanshaftn — hometown mutual-aid societies — for survival. Jacob Riis's journalism, Lillian Wald's Henry Street nurses, and the labor movement that produced the ILGWU all grew directly from these conditions. The identity questions faced by immigrants — how much to assimilate, how much to preserve — had no clean answers and continue to define the American experience.",
+  "imageStyleKeyword": "photograph",
+  "pixelColors": {
+    "skin": "#C8956C",
+    "hair": "#2C1A0E",
+    "coat": "#3B2F1E",
+    "shirt": "#D4CFC0",
+    "shadow": "#1A1208",
+    "highlight": "#F0E8D0"
+  },
+  "pixelFaces": {
+    "player": [
+      {
+        "threshold": 80,
+        "sprite": "player_strong",
+        "label": "Steady"
+      },
+      {
+        "threshold": 50,
+        "sprite": "player_worn",
+        "label": "Worn"
+      },
+      {
+        "threshold": 25,
+        "sprite": "player_gaunt",
+        "label": "Gaunt"
+      },
+      {
+        "threshold": 0,
+        "sprite": "player_desperate",
+        "label": "Desperate"
+      }
+    ],
+    "community": [
+      {
+        "threshold": 70,
+        "sprite": "community_warm",
+        "label": "Trusted"
+      },
+      {
+        "threshold": 40,
+        "sprite": "community_neutral",
+        "label": "Known"
+      },
+      {
+        "threshold": 0,
+        "sprite": "community_cold",
+        "label": "Distant"
+      }
+    ]
+  },
+  "reckoning": {
+    "family": {
+      "default": "Your family remembers you as someone who was there when they needed you — and not always when they didn't.",
+      "variants": [
+        {
+          "whenFlag": "family",
+          "whenAtLeast": 9,
+          "text": "Your family does not say you sacrificed for them — they live inside the sacrifice. The passage money came, the rent was paid, the Saturday shifts were worked. They are here because you bent yourself into a shape that let them be here, and they will not fully know the cost."
+        },
+        {
+          "whenFlag": "family",
+          "whenAtLeast": 4,
+          "whenAtMost": 8,
+          "text": "Your family knows you kept them in mind. Not always first, not to the exclusion of everything else, but steadily — the kind of presence that shows in small, consistent acts rather than grand gestures."
+        },
+        {
+          "whenFlag": "family",
+          "whenAtLeast": -3,
+          "whenAtMost": 3,
+          "text": "Your family holds you with the complicated warmth of people who love someone they do not entirely understand. There were times you were there and times you were not, and they have learned to hold both things at once."
+        },
+        {
+          "whenFlag": "family",
+          "whenAtLeast": -8,
+          "whenAtMost": -4,
+          "text": "The distance grew one choice at a time. They do not blame you for the crossing, or for the city, but they felt the moments when you chose something else and said nothing. The silence between you has weight."
+        },
+        {
+          "whenFlag": "family",
+          "whenAtMost": -9,
+          "text": "There is a name they do not say at the Shabbos table — yours. Not from cruelty, but because saying it opens something that has not healed. What broke between you did not break all at once; it broke the way a floor gives way, one weakened board at a time, until one day there was nothing left to stand on."
+        }
+      ]
+    },
+    "community": {
+      "default": "The block remembers you as someone who passed through, leaving a mark that was neither deep enough to be legend nor faint enough to be forgotten.",
+      "variants": [
+        {
+          "whenFlag": "community",
+          "whenAtLeast": 9,
+          "text": "On your block, your name is used the way a principle is used — as a reference point. They say: remember what they did during the stoppage, remember the widow's rent, remember who brought the sick family to Henry Street. Your family went without things they needed while you gave to people who were not your family, and the neighborhood holds you for it in a way that is more monument than warmth."
+        },
+        {
+          "whenFlag": "community",
+          "whenAtLeast": 4,
+          "whenAtMost": 8,
+          "text": "Your neighbors know your face and trust your word. You showed up when it mattered — not always, not dramatically, but reliably. On the block, that is worth more than most people manage."
+        },
+        {
+          "whenFlag": "community",
+          "whenAtLeast": -3,
+          "whenAtMost": 3,
+          "text": "You are known as someone who was sometimes there and sometimes wasn't — a recognizably human presence in a place that asked more than most people could give. No one bears you ill will. No one would lend you twenty dollars without thinking about it twice."
+        },
+        {
+          "whenFlag": "community",
+          "whenAtLeast": -8,
+          "whenAtMost": -4,
+          "text": "The landsmanshaft has not forgotten the stoppage, or the widow's hallway, or the other moments when you chose yourself. They are not cruel about it. They are simply accurate — the way people who depend on each other to survive must be accurate about who will and will not show up."
+        },
+        {
+          "whenFlag": "community",
+          "whenAtMost": -9,
+          "text": "The word shkab does not follow you anymore — you have moved to a different block and the word did not bother to follow. What remains is not hostility but erasure: the mutual-aid society does not list your name, the neighbors do not route job leads your way, and when someone asks who used to live in your room, the answer is a shrug. You are not hated. You are as if you were never quite here."
+        }
+      ]
+    }
+  },
+  "backdropImage": {
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/The_Case_for_the_Independence_of_Eastern_Galicia_%281922%29.djvu/page1-960px-The_Case_for_the_Independence_of_Eastern_Galicia_%281922%29.djvu.jpg",
+    "artist": "Ukrainian National Council of Eastern Galicia",
+    "license": "Public domain",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AThe_Case_for_the_Independence_of_Eastern_Galicia_(1922).djvu",
+    "searchQuery": "an Eastern European Jewish immigrant photograph"
+  },
+  "flags": [
+    {
+      "id": "family",
+      "type": "numeric",
+      "initial": 0,
+      "min": -10,
+      "max": 10,
+      "label": "How those closest to you come to regard you"
+    },
+    {
+      "id": "community",
+      "type": "numeric",
+      "initial": 0,
+      "min": -10,
+      "max": 10,
+      "label": "How the wider community comes to regard you"
+    },
+    {
+      "id": "identity_remade",
+      "type": "tristate",
+      "initial": null,
+      "label": "Did you remake yourself for America, or refuse to?"
+    }
+  ]
+}
