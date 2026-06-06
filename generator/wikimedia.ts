@@ -216,14 +216,119 @@ async function searchPortrait(
     const article = await findArticlePageimage(sageName.trim(), controller.signal);
     if (!article) return null;
     // LEVER 1 — the matched article must actually be this person, else reject
-    // to the monogram fallback.
+    // to the monogram fallback. This gate ALSO guards the fall-through below:
+    // we only ever search Commons for a PD alternative AFTER the article has
+    // been confirmed as this person, so the fall-through seeks an image for a
+    // verified identity, never a blind name search.
     if (!nameMatches(sageName, article.articleTitle)) return null;
     // LEVER 3 — reject maps/flags/logos/seals/collages/SVGs by filename. Reuses
     // the event path's JUNK_TITLE_RE; its "svg" alternative also catches .svg
     // files (the FSA logo, flag SVGs) that the image-MIME check would otherwise
     // pass. Hard gate for portraits, not the event path's soft down-rank.
-    if (JUNK_TITLE_RE.test(article.pageimage)) return null;
-    return await lookupCommonsFile(article.pageimage, controller.signal);
+    // Try the article LEAD image first (the happy path: one extra call, no
+    // fall-through). Only if the lead is junk- or license-rejected (e.g. FDR,
+    // whose lead is the one CC-BY image in an otherwise public-domain pool) do
+    // we lazily fall through to a guarded PD Commons search.
+    if (!JUNK_TITLE_RE.test(article.pageimage)) {
+      const lead = await lookupCommonsFile(article.pageimage, controller.signal);
+      if (lead) return lead;
+    }
+    return await searchPortraitPdFallback(sageName);
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Stricter than nameMatches: EVERY significant (>=4-char) name token must appear
+// in the file title. Used only for the Commons portrait fall-through, whose pool
+// is noisier than a Wikipedia article title (Eleanor/Theodore Roosevelt all
+// share the "roosevelt" surname). Requires >=2 significant tokens; a lone common
+// surname ("E. D. Nixon" -> "nixon") can't be safely disambiguated on the open
+// Commons pool, so the caller refuses and lets the monogram stand.
+function portraitNameMatch(sigTokens: string[], title: string): boolean {
+  if (sigTokens.length < 2) return false;
+  const titleTokens = new Set(tokenize(title));
+  return sigTokens.every((t) => titleTokens.has(t));
+}
+
+// A coordinating connector in a file title almost always introduces a SECOND
+// subject ("FDR AND Hoover", "FDR WITH Eleanor") — i.e. a group shot, not a solo
+// portrait. Hard-drop these on the fall-through: for famous figures a clean solo
+// PD portrait essentially always exists, so the cost is near-zero and it removes
+// the last fuzzy (group-shot) case. A bare comma is NOT a signal — "Franklin
+// Delano Roosevelt, Portrait 1933" is solo.
+function titleNamesSecondPerson(title: string): boolean {
+  return /(\band\b|\bwith\b|&)/i.test(title);
+}
+
+// Guarded, strict-PD portrait fall-through. Fires ONLY when the article lead is
+// junk- or license-rejected (lazy: a single extra Commons call, and never for a
+// sage whose lead already resolved). Searches Commons by bare name, then keeps
+// only candidates that pass, in order: (a) identity — ALL significant name
+// tokens present (portraitNameMatch); (b) no SECOND person (titleNamesSecondPerson
+// — solo portraits only); (c) JUNK_TITLE_RE; (d) the STRICT isPublicDomain tier
+// (PD / PD-equivalent only — CC-BY stays rejected, same predicate the lead uses).
+// Best solo portrait wins; null -> monogram. Owns its OWN timeout so this third
+// sequential call isn't starved by the two the lead path already spent.
+async function searchPortraitPdFallback(sageName: string): Promise<PortraitResult | null> {
+  const sigTokens = tokenize(sageName).filter((t) => t.length >= 4);
+  if (sigTokens.length < 2) return null; // single common surname — refuse, monogram
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    const params = new URLSearchParams({
+      action: "query",
+      generator: "search",
+      gsrnamespace: "6",
+      gsrsearch: sageName.trim(),
+      gsrlimit: "15",
+      prop: "imageinfo",
+      iiprop: "url|extmetadata|mime",
+      iiurlwidth: "300",
+      format: "json",
+      origin: "*",
+    });
+
+    const res = await fetch(`${COMMONS_API}?${params}`, {
+      headers: { "User-Agent": USER_AGENT, "Api-User-Agent": USER_AGENT },
+      signal: controller.signal,
+    });
+    if (!res.ok) return null;
+
+    const data = (await res.json()) as CommonsResponse;
+    const pages = data.query?.pages;
+    if (!pages) return null;
+
+    // Survivors of all four gates, ranked: an explicit "portrait" in the title
+    // first, then the best original search rank.
+    const candidates: { result: PortraitResult; portraitScore: number; index: number }[] = [];
+    for (const page of Object.values(pages)) {
+      const info = page.imageinfo?.[0];
+      if (!info?.extmetadata) continue;
+      const mime = info.mime ?? "";
+      if (!mime.startsWith("image/")) continue;
+      if (!portraitNameMatch(sigTokens, page.title)) continue; // (a) identity
+      if (titleNamesSecondPerson(page.title)) continue;        // (b) solo only
+      if (JUNK_TITLE_RE.test(page.title)) continue;            // (c) junk
+      if (!isPublicDomain(info.extmetadata)) continue;         // (d) strict PD
+
+      candidates.push({
+        result: {
+          thumbUrl: info.thumburl,
+          artist: stripHtml(info.extmetadata.Artist?.value ?? "Unknown"),
+          license: info.extmetadata.LicenseShortName?.value ?? "Public domain",
+          sourceUrl: commonsPageUrl(page.title),
+        },
+        portraitScore: /portrait/i.test(page.title) ? 1 : 0,
+        index: (page as { index?: number }).index ?? 999,
+      });
+    }
+
+    candidates.sort((a, b) => b.portraitScore - a.portraitScore || a.index - b.index);
+    return candidates[0]?.result ?? null;
   } catch {
     return null;
   } finally {
