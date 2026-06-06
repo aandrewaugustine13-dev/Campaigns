@@ -33,6 +33,28 @@ const DEFAULTS: FormState = {
 
 const GRADES = ["4th grade", "5th grade", "6th grade", "7th grade", "8th grade"];
 
+// Persist the last generated campaign so its exact JSON can always be pulled
+// back out — for validation/debugging (the generated output never touches the
+// repo otherwise, and lives only in memory). Survives reloads.
+const LAST_CAMPAIGN_KEY = "lastGeneratedCampaign";
+
+function persistLastCampaign(data: CampaignData) {
+  try { localStorage.setItem(LAST_CAMPAIGN_KEY, JSON.stringify(data)); } catch { /* quota/availability — non-fatal */ }
+}
+
+function downloadCampaignJSON(data: CampaignData) {
+  const slug = (data as CampaignData & { id?: string }).id || "campaign";
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${slug}-generated.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export default function GeneratorUI({ onBack }: { onBack: () => void }) {
   const [phase, setPhase] = useState<Phase>("form");
   const [mode, setMode] = useState<Mode>("guided");
@@ -44,6 +66,18 @@ export default function GeneratorUI({ onBack }: { onBack: () => void }) {
 
   useEffect(() => {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, []);
+
+  // Recover the last generated campaign after a reload so its JSON stays
+  // pullable even if it's no longer in memory.
+  useEffect(() => {
+    if (campaignData) return;
+    try {
+      const raw = localStorage.getItem(LAST_CAMPAIGN_KEY);
+      if (raw) setCampaignData(JSON.parse(raw) as CampaignData);
+    } catch { /* corrupt/absent — ignore */ }
+    // run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const startTimer = () => {
@@ -75,6 +109,7 @@ export default function GeneratorUI({ onBack }: { onBack: () => void }) {
       }
 
       setCampaignData(result.data as CampaignData);
+      persistLastCampaign(result.data as CampaignData);
       setPhase("playing");
     } catch (e) {
       stopTimer();
@@ -98,7 +133,7 @@ export default function GeneratorUI({ onBack }: { onBack: () => void }) {
   if (mode === "guided" && phase === "form") {
     return (
       <Stage1Studio
-        onPlay={(data) => { setCampaignData(data); setPhase("playing"); }}
+        onPlay={(data) => { setCampaignData(data); persistLastCampaign(data); setPhase("playing"); }}
         onBack={onBack}
         onQuickForm={() => setMode("quick")}
       />
@@ -301,14 +336,23 @@ export default function GeneratorUI({ onBack }: { onBack: () => void }) {
             Generate Campaign
           </button>
 
-          {/* Play previous if available */}
+          {/* Play / dump the last generated campaign if available */}
           {campaignData && (
-            <button
-              onClick={() => setPhase("playing")}
-              className="w-full py-2 bg-stone-800 border border-stone-700 hover:border-amber-700 rounded text-sm text-stone-300 transition-colors"
-            >
-              Play previous: {(campaignData as CampaignData & { title: string }).title}
-            </button>
+            <div className="space-y-2">
+              <button
+                onClick={() => setPhase("playing")}
+                className="w-full py-2 bg-stone-800 border border-stone-700 hover:border-amber-700 rounded text-sm text-stone-300 transition-colors"
+              >
+                Play previous: {(campaignData as CampaignData & { title: string }).title}
+              </button>
+              <button
+                onClick={() => downloadCampaignJSON(campaignData)}
+                className="w-full py-2 bg-stone-800 border border-stone-700 hover:border-amber-700 rounded text-xs text-stone-400 transition-colors"
+                title="Download the exact generated JSON for validation/debugging"
+              >
+                ⤓ Dump campaign JSON
+              </button>
+            </div>
           )}
 
           <button onClick={onBack} className="block w-full text-xs text-stone-500 hover:text-stone-300 text-center transition-colors">
