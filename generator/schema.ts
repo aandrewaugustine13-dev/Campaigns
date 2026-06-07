@@ -114,6 +114,13 @@ export interface Choice {
   result?: string;
   outcomes?: Outcome[];
   earlyEnd?: boolean;
+  // Hidden moral signal for the generated-campaign verdict system. A SEPARATE
+  // axis from flags/resources: the engine accumulates it into a standalone
+  // GameState.moralTally and it never touches data.flags, so a tagged choice
+  // does NOT flip a systems campaign into character mode. Optional & additive:
+  // absent ⇒ untagged ⇒ byte-identical. (Stage 1 foundation: the tally is
+  // accumulated but not yet read; the verdict that consumes it ships later.)
+  moralTag?: "principled" | "self-serving" | "obvious";
 }
 
 export interface PushAttempt {

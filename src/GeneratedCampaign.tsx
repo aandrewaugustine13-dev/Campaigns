@@ -469,7 +469,16 @@ function computeGenericTradeOffers(
 
 interface Resources { [key: string]: number }
 interface Outcome { weight: number; effects: Resources; result: string; earlyEnd?: boolean }
-interface Choice { text: string; effects?: Resources; flagWrites?: FlagWrites; result?: string; outcomes?: Outcome[]; earlyEnd?: boolean }
+interface Choice { text: string; effects?: Resources; flagWrites?: FlagWrites; result?: string; outcomes?: Outcome[]; earlyEnd?: boolean; moralTag?: "principled" | "self-serving" | "obvious" }
+
+// Per-choice moral signal -> a delta on the SEPARATE GameState.moralTally
+// accumulator (never a flag, so isCharacterMode is untouched). Stage 1: the
+// tally accumulates but nothing reads it yet.
+const MORAL_DELTA: Record<NonNullable<Choice["moralTag"]>, number> = {
+  principled: 1,
+  "self-serving": -1,
+  obvious: 0,
+};
 interface GameEvent {
   id: string; phase_min: number; phase_max: number; weight: number;
   title: string; text: FlagText;
@@ -492,6 +501,10 @@ interface GameState {
   phase: "intro" | "outfit" | "sailing" | "event" | "result" | "end" | "trivia" | "event_trivia" | "sage";
   pace: string; distance: number; currentEvent: GameEvent | null;
   resultText: string; decisions: Decision[];
+  // Hidden moral accumulator for the generated-campaign verdict — a SEPARATE
+  // axis from `flags`, so carrying moral weight never trips isCharacterMode.
+  // Stage 1: written by tagged choices, read by nothing yet.
+  moralTally: number;
   gameOver: boolean; survived: boolean; earlySale: boolean;
   outfit: GenericOutfit;
   historicalKnowledge: number;
@@ -624,19 +637,6 @@ function resolveChoice(ch: Choice): { effects?: Resources; result?: string; earl
   return { effects: ch.effects, result: ch.result, earlyEnd: ch.earlyEnd };
 }
 
-function getGrade(survived: boolean, primaryPct: number, knowledge: number): string {
-  if (!survived) return primaryPct > 0.5 ? "D" : "F";
-  const primaryScore = Math.min(primaryPct / 0.95, 1) * 50;
-  const survivalScore = 20;
-  const knowledgeScore = Math.min(knowledge / 30, 1) * 30;
-  const total = primaryScore + survivalScore + knowledgeScore;
-  if (total >= 85) return "A+";
-  if (total >= 75) return "A";
-  if (total >= 65) return "B";
-  if (total >= 50) return "C";
-  return "D";
-}
-
 function getAchievements(state: GameState, data: CampaignData): string[] {
   const achievements: string[] = [];
   if (state.survived) achievements.push("Successfully completed the expedition.");
@@ -651,11 +651,6 @@ function getAchievements(state: GameState, data: CampaignData): string[] {
   if (achievements.length === 0) achievements.push("Survived the rigors of the trail.");
   return achievements.slice(0, 3);
 }
-
-const GC: Record<string, string> = {
-  "A+": "text-amber-300", A: "text-emerald-400", B: "text-blue-400",
-  C: "text-yellow-400", D: "text-orange-400", F: "text-red-500",
-};
 
 // ═════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
@@ -697,6 +692,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     flags: Object.fromEntries((data.flags ?? []).map(f => [f.id, f.initial])),
     phase: "intro", pace: data.paces[1]?.id ?? data.paces[0]?.id ?? "",
     distance: 0, currentEvent: null, resultText: "", decisions: [],
+    moralTally: 0,
     gameOver: false, survived: false, earlySale: false,
     outfit: { allocations: {}, budgetSpent: 0 },
     historicalKnowledge: 0, knowledgeLog: [], triviaCounter: 0,
@@ -972,6 +968,10 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       // them, from the Choice itself (not the random outcome). No flagWrites
       // ⇒ flag map untouched, so non-flag campaigns are unaffected.
       if (choice.flagWrites) s.flags = applyFlagWrites(data, s.flags, choice.flagWrites);
+      // Moral tally: a SEPARATE accumulator from flags/resources. A tagged
+      // choice nudges the hidden running tally; untagged choices leave it
+      // unchanged (byte-identical). Nothing reads it yet (Stage 1 foundation).
+      if (choice.moralTag) s.moralTally += MORAL_DELTA[choice.moralTag];
       if (insightBonus > 0) s.insight += insightBonus;
       if (choice.earlyEnd || outcome.earlyEnd) s.earlySale = true;
       s.resultText = insightBonus > 0
@@ -1326,12 +1326,13 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     const primaryKey = data.primaryResourceKey;
     const primaryVal = r[primaryKey] ?? 0;
     const primaryStart = data.primaryResourceStart;
-    const primaryPct = primaryStart > 0 ? primaryVal / primaryStart : (primaryVal > 0 ? 1 : 0);
     const revenue = state.survived ? primaryVal * data.revenuePerUnit : 0;
     const cost = state.outfit.budgetSpent;
     const profit = revenue - cost;
-    const examKnowledge = state.historicalKnowledge + examScore * 3;
-    const grade = getGrade(state.survived, primaryPct, examKnowledge);
+    // The survival LETTER GRADE is retired — the moral verdict (a later stage)
+    // becomes the end-judgment. examScore stays plumbed (the verdict stage may
+    // surface the quiz score); silence its now-unread state here.
+    void examScore;
 
     const isDefense = data.distanceUnit.toLowerCase().includes("level") ||
       data.distanceUnit.toLowerCase().includes("wall") ||
@@ -1422,11 +1423,6 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                 ))}
               </ul>
             </div>
-          </div>
-
-          <div className="text-center">
-            <span className="theme-text-muted text-xs">EXPEDITION RATING: </span>
-            <span className={`text-4xl font-bold ${GC[grade]}`}>{grade}</span>
           </div>
 
           <div className="theme-bg-card theme-border border rounded p-3">
