@@ -218,6 +218,19 @@ export interface Reckoning {
   community: FlagText;
 }
 
+// ── Verdict (generated-campaign moral close) ────────────────────
+// Three pre-authored closing passages — one is shown at the end based on the
+// hidden moralTally (good ⇐ mostly principled, bad ⇐ mostly self-serving,
+// indifferent ⇐ mostly the obvious/coasting call). The generator authors all
+// three at creation time; a later stage selects and renders. Each judges the
+// player's CHARACTER against the real historical outcome. Optional & additive:
+// absent ⇒ no verdict ⇒ byte-identical for any campaign without one.
+export interface Verdict {
+  good: string;
+  bad: string;
+  indifferent: string;
+}
+
 // ── Route ───────────────────────────────────────────────────────
 
 export interface RouteEdge {
@@ -338,4 +351,8 @@ export interface CampaignData {
 
   // Reckoning (character-mode closing readout; optional & additive)
   reckoning?: Reckoning;
+
+  // Verdict (generated-campaign moral close; optional & additive). Three
+  // authored passages; selection by moralTally lands in a later stage.
+  verdict?: Verdict;
 }

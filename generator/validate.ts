@@ -384,6 +384,17 @@ export function validate(data: unknown): ValidationReport {
       `Events reference resource key "${k}" not found in initialResources`);
   }
 
+  // Verdict (generated-campaign moral close): OPTIONAL — absent is valid. When
+  // present, all three passages must be non-empty strings. Prose QUALITY is
+  // never rule-judged — that is a human read.
+  if (d.verdict !== undefined) {
+    const v = d.verdict as Record<string, unknown>;
+    for (const k of ["good", "bad", "indifferent"] as const) {
+      check(`verdict.${k}`, typeof v[k] === "string" && (v[k] as string).trim().length > 0,
+        `verdict.${k} must be a non-empty string`);
+    }
+  }
+
   // NO-SCORE LAW (cont.): a numeric track must never be wired into resource
   // effects — that would make it a spendable/visible meter, not a reckoning.
   for (const [fid, ftype] of declaredFlags) {
