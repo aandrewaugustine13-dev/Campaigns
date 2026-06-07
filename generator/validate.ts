@@ -344,6 +344,15 @@ export function validate(data: unknown): ValidationReport {
                 }
               }
             }
+            // moralTag (verdict system): OPTIONAL — untagged choices are valid
+            // (tactical/logistics options carry no moral weight). When present it
+            // must be one of the three allowed values. We do NOT judge whether a
+            // tag is the morally "correct" call — that is verified by human read.
+            if (ch.moralTag !== undefined) {
+              check(`${prefix}.choices.moralTag`,
+                ch.moralTag === "principled" || ch.moralTag === "self-serving" || ch.moralTag === "obvious",
+                `moralTag "${String(ch.moralTag)}" is not one of "principled" | "self-serving" | "obvious"`);
+            }
             // NO INERT OPTION: in a multi-option event every choice must carry a
             // felt consequence of SOME kind — a resource effect, a flag write, a
             // branching outcome, or an early end. A plain `result` string is not
