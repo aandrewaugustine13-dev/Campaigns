@@ -254,64 +254,8 @@ export function validateRelationshipTracks(data: unknown): RelationshipFinding[]
         `a single line of play can reach family +${winF} AND community +${winC} (both \u2265+${DEVOTION_BAND}) — the player can be DEVOTED to everyone, the exact falsehood the feature prevents. At +9 each track's reckoning reads as "gave everything / a gift that cost the giver"; no line of play should reach single-minded devotion to BOTH. The biggest gains for one track must COST the other. (Being decently-regarded by both — anywhere in the +4..+8 "did right by them" band — is fine and legitimate; only devotion-to-both is the lie.)`);
   }
 
-  // ── Reckoning: REQUIRED, tiered, reads its own track, no scorekeeping ──
-  // The closing payoff. Each track gets a FlagText whose numeric bands tier
-  // the accumulated value into prose. (resolveFlagText reads these at the end.)
-  const reckoning = d.reckoning;
-  if (!reckoning || typeof reckoning !== "object") {
-    push("error", "reckoning",
-      "a character campaign must fill `reckoning` (the closing readout for family + community)");
-  } else {
-    const rk = reckoning as Record<string, unknown>;
-    for (const t of RELATIONSHIP_TRACKS) {
-      const min = (t.min as number) ?? -Infinity;
-      const max = (t.max as number) ?? Infinity;
-      const ft = rk[t.id];
-      if (ft === undefined) {
-        push("error", `reckoning.${t.id}`, `reckoning is missing the "${t.id}" readout`);
-        continue;
-      }
-      const obj = ft as { default?: unknown; variants?: unknown };
-      if (typeof ft !== "object" || ft === null || typeof obj.default !== "string" || !Array.isArray(obj.variants)) {
-        push("error", `reckoning.${t.id}`,
-          `reckoning.${t.id} must be a tiered FlagText { default, variants[] }, not a plain string`);
-        continue;
-      }
-      const variants = obj.variants as Record<string, unknown>[];
-      if (variants.length < 2)
-        push("error", `reckoning.${t.id}`,
-          `reckoning.${t.id} needs \u22652 tiers to read the track as bands (got ${variants.length})`);
-      if (typeof obj.default === "string" && SCORE_RE.test(obj.default))
-        push("warn", `reckoning.${t.id}.default`, `reckoning text reads like a score, not human memory`);
-
-      let reachesTop = false;
-      let reachesBottom = false;
-      variants.forEach((v, i) => {
-        const vp = `reckoning.${t.id}.variants[${i}]`;
-        if (v.whenFlag !== t.id)
-          push("error", `${vp}.whenFlag`,
-            `tier must read its own track "${t.id}" (got whenFlag="${String(v.whenFlag)}")`);
-        const hasBand = v.whenAtLeast !== undefined || v.whenAtMost !== undefined;
-        if (v.equals !== undefined || !hasBand)
-          push("error", `${vp}`, `tier must use whenAtLeast/whenAtMost (a numeric band), not equals`);
-        for (const b of ["whenAtLeast", "whenAtMost"] as const) {
-          const val = v[b];
-          if (val !== undefined) {
-            if (typeof val !== "number") push("error", `${vp}.${b}`, `${b} must be a number`);
-            else if (val < min || val > max)
-              push("warn", `${vp}.${b}`, `${b} ${val} is outside the track range [${min}, ${max}]`);
-          }
-        }
-        if (typeof v.whenAtLeast === "number" && v.whenAtLeast > 0) reachesTop = true;
-        if (typeof v.whenAtMost === "number" && v.whenAtMost < 0) reachesBottom = true;
-        if (typeof v.text === "string" && SCORE_RE.test(v.text))
-          push("warn", `${vp}`, `reckoning text reads like a score; describe how they remember this person, not points`);
-      });
-      if (!reachesTop || !reachesBottom)
-        push("warn", `reckoning.${t.id}`,
-          `tiers should cover both a high band (whenAtLeast>0) and a low band (whenAtMost<0) so both outcomes are reflected`);
-    }
-  }
-
+  // (The closing readout is no longer a per-track reckoning — character
+  // campaigns now end on the moral VERDICT, authored and validated separately.
+  // The family/community deltas above survive only to color result PROSE.)
   return f;
 }

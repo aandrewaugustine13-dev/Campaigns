@@ -13,7 +13,6 @@
     "frame": "npx tsx generator/inspect-frame.ts",
     "faultline": "npx tsx generator/inspect-faultline.ts",
     "joseph": "npx tsx generator/inspect-joseph.ts",
-    "reckoning": "npx tsx generator/inspect-reckoning.ts",
     "track-range": "npx tsx generator/inspect-track-range.ts",
     "test:faultline": "npx tsx generator/faultlineCompile.test.ts",
     "test:numeric-flag": "npx tsx generator/numericFlag.test.ts",

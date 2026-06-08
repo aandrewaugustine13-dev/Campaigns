@@ -183,30 +183,6 @@ function main() {
     warns(scoreLabel).some((w) => w.includes("flags.family.label")));
   console.log("");
 
-  // reckoning checks
-  console.log("reckoning (required + threshold-valid):");
-  const noReckoning = clone(base); delete noReckoning.reckoning;
-  check("missing reckoning ERRORS", errs(noReckoning).some((e) => e.includes("[reckoning]")));
-
-  const plainReckoning = clone(base); plainReckoning.reckoning.family = "they remember you fondly";
-  check("plain-string reckoning readout ERRORS (must be tiered)",
-    errs(plainReckoning).some((e) => e.includes("reckoning.family") && e.includes("tiered FlagText")));
-
-  const wrongFlag = clone(base); wrongFlag.reckoning.family.variants[0].whenFlag = "community";
-  check("reckoning tier reading the WRONG track ERRORS",
-    errs(wrongFlag).some((e) => e.includes("must read its own track")));
-
-  const equalsTier = clone(base);
-  equalsTier.reckoning.community.variants[0] = { whenFlag: "community", equals: 5, text: "x" };
-  check("reckoning tier using equals (not a band) ERRORS",
-    errs(equalsTier).some((e) => e.includes("not equals")));
-
-  const oneBand = clone(base);
-  oneBand.reckoning.family.variants = [{ whenFlag: "family", whenAtLeast: 4, text: "only one" }];
-  check("reckoning with <2 tiers ERRORS",
-    errs(oneBand).some((e) => e.includes("reckoning.family") && e.includes("\u22652 tiers")));
-  console.log("");
-
   // 6) Universal validate.ts additions (fire only if tracks present).
   console.log("universal validate() additions:");
   // reserved id squatted by a NON-numeric flag

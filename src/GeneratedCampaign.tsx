@@ -479,6 +479,25 @@ const MORAL_DELTA: Record<NonNullable<Choice["moralTag"]>, number> = {
   "self-serving": -1,
   obvious: 0,
 };
+
+// Resolve the moral counts into which authored verdict passage to show. The
+// rule (engaged-vs-coasted, "good" is deliberately hard): a coaster can never
+// land "good" by netting to zero, and a conflicted-but-engaged player is judged
+// (good/bad), not dumped into indifferent for a low net.
+//   loaded  = principled + selfServing + obvious (morally-loaded choices faced)
+//   engaged = principled + selfServing
+//   loaded < 3       -> indifferent (thin/degenerate run, graceful default)
+//   obvious >= engaged -> indifferent (coasted at least half — never engaged)
+//   principled/engaged >= 0.6 -> good (a real principled majority)
+//   else             -> bad (engaged but leaned self-serving)
+function selectVerdict(principled: number, selfServing: number, obvious: number): "good" | "bad" | "indifferent" {
+  const engaged = principled + selfServing;
+  const loaded = engaged + obvious;
+  if (loaded < 3) return "indifferent";
+  if (obvious >= engaged) return "indifferent";
+  if (principled / engaged >= 0.6) return "good";
+  return "bad";
+}
 interface GameEvent {
   id: string; phase_min: number; phase_max: number; weight: number;
   title: string; text: FlagText;
@@ -501,10 +520,14 @@ interface GameState {
   phase: "intro" | "outfit" | "sailing" | "event" | "result" | "end" | "trivia" | "event_trivia" | "sage";
   pace: string; distance: number; currentEvent: GameEvent | null;
   resultText: string; decisions: Decision[];
-  // Hidden moral accumulator for the generated-campaign verdict — a SEPARATE
+  // Hidden moral accumulators for the generated-campaign verdict — a SEPARATE
   // axis from `flags`, so carrying moral weight never trips isCharacterMode.
-  // Stage 1: written by tagged choices, read by nothing yet.
+  // moralTally is the net (+1/-1/0); the three counts drive verdict selection
+  // (engaged-vs-coasted). Read only at the close by selectVerdict.
   moralTally: number;
+  moralPrincipled: number;
+  moralSelfServing: number;
+  moralObvious: number;
   gameOver: boolean; survived: boolean; earlySale: boolean;
   outfit: GenericOutfit;
   historicalKnowledge: number;
@@ -692,7 +715,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     flags: Object.fromEntries((data.flags ?? []).map(f => [f.id, f.initial])),
     phase: "intro", pace: data.paces[1]?.id ?? data.paces[0]?.id ?? "",
     distance: 0, currentEvent: null, resultText: "", decisions: [],
-    moralTally: 0,
+    moralTally: 0, moralPrincipled: 0, moralSelfServing: 0, moralObvious: 0,
     gameOver: false, survived: false, earlySale: false,
     outfit: { allocations: {}, budgetSpent: 0 },
     historicalKnowledge: 0, knowledgeLog: [], triviaCounter: 0,
@@ -712,6 +735,9 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   // Final-exam gate. Built from the campaign's TEKS event-trivia, padded
   // with sage questions, capped at 10. End results stay locked until passed.
   const [examPassed, setExamPassed] = useState(false);
+  // Verdict gate: the moral verdict is shown BEFORE the exam; acknowledging it
+  // falls through to the quiz. Mirrors examPassed; reset wherever it resets.
+  const [verdictAck, setVerdictAck] = useState(false);
   const [examScore, setExamScore] = useState(0);
   const [showLog, setShowLog] = useState(false);
   const [leftTownId, setLeftTownId] = useState<string | null>(null);
@@ -738,7 +764,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   const start = useCallback(() => {
     const firstPhase = isCharacterMode(data) ? "sailing" : "outfit";
     setState({ ...makeInit(), phase: firstPhase });
-    setExamPassed(false); setExamScore(0); setLeftTownId(null);
+    setExamPassed(false); setVerdictAck(false); setExamScore(0); setLeftTownId(null);
   }, [makeInit, data]);
   const backToMenu = useCallback(() => { onBack(); }, [onBack]);
 
@@ -968,10 +994,15 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       // them, from the Choice itself (not the random outcome). No flagWrites
       // ⇒ flag map untouched, so non-flag campaigns are unaffected.
       if (choice.flagWrites) s.flags = applyFlagWrites(data, s.flags, choice.flagWrites);
-      // Moral tally: a SEPARATE accumulator from flags/resources. A tagged
-      // choice nudges the hidden running tally; untagged choices leave it
-      // unchanged (byte-identical). Nothing reads it yet (Stage 1 foundation).
-      if (choice.moralTag) s.moralTally += MORAL_DELTA[choice.moralTag];
+      // Moral tally + counts: a SEPARATE accumulator from flags/resources. A
+      // tagged choice nudges the net tally and bumps its category count (the
+      // counts drive verdict selection); untagged choices leave them unchanged.
+      if (choice.moralTag) {
+        s.moralTally += MORAL_DELTA[choice.moralTag];
+        if (choice.moralTag === "principled") s.moralPrincipled += 1;
+        else if (choice.moralTag === "self-serving") s.moralSelfServing += 1;
+        else s.moralObvious += 1;
+      }
       if (insightBonus > 0) s.insight += insightBonus;
       if (choice.earlyEnd || outcome.earlyEnd) s.earlySale = true;
       s.resultText = insightBonus > 0
@@ -1236,6 +1267,29 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   if (state.phase === "outfit") return <GenericOutfitScreen data={data} onDone={onOutfitDone} />;
 
   if (state.phase === "end") {
+    // ── Moral verdict: the campaign's closing judgment, BEFORE the quiz ──
+    // One of the three authored passages, selected by the hidden moral counts
+    // (engaged-vs-coasted). Shows ONLY the prose — no score, no tally, no
+    // breakdown. Gated on data.verdict so older campaigns without one skip
+    // straight to the quiz (byte-identical). Acknowledging falls through to the
+    // exam gate below (mirrors examPassed).
+    if (data.verdict && !verdictAck) {
+      const passage = data.verdict[selectVerdict(state.moralPrincipled, state.moralSelfServing, state.moralObvious)];
+      return (
+        <div data-theme={theme} className="h-screen theme-bg-page theme-text theme-body-font flex items-center justify-center p-6 overflow-y-auto">
+          <div className="max-w-xl w-full space-y-8 py-8 text-center">
+            <p className="theme-text text-lg leading-relaxed font-serif whitespace-pre-line">{passage}</p>
+            <button
+              onClick={() => setVerdictAck(true)}
+              className="px-8 py-3 theme-btn-action font-bold rounded transition-colors"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     // ── Gate: pass the TEKS final exam before the results unlock ──
     if (!examPassed && examQuestions.length > 0) {
       return (
@@ -1251,74 +1305,6 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
             />
             <button onClick={backToMenu} className="block w-full theme-text-muted text-xs">← Back to Campaigns</button>
           </div>
-        </div>
-      );
-    }
-
-    // ── Character mode: the Reckoning closes the campaign ──
-    // Two SEPARATE tiered readouts (family + community) read state.flags
-    // through resolveFlagText — never one combined verdict, so each
-    // relationship stays its own truth. NO grade, NO rating, NO ledger,
-    // NO win/lose framing: the ending is a reckoning, not a result. A
-    // factual personal-economy coda shows what the choices cost (never a
-    // target, never pass/fail). The relationship tracks themselves never
-    // surface as numbers — only as the prose. Runs AFTER the exam gate and
-    // BEFORE the systems results below, which stay byte-identical.
-    if (isCharacterMode(data) && data.reckoning) {
-      const familyText = resolveFlagText(data.reckoning.family, state.flags);
-      const communityText = resolveFlagText(data.reckoning.community, state.flags);
-      const coda = Object.entries(r).map(([k, v]) => {
-        const label = data.resourceLabels[k] ?? k;
-        const val = k === tradeMoneyKey ? `$${Math.round(v)}` : `${Math.round(v)}`;
-        return `${label} ${val}`;
-      });
-      return (
-        <div data-theme={theme} className="h-screen theme-bg-page theme-text p-4 overflow-y-auto theme-body-font">
-          <div className="max-w-xl mx-auto space-y-6 py-6">
-            <header className="text-center space-y-1">
-              <h1 className="text-3xl font-bold theme-text-accent theme-display-font">{data.title}</h1>
-              <p className="theme-text-muted text-base">The year is over.</p>
-            </header>
-
-            <section className="theme-bg-card theme-border border rounded p-5 space-y-2">
-              <h2 className="text-center theme-text-accent uppercase tracking-wide text-sm font-bold">Those closest to you</h2>
-              <p className="text-center theme-text-muted text-xs italic">how your family came to regard you</p>
-              <p className="theme-text text-lg leading-relaxed text-center pt-1 font-serif">{familyText}</p>
-            </section>
-
-            <section className="theme-bg-card theme-border border rounded p-5 space-y-2">
-              <h2 className="text-center theme-text-accent uppercase tracking-wide text-sm font-bold">The people around you</h2>
-              <p className="text-center theme-text-muted text-xs italic">how the wider community came to regard you</p>
-              <p className="theme-text text-lg leading-relaxed text-center pt-1 font-serif">{communityText}</p>
-            </section>
-
-            {coda.length > 0 && (
-              <div className="text-center space-y-1">
-                <p className="theme-text-muted text-[11px] uppercase tracking-wide">Where things stood at year's end</p>
-                <p className="theme-text-muted text-sm">{coda.join("  ·  ")}</p>
-              </div>
-            )}
-
-            <div className="theme-bg-card theme-border border rounded p-4">
-              <p className="text-sm theme-text-muted leading-relaxed">{data.historicalContext}</p>
-            </div>
-
-            {state.decisions.length > 0 && (
-              <button
-                onClick={() => setShowLog(true)}
-                className="w-full theme-bg-card theme-border border rounded p-3 text-left hover:brightness-110 transition-all"
-              >
-                <h3 className="text-xs font-bold theme-text-accent uppercase tracking-wide">Open Campaign Log</h3>
-                <p className="text-xs theme-text-muted mt-0.5">Look back through every decision you made this year.</p>
-              </button>
-            )}
-
-            <div className="text-center pb-4 space-y-2">
-              <button onClick={() => { setState(makeInit()); setExamPassed(false); setExamScore(0); setLeftTownId(null); }} className="px-5 py-2 theme-btn-action font-bold rounded transition-colors">Run It Again</button>
-              <br /><button onClick={backToMenu} className="text-xs theme-text-muted opacity-70 hover:opacity-100 transition-opacity">&larr; Back to Campaigns</button>
-            </div>
-          </div>
-          {showLog && <CampaignLogModal entries={state.decisions} themed onClose={() => setShowLog(false)} />}
         </div>
       );
     }
@@ -1440,7 +1426,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
           )}
 
           <div className="text-center pb-4 space-y-2">
-            <button onClick={() => { setState(makeInit()); setExamPassed(false); setExamScore(0); setLeftTownId(null); }} className="px-5 py-2 theme-btn-action font-bold rounded transition-colors">Run It Again</button>
+            <button onClick={() => { setState(makeInit()); setExamPassed(false); setVerdictAck(false); setExamScore(0); setLeftTownId(null); }} className="px-5 py-2 theme-btn-action font-bold rounded transition-colors">Run It Again</button>
             <br /><button onClick={backToMenu} className="text-xs theme-text-muted opacity-70 hover:opacity-100 transition-opacity">&larr; Back to Campaigns</button>
           </div>
         </div>

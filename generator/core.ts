@@ -307,9 +307,10 @@ function buildFaultLineContext(fl: FaultLineSpec): string {
 // injection). The two tracks themselves are declared in code
 // (relationshipTracks.ts); this block tells the model to (a) write small
 // family/community deltas onto its generated choices reflecting each choice's
-// real moral tradeoff, (b) fill the `reckoning` slot with tiered FlagText for
-// each track, and (c) carry relational cost in prose result text without any
-// number. It NEVER asks the model to declare the tracks (those are injected).
+// real moral tradeoff, (b) carry that relational cost in prose result text
+// without any number, and (c) end on a climactic dilemma. It NEVER asks the
+// model to declare the tracks (those are injected). The deltas now color result
+// prose only — the closing readout is the moral VERDICT (authored separately).
 function buildRelationshipLaw(): string {
   const lines: string[] = [];
   lines.push("");
@@ -322,7 +323,7 @@ function buildRelationshipLaw(): string {
   lines.push("  - family    — how those closest to this person come to regard them");
   lines.push("  - community — how the wider people around this person come to regard them");
   lines.push(
-    "Both are numeric tracks on the range -10..+10, starting at 0. They are NEVER shown to the player as a number or bar; they surface only in the closing reckoning and, optionally, in prose.",
+    "Both are numeric tracks on the range -10..+10, starting at 0. They are NEVER shown to the player as a number or bar; they surface only in the result PROSE — the human cost of a choice shown in words, never a figure.",
   );
   lines.push("");
   lines.push(
@@ -345,39 +346,11 @@ function buildRelationshipLaw(): string {
   );
   lines.push("");
   lines.push(
-    "(b) FILL THE `reckoning` FIELD. Output a top-level \"reckoning\": { \"family\": FlagText, \"community\": FlagText }. Each is a closing readout of how that group remembers this person, tiered by the accumulated track value using numeric variants (whenAtLeast / whenAtMost). Give each FIVE bands covering the whole -10..+10 range, listed MOST-POSITIVE FIRST (first-match-wins):",
-  );
-  lines.push(
-    "      1. extreme-high (whenAtLeast: 9)              — single-minded DEVOTION that visibly COST this person; everything bent toward this group and the price shows.",
-  );
-  lines.push(
-    "      2. high         (whenAtLeast: 4, whenAtMost: 8) — you did right by them, steadily, without giving everything.",
-  );
-  lines.push(
-    "      3. middle       (whenAtLeast: -3, whenAtMost: 3) — recognizably human and inconsistent; some warmth, some unspoken hardness.",
-  );
-  lines.push(
-    "      4. low          (whenAtLeast: -8, whenAtMost: -4) — you drifted from them; the distance was built one choice at a time.",
-  );
-  lines.push(
-    "      5. extreme-low  (whenAtMost: -9)               — a RUPTURE, not a drift: a real break this group cannot pretend away.",
-  );
-  lines.push(
-    "  - THE TWO EXTREMES ARE A DIFFERENT KIND OF THING, NOT LOUDER VERSIONS. extreme-high is NOT 'high but more' — it names what the devotion COST (what was given up, who else went without). extreme-low is NOT 'low but more' — it names a severance, not mere distance. If you find yourself writing an intensifier (\"they REALLY respected you\", \"they were VERY hurt\"), the tier is wasted — write a different register instead: cost and sacrifice at the top, rupture and severance at the bottom.",
-  );
-  lines.push(
-    "  - Each band is 1-2 sentences of human memory: how they hold this person now. It is NOT a verdict, a score, or 'you win/lose'. Neither extreme is 'winning'; each is a different truth with its own cost. Keep the two readouts SEPARATE — never one combined judgment.",
-  );
-  lines.push(
-    "    Shape: \"reckoning\": { \"family\": { \"default\": \"...\", \"variants\": [ { \"whenFlag\": \"family\", \"whenAtLeast\": 9, \"text\": \"...devotion-with-cost...\" }, { \"whenFlag\": \"family\", \"whenAtLeast\": 4, \"whenAtMost\": 8, \"text\": \"...did right by them...\" }, { \"whenFlag\": \"family\", \"whenAtLeast\": -3, \"whenAtMost\": 3, \"text\": \"...inconsistent, human...\" }, { \"whenFlag\": \"family\", \"whenAtLeast\": -8, \"whenAtMost\": -4, \"text\": \"...drifted...\" }, { \"whenFlag\": \"family\", \"whenAtMost\": -9, \"text\": \"...rupture...\" } ] }, \"community\": { \"default\": \"...\", \"variants\": [ … same five bands, each with \"whenFlag\": \"community\" … ] } }",
+    "(b) LET RESULT PROSE CARRY THE COST — WITHOUT NUMBERS. When a choice wounds a relationship, its `result` text may show it in human terms (\"your wife says nothing, but she counts the coins\") — NEVER a number, never \"+2 family\". This is what makes a choice FEEL consequential in the moment.",
   );
   lines.push("");
   lines.push(
-    "(c) LET RESULT PROSE CARRY THE COST — WITHOUT NUMBERS. When a choice wounds a relationship, its `result` text may show it in human terms (\"your wife says nothing, but she counts the coins\") — NEVER a number, never \"+2 family\". This is what makes a choice FEEL consequential in the moment.",
-  );
-  lines.push("");
-  lines.push(
-    "(d) END ON A CHOICE — ONE CLIMACTIC CLOSING DILEMMA. The reckoning at the very end is the campaign's REFLECTION; the PLAY must therefore CLIMAX on a hard decision, never trail off into reflection beats. Author ONE late, climactic standard event — this person's hardest, most defining choice, where the central tension comes to a head — and place it in the campaign's TAIL with \"phase_min\": 0.85 and \"phase_max\": 1.0. It carries \u22652 real choices bearing the LARGEST moral weight (your biggest family/community deltas). Any quieter reflection/consequence beats stay EARLIER (before phase 0.85); the LAST thing the player does before the reckoning is CHOOSE, not read.",
+    "(c) END ON A CHOICE — ONE CLIMACTIC CLOSING DILEMMA. The closing VERDICT is the campaign's REFLECTION; the PLAY must therefore CLIMAX on a hard decision, never trail off into reflection beats. Author ONE late, climactic standard event — this person's hardest, most defining choice, where the central tension comes to a head — and place it in the campaign's TAIL with \"phase_min\": 0.85 and \"phase_max\": 1.0. It carries \u22652 real choices bearing the LARGEST moral weight (your biggest family/community deltas). Any quieter reflection/consequence beats stay EARLIER (before phase 0.85); the LAST thing the player does before the verdict is CHOOSE, not read.",
   );
   lines.push("");
   lines.push("=== END RELATIONSHIP TRACKS ===");

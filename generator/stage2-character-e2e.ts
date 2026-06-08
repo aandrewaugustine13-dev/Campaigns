@@ -248,9 +248,6 @@ async function main() {
   check("community written by >=2 choices with >=1 negative",
     tally.community.length >= 2 && tally.community.some((v) => v < 0));
 
-  console.log("\n--- The reckoning (closing readout — read whether it's a MIRROR, not a scoreboard) ---");
-  console.log(JSON.stringify(data.reckoning, null, 2));
-
   console.log(`\n=== ${failed === 0 ? "ALL STRUCTURAL CHECKS PASSED" : `${failed} CHECK(S) FAILED`} ===`);
   console.log("(Stage 3 — play-testing — is the human's gate; this is NOT 'done'.)\n");
   if (failed > 0) process.exit(1);
