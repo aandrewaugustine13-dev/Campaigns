@@ -44,7 +44,13 @@ interface FinalExamProps {
   themed?: boolean;
   title?: string;
   subtitle?: string;
-  onPass: (correct: number, total: number) => void;
+  /** Default (Chisholm/legacy): a hard gate — only `onPass` fires, on pass, with
+   *  an unlimited internal retake on failure. Opt-in `oneShot` (generated path):
+   *  ONE attempt, then `onScored` fires regardless of pass/fail and the parent
+   *  owns any (capped) retake — no internal gate, no internal retake loop. */
+  oneShot?: boolean;
+  onScored?: (correct: number, total: number) => void;
+  onPass?: (correct: number, total: number) => void;
 }
 
 // Fisher–Yates copy.
@@ -81,6 +87,8 @@ export default function FinalExam({
   themed = false,
   title = "Final Exam",
   subtitle = "Pass the check for understanding to complete the campaign.",
+  oneShot = false,
+  onScored,
   onPass,
 }: FinalExamProps) {
   const total = questions.length;
@@ -179,7 +187,43 @@ export default function FinalExam({
     );
   }
 
-  // ── Scored ───────────────────────────────────────────────────────
+  // ── Scored, oneShot (generated path) ─────────────────────────────
+  // ONE attempt: reveal the facts (reinforcement) regardless of pass/fail, then
+  // hand the raw score back to the parent, which owns the single capped retake.
+  // No internal gate, no internal retake loop.
+  if (oneShot) {
+    return (
+      <div className={`border rounded-lg p-4 space-y-4 ${ui.card}`}>
+        <div className="text-center">
+          <h2 className={`text-lg font-bold ${ui.accent}`}>{title}</h2>
+          <p className={`text-4xl font-bold mt-1 ${passed ? "text-emerald-400" : "text-red-400"}`}>
+            {correctCount} / {total}
+          </p>
+        </div>
+        <div className="space-y-2">
+          {prepared.map((q, i) => {
+            const wasRight = answers[i] === q.shuffledCorrect;
+            return (
+              <div key={q.id} className={`border rounded-lg p-2.5 ${ui.inner}`}>
+                <p className={`text-xs font-bold ${wasRight ? "text-emerald-400" : "text-red-400"}`}>
+                  {wasRight ? "Correct" : "Missed"} · {q.question}
+                </p>
+                {q.fact && <p className={`text-xs mt-1 ${ui.muted}`}>{q.fact}</p>}
+              </div>
+            );
+          })}
+        </div>
+        <button
+          onClick={() => onScored?.(correctCount, total)}
+          className={`w-full py-2.5 rounded-lg text-sm font-bold transition-colors ${ui.btn}`}
+        >
+          See Your Results
+        </button>
+      </div>
+    );
+  }
+
+  // ── Scored, gated (Chisholm/legacy default) ──────────────────────
   return (
     <div className={`border rounded-lg p-4 space-y-4 ${ui.card}`}>
       <div className="text-center">
@@ -211,7 +255,7 @@ export default function FinalExam({
             })}
           </div>
           <button
-            onClick={() => onPass(correctCount, total)}
+            onClick={() => onPass?.(correctCount, total)}
             className={`w-full py-2.5 rounded-lg text-sm font-bold transition-colors ${ui.btn}`}
           >
             See Your Results

@@ -732,13 +732,39 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   }), [data]);
 
   const [state, setState] = useState<GameState>(makeInit);
-  // Final-exam gate. Built from the campaign's TEKS event-trivia, padded
-  // with sage questions, capped at 10. End results stay locked until passed.
-  const [examPassed, setExamPassed] = useState(false);
+  // Final-exam (generated path): ONE attempt -> always reach results + summary,
+  // then ONE capped retake. examTaken gates results (replaces the old "must
+  // pass" wall); examPct is the effective score % (the retake caps at 80 and
+  // keeps the better, so it can never lower the score); retakeUsed enforces the
+  // one-shot; retaking re-shows the exam for that single retake.
+  const [examTaken, setExamTaken] = useState(false);
+  const [examCorrect, setExamCorrect] = useState(0);
+  const [examTotal, setExamTotal] = useState(0);
+  const [examPct, setExamPct] = useState(0);
+  const [retakeUsed, setRetakeUsed] = useState(false);
+  const [retaking, setRetaking] = useState(false);
   // Verdict gate: the moral verdict is shown BEFORE the exam; acknowledging it
-  // falls through to the quiz. Mirrors examPassed; reset wherever it resets.
+  // falls through to the quiz. Reset wherever the exam state resets.
   const [verdictAck, setVerdictAck] = useState(false);
-  const [examScore, setExamScore] = useState(0);
+
+  // One handler for both the first attempt and the single retake. First attempt:
+  // record the raw score. Retake: cap at 80, keep the better — adopt the retake
+  // only if its CAPPED score beats the current one (so a worse retake keeps the
+  // original), and burn the one-shot.
+  const handleExamScored = (correct: number, total: number) => {
+    const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+    if (retaking) {
+      const capped = Math.min(pct, 80);
+      if (capped > examPct) { setExamPct(capped); setExamCorrect(correct); setExamTotal(total); }
+      setRetakeUsed(true);
+      setRetaking(false);
+    } else {
+      setExamTaken(true);
+      setExamPct(pct);
+      setExamCorrect(correct);
+      setExamTotal(total);
+    }
+  };
   const [showLog, setShowLog] = useState(false);
   const [leftTownId, setLeftTownId] = useState<string | null>(null);
   const examQuestions = useMemo<ExamQuestion[]>(() => {
@@ -764,7 +790,8 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   const start = useCallback(() => {
     const firstPhase = isCharacterMode(data) ? "sailing" : "outfit";
     setState({ ...makeInit(), phase: firstPhase });
-    setExamPassed(false); setVerdictAck(false); setExamScore(0); setLeftTownId(null);
+    setExamTaken(false); setExamCorrect(0); setExamTotal(0); setExamPct(0);
+    setRetakeUsed(false); setRetaking(false); setVerdictAck(false); setLeftTownId(null);
   }, [makeInit, data]);
   const backToMenu = useCallback(() => { onBack(); }, [onBack]);
 
@@ -1272,7 +1299,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     // (engaged-vs-coasted). Shows ONLY the prose — no score, no tally, no
     // breakdown. Gated on data.verdict so older campaigns without one skip
     // straight to the quiz (byte-identical). Acknowledging falls through to the
-    // exam gate below (mirrors examPassed).
+    // exam gate below (mirrors the examTaken gate).
     if (data.verdict && !verdictAck) {
       const passage = data.verdict[selectVerdict(state.moralPrincipled, state.moralSelfServing, state.moralObvious)];
       return (
@@ -1290,18 +1317,24 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       );
     }
 
-    // ── Gate: pass the TEKS final exam before the results unlock ──
-    if (!examPassed && examQuestions.length > 0) {
+    // ── The knowledge check: ONE attempt (first take, or the single retake) ──
+    // oneShot — always reports the score and flows to results+summary; the parent
+    // owns the capped retake. (!examTaken) is the first take; (retaking) re-shows
+    // it for the one allowed retake.
+    if ((!examTaken || retaking) && examQuestions.length > 0) {
       return (
         <div data-theme={theme} className="h-screen theme-bg-page theme-text p-4 overflow-y-auto theme-body-font flex items-center">
           <div className="max-w-lg mx-auto w-full space-y-4">
             <h1 className="text-2xl font-bold text-center theme-text-accent">Check for Understanding</h1>
             <FinalExam
               themed
+              oneShot
               questions={examQuestions}
               decisionLog={state.decisions}
-              subtitle="Answer the final exam to complete the campaign. Review your decisions if you get stuck."
-              onPass={(correct) => { setExamScore(correct); setExamPassed(true); }}
+              subtitle={retaking
+                ? "Your retake. Study the review summary, then answer again — this attempt caps at 80."
+                : "Answer the check for understanding. The review summary afterward recaps what you played."}
+              onScored={handleExamScored}
             />
             <button onClick={backToMenu} className="block w-full theme-text-muted text-xs">← Back to Campaigns</button>
           </div>
@@ -1315,10 +1348,10 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     const revenue = state.survived ? primaryVal * data.revenuePerUnit : 0;
     const cost = state.outfit.budgetSpent;
     const profit = revenue - cost;
-    // The survival LETTER GRADE is retired — the moral verdict (a later stage)
-    // becomes the end-judgment. examScore stays plumbed (the verdict stage may
-    // surface the quiz score); silence its now-unread state here.
-    void examScore;
+    // Retake offered only when a capped-at-80 retake could actually improve the
+    // score (examPct <= 80) and the one shot hasn't been used. 90-100 and 81-89
+    // never see it.
+    const retakeEligible = examTaken && examPct <= 80 && !retakeUsed;
 
     const isDefense = data.distanceUnit.toLowerCase().includes("level") ||
       data.distanceUnit.toLowerCase().includes("wall") ||
@@ -1340,6 +1373,34 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                 : `${data.title} — the expedition reached its destination on day ${state.day}.`
               : `Your expedition failed on day ${state.day}. The wilderness keeps what it takes.`}
           </p>
+
+          {/* Knowledge check: a modest score line (not a grade — the letter
+              grade stays retired), plus the review summary (closure + study aid,
+              shown to everyone) and, only when a capped retake could help, the
+              one-shot "Retake (max 80)" action. The summary is rendered only if
+              the campaign authored one — older campaigns are byte-identical. */}
+          {examTaken && (
+            <p className="text-center theme-text-muted text-xs">
+              Check for Understanding: <span className="theme-text font-bold">{examCorrect}/{examTotal}</span>
+              {retakeUsed && " · retake counted (capped at 80%)"}
+            </p>
+          )}
+
+          {data.reviewSummary && (
+            <div className="theme-bg-card theme-border border rounded p-4 space-y-2">
+              <h2 className="theme-text-accent font-bold uppercase tracking-wide text-xs text-center">Review Summary</h2>
+              <p className="theme-text text-sm leading-relaxed whitespace-pre-line">{data.reviewSummary}</p>
+            </div>
+          )}
+
+          {retakeEligible && (
+            <button
+              onClick={() => setRetaking(true)}
+              className="w-full py-2.5 theme-btn-action rounded text-sm font-bold transition-colors"
+            >
+              Retake the Exam (max score: 80)
+            </button>
+          )}
 
           {data.revenuePerUnit > 0 && (
             <div className="theme-bg-card theme-border border rounded p-3 space-y-1 text-xs">
@@ -1426,7 +1487,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
           )}
 
           <div className="text-center pb-4 space-y-2">
-            <button onClick={() => { setState(makeInit()); setExamPassed(false); setVerdictAck(false); setExamScore(0); setLeftTownId(null); }} className="px-5 py-2 theme-btn-action font-bold rounded transition-colors">Run It Again</button>
+            <button onClick={() => { setState(makeInit()); setExamTaken(false); setExamCorrect(0); setExamTotal(0); setExamPct(0); setRetakeUsed(false); setRetaking(false); setVerdictAck(false); setLeftTownId(null); }} className="px-5 py-2 theme-btn-action font-bold rounded transition-colors">Run It Again</button>
             <br /><button onClick={backToMenu} className="text-xs theme-text-muted opacity-70 hover:opacity-100 transition-opacity">&larr; Back to Campaigns</button>
           </div>
         </div>
