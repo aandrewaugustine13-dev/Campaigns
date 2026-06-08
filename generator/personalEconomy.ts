@@ -133,7 +133,7 @@ NON-NEGOTIABLE PRINCIPLES:
 2. EXACTLY ONE MONEY RESOURCE. One resource is spendable cash (isMoney: true): it depletes when spent and is the player's immediate, visible budget. Name it plainly for the era ("Cash", "Savings", "Coins", "Dollars").
 3. SMALL: money + ONE or TWO others, 2–3 total. A person tracks a few concrete things, not a dashboard. Pick the 1–2 non-money resources that genuinely fit THIS campaign's life (a sharecropper's larder and standing; a millworker's savings and health-of-the-tools; a migrant's cash and the truck).
 4. CASH IS NOT A SCORE. Money is spent to live and to help others — running low is friction, not failure, and ending rich is NOT "winning". Name a NON-money resource as primaryResource (the eventual graded anchor). The money resource must never be primaryResource.
-5. NO DEATH-BY-BAR. These degrade into hardship, never into "game over". degradationEffect describes visible friction (harder choices, worse terms, hunger), never termination. Do NOT name any resource "morale". Do NOT make a resource a life/health bar whose emptying would read as the character dying.
+5. NO DEATH-BY-BAR — EVEN FOR WAR, SIEGE, BATTLE, OR VIOLENT TOPICS. Personal resources degrade into HARDSHIP, never into "game over," death, or the character being killed/captured. degradationEffect is visible friction — harder choices, worse terms, hunger, exhaustion, lost standing — never termination or a wound that kills. Lethal stakes are real in these histories, but they live in EVENT outcomes and narration, NOT in a personal resource bar. For a war/violent topic, do NOT model a "health"/"wounds"/"life" bar whose emptying = death; instead model the cost that persists — e.g. a soldier's Condition degrades fresh → exhausted → barely standing, narrowing options and making choices harder but never killing him; a family's Shelter or Larder erodes under bombardment. Do NOT name any resource "morale". A character must never die of a low bar.
 
 OUTPUT SHAPE (TypeScript for reference — output JSON only):
 type ResourceLevel = "low" | "moderate" | "high";
@@ -142,10 +142,15 @@ interface PersonalEconomy { campaignType: "character"; premise: string; resource
 
 RULES: campaignType is always the literal "character". Provide 2–3 resources, exactly one with isMoney:true. startsAt is qualitative ONLY. primaryResource names one of the NON-money resources. Output ONLY the JSON object.`;
 
-function buildUserMessage(standard: string, perspective: string, topic?: string): string {
+function buildUserMessage(standard: string, perspective: string, topic?: string, priorErrors?: string[]): string {
   const subjectBlock = topic && topic.trim()
     ? `SUBJECT (authoritative — what this campaign is about): ${topic}\nSTANDARD (supporting reference / alignment code): ${standard}`
     : standard;
+  // On a self-retry, the previous spec's exact validator errors are fed back so
+  // the model corrects THOSE specific failures rather than redrawing blind.
+  const feedback = priorErrors && priorErrors.length
+    ? `\n\nYOUR PREVIOUS SPEC FAILED THESE VALIDATION CHECKS. Fix EVERY one — re-author the offending field(s) so it passes, keeping the rest faithful to the rules above:\n${priorErrors.map((e) => `- ${e}`).join("\n")}\n`
+    : "";
   return `Define the small, concrete, PERSONAL economy for a character-type campaign built on THIS standard, lived through THIS person's eyes:
 
 ${subjectBlock}
@@ -153,7 +158,7 @@ ${subjectBlock}
 PERSPECTIVE (whose life these stakes belong to): ${perspective}
 
 Give this person money (one spendable cash resource) plus one or two concrete things that genuinely fit their daily life under this history. Keep it personal and material — what they can hold, spend, and lose — never abstract political forces. Name a non-money resource as primaryResource. Cash is spent to live, never a win condition.
-
+${feedback}
 Output ONLY the JSON object conforming to PersonalEconomy.`;
 }
 
@@ -163,6 +168,12 @@ export interface GeneratePersonalEconomyResult {
   findings: PersonalEconomyFinding[];
 }
 
+// Total proposer attempts: the first draw + up to (N-1) sighted self-retries.
+// Capped so a model that can't converge can't loop forever — after the cap the
+// last attempt is returned with its findings surfaced, so the caller still sees
+// what failed (recover-then-surface, never spin).
+const MAX_ECONOMY_ATTEMPTS = 3;
+
 export async function generatePersonalEconomy(
   standard: string,
   perspective: string,
@@ -170,19 +181,42 @@ export async function generatePersonalEconomy(
   topic?: string,
 ): Promise<GeneratePersonalEconomyResult> {
   const client = new Anthropic({ apiKey });
+  let last!: GeneratePersonalEconomyResult;
+  let priorErrors: string[] = [];
 
-  const stream = client.messages.stream({
-    model: "claude-sonnet-4-6",
-    max_tokens: 2000,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: buildUserMessage(standard, perspective, topic) }],
-  });
+  // SELF-VALIDATE-AND-RETRY: a spec that violates its OWN rules (e.g. a lethal
+  // degradationEffect on a war topic) is caught and re-authored here, UPSTREAM,
+  // so it never enters the campaign-generation loop — which is structurally
+  // powerless to fix a frozen input spec. Prefer recover (re-author with the
+  // errors fed back) over refuse (just returning the broken spec).
+  for (let attempt = 1; attempt <= MAX_ECONOMY_ATTEMPTS; attempt++) {
+    const stream = client.messages.stream({
+      model: "claude-sonnet-4-6",
+      max_tokens: 2000,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: "user", content: buildUserMessage(standard, perspective, topic, attempt > 1 ? priorErrors : undefined) }],
+    });
 
-  let rawText = "";
-  stream.on("text", (t) => { rawText += t; });
-  await stream.finalMessage();
+    let rawText = "";
+    stream.on("text", (t) => { rawText += t; });
+    await stream.finalMessage();
 
-  const data = parseModelJson<PersonalEconomy>(rawText);
-  const findings = validatePersonalEconomy(data);
-  return { data, raw: rawText, findings };
+    const data = parseModelJson<PersonalEconomy>(rawText);
+    const findings = validatePersonalEconomy(data);
+    last = { data, raw: rawText, findings };
+
+    const errs = findings.filter((f) => f.level === "error");
+    if (errs.length === 0) {
+      if (attempt > 1) console.log(`[personal-economy] recovered clean on attempt ${attempt}/${MAX_ECONOMY_ATTEMPTS}`);
+      return last;
+    }
+
+    console.warn(`[personal-economy] attempt ${attempt}/${MAX_ECONOMY_ATTEMPTS}: ${errs.length} error${errs.length === 1 ? "" : "s"} — ${attempt < MAX_ECONOMY_ATTEMPTS ? "re-authoring with errors fed back" : "cap reached, surfacing findings"}`);
+    for (const f of errs) console.warn(`[personal-economy]   [${f.field}] ${f.message}`);
+    priorErrors = errs.map((f) => `[${f.field}] ${f.message}`);
+  }
+
+  // Capped out without converging — return the last attempt; findings are
+  // non-empty so the caller (and the delivery gate) still sees the failure.
+  return last;
 }
