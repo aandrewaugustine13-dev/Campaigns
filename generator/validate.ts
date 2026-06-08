@@ -395,6 +395,15 @@ export function validate(data: unknown): ValidationReport {
     }
   }
 
+  // Review summary (post-campaign recap): OPTIONAL — absent is valid. When
+  // present, it must be a non-empty string. Whether every exam answer is
+  // embedded (and embedded NATURALLY, not signposted) is never rule-judged —
+  // that is a human read.
+  if (d.reviewSummary !== undefined) {
+    check("reviewSummary", typeof d.reviewSummary === "string" && (d.reviewSummary as string).trim().length > 0,
+      "reviewSummary must be a non-empty string");
+  }
+
   // NO-SCORE LAW (cont.): a numeric track must never be wired into resource
   // effects — that would make it a spendable/visible meter, not a reckoning.
   for (const [fid, ftype] of declaredFlags) {

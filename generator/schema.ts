@@ -340,4 +340,10 @@ export interface CampaignData {
   // Verdict (generated-campaign moral close; optional & additive). Three
   // authored passages; the engine selects one from the hidden moral tally.
   verdict?: Verdict;
+
+  // Review summary (post-campaign recap; optional & additive). A ~300-word
+  // prose recap that EMBEDS every exam answer naturally in the narrative (never
+  // signposted). Always shown at the end as closure/study aid; on a failed exam
+  // the screen also offers a retake. Absent ⇒ byte-identical.
+  reviewSummary?: string;
 }
