@@ -363,7 +363,7 @@ function buildRelationshipLaw(): string {
   return lines.join("\n");
 }
 
-export function buildUserMessage(inputs: GenerateInputs): string {
+export function buildUserMessage(inputs: GenerateInputs, priorErrors?: string[]): string {
   const locked = buildLockedConstraints(inputs);
   // Gated solely on faultLine presence — never folded into the frame/economy/
   // cast conditionals, since systems campaigns carry those. Empty ⇒ the
@@ -385,6 +385,13 @@ export function buildUserMessage(inputs: GenerateInputs): string {
   const tail = locked
     ? "\nThe LOCKED CONSTRAINTS above are ground truth. They override any conflicting guidance in the schema's field shapes or in the example above.\n"
     : "";
+  // Sighted retry: on attempt N+1 the prior attempt's CAMPAIGN-AUTHORED validation
+  // errors (the ones THIS generation can fix — never the frozen input-spec errors)
+  // are fed back so the model corrects those specific failures instead of
+  // re-rolling blind. Empty on attempt 1, so attempt 1 is byte-identical to today.
+  const feedback = priorErrors && priorErrors.length
+    ? `\nYOUR PREVIOUS ATTEMPT FAILED THESE VALIDATION CHECKS. Fix EVERY one — re-author the offending field(s) so it passes, keeping the rest faithful to the rules above:\n${priorErrors.map((e) => `- ${e}`).join("\n")}\n`
+    : "";
 
   return `Here is the TypeScript schema your output must conform to:
 
@@ -405,7 +412,7 @@ ${triviaSpec}
 - Number of sage encounters: ${inputs.numSages}
 - Difficulty: ${inputs.difficulty}
 - Art Style / Theme: ${inputs.artStyle}
-${tail}
+${tail}${feedback}
 Output ONLY the JSON object. No markdown fences, no commentary.`;
 }
 
@@ -427,6 +434,11 @@ export function applyFaultLine(data: Record<string, unknown>, faultLine?: FaultL
 export async function generateCampaign(
   apiKey: string,
   inputs: GenerateInputs,
+  // Sighted-retry feedback: the prior attempt's CAMPAIGN-AUTHORED error findings
+  // ("field: message"). Absent/empty on the first attempt — when absent the user
+  // message is byte-identical to today. The wrapper passes only the fixable
+  // (validate(data)) findings; never the frozen input-spec ones.
+  priorErrors?: string[],
 ): Promise<GenerateResult> {
   // A generated campaign is large; the stream can legitimately run several
   // minutes. Give it a generous ceiling and a retry so a stalled connection
@@ -438,7 +450,7 @@ export async function generateCampaign(
     model: "claude-sonnet-4-6",
     max_tokens: 16000,
     system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: buildUserMessage(inputs) }],
+    messages: [{ role: "user", content: buildUserMessage(inputs, priorErrors) }],
   });
 
   let rawText = "";
@@ -485,6 +497,11 @@ export interface DeliveryFinding {
   level: "error" | "warn";
   field: string;
   message: string;
+  // "data": authored by THIS generation (validate(data) / relationship-tracks /
+  // endgame-rhythm) — the campaign retry CAN fix it, so it's fed back as sighted
+  // feedback. "spec": a frozen INPUT spec (faultLine / personalEconomy) — the
+  // campaign retry is powerless over it (handled upstream), so it is NEVER fed back.
+  source: "data" | "spec";
 }
 
 // Run EVERY validator that applies to this campaign and unify their findings.
@@ -504,16 +521,20 @@ export function validateForDelivery(
   data: unknown,
   inputs: Pick<GenerateInputs, "faultLine" | "personalEconomy">,
 ): { findings: DeliveryFinding[]; errorCount: number } {
-  const findings: DeliveryFinding[] = [...validate(data).findings];
+  // Tag each finding by SOURCE so the sighted retry feeds back only the
+  // campaign-fixable ("data") ones. validate(data), relationship-tracks, and
+  // endgame-rhythm all inspect the PRODUCED campaign → "data". validateFaultLine
+  // and validatePersonalEconomy inspect the frozen INPUT specs → "spec".
+  const findings: DeliveryFinding[] = validate(data).findings.map((f) => ({ ...f, source: "data" as const }));
   if (inputs.faultLine) {
-    findings.push(...validateFaultLine(inputs.faultLine).map((f) => ({ ...f, field: `faultLine.${f.field}` })));
-    findings.push(...validateRelationshipTracks(data));
+    findings.push(...validateFaultLine(inputs.faultLine).map((f) => ({ ...f, field: `faultLine.${f.field}`, source: "spec" as const })));
+    findings.push(...validateRelationshipTracks(data).map((f) => ({ ...f, source: "data" as const })));
     // Endgame-rhythm guard: campaign must END ON A DILEMMA, readers capped and
     // off the tail. Inspects the PRODUCED data (post reserveClosingDilemma).
-    findings.push(...validateEndgameRhythm(data));
+    findings.push(...validateEndgameRhythm(data).map((f) => ({ ...f, source: "data" as const })));
   }
   if (inputs.personalEconomy) {
-    findings.push(...validatePersonalEconomy(inputs.personalEconomy).map((f) => ({ ...f, field: `personalEconomy.${f.field}` })));
+    findings.push(...validatePersonalEconomy(inputs.personalEconomy).map((f) => ({ ...f, field: `personalEconomy.${f.field}`, source: "spec" as const })));
   }
   const errorCount = findings.filter((f) => f.level === "error").length;
   return { findings, errorCount };
@@ -551,7 +572,15 @@ export async function generateValidatedCampaign(
   let totalElapsed = 0;
 
   for (let attempt = 1; attempt <= maxRegen + 1; attempt++) {
-    last = await generateCampaign(apiKey, inputs);
+    // Sighted retry: on attempt >= 2 feed back ONLY the prior attempt's
+    // campaign-authored (source "data") error findings — the ones this
+    // generation can actually fix. Input-spec errors (faultLine/personalEconomy)
+    // are excluded; they're handled upstream and are unfixable here, so feeding
+    // them back would be noise. Empty on attempt 1 ⇒ byte-identical to today.
+    const priorErrors = lastFindings
+      .filter((f) => f.level === "error" && f.source === "data")
+      .map((f) => `${f.field}: ${f.message}`);
+    last = await generateCampaign(apiKey, inputs, attempt > 1 ? priorErrors : undefined);
     totalElapsed += last.elapsedSeconds;
     const { findings, errorCount } = validateForDelivery(last.data, inputs);
     lastFindings = findings;
