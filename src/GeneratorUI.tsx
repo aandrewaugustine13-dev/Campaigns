@@ -314,9 +314,12 @@ export default function GeneratorUI({ onBack }: { onBack: () => void }) {
               className="w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-sm text-stone-100 focus:border-amber-600 focus:outline-none"
             >
               <option value="default">Default Dark Slate</option>
-              <option value="frontier">Distressed Frontier</option>
-              <option value="parchment">Vintage Parchment & Ink</option>
-              <option value="medieval">Medieval Tapestry & Chronicle</option>
+              <option value="frontier-leather">Distressed Frontier</option>
+              <option value="parchment-medieval">Vintage Parchment & Ink</option>
+              <option value="broadsheet-sepia">Broadsheet Sepia</option>
+              <option value="expedition-journal">Expedition Journal</option>
+              <option value="declassified-typewriter">Declassified Typewriter</option>
+              <option value="classical-marble">Classical Marble</option>
             </select>
             <input
               type="text"
