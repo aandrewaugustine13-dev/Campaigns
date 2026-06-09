@@ -103,6 +103,78 @@ function getProgressPhrase(data: CampaignData, progress: number): string {
   return "The destination is close.";
 }
 
+// ═════════════════════════════════════════════════════════════════
+// "TIME PASSES" BEATS — character mode only.
+// A character/project turn with no event, sage, or trivia is pure dead air
+// (every systems idle-turn affordance — pace, towns, objectives — is gated
+// off), so advanceTurn collapses a run of them into one or two of these
+// cards. Line 1 is the computed real duration (the calendar fidelity — 381
+// days of Montgomery stays 381 days, as displayed time); line 2 is generic
+// endurance flavor that varies by campaign position. Engine-synthesized and
+// topic-neutral by design; generator-authored beats are a separate task.
+// ═════════════════════════════════════════════════════════════════
+
+// A dead stretch longer than this many turns gets a second beat (one pause
+// mid-stretch, one at its end); shorter stretches get exactly one. At a
+// typical daysPerTurn this keeps a single card from silently swallowing more
+// than ~6-7 weeks of story time.
+const MAX_SKIP_CHUNK = 6;
+
+const NUM_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
+const capFirst = (w: string) => w.charAt(0).toUpperCase() + w.slice(1);
+
+// Humanized duration of the skipped span — literal scale, never canned.
+function skipDurationLine(days: number): string {
+  const d = Math.max(1, Math.round(days));
+  if (d === 1) return "A day passes.";
+  if (d <= 10) return `${capFirst(NUM_WORDS[d])} days pass.`;
+  if (d <= 24) return `${capFirst(NUM_WORDS[Math.max(2, Math.round(d / 7))])} weeks pass.`;
+  if (d <= 45) return "A month passes.";
+  if (d <= 75) return "Two months pass.";
+  const m = Math.round(d / 30);
+  const word = NUM_WORDS[Math.min(m, 10)];
+  return m * 30 > d ? `Nearly ${word} months pass.` : `${capFirst(word)} months pass.`;
+}
+
+// Position-flavored copy: two variants per progress band, chosen by a
+// rotating beat counter (deterministic, not random) so two beats in the same
+// band still differ. Topic- and duration-neutral — routine, endurance, time.
+const SKIP_FLAVOR_BANDS: { max: number; variants: [string, string] }[] = [
+  {
+    max: 0.25,
+    variants: [
+      "What was unthinkable a short while ago is becoming routine. You learn the new shape of your days.",
+      "The first urgency has passed. Now comes the part nobody warned you about: keeping on.",
+    ],
+  },
+  {
+    max: 0.55,
+    variants: [
+      "The days blur into one another. Holding steady is its own kind of work — daily, unglamorous, real.",
+      "Nothing dramatic happens, and that is its own test. Endurance never announces itself.",
+    ],
+  },
+  {
+    max: 0.85,
+    variants: [
+      "You no longer count the days one by one. The work has become part of who you are.",
+      "Weariness and resolve have settled into the same bones. People hold each other up without being asked.",
+    ],
+  },
+  {
+    max: Infinity,
+    variants: [
+      "Something is different lately — you hear it in how people talk. Whatever is coming, it is close.",
+      "The waiting has changed its character. Less like patience. More like held breath.",
+    ],
+  },
+];
+
+function skipFlavorLine(progressFrac: number, beatIndex: number): string {
+  const band = SKIP_FLAVOR_BANDS.find(b => progressFrac < b.max) ?? SKIP_FLAVOR_BANDS[SKIP_FLAVOR_BANDS.length - 1];
+  return band.variants[beatIndex % 2];
+}
+
 function buildTrailFeedEntries(
   data: CampaignData,
   resources: Record<string, number>,
@@ -517,7 +589,7 @@ interface Decision { event: string; choice: string; day: number; text?: string; 
 interface GameState {
   day: number; turn: number; resources: Resources;
   flags: Record<string, FlagValue>;
-  phase: "intro" | "outfit" | "sailing" | "event" | "result" | "end" | "trivia" | "event_trivia" | "sage";
+  phase: "intro" | "outfit" | "sailing" | "event" | "result" | "end" | "trivia" | "event_trivia" | "sage" | "timeskip";
   pace: string; distance: number; currentEvent: GameEvent | null;
   resultText: string; decisions: Decision[];
   // Hidden moral accumulators for the generated-campaign verdict — a SEPARATE
@@ -563,6 +635,17 @@ interface GameState {
   // single-choice "reader" (a no-choice "Go on." reflection beat). selectEvent
   // uses it to avoid firing two readers in a row (see the avoidReader path).
   lastEventWasReader: boolean;
+  // ── "Time passes" beats (character mode only — see advanceTurn) ──
+  // skipBeat is the card shown in the "timeskip" phase. skipNextPhase stashes
+  // the interactive phase a stretch-end beat is holding back (null for a
+  // mid-stretch beat, whose Continue resumes the auto-advance instead).
+  // skipPaused marks a stretch that already showed its mid-stretch beat, so a
+  // stretch can never show more than two. skipBeatIndex rotates the flavor
+  // variants so consecutive beats never read identically.
+  skipBeat: { duration: string; flavor: string } | null;
+  skipNextPhase: GameState["phase"] | null;
+  skipPaused: boolean;
+  skipBeatIndex: number;
 }
 
 // ═════════════════════════════════════════════════════════════════
@@ -729,6 +812,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     trailFeed: [data.trailFeedOpener], hardPaceStreak: 0,
     inventoryOpen: false,
     lastEventWasReader: false,
+    skipBeat: null, skipNextPhase: null, skipPaused: false, skipBeatIndex: 0,
   }), [data]);
 
   const [state, setState] = useState<GameState>(makeInit);
@@ -828,9 +912,13 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     });
   }, [data]);
 
-  // ── Core turn advance ──
-  const advanceTurn = useCallback(() => {
-    setState(prev => {
+  // ── One-turn world simulation ──
+  // The pre-existing advanceTurn step, extracted so character mode can run
+  // several turns per click: day tick, pace/route fx, drains, fail/goal
+  // checks, objectives, sage, trivia, event selection. Phase left at
+  // "sailing" means a DEAD turn — nothing interactive fired.
+  const simulateTurn = useCallback(
+    (prev: GameState): GameState => {
       const s: GameState = { ...prev, resources: { ...prev.resources } };
       const before = { turn: prev.turn, day: prev.day, distance: prev.distance, resources: { ...prev.resources } };
       s.turn += 1;
@@ -969,8 +1057,73 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
         s.triviaCounter++;
       }
       return s;
+    },
+    [data],
+  );
+
+  // Build the "time passes" card state for a dead stretch. daysSkipped is the
+  // real calendar time since the player's last interaction; the flavor line
+  // rotates by skipBeatIndex so consecutive beats never read identically. A
+  // null nextPhase marks a mid-stretch beat (Continue resumes the skip); a
+  // stashed phase marks a stretch-end beat (Continue reveals it).
+  const makeSkipBeat = useCallback((s: GameState, daysSkipped: number, nextPhase: GameState["phase"] | null): GameState => ({
+    ...s,
+    phase: "timeskip",
+    skipBeat: {
+      duration: skipDurationLine(daysSkipped),
+      flavor: skipFlavorLine(deriveProgress(data, s.day, s.distance) / 100, s.skipBeatIndex),
+    },
+    skipBeatIndex: s.skipBeatIndex + 1,
+    skipNextPhase: nextPhase,
+    skipPaused: nextPhase === null,
+  }), [data]);
+
+  // ── Core turn advance ──
+  // Systems campaigns (journey or project): one simulated turn per click,
+  // exactly the old behavior — their idle turns are real decisions (pace,
+  // towns, objectives), never dead. Character mode: a no-event turn is pure
+  // dead air, so a run of them (a DEAD STRETCH) is collapsed into one "time
+  // passes" beat — two when the stretch runs past MAX_SKIP_CHUNK turns. The
+  // simulation still runs every skipped turn, so the day counter keeps full
+  // calendar fidelity as displayed time.
+  const advanceTurn = useCallback(() => {
+    setState(prev => {
+      if (!isCharacterMode(data)) return simulateTurn(prev);
+
+      let s = simulateTurn(prev);
+      let skipped = 0;
+      while (s.phase === "sailing" && !s.gameOver && skipped < 500) {
+        skipped += 1;
+        // Long stretch: pause once mid-stretch (beat 1 of 2). skipPaused
+        // marks the pause so the resume can't pause again — the stretch's
+        // second beat lands at its end instead.
+        if (!prev.skipPaused && skipped >= MAX_SKIP_CHUNK) {
+          return makeSkipBeat(s, s.day - prev.day, null);
+        }
+        s = simulateTurn(s);
+      }
+      const cleared = { skipBeat: null, skipNextPhase: null, skipPaused: false };
+      // The stretch ran into the goal: the end screen (verdict/reckoning)
+      // closes it — no beat stacked in front of the campaign's own ending.
+      if (s.phase === "end") return { ...s, ...cleared };
+      // No dead turns: the next beat fired directly — old behavior, no card.
+      if (skipped === 0) return { ...s, ...cleared };
+      // Stretch over: show its beat; Continue reveals the stashed phase.
+      return makeSkipBeat(s, s.day - prev.day, s.phase);
     });
-  }, [data]);
+  }, [data, simulateTurn, makeSkipBeat]);
+
+  // Continue from a "time passes" card. A stretch-end beat stashed the phase
+  // it interrupted (event/sage/trivia) — restore it. A mid-stretch beat has
+  // no stash: resume collapsing the rest of the stretch.
+  const continueTimeskip = useCallback(() => {
+    const next = state.skipNextPhase;
+    if (next) {
+      setState(prev => ({ ...prev, phase: next, skipBeat: null, skipNextPhase: null, skipPaused: false }));
+    } else {
+      advanceTurn();
+    }
+  }, [state.skipNextPhase, advanceTurn]);
 
   // ── Route choice ──
   const chooseRoute = useCallback((toId: string, tag: "SAFE" | "FAST" | "PROFIT") => {
@@ -1035,9 +1188,22 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       s.resultText = insightBonus > 0
         ? `${outcome.result || ""}\n\nYou answered the trivia correctly and gained +${insightBonus} Insight.`
         : outcome.result || "";
-      s.phase = "result";
       s.pendingChoiceIndex = null;
       s.pendingEventQuestion = null;
+      // A choice with no result text (e.g. a reader's lone "Go on.") skips the
+      // blank result card and returns to flow directly, mirroring continueGame's
+      // character-mode transition (no resource-death there; the run ends by
+      // time/arc or earlyEnd). Character-gated so systems campaigns render
+      // byte-identically to before.
+      if (isCharacterMode(data) && s.resultText.trim() === "") {
+        s.currentEvent = null;
+        if (hasReachedGoal(data, s.day, s.distance) || s.earlySale) {
+          return { ...s, phase: "end" as const, gameOver: true, survived: true };
+        }
+        s.phase = "sailing";
+        return s;
+      }
+      s.phase = "result";
       return s;
     });
   }, [data]);
@@ -1686,6 +1852,23 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                     onLeave={() => { setLeftTownId(supplyTown.town); advanceTurn(); }}
                   />
                 )}
+              </div>
+            )}
+
+            {state.phase === "timeskip" && state.skipBeat && (
+              <div className="space-y-3">
+                <div className={`border ${themeConfig.card} rounded p-6 text-center space-y-4`}>
+                  <p className="theme-text text-lg font-serif">{state.skipBeat.duration}</p>
+                  <p className={`${themeConfig.subtext} text-sm italic leading-relaxed font-serif max-w-md mx-auto`}>
+                    {state.skipBeat.flavor}
+                  </p>
+                </div>
+                <button
+                  onClick={continueTimeskip}
+                  className={`w-full py-2 ${themeConfig.button} rounded text-sm font-bold transition-colors`}
+                >
+                  Continue
+                </button>
               </div>
             )}
 
