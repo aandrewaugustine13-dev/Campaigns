@@ -380,6 +380,23 @@ export default function Stage1Studio({
           </div>
         </div>
 
+        <div className="space-y-1">
+          <label className="text-xs font-bold text-stone-400 uppercase tracking-wide">Art Direction / Visual Theme</label>
+          <select
+            value={inputs.artStyle}
+            onChange={e => set({ artStyle: e.target.value })}
+            className="w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-sm text-stone-100 focus:border-amber-600 focus:outline-none"
+          >
+            <option value="default">Default Dark Slate</option>
+            <option value="frontier-leather">Distressed Frontier</option>
+            <option value="parchment-medieval">Vintage Parchment & Ink</option>
+            <option value="broadsheet-sepia">Broadsheet Sepia</option>
+            <option value="expedition-journal">Expedition Journal</option>
+            <option value="declassified-typewriter">Declassified Typewriter</option>
+            <option value="classical-marble">Classical Marble</option>
+          </select>
+        </div>
+
         {busy ? <Spinner label={busy} /> : (
           <button
             onClick={proposeFrame}
