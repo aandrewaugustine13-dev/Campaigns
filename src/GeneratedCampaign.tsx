@@ -184,9 +184,10 @@ function buildTrailFeedEntries(
   day: number,
 ): string[] {
   const notes: string[] = [];
-  // Distance/mileage is journey machinery; character mode advances by time, not
-  // distance, so this "N units covered at pace" line is meaningless there.
-  if (!isCharacterMode(data)) {
+  // Distance/mileage is journey machinery; character and project modes advance
+  // by time, not distance, so this "N units covered at pace" line would render
+  // degenerate ("0  covered at  pace") there — journey only.
+  if (!isCharacterMode(data) && !isProjectMode(data)) {
     notes.push(`Day ${day}: ${Math.round(distanceGain)} ${data.distanceUnit} covered at ${paceId} pace.`);
   }
 
@@ -244,21 +245,20 @@ function pickTriviaQuestion(
 // GENERIC PARALLAX — gradient placeholder, no campaign art needed
 // ═════════════════════════════════════════════════════════════════
 
+// Era masthead. Previously a hardcoded teal hue-shift gradient that ignored
+// the theme entirely — the single most visible untheme'd surface. Now it is
+// the campaign's nameplate: the era's textured ground (--parallax-fallback)
+// with the title set LARGE in the era's display face. Progress still reads
+// as a thin advancing rule along the bottom edge.
 function GenericParallax({ progress, title }: { progress: number; pace: string; title: string }) {
-  const hue = 180 + progress * 0.4;
   return (
-    <div
-      className="w-full h-28 relative overflow-hidden"
-      style={{
-        background: `linear-gradient(180deg,
-          hsl(${hue}, 30%, 15%) 0%,
-          hsl(${hue - 20}, 25%, 25%) 40%,
-          hsl(${hue - 40}, 20%, 35%) 70%,
-          hsl(30, 30%, 25%) 100%)`,
-      }}
-    >
-      <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-stone-800 to-transparent" />
-      <div className="absolute top-2 left-4 text-stone-500 text-[10px] italic">{title}</div>
+    <div className="w-full h-28 relative overflow-hidden theme-parallax border-b-2 theme-border">
+      <div className="absolute inset-0 flex items-center justify-center px-4">
+        <span className="theme-display-font theme-text-accent font-bold text-2xl md:text-3xl text-center leading-tight [text-shadow:0_1px_2px_rgba(0,0,0,0.15)]">
+          {title}
+        </span>
+      </div>
+      <div className="absolute bottom-0 left-0 h-1 theme-btn-action" style={{ width: `${Math.max(0, Math.min(100, progress))}%`, transition: "width 0.4s ease" }} />
     </div>
   );
 }
@@ -292,7 +292,7 @@ function GenericTriviaEngine({
 
   return (
     <div className="border theme-border theme-bg-card-inner rounded p-4 space-y-3">
-      <p className="text-xs theme-text-accent font-bold uppercase tracking-wide">
+      <p className="text-xs theme-text-accent theme-display-font font-bold uppercase tracking-wide">
         Knowledge Check {streak > 0 && <span className="text-emerald-500">(streak: {streak})</span>}
       </p>
       <p className="text-base theme-text leading-relaxed">{question.question}</p>
@@ -341,6 +341,7 @@ function GenericOutfitScreen({ data, onDone }: { data: CampaignData; onDone: (ou
   const ALLOWED_THEMES = new Set([
     "frontier-leather", "broadsheet-sepia", "parchment-medieval",
     "expedition-journal", "declassified-typewriter", "classical-marble",
+    "civil-rights-midcentury",
     "default",
   ]);
   const theme = ALLOWED_THEMES.has(data.theme ?? "") ? (data.theme as string) : "default";
@@ -768,6 +769,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   const ALLOWED_THEMES = new Set([
     "frontier-leather", "broadsheet-sepia", "parchment-medieval",
     "expedition-journal", "declassified-typewriter", "classical-marble",
+    "civil-rights-midcentury",
     "default",
   ]);
   const theme = ALLOWED_THEMES.has(data.theme ?? "") ? (data.theme as string) : "default";
@@ -868,11 +870,12 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       .slice(0, 10);
   }, [data]);
 
-  // Character campaigns open straight into the story (no outfitting): resources
-  // stay at initialResources and trailFeed is already seeded by makeInit.
-  // Systems campaigns (journey or project) are unchanged → the outfit phase.
+  // Only journey campaigns outfit (provisioning a trek is journey furniture);
+  // character and project campaigns open straight into the story: resources
+  // stay at initialResources (makeInit defaults outfit to zero spend) and
+  // trailFeed is already seeded by makeInit.
   const start = useCallback(() => {
-    const firstPhase = isCharacterMode(data) ? "sailing" : "outfit";
+    const firstPhase = !isCharacterMode(data) && !isProjectMode(data) ? "outfit" : "sailing";
     setState({ ...makeInit(), phase: firstPhase });
     setExamTaken(false); setExamCorrect(0); setExamTotal(0); setExamPct(0);
     setRetakeUsed(false); setRetaking(false); setVerdictAck(false); setLeftTownId(null);
@@ -985,12 +988,13 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
         return { ...s, phase: "end" as const, gameOver: true, survived: true };
       }
 
-      // Objectives — "quests" are systems framing (timed sub-goals with Insight
-      // rewards). They don't belong in a first-person moral story, so the whole
-      // spawn/tick/reward block is gated off in character mode (same leak pattern
-      // as the HUD, outfitting, town-stops, and mileage). Systems campaigns are
-      // unchanged: the gate is true and the block runs exactly as before.
-      if (!isCharacterMode(data)) {
+      // Objectives — "quests" are journey framing (timed sub-goals incl. a
+      // distance quest that can never complete without travel, with hardcoded
+      // supplies/crew resource keys). They don't belong in a first-person moral
+      // story OR a time-based project, so the whole spawn/tick/reward block is
+      // journey-only. Gated at the logic (not just render) so invisible
+      // objectives can't tick, grant Insight, or push objectiveNotice.
+      if (!isCharacterMode(data) && !isProjectMode(data)) {
         const tick = tickObjectives(s.objectives, before, { turn: s.turn, day: s.day, distance: s.distance, resources: { ...s.resources } });
         s.objectives = tick.active;
         if (tick.completedNow.length > 0) {
@@ -1362,12 +1366,15 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   // until it reaches a real route fork to decide; events/sages/trivia
   // (set by advanceTurn) pause it by leaving the "sailing" phase.
   const supplyTown = nearestSupplyTown(data.trailStops, progress);
-  const atRouteFork = currentRouteNode.edges.length >= 2;
+  // Route forks are journey furniture, engine-enforced here (not just by the
+  // model emitting a single-node route): a stray multi-edge route in a
+  // character/project blob must not pause the run at a "choose your path" fork.
+  const atRouteFork = !isCharacterMode(data) && !isProjectMode(data) && currentRouteNode.edges.length >= 2;
   // Gate at the computation, not the render: a true atTownStop both shows the
   // shop AND pauses auto-advance, so hiding only the render would freeze a
   // character run at a stray supply town. Character mode never reaches the
   // truthy state → no shop, no pause. Systems (journey or project) unchanged.
-  const atTownStop = !isCharacterMode(data) && supplyTown.near && supplyTown.town !== leftTownId;
+  const atTownStop = !isCharacterMode(data) && !isProjectMode(data) && supplyTown.near && supplyTown.town !== leftTownId;
   const awaitingDecision = atRouteFork || atTownStop;
 
   // Travel is fully click-gated: every pure-travel ("sailing") interlude waits
@@ -1382,7 +1389,9 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   // row and leaves the inventory grid empty. Systems keeps the original
   // first-6-in-inventory / 7th+-as-bars split (byte-identical behavior).
   const topResources = useMemo(() => {
-    if (isCharacterMode(data)) return [];
+    // Character AND project: no collapsed inventory (the button is journey-only
+    // below), so every resource must live in the always-visible bar row.
+    if (isCharacterMode(data) || isProjectMode(data)) return [];
     return Object.keys(data.initialResources).slice(0, 6);
   }, [data]);
 
@@ -1399,7 +1408,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
 
   const barResources = useMemo(() => {
     const keys = Object.keys(data.initialResources);
-    return isCharacterMode(data) ? keys : keys.slice(6);
+    return isCharacterMode(data) || isProjectMode(data) ? keys : keys.slice(6);
   }, [data]);
 
   const riskHints = (state.currentEvent?.choices || []).map((choice) => {
@@ -1451,7 +1460,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
         <h1 className={`text-3xl font-bold theme-display-font ${themeConfig.accent}`}>{data.title}</h1>
         <p className={themeConfig.subtext}>{data.subtitle}</p>
         <p className={`${themeConfig.subtext} text-sm`}>{data.introBody}</p>
-        <button onClick={start} className={`px-8 py-3 ${themeConfig.button} rounded font-bold transition-colors`}>{isCharacterMode(data) ? "BEGIN" : "BEGIN OUTFIT"}</button>
+        <button onClick={start} className={`px-8 py-3 ${themeConfig.button} rounded font-bold transition-colors`}>{!isCharacterMode(data) && !isProjectMode(data) ? "BEGIN OUTFIT" : "BEGIN"}</button>
         <button onClick={backToMenu} className={`block w-full ${themeConfig.subtext} opacity-60 hover:opacity-100 text-xs mt-2`}>&larr; Back to Campaigns</button>
       </div>
     </div>
@@ -1491,7 +1500,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       return (
         <div data-theme={theme} className="h-screen theme-bg-page theme-text p-4 overflow-y-auto theme-body-font flex items-center">
           <div className="max-w-lg mx-auto w-full space-y-4">
-            <h1 className="text-2xl font-bold text-center theme-text-accent">Check for Understanding</h1>
+            <h1 className="text-2xl font-bold text-center theme-text-accent theme-display-font">Check for Understanding</h1>
             <FinalExam
               themed
               oneShot
@@ -1554,7 +1563,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
 
           {data.reviewSummary && (
             <div className="theme-bg-card theme-border border rounded p-4 space-y-2">
-              <h2 className="theme-text-accent font-bold uppercase tracking-wide text-xs text-center">Review Summary</h2>
+              <h2 className="theme-text-accent theme-display-font font-bold uppercase tracking-wide text-xs text-center">Review Summary</h2>
               <p className="theme-text text-sm leading-relaxed whitespace-pre-line">{data.reviewSummary}</p>
             </div>
           )}
@@ -1570,7 +1579,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
 
           {data.revenuePerUnit > 0 && (
             <div className="theme-bg-card theme-border border rounded p-3 space-y-1 text-xs">
-              <h2 className="theme-text-accent font-bold uppercase tracking-wide text-center mb-1">Ledger</h2>
+              <h2 className="theme-text-accent theme-display-font font-bold uppercase tracking-wide text-center mb-1">Ledger</h2>
               <div className="flex justify-between theme-text-muted"><span>Outfit Cost</span><span className="text-red-400">-${cost.toLocaleString()}</span></div>
               <div className="flex justify-between theme-text-muted">
                 <span className="capitalize">{data.resourceLabels[primaryKey] ?? primaryKey} (Start)</span>
@@ -1670,24 +1679,25 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
         <FloatingNumbers floats={floats} />
       </div>
 
-      {/* Map sidebar — systems-only furniture. Gated on character mode so a
-          character campaign never shows (or reserves width for) a trail map,
-          even if the generator leaked a stray trailPath. Also only rendered
-          when there's an actual map, so map-less systems campaigns don't
-          reserve an empty 360-580px gutter that shoves content right. */}
-      {!isCharacterMode(data) && Array.isArray(data.trailPath) && data.trailPath.length > 0 && (
+      {/* Map sidebar — journey-only furniture. Engine-gated on BOTH character
+          and project mode so neither shows (or reserves width for) a trail
+          map, even if the generator leaked a stray trailPath. Also only
+          rendered when there's an actual map, so map-less journey campaigns
+          don't reserve an empty 360-580px gutter that shoves content right. */}
+      {!isCharacterMode(data) && !isProjectMode(data) && Array.isArray(data.trailPath) && data.trailPath.length > 0 && (
         <div className="hidden md:flex w-[360px] lg:w-[430px] xl:w-[520px] 2xl:w-[580px] flex-shrink-0">
           <TrailMap progress={progress} day={state.day} totalDays={data.totalDays} trailPath={data.trailPath} trailStops={data.trailStops ?? []} mapImage={data.mapImage} totalDistance={data.totalDistance} />
         </div>
       )}
 
-      {/* Trail feed sidebar — systems-only "expedition log". A character story
-          isn't a journey with a mileage log; gated off in character mode (the
-          decisions log remains reachable via the Campaign Log button). */}
-      {!isCharacterMode(data) && (
+      {/* Trail feed sidebar — journey-only "expedition log". Neither a
+          character story nor a time-based project is a journey with a mileage
+          log (the decisions log remains reachable via the Campaign Log
+          button). */}
+      {!isCharacterMode(data) && !isProjectMode(data) && (
         <aside className={`hidden xl:flex w-72 2xl:w-80 flex-shrink-0 border-l ${themeConfig.sidebar} flex-col`}>
           <div className={`px-3 py-2 border-b ${themeConfig.sidebar}`}>
-            <p className={`text-xs font-bold uppercase tracking-wide ${themeConfig.accent}`}>Expedition Log</p>
+            <p className={`text-xs font-bold uppercase tracking-wide theme-display-font ${themeConfig.accent}`}>Expedition Log</p>
             <p className={`text-[11px] ${themeConfig.subtext}`}>Recent notes from the journey.</p>
           </div>
           <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2">
@@ -1734,15 +1744,16 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
               <div className="flex items-center gap-3">
                 <div className={`${themeConfig.subtext} text-[10px] flex items-center gap-1`}>
                   <Map className="w-3 h-3" />
-                  {/* Distance is journey-only; character mode advances by time,
-                      so show just the day counter (no meaningless "· 0 unit"). */}
-                  {isCharacterMode(data) ? (
+                  {/* Distance is journey-only; character and project modes
+                      advance by time, so show just the day counter (no
+                      meaningless "· 0 unit"). */}
+                  {isCharacterMode(data) || isProjectMode(data) ? (
                     <span>Day {state.day}</span>
                   ) : (
                     <span>Day {state.day} &middot; {Math.round(state.distance)} {data.distanceUnit}</span>
                   )}
                 </div>
-                {!isCharacterMode(data) && (
+                {!isCharacterMode(data) && !isProjectMode(data) && (
                   <button
                     onClick={() => setState(s => ({ ...s, inventoryOpen: !s.inventoryOpen }))}
                     className="flex items-center gap-1 px-2 py-0.5 theme-bg-card-inner theme-border border rounded text-[10px] font-bold theme-text transition-colors hover:opacity-90"
@@ -1788,10 +1799,10 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
           </div>
         </div>
 
-        {/* Party Status HUD — systems-only. A first-person character isn't a
-            party with hit points, so it's gated off in character mode. Nothing
-            else consumes partyMembers. */}
-        {!isCharacterMode(data) && <DoomHUD members={partyMembers} theme={theme} campaignId={data.id} />}
+        {/* Party Status HUD — journey-only. A first-person character isn't a
+            party with hit points, and a time-based project isn't a traveling
+            party either. Nothing else consumes partyMembers. */}
+        {!isCharacterMode(data) && !isProjectMode(data) && <DoomHUD members={partyMembers} theme={theme} campaignId={data.id} />}
 
         <div className="flex-1 overflow-y-auto px-3 pb-3">
           <div className="max-w-4xl mx-auto space-y-3 mt-2">
@@ -1800,11 +1811,18 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
               <div className="space-y-3">
                 {/* Route */}
                 <div className={`border ${themeConfig.routeCard} rounded p-2`}>
-                  <p className={`text-xs ${themeConfig.routeText} font-bold flex items-center gap-1.5`}>
-                    <Map className="w-3 h-3" />
-                    Route: {currentRouteNode.title} ({state.routeTag})
-                  </p>
-                  <p className={`text-xs ${themeConfig.subtext} mt-1`}>{currentRouteNode.description}</p>
+                  {/* Route header — journey furniture. Character/project runs
+                      idle in this same card (it owns the Continue button) but a
+                      single-node story is not "Route: X (SAFE)". */}
+                  {!isCharacterMode(data) && !isProjectMode(data) && (
+                    <>
+                      <p className={`text-xs ${themeConfig.routeText} font-bold flex items-center gap-1.5`}>
+                        <Map className="w-3 h-3" />
+                        Route: {currentRouteNode.title} ({state.routeTag})
+                      </p>
+                      <p className={`text-xs ${themeConfig.subtext} mt-1`}>{currentRouteNode.description}</p>
+                    </>
+                  )}
                   {atRouteFork && (
                     <div className="mt-2 grid grid-cols-1 gap-1">
                       <p className={`text-[11px] font-bold ${themeConfig.routeText}`}>Choose your path — the expedition moves out once you decide:</p>
@@ -1825,8 +1843,8 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                   )}
                 </div>
 
-                {/* Objectives — systems-only "quests"; gated off in character mode (they never spawn there, this is belt-and-suspenders matching the other chrome gates). */}
-                {!isCharacterMode(data) && state.objectives.length > 0 && (
+                {/* Objectives — journey-only "quests"; gated off in character and project modes (they never spawn there, this is belt-and-suspenders matching the spawn gate in advanceTurn). */}
+                {!isCharacterMode(data) && !isProjectMode(data) && state.objectives.length > 0 && (
                   <div className="space-y-2">
                     {state.objectives.map(obj => (
                       <div key={obj.id} className={`border ${themeConfig.questCard} rounded p-2`}>
@@ -1858,7 +1876,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
             {state.phase === "timeskip" && state.skipBeat && (
               <div className="space-y-3">
                 <div className={`border ${themeConfig.card} rounded p-6 text-center space-y-4`}>
-                  <p className="theme-text text-lg font-serif">{state.skipBeat.duration}</p>
+                  <p className="theme-text text-lg theme-display-font">{state.skipBeat.duration}</p>
                   <p className={`${themeConfig.subtext} text-sm italic leading-relaxed font-serif max-w-md mx-auto`}>
                     {state.skipBeat.flavor}
                   </p>
@@ -1908,7 +1926,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
 
             {state.phase === "event_trivia" && state.pendingEventQuestion && (
               <div className={`border ${themeConfig.routeCard} rounded p-3 space-y-2`}>
-                <p className={`text-sm ${themeConfig.routeText} font-bold`}>Quick Knowledge Check</p>
+                <p className={`text-sm ${themeConfig.routeText} font-bold theme-display-font`}>Quick Knowledge Check</p>
                 <p className={`text-sm ${themeConfig.subtext}`}>{state.pendingEventQuestion.question}</p>
                 <div className="space-y-1">
                   {state.pendingEventQuestion.choices.map((c, i) => (
