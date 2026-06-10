@@ -34,8 +34,7 @@
    same in every theme.
    ═══════════════════════════════════════════════════════════════ */
 
-:root,
-[data-theme="default"] {
+:root {
   /* Surfaces */
   --bg-page: #1c130f;
   --bg-card: #2b1f18;
@@ -86,6 +85,28 @@
   --dialogue-accent-text: #4a2e1b;
   --dialogue-attribution-text: #a98760;
   --dialogue-attribution-link-hover: #e6c280;
+}
+
+/* ── DEFAULT theme (generated campaigns) — readability overrides ──
+   Split from :root deliberately: the hand-built campaigns (Chisholm,
+   Crusades, Silk Road) render OUTSIDE any data-theme wrapper and read
+   the :root fallbacks above, which stay byte-identical to the legacy
+   look. Generated campaigns whose theme resolves to "default" get
+   these AA+ text margins (audited per-surface; every text token below
+   was lifted from a 4.5-6:1 pairing to 6-11:1). Surfaces, accents,
+   and fonts keep the dark-leather-and-amber character unchanged. */
+[data-theme="default"] {
+  /* Secondary/bio/label text on the dark page & cards: 8.5:1 → 9.8:1+ */
+  --text-muted: #d6c9ae;
+  /* Hover previously LIGHTENED the action button under fixed cream text,
+     dropping it to 4.6:1; hover now darkens (5.7:1 rest → 7.4:1 hover). */
+  --bg-button-action-hover: #7c4218;
+  /* Dialogue parchment ink, one shade darker for paragraph comfort:
+     event text 5.9 → 7.3:1, secondary 4.6 → 6.0:1. */
+  --dialogue-text: #4a2e1b;
+  --dialogue-text-muted: #5a3a1f;
+  /* 11px attribution line on the near-black frame: 5.7 → 7.1:1. */
+  --dialogue-attribution-text: #b89a74;
 }
 
 [data-theme="frontier-leather"] {
