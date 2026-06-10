@@ -394,6 +394,7 @@ export default function Stage1Studio({
             <option value="expedition-journal">Expedition Journal</option>
             <option value="declassified-typewriter">Declassified Typewriter</option>
             <option value="classical-marble">Classical Marble</option>
+            <option value="civil-rights-midcentury">Midcentury Newsprint (Civil Rights)</option>
           </select>
         </div>
 

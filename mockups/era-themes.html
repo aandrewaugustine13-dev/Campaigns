@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Era theme preview — parchment-medieval / broadsheet-sepia / civil-rights-midcentury</title>
+<!--
+  Live preview of the three target era themes, rendered from the REAL
+  src/themes.css (linked below, served by the vite dev server), so what
+  you see here is exactly what GeneratedCampaign renders. Open at:
+  http://localhost:5173/mockups/era-themes.html
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Cinzel:wght@600;700&family=Cormorant+Garamond:wght@600;700&family=Rye&family=Special+Elite&family=MedievalSharp&family=Abril+Fatface&family=Anton&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/src/themes.css" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #111; font-family: Georgia, serif; }
+  .era { padding: 0 0 28px; }
+  .era-label { background: #111; color: #888; font: bold 11px/2.4 monospace; letter-spacing: 0.1em; text-transform: uppercase; padding-left: 12px; }
+  .inner { max-width: 640px; margin: 0 auto; padding: 14px; }
+  .masthead { height: 7rem; position: relative; display: flex; align-items: center; justify-content: center; border-bottom-width: 2px; border-bottom-style: solid; }
+  .masthead .title { font-size: 1.875rem; font-weight: bold; text-align: center; line-height: 1.2; text-shadow: 0 1px 2px rgba(0,0,0,0.15); padding: 0 1rem; }
+  .masthead .prog { position: absolute; bottom: 0; left: 0; height: 4px; width: 42%; }
+  .card { border-radius: 0.5rem; padding: 0.75rem; margin-top: 0.75rem; border-width: 2px; border-style: solid; }
+  .card-thin { border-width: 1px; }
+  .label { font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+  .bodytext { font-size: 1rem; line-height: 1.6; }
+  .choice { display: block; width: 100%; text-align: left; font-size: 0.95rem; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border-width: 1px; border-style: solid; margin-top: 0.5rem; cursor: pointer; font-family: inherit; }
+  .btn { display: block; width: 100%; border: none; border-radius: 0.5rem; padding: 0.65rem; font-size: 0.875rem; font-weight: bold; margin-top: 0.75rem; cursor: pointer; }
+  .sagehead { display: flex; gap: 0.75rem; align-items: flex-start; }
+  .sageportrait { width: 5rem; height: 5rem; border-radius: 0.5rem; border-width: 2px; border-style: solid; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; flex-shrink: 0; }
+  .sagename { font-size: 1.125rem; font-weight: bold; line-height: 1.25; }
+  .sagerole { font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin: 0.15rem 0 0.25rem; }
+  .sagebio { font-size: 0.75rem; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<!-- ════════ THIRD CRUSADE → parchment-medieval ════════ -->
+<div class="era-label">parchment-medieval — Third Crusade</div>
+<div class="era theme-bg-page theme-text theme-body-font" data-theme="parchment-medieval">
+  <div class="masthead theme-parallax theme-border">
+    <span class="title theme-display-font theme-text-accent">The Third Crusade: Sword and Cross</span>
+    <span class="prog theme-btn-action"></span>
+  </div>
+  <div class="inner">
+    <div class="card theme-bg-card theme-border">
+      <div class="sagehead">
+        <div class="sageportrait theme-border theme-bg-card-inner theme-display-font theme-text-accent">SA</div>
+        <div>
+          <div class="sagename theme-display-font theme-text-accent">Saladin</div>
+          <div class="sagerole theme-text-accent-2">Sultan of Egypt and Syria</div>
+          <div class="sagebio theme-text-muted">Unifier of the Muslim world, retaker of Jerusalem in 1187, famed even among his enemies for mercy and honor.</div>
+        </div>
+      </div>
+    </div>
+    <div class="card theme-bg-card-inner theme-border">
+      <p class="label theme-text-accent theme-display-font">📜 A Question for You</p>
+      <p class="bodytext theme-text">Why did King Richard and Saladin agree to the Treaty of Jaffa in 1192 rather than fight on for Jerusalem?</p>
+      <button class="choice theme-bg-card theme-border theme-text"><b class="theme-text-accent">A.</b> Both armies were exhausted and far from home</button>
+      <button class="choice theme-bg-card theme-border theme-text"><b class="theme-text-accent">B.</b> The Pope ordered the fighting to stop</button>
+      <button class="choice theme-bg-card theme-border theme-text"><b class="theme-text-accent">C.</b> Winter snow closed the mountain passes</button>
+    </div>
+    <button class="btn theme-btn-action">Continue</button>
+  </div>
+</div>
+
+<!-- ════════ ERIE CANAL → broadsheet-sepia ════════ -->
+<div class="era-label">broadsheet-sepia — Erie Canal</div>
+<div class="era theme-bg-page theme-text theme-body-font" data-theme="broadsheet-sepia">
+  <div class="masthead theme-parallax theme-border">
+    <span class="title theme-display-font theme-text-accent">The Erie Canal: Clinton's Ditch</span>
+    <span class="prog theme-btn-action"></span>
+  </div>
+  <div class="inner">
+    <div class="card theme-bg-card theme-border">
+      <div class="sagehead">
+        <div class="sageportrait theme-border theme-bg-card-inner theme-display-font theme-text-accent">DC</div>
+        <div>
+          <div class="sagename theme-display-font theme-text-accent">DeWitt Clinton</div>
+          <div class="sagerole theme-text-accent-2">Governor of New York</div>
+          <div class="sagebio theme-text-muted">The canal's relentless champion — mocked for his "ditch" until the waters of Lake Erie met the Hudson in 1825.</div>
+        </div>
+      </div>
+    </div>
+    <div class="card theme-bg-card-inner theme-border">
+      <p class="label theme-text-accent theme-display-font">Quick Knowledge Check</p>
+      <p class="bodytext theme-text">What disease swept the canal work camps in the Montezuma marshes in 1819?</p>
+      <button class="choice theme-bg-card theme-border theme-text"><b class="theme-text-accent">A.</b> Malaria — "swamp fever" among the diggers</button>
+      <button class="choice theme-bg-card theme-border theme-text"><b class="theme-text-accent">B.</b> Smallpox brought up from the city</button>
+      <button class="choice theme-bg-card theme-border theme-text"><b class="theme-text-accent">C.</b> Scurvy from the winter rations</button>
+    </div>
+    <button class="btn theme-btn-action">Continue Expedition</button>
+  </div>
+</div>
+
+<!-- ════════ MONTGOMERY → civil-rights-midcentury (NEW) ════════ -->
+<div class="era-label">civil-rights-midcentury — Montgomery Bus Boycott (new theme)</div>
+<div class="era theme-bg-page theme-text theme-body-font" data-theme="civil-rights-midcentury">
+  <div class="masthead theme-parallax theme-border">
+    <span class="title theme-display-font theme-text-accent">Montgomery, 1955: They Walked</span>
+    <span class="prog theme-btn-action"></span>
+  </div>
+  <div class="inner">
+    <div class="card theme-bg-card theme-border">
+      <div class="sagehead">
+        <div class="sageportrait theme-border theme-bg-card-inner theme-display-font theme-text-accent">RP</div>
+        <div>
+          <div class="sagename theme-display-font theme-text-accent">Rosa Parks</div>
+          <div class="sagerole theme-text-accent-2">Seamstress · NAACP Secretary</div>
+          <div class="sagebio theme-text-muted">Her arrest on December 1, 1955 lit the fuse — 381 days of walking began with one refusal to stand.</div>
+        </div>
+      </div>
+    </div>
+    <div class="card theme-bg-card-inner theme-border">
+      <p class="label theme-text-accent theme-display-font">📜 A Question for You</p>
+      <p class="bodytext theme-text">How did most boycotters get to work during the 381 days the buses ran empty?</p>
+      <button class="choice theme-bg-card theme-border theme-text"><b class="theme-text-accent">A.</b> Walking, and a volunteer carpool of some 300 cars</button>
+      <button class="choice theme-bg-card theme-border theme-text"><b class="theme-text-accent">B.</b> The city ran a second, integrated bus line</button>
+      <button class="choice theme-bg-card theme-border theme-text"><b class="theme-text-accent">C.</b> Most simply stopped going to work</button>
+    </div>
+    <button class="btn theme-btn-action">Continue</button>
+  </div>
+</div>
+
+</body>
+</html>

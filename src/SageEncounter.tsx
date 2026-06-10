@@ -5,6 +5,13 @@ import { truncateCredit } from "./lib/attribution";
 // ═══════════════════════════════════════════════════════════════
 // SAGE ENCOUNTER — full encounter flow
 // Phase 1: Intro (greeting + advice) → Phase 2: Question → Phase 3: Result
+//
+// Fully theme-driven: every surface, border, font, and accent reads
+// the CSS variables from themes.css (inherited from the data-theme
+// wrapper). Outside a wrapper (Chisholm in App.tsx) the :root
+// fallbacks reproduce the legacy dark amber look. The only fixed
+// colors are the correct/wrong trust signals, which are deliberately
+// identical across themes.
 // ═══════════════════════════════════════════════════════════════
 
 type SagePhase = "intro" | "question" | "result";
@@ -27,24 +34,15 @@ export default function SageEncounter({ sage, onComplete }: Props) {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 theme-body-font">
       {/* ── Header: Name + Title ────────────────────────── */}
-      <div
-        className="rounded-lg overflow-hidden"
-        style={{
-          background: "linear-gradient(135deg, #2d1b11, #1a1408)",
-          border: "2px solid #3d2516",
-        }}
-      >
+      <div className="rounded-lg overflow-hidden theme-bg-card theme-border border-2">
         <div className="flex items-start gap-3 p-3">
           {/* Portrait */}
           <div className="flex-shrink-0">
             <div
-              className="w-20 h-20 rounded-lg overflow-hidden border-2 border-amber-800/60"
-              style={{
-                aspectRatio: "1 / 1",
-                background: "linear-gradient(135deg, #3d2516, #2d1b11)",
-              }}
+              className="w-20 h-20 rounded-lg overflow-hidden border-2 theme-border theme-bg-card-inner"
+              style={{ aspectRatio: "1 / 1" }}
             >
               <img
                 src={sage.portrait}
@@ -55,22 +53,22 @@ export default function SageEncounter({ sage, onComplete }: Props) {
                   el.style.display = "none";
                   el.parentElement!.innerHTML = `
                     <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;
-                      font-size:24px;font-weight:bold;color:#d97706;font-family:Georgia,serif;
-                      background:linear-gradient(135deg,#3d2516,#2d1b11);">
+                      font-size:24px;font-weight:bold;color:var(--text-accent);font-family:var(--font-display);
+                      background:var(--bg-card-inner);">
                       ${sage.name.split(" ").map((w: string) => w[0]).join("")}
                     </div>`;
                 }}
               />
             </div>
             {sage.portraitAttribution && (
-              <p className="w-20 mt-0.5 text-stone-500 leading-tight" style={{ fontSize: "11px" }}>
+              <p className="w-20 mt-0.5 theme-text-muted leading-tight" style={{ fontSize: "11px" }}>
                 {truncateCredit(sage.portraitAttribution.artist)}
                 {" · "}
                 <a
                   href={sage.portraitAttribution.sourceUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline hover:text-stone-400"
+                  className="underline hover:opacity-80"
                 >
                   Source
                 </a>
@@ -80,16 +78,13 @@ export default function SageEncounter({ sage, onComplete }: Props) {
 
           {/* Name + bio */}
           <div className="flex-1 min-w-0">
-            <h2
-              className="text-lg font-bold text-amber-400 leading-tight"
-              style={{ fontFamily: "'Georgia', serif" }}
-            >
+            <h2 className="text-lg font-bold theme-text-accent theme-display-font leading-tight">
               {sage.name}
             </h2>
-            <p className="text-xs text-amber-600 font-bold uppercase tracking-wider mb-1">
+            <p className="text-xs theme-text-accent-2 font-bold uppercase tracking-wider mb-1">
               {sage.title}
             </p>
-            <p className="text-xs text-stone-400 leading-relaxed">
+            <p className="text-xs theme-text-muted leading-relaxed">
               {sage.bio}
             </p>
           </div>
@@ -99,20 +94,19 @@ export default function SageEncounter({ sage, onComplete }: Props) {
       {/* ── Phase: Intro — greeting + advice in one panel ── */}
       {phase === "intro" && (
         <div className="space-y-3">
-          <div className="border border-stone-700 rounded-lg p-3 bg-stone-800/80">
-            <p className="text-stone-300 text-base leading-relaxed italic">
+          <div className="border theme-divider rounded-lg p-3 theme-bg-card-inner">
+            <p className="theme-text text-base leading-relaxed italic">
               {sage.greeting}
             </p>
           </div>
-          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/30">
-            <p className="text-amber-200 text-base leading-relaxed">
+          <div className="border-2 theme-border rounded-lg p-3 theme-bg-card-inner">
+            <p className="theme-text text-base leading-relaxed">
               {sage.advice}
             </p>
           </div>
           <button
             onClick={() => setPhase("question")}
-            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
-            style={{ fontFamily: "'Georgia', serif" }}
+            className="w-full py-2.5 theme-btn-action rounded-lg text-sm font-bold transition-colors"
           >
             {sage.name.split(" ")[0]} has a question for you
           </button>
@@ -122,11 +116,11 @@ export default function SageEncounter({ sage, onComplete }: Props) {
       {/* ── Phase: Question ─────────────────────────────── */}
       {phase === "question" && (
         <div className="space-y-3">
-          <div className="border border-indigo-700/60 rounded-lg p-3 bg-indigo-950/40">
-            <p className="text-xs text-indigo-300 font-bold uppercase tracking-wider mb-2">
-              📜 Trail Wisdom
+          <div className="border-2 theme-border rounded-lg p-3 theme-bg-card-inner">
+            <p className="text-xs theme-text-accent theme-display-font font-bold uppercase tracking-wider mb-2">
+              📜 A Question for You
             </p>
-            <p className="text-stone-200 text-base leading-relaxed mb-3">
+            <p className="theme-text text-base leading-relaxed mb-3">
               {sage.question.question}
             </p>
             <div className="space-y-2">
@@ -134,17 +128,16 @@ export default function SageEncounter({ sage, onComplete }: Props) {
                 <button
                   key={i}
                   onClick={() => handleAnswer(i)}
-                  className="w-full text-left text-base leading-snug px-3 py-2.5 rounded-lg bg-indigo-900/60 hover:bg-indigo-800/80 border border-indigo-700/40 hover:border-indigo-600/60 transition-all"
-                  style={{ fontFamily: "'Georgia', serif" }}
+                  className="w-full text-left text-base leading-snug px-3 py-2.5 rounded-lg theme-bg-card theme-border border theme-text transition-all hover:opacity-80"
                 >
-                  <span className="text-indigo-300 font-bold mr-2">
+                  <span className="theme-text-accent font-bold mr-2">
                     {String.fromCharCode(65 + i)}.
                   </span>
                   {choice}
                 </button>
               ))}
             </div>
-            <p className="text-[10px] text-indigo-400/60 mt-2 text-center">
+            <p className="text-[10px] theme-text-muted opacity-70 mt-2 text-center">
               {sage.question.teksRef}
             </p>
           </div>
@@ -154,7 +147,7 @@ export default function SageEncounter({ sage, onComplete }: Props) {
       {/* ── Phase: Result ───────────────────────────────── */}
       {phase === "result" && selectedAnswer !== null && (
         <div className="space-y-3">
-          {/* Correct/Wrong banner */}
+          {/* Correct/Wrong banner — trust signals, NOT themed */}
           <div
             className="rounded-lg p-3 text-center"
             style={{
@@ -165,8 +158,7 @@ export default function SageEncounter({ sage, onComplete }: Props) {
             }}
           >
             <p
-              className={`text-lg font-bold ${wasCorrect ? "text-emerald-400" : "text-red-400"}`}
-              style={{ fontFamily: "'Georgia', serif" }}
+              className={`text-lg font-bold theme-display-font ${wasCorrect ? "text-emerald-500" : "text-red-500"}`}
             >
               {wasCorrect ? "Correct" : "Not quite"}
             </p>
@@ -174,31 +166,31 @@ export default function SageEncounter({ sage, onComplete }: Props) {
 
           {/* Show what they picked vs correct */}
           {!wasCorrect && (
-            <div className="border border-stone-700 rounded-lg p-3 bg-stone-800/60">
-              <p className="text-xs text-stone-500 mb-1">You answered:</p>
-              <p className="text-sm text-red-400/80 line-through mb-2">
+            <div className="border theme-divider rounded-lg p-3 theme-bg-card-inner">
+              <p className="text-xs theme-text-muted mb-1">You answered:</p>
+              <p className="text-sm text-red-500 line-through mb-2">
                 {sage.question.choices[selectedAnswer]}
               </p>
-              <p className="text-xs text-stone-500 mb-1">Correct answer:</p>
-              <p className="text-sm text-emerald-400">
+              <p className="text-xs theme-text-muted mb-1">Correct answer:</p>
+              <p className="text-sm text-emerald-600 font-bold">
                 {sage.question.choices[sage.question.correctIndex]}
               </p>
             </div>
           )}
 
           {/* Explanation — always shown */}
-          <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
-            <p className="text-xs text-amber-500 font-bold uppercase tracking-wider mb-1">
+          <div className="border-2 theme-border rounded-lg p-3 theme-bg-card-inner">
+            <p className="text-xs theme-text-accent theme-display-font font-bold uppercase tracking-wider mb-1">
               📖 Historical Context
             </p>
-            <p className="text-stone-300 text-base leading-relaxed">
+            <p className="theme-text text-base leading-relaxed">
               {sage.question.explanation}
             </p>
           </div>
 
           {/* Reward summary */}
-          <div className="border border-stone-700 rounded-lg p-2 bg-stone-800/40 text-center">
-            <p className="text-xs text-stone-400">
+          <div className="border theme-divider rounded-lg p-2 theme-bg-card-inner text-center">
+            <p className="text-xs theme-text-muted">
               +{wasCorrect ? sage.reward.knowledgeCorrect : sage.reward.knowledgeWrong} Historical Knowledge
               {wasCorrect && sage.reward.correct.supplies && ` · +${sage.reward.correct.supplies} Supplies`}
               {wasCorrect && sage.reward.correct.morale && ` · +${sage.reward.correct.morale} Morale`}
@@ -211,10 +203,9 @@ export default function SageEncounter({ sage, onComplete }: Props) {
           {/* Continue button */}
           <button
             onClick={() => onComplete(wasCorrect)}
-            className="w-full py-2.5 bg-amber-800 hover:bg-amber-700 rounded-lg text-sm font-bold transition-colors"
-            style={{ fontFamily: "'Georgia', serif" }}
+            className="w-full py-2.5 theme-btn-action rounded-lg text-sm font-bold transition-colors"
           >
-            Continue Trail
+            Continue
           </button>
         </div>
       )}

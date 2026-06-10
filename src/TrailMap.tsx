@@ -134,10 +134,9 @@ export default function TrailMap({
 
   return (
     <div
-      className="h-full overflow-hidden"
+      className="h-full overflow-hidden theme-bg-card"
       style={{
-        background: "#1c140f",
-        borderRight: "2px solid #4f3828",
+        borderRight: "2px solid var(--border-card)",
       }}
     >
       <div className="flex h-full min-h-0 flex-col xl:flex-row">
@@ -389,27 +388,24 @@ export default function TrailMap({
 
         {/* Info panel — minimal */}
         <div
-          className="flex-shrink-0 px-3 py-2 space-y-1.5 border-t-2 border-t-[#3d2516] xl:w-44 2xl:w-52 xl:border-t-0 xl:border-l xl:border-l-stone-800"
-          style={{
-            background: "linear-gradient(135deg, #312219, #1b1410)",
-          }}
+          className="flex-shrink-0 px-3 py-2 space-y-1.5 theme-bg-card-inner border-t-2 theme-border xl:w-44 2xl:w-52 xl:border-t-0 xl:border-l"
         >
           <div className="flex justify-between items-center xl:flex-col xl:items-start xl:gap-1">
-            <span className="text-xs text-amber-400 font-bold" style={{ fontFamily: "'Georgia', serif" }}>
+            <span className="text-xs theme-text-accent theme-display-font font-bold">
               📍 {currentStop.name}
             </span>
-            <span className="text-[10px] text-stone-500">
+            <span className="text-[10px] theme-text-muted">
               Day {day}/{totalDays}
             </span>
           </div>
 
           {/* Trail progress bar */}
           <div className="space-y-0.5">
-            <div className="flex justify-between text-[10px] text-stone-500">
+            <div className="flex justify-between text-[10px] theme-text-muted">
               <span>{Math.round(progress * distMult)} mi</span>
               <span>{totalDistance} mi</span>
             </div>
-            <div className="w-full h-2 bg-stone-800 rounded-full overflow-hidden border border-stone-700">
+            <div className="w-full h-2 theme-bg-track rounded-full overflow-hidden border theme-divider">
               <div
                 className="h-full rounded-full transition-all duration-700"
                 style={{
@@ -423,8 +419,7 @@ export default function TrailMap({
           {/* Next supply */}
           {nextSupply && (
             <div
-              className={`text-[11px] ${approachingSupply ? "text-cyan-400 font-bold" : "text-stone-500"}`}
-              style={{ fontFamily: "'Georgia', serif" }}
+              className={`text-[11px] ${approachingSupply ? "text-cyan-600 font-bold" : "theme-text-muted"}`}
             >
               {approachingSupply
                 ? `🏪 ${nextSupply.name} — ${Math.round((nextSupply.pct - progress) * distMult)} mi`
