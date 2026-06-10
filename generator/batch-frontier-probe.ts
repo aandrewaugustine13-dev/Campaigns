@@ -169,7 +169,6 @@ async function runOne(apiKey: string, topic: Topic): Promise<Result> {
       numQuestions: 4,
       numSages: 3,
       difficulty: "medium",
-      artStyle: "broadsheet-sepia",
       frame: frame.frame,
       playerRole: perspString,
       cast: castRes.data.cast,

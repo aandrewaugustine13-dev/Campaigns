@@ -23,7 +23,6 @@ export interface GenerateInputs {
   numQuestions: number;
   numSages: number;
   difficulty: string;
-  artStyle: string;
   // Optional locked constraints (Stage-1 artifacts authored / verified by a
   // teacher). When any of these is provided, buildUserMessage emits a LOCKED
   // CONSTRAINTS block that the SYSTEM_PROMPT treats as overriding its
@@ -411,7 +410,6 @@ Now generate a new campaign with these parameters:
 ${triviaSpec}
 - Number of sage encounters: ${inputs.numSages}
 - Difficulty: ${inputs.difficulty}
-- Art Style / Theme: ${inputs.artStyle}
 ${tail}${feedback}
 Output ONLY the JSON object. No markdown fences, no commentary.`;
 }

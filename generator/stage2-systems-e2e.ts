@@ -42,7 +42,6 @@ async function main() {
     numQuestions: 3,
     numSages: 2,
     difficulty: erie.difficulty,
-    artStyle: erie.artStyle,
     frame: erie.frame,
     playerRole: erie.playerRole,
     cast: erie.cast,

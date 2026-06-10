@@ -28,7 +28,6 @@ const inputs: GenerateInputs = {
   numQuestions: erie.numQuestions,
   numSages: erie.numSages,
   difficulty: erie.difficulty,
-  artStyle: erie.artStyle,
   frame: erie.frame,
   playerRole: erie.playerRole,
   cast: erie.cast,

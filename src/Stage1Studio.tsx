@@ -24,7 +24,6 @@ interface Inputs {
   length: number;
   numQuestions: number;
   numSages: number;
-  artStyle: string;
 }
 
 const GRADES = ["4th grade", "5th grade", "6th grade", "7th grade", "8th grade"];
@@ -98,7 +97,6 @@ export default function Stage1Studio({
     length: 6,
     numQuestions: 4,
     numSages: 3,
-    artStyle: "default",
   });
 
   const [frame, setFrame] = useState<ProposedFrame | null>(null);
@@ -239,7 +237,6 @@ export default function Stage1Studio({
         numQuestions: inputs.numQuestions,
         numSages: inputs.numSages,
         difficulty: inputs.difficulty,
-        artStyle: inputs.artStyle,
         // Locked Stage-1 constraints — core.ts treats these as ground truth.
         frame: frame.frame,
         playerRole: `${persp.role} — ${persp.description}`,
@@ -380,23 +377,8 @@ export default function Stage1Studio({
           </div>
         </div>
 
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-stone-400 uppercase tracking-wide">Art Direction / Visual Theme</label>
-          <select
-            value={inputs.artStyle}
-            onChange={e => set({ artStyle: e.target.value })}
-            className="w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-sm text-stone-100 focus:border-amber-600 focus:outline-none"
-          >
-            <option value="default">Default Dark Slate</option>
-            <option value="frontier-leather">Distressed Frontier</option>
-            <option value="parchment-medieval">Vintage Parchment & Ink</option>
-            <option value="broadsheet-sepia">Broadsheet Sepia</option>
-            <option value="expedition-journal">Expedition Journal</option>
-            <option value="declassified-typewriter">Declassified Typewriter</option>
-            <option value="classical-marble">Classical Marble</option>
-            <option value="civil-rights-midcentury">Midcentury Newsprint (Civil Rights)</option>
-          </select>
-        </div>
+        {/* Visual theme is chosen by the generator from the topic's era
+            (core.ts era-matching rule) — no user-facing style picker. */}
 
         {busy ? <Spinner label={busy} /> : (
           <button

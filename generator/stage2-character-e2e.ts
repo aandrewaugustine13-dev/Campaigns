@@ -101,7 +101,6 @@ async function main() {
     numQuestions: 4,
     numSages: 3,
     difficulty: "medium",
-    artStyle: "broadsheet-sepia",
     frame: frame.frame,
     playerRole: perspString,
     cast: castRes.data.cast,

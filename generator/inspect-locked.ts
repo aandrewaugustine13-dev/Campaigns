@@ -5,7 +5,7 @@
 // Reads a JSON fixture with at minimum a `standard`, plus any of the
 // optional locked inputs (frame, playerRole, cast, economy) and any of
 // the existing knobs (topic, grade, length, numQuestions, numSages,
-// difficulty, artStyle). Calls generateCampaign and writes the full
+// difficulty). Calls generateCampaign and writes the full
 // campaign JSON to disk for eye-reading. Leaves generate.ts untouched.
 //
 // Usage:
@@ -31,7 +31,6 @@ const DEFAULTS = {
   numQuestions: 5,
   numSages: 3,
   difficulty: "medium",
-  artStyle: "broadsheet-sepia",
 } as const;
 
 type Fixture = Partial<GenerateInputs> & { standard: string };
@@ -78,7 +77,6 @@ async function main() {
     numQuestions: fixture.numQuestions ?? DEFAULTS.numQuestions,
     numSages: fixture.numSages ?? DEFAULTS.numSages,
     difficulty: fixture.difficulty ?? DEFAULTS.difficulty,
-    artStyle: fixture.artStyle ?? DEFAULTS.artStyle,
     frame: fixture.frame,
     playerRole: fixture.playerRole,
     cast: fixture.cast,
