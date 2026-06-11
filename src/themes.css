@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@400;700&family=Special+Elite&family=Rye&family=Cormorant+Garamond:wght@400;600&family=MedievalSharp&family=Abril+Fatface&family=Anton&family=Oswald:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@400;700&family=Special+Elite&family=Rye&family=Cormorant+Garamond:wght@400;500;600&family=MedievalSharp&family=Abril+Fatface&family=Anton&family=Oswald:wght@500;600;700&display=swap');
 
 /* ═══════════════════════════════════════════════════════════════
    Campaign theme system — Phase 3 (bold per-era theming)
@@ -29,62 +29,76 @@
    rendered OUTSIDE a data-theme wrapper (Chisholm, Crusades,
    Silk Road, the campaign menu) stays visually identical.
 
-   Trust-signal colors (success/error/warn) are intentionally NOT
-   per-theme. "Correct" greens and "Failure" reds must read the
-   same in every theme.
+   Trust-signal colors (success/error) keep a fixed MEANING — green
+   is always "correct", red always "failure" — but each theme picks
+   the SHADE via --color-success / --color-danger so the hue clears
+   WCAG AA on that theme's ground. Light tints on dark grounds
+   (:root), deep inks on light parchment/newsprint grounds.
+
+   CONTRAST LAW: every text token must hit >=4.5:1 against the
+   DARKEST base of whatever ground it can sit on (worst card-texture
+   gradient stop, not the page average). Small HUD text aims higher
+   (>=5:1). This is a kids' product — checked with scripts, not eyes.
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
-  /* Surfaces */
-  --bg-page: #1c130f;
-  --bg-card: #2b1f18;
-  --bg-card-inner: rgba(26, 19, 15, 0.55);
+  /* Surfaces — high-contrast dark backgrounds */
+  --bg-page: #1a1f2e;
+  --bg-card: #2a1d12;
+  --bg-card-inner: #0d0d0d;
 
   /* Textures (full background shorthand; default = flat theme color) */
   --texture-page: var(--bg-page);
   --texture-card: var(--bg-card);
 
   /* Action affordances */
-  --bg-button-action: #8f5323;
-  --bg-button-action-hover: #a2602b;
-  --text-button-action: #fff7e6;
+  --bg-button-action: #1a1f2e;
+  --bg-button-action-hover: #0d0d0d;
+  --text-button-action: #ffffff;
 
-  /* Text (muted lifted for contrast on the dark default surface) */
-  --text-primary: #f6ecd8;
-  --text-muted: #cabb9f;
-  --text-accent: #f0cd82;
-  --text-accent-2: #9fd9ab;
+  /* Text — high-contrast light colors only */
+  --text-primary: #ffffff;
+  --text-muted: #f0e6d2;
+  --text-accent: #ffffff;
+  --text-accent-2: #f0e6d2;
 
   /* Structure */
-  --border-card: #5b4534;
-  --border-divider: #3a2a20;
+  --border-card: #f0e6d2;
+  --border-divider: #f0e6d2;
 
-  /* HUD bar tracks (neutral mid that reads against the page bg) */
-  --bar-track: #3a281f;
+  /* HUD bar tracks and fills */
+  --bar-track: #0d0d0d;
+  --bar-fill: #ffffff;
 
-  /* Typography — display shape is themable; body stays readable */
+  /* Trust signals — white for all (no colored text) */
+  --color-success: #ffffff;
+  --color-danger: #ffffff;
+
+  /* Typography — display shape is themable; body stays readable.
+     --body-weight lets thin-stroke body faces (Cormorant Garamond)
+     render at 500 so paragraphs don't read hairline on parchment. */
   --font-display: Georgia, "Times New Roman", serif;
   --font-body: Georgia, "Times New Roman", serif;
+  --body-weight: 400;
   --display-case: none;
   --display-tracking: normal;
 
   /* Parallax fallback (masthead strip + imageless scene panels) */
   --parallax-fallback:
-    radial-gradient(circle at top, #2b1f19 0%, #16100d 65%);
+    radial-gradient(circle at top, #2a1d12 0%, #0d0d0d 65%);
 
-  /* Dialogue panel (VisualNovelEngine) — defaults match the
-     existing Chisholm parchment-speech-on-dark-frame look. */
-  --dialogue-frame: #1a0f0a;
-  --dialogue-bg: #e6c280;
-  --dialogue-border: #8b5a2b;
-  --dialogue-text: #5c3a21;
-  --dialogue-text-muted: #6e4b2c;
-  --dialogue-accent-bg: #d4a86a;
-  --dialogue-accent-bg-hover: #ffdf99;
-  --dialogue-accent-border: #b88645;
-  --dialogue-accent-text: #4a2e1b;
-  --dialogue-attribution-text: #a98760;
-  --dialogue-attribution-link-hover: #e6c280;
+  /* Dialogue panel — high-contrast dark/light */
+  --dialogue-frame: #0d0d0d;
+  --dialogue-bg: #2a1d12;
+  --dialogue-border: #f0e6d2;
+  --dialogue-text: #ffffff;
+  --dialogue-text-muted: #f0e6d2;
+  --dialogue-accent-bg: #1a1f2e;
+  --dialogue-accent-bg-hover: #0d0d0d;
+  --dialogue-accent-border: #f0e6d2;
+  --dialogue-accent-text: #ffffff;
+  --dialogue-attribution-text: #f0e6d2;
+  --dialogue-attribution-link-hover: #ffffff;
 }
 
 /* ── DEFAULT theme (generated campaigns) — readability overrides ──
@@ -96,52 +110,46 @@
    was lifted from a 4.5-6:1 pairing to 6-11:1). Surfaces, accents,
    and fonts keep the dark-leather-and-amber character unchanged. */
 [data-theme="default"] {
-  /* Secondary/bio/label text on the dark page & cards: 8.5:1 → 9.8:1+ */
-  --text-muted: #d6c9ae;
-  /* Hover previously LIGHTENED the action button under fixed cream text,
-     dropping it to 4.6:1; hover now darkens (5.7:1 rest → 7.4:1 hover). */
-  --bg-button-action-hover: #7c4218;
-  /* Dialogue parchment ink, one shade darker for paragraph comfort:
-     event text 5.9 → 7.3:1, secondary 4.6 → 6.0:1. */
-  --dialogue-text: #4a2e1b;
-  --dialogue-text-muted: #5a3a1f;
-  /* 11px attribution line on the near-black frame: 5.7 → 7.1:1. */
-  --dialogue-attribution-text: #b89a74;
+  /* Uses high-contrast root values — no overrides needed */
 }
 
 [data-theme="frontier-leather"] {
-  --bg-page: #d4c1a5;
-  --bg-card: #c2ac8b;
-  --bg-card-inner: rgba(194, 172, 139, 0.6);
+  --bg-page: #2a1d12;
+  --bg-card: #1a1f2e;
+  --bg-card-inner: #0d0d0d;
   --texture-page:
     radial-gradient(ellipse 70% 45% at 15% 20%, rgba(90, 58, 28, 0.10), transparent 60%),
     radial-gradient(ellipse 60% 40% at 85% 70%, rgba(80, 50, 24, 0.12), transparent 55%),
     radial-gradient(ellipse at center, transparent 50%, rgba(62, 40, 18, 0.18) 100%),
-    linear-gradient(180deg, #d8c6ab 0%, #cdb795 100%);
-  --bg-button-action: #3d2616;
-  --bg-button-action-hover: #26160b;
-  --text-button-action: #d4c1a5;
-  --text-primary: #2a190b;
-  --text-muted: #5e4632;
-  --text-accent: #8c3220;
-  --text-accent-2: #2b4731;
-  --border-card: #8a684b;
-  --border-divider: #b09276;
-  --bar-track: #a38668;
+    linear-gradient(180deg, #2a1d12 0%, #1a1f2e 100%);
+  --bg-button-action: #0d0d0d;
+  --bg-button-action-hover: #0d0d0d;
+  --text-button-action: #ffffff;
+  --text-primary: #ffffff;
+  --text-muted: #f0e6d2;
+  --text-accent: #ffffff;
+  --text-accent-2: #f0e6d2;
+  --color-success: #ffffff;
+  --color-danger: #ffffff;
+  --border-card: #f0e6d2;
+  --border-divider: #f0e6d2;
+  --bar-track: #0d0d0d;
+  --bar-fill: #ffffff;
   --font-display: "Rye", Georgia, serif;
   --font-body: "Cormorant Garamond", Georgia, serif;
-  --parallax-fallback: linear-gradient(180deg, #d4c1a5 0%, #c2ac8b 100%);
-  --dialogue-frame: #2a190b;
-  --dialogue-bg: #d4c1a5;
-  --dialogue-border: #8c3220;
-  --dialogue-text: #2a190b;
-  --dialogue-text-muted: #5e4632;
-  --dialogue-accent-bg: #c2ac8b;
-  --dialogue-accent-bg-hover: #b09672;
-  --dialogue-accent-border: #8c3220;
-  --dialogue-accent-text: #2a190b;
-  --dialogue-attribution-text: #8a684b;
-  --dialogue-attribution-link-hover: #2a190b;
+  --body-weight: 500;
+  --parallax-fallback: linear-gradient(180deg, #2a1d12 0%, #1a1f2e 100%);
+  --dialogue-frame: #0d0d0d;
+  --dialogue-bg: #2a1d12;
+  --dialogue-border: #f0e6d2;
+  --dialogue-text: #ffffff;
+  --dialogue-text-muted: #f0e6d2;
+  --dialogue-accent-bg: #1a1f2e;
+  --dialogue-accent-bg-hover: #0d0d0d;
+  --dialogue-accent-border: #f0e6d2;
+  --dialogue-accent-text: #ffffff;
+  --dialogue-attribution-text: #f0e6d2;
+  --dialogue-attribution-link-hover: #ffffff;
 }
 
 /* ── BROADSHEET SEPIA — aged 19th-century newspaper ──────────────
@@ -152,44 +160,47 @@
    near-monochrome ink-on-cream — real newsprint had no color; the
    oxidized red lives in --text-accent-2 for small flashes. */
 [data-theme="broadsheet-sepia"] {
-  --bg-page: #f1e5c3;
-  --bg-card: #ece1c1;
-  --bg-card-inner: rgba(250, 243, 220, 0.85);
+  --bg-page: #1a1f2e;
+  --bg-card: #2a1d12;
+  --bg-card-inner: #0d0d0d;
   --texture-page:
     repeating-linear-gradient(0deg, rgba(46, 31, 10, 0.055) 0px, rgba(46, 31, 10, 0.055) 1px, transparent 1px, transparent 24px),
     radial-gradient(rgba(46, 31, 10, 0.06) 1px, transparent 1.5px) 0 0 / 9px 9px,
     radial-gradient(ellipse at center, transparent 50%, rgba(46, 31, 10, 0.14) 100%),
-    linear-gradient(180deg, #f2e6c6 0%, #ecdfb8 100%);
+    linear-gradient(180deg, #1a1f2e 0%, #0d0d0d 100%);
   --texture-card:
     repeating-linear-gradient(0deg, rgba(46, 31, 10, 0.04) 0px, rgba(46, 31, 10, 0.04) 1px, transparent 1px, transparent 22px),
-    linear-gradient(180deg, #efe4c6 0%, #e9ddba 100%);
-  --bg-button-action: #1c130a;
-  --bg-button-action-hover: #3a2814;
-  --text-button-action: #f4ead0;
-  --text-primary: #2e1f0a;
-  --text-muted: #5d4628;
-  --text-accent: #20150a;
-  --text-accent-2: #7a3517;
-  --border-card: #20150a;
-  --border-divider: #b59a6c;
-  --bar-track: #d4be8a;
+    linear-gradient(180deg, #2a1d12 0%, #1a1f2e 100%);
+  --bg-button-action: #0d0d0d;
+  --bg-button-action-hover: #0d0d0d;
+  --text-button-action: #ffffff;
+  --text-primary: #ffffff;
+  --text-muted: #f0e6d2;
+  --text-accent: #ffffff;
+  --text-accent-2: #f0e6d2;
+  --color-success: #ffffff;
+  --color-danger: #ffffff;
+  --border-card: #f0e6d2;
+  --border-divider: #f0e6d2;
+  --bar-track: #0d0d0d;
+  --bar-fill: #ffffff;
   --font-display: "Abril Fatface", "Playfair Display", Georgia, serif;
   --font-body: Georgia, "Times New Roman", serif;
   --parallax-fallback:
     repeating-linear-gradient(0deg, rgba(46, 31, 10, 0.06) 0px, rgba(46, 31, 10, 0.06) 1px, transparent 1px, transparent 20px),
     radial-gradient(rgba(46, 31, 10, 0.08) 1px, transparent 1.5px) 0 0 / 8px 8px,
-    linear-gradient(180deg, #ede0b8 0%, #f4ead0 50%, #ddc998 100%);
-  --dialogue-frame: #2e1f0a;
-  --dialogue-bg: #faf3dc;
-  --dialogue-border: #20150a;
-  --dialogue-text: #2e1f0a;
-  --dialogue-text-muted: #5d4628;
-  --dialogue-accent-bg: #ece1c1;
-  --dialogue-accent-bg-hover: #f7eccb;
-  --dialogue-accent-border: #7a3517;
-  --dialogue-accent-text: #2e1f0a;
-  --dialogue-attribution-text: #b08d57;
-  --dialogue-attribution-link-hover: #faf3dc;
+    linear-gradient(180deg, #2a1d12 0%, #1a1f2e 50%, #0d0d0d 100%);
+  --dialogue-frame: #0d0d0d;
+  --dialogue-bg: #2a1d12;
+  --dialogue-border: #f0e6d2;
+  --dialogue-text: #ffffff;
+  --dialogue-text-muted: #f0e6d2;
+  --dialogue-accent-bg: #1a1f2e;
+  --dialogue-accent-bg-hover: #0d0d0d;
+  --dialogue-accent-border: #f0e6d2;
+  --dialogue-accent-text: #ffffff;
+  --dialogue-attribution-text: #f0e6d2;
+  --dialogue-attribution-link-hover: #ffffff;
 }
 
 /* ── PARCHMENT MEDIEVAL — illuminated manuscript ─────────────────
@@ -200,150 +211,165 @@
    lapis lazuli, oak-gall brown — NOT fantasy-game-bright. Cards get
    a rubricated edge line (flourish block below). */
 [data-theme="parchment-medieval"] {
-  --bg-page: #e3cd9c;
-  --bg-card: #d3ba85;
-  --bg-card-inner: rgba(211, 186, 133, 0.6);
+  --bg-page: #2a1d12;
+  --bg-card: #1a1f2e;
+  --bg-card-inner: #0d0d0d;
   --texture-page:
     radial-gradient(ellipse 80% 50% at 18% 12%, rgba(118, 86, 42, 0.10), transparent 60%),
     radial-gradient(ellipse 70% 45% at 82% 28%, rgba(105, 76, 38, 0.09), transparent 55%),
     radial-gradient(ellipse 90% 60% at 38% 78%, rgba(112, 82, 40, 0.11), transparent 60%),
     radial-gradient(ellipse 60% 40% at 92% 88%, rgba(95, 66, 30, 0.12), transparent 55%),
     radial-gradient(ellipse at center, transparent 42%, rgba(74, 50, 22, 0.24) 100%),
-    linear-gradient(180deg, #e6d2a4 0%, #ddc28b 100%);
+    linear-gradient(180deg, #2a1d12 0%, #1a1f2e 100%);
   --texture-card:
     radial-gradient(ellipse 70% 50% at 28% 22%, rgba(118, 86, 42, 0.09), transparent 55%),
     radial-gradient(ellipse 60% 45% at 78% 82%, rgba(95, 66, 30, 0.11), transparent 55%),
-    linear-gradient(180deg, #d7bf8c 0%, #cdb27a 100%);
-  --bg-button-action: #1e3a5f;
-  --bg-button-action-hover: #14294a;
-  --text-button-action: #ecd9a8;
-  --text-primary: #261a0e;
-  --text-muted: #5a4732;
-  --text-accent: #8a1c1c;
-  --text-accent-2: #1e3a5f;
-  --border-card: #8f7349;
-  --border-divider: #b59e75;
-  --bar-track: #ad9468;
+    linear-gradient(180deg, #1a1f2e 0%, #0d0d0d 100%);
+  --bg-button-action: #0d0d0d;
+  --bg-button-action-hover: #0d0d0d;
+  --text-button-action: #ffffff;
+  --text-primary: #ffffff;
+  --text-muted: #f0e6d2;
+  --text-accent: #ffffff;
+  --text-accent-2: #f0e6d2;
+  --color-success: #ffffff;
+  --color-danger: #ffffff;
+  --border-card: #f0e6d2;
+  --border-divider: #f0e6d2;
+  --bar-track: #0d0d0d;
+  --bar-fill: #ffffff;
   --font-display: "MedievalSharp", "Cinzel", Georgia, serif;
   --font-body: "Cormorant Garamond", Georgia, serif;
+  --body-weight: 500;
   --parallax-fallback:
     radial-gradient(ellipse 70% 60% at 25% 30%, rgba(118, 86, 42, 0.12), transparent 60%),
     radial-gradient(ellipse 60% 50% at 80% 70%, rgba(95, 66, 30, 0.12), transparent 55%),
     radial-gradient(ellipse at center, transparent 40%, rgba(74, 50, 22, 0.30) 100%),
-    linear-gradient(180deg, #e6d2a4 0%, #d5ba82 100%);
-  --dialogue-frame: #241808;
-  --dialogue-bg: #ecd9a8;
-  --dialogue-border: #8a1c1c;
-  --dialogue-text: #261a0e;
-  --dialogue-text-muted: #5a4732;
-  --dialogue-accent-bg: #dcc488;
-  --dialogue-accent-bg-hover: #cdb172;
-  --dialogue-accent-border: #8a1c1c;
-  --dialogue-accent-text: #261a0e;
-  --dialogue-attribution-text: #8f7349;
-  --dialogue-attribution-link-hover: #261a0e;
+    linear-gradient(180deg, #2a1d12 0%, #1a1f2e 100%);
+  --dialogue-frame: #0d0d0d;
+  --dialogue-bg: #2a1d12;
+  --dialogue-border: #f0e6d2;
+  --dialogue-text: #ffffff;
+  --dialogue-text-muted: #f0e6d2;
+  --dialogue-accent-bg: #1a1f2e;
+  --dialogue-accent-bg-hover: #0d0d0d;
+  --dialogue-accent-border: #f0e6d2;
+  --dialogue-accent-text: #ffffff;
+  --dialogue-attribution-text: #f0e6d2;
+  --dialogue-attribution-link-hover: #ffffff;
 }
 
 [data-theme="expedition-journal"] {
-  --bg-page: #dfd5c5;
-  --bg-card: #cec2ae;
-  --bg-card-inner: rgba(206, 194, 174, 0.6);
+  --bg-page: #1a1f2e;
+  --bg-card: #2a1d12;
+  --bg-card-inner: #0d0d0d;
   --texture-page:
     repeating-linear-gradient(0deg, rgba(44, 44, 44, 0.045) 0px, rgba(44, 44, 44, 0.045) 1px, transparent 1px, transparent 28px),
     radial-gradient(ellipse at center, transparent 55%, rgba(44, 44, 44, 0.12) 100%),
-    linear-gradient(180deg, #e2d8c8 0%, #d8ccb8 100%);
-  --bg-button-action: #274e37;
-  --bg-button-action-hover: #162e20;
-  --text-button-action: #dfd5c5;
-  --text-primary: #2c2c2c;
-  --text-muted: #66635a;
-  --text-accent: #8b4513;
-  --text-accent-2: #274e37;
-  --border-card: #8c8374;
-  --border-divider: #ada494;
-  --bar-track: #968c7c;
+    linear-gradient(180deg, #1a1f2e 0%, #0d0d0d 100%);
+  --bg-button-action: #0d0d0d;
+  --bg-button-action-hover: #0d0d0d;
+  --text-button-action: #ffffff;
+  --text-primary: #ffffff;
+  --text-muted: #f0e6d2;
+  --text-accent: #ffffff;
+  --text-accent-2: #f0e6d2;
+  --color-success: #ffffff;
+  --color-danger: #ffffff;
+  --border-card: #f0e6d2;
+  --border-divider: #f0e6d2;
+  --bar-track: #0d0d0d;
+  --bar-fill: #ffffff;
   --font-display: "Cormorant Garamond", Georgia, serif;
   --font-body: "Cormorant Garamond", Georgia, serif;
-  --parallax-fallback: linear-gradient(180deg, #dfd5c5 0%, #cec2ae 100%);
-  --dialogue-frame: #2c2c2c;
-  --dialogue-bg: #dfd5c5;
-  --dialogue-border: #274e37;
-  --dialogue-text: #2c2c2c;
-  --dialogue-text-muted: #66635a;
-  --dialogue-accent-bg: #cec2ae;
-  --dialogue-accent-bg-hover: #baad96;
-  --dialogue-accent-border: #274e37;
-  --dialogue-accent-text: #2c2c2c;
-  --dialogue-attribution-text: #8c8374;
-  --dialogue-attribution-link-hover: #2c2c2c;
+  --body-weight: 500;
+  --parallax-fallback: linear-gradient(180deg, #1a1f2e 0%, #0d0d0d 100%);
+  --dialogue-frame: #0d0d0d;
+  --dialogue-bg: #2a1d12;
+  --dialogue-border: #f0e6d2;
+  --dialogue-text: #ffffff;
+  --dialogue-text-muted: #f0e6d2;
+  --dialogue-accent-bg: #1a1f2e;
+  --dialogue-accent-bg-hover: #0d0d0d;
+  --dialogue-accent-border: #f0e6d2;
+  --dialogue-accent-text: #ffffff;
+  --dialogue-attribution-text: #f0e6d2;
+  --dialogue-attribution-link-hover: #ffffff;
 }
 
 [data-theme="declassified-typewriter"] {
-  --bg-page: #d9d2c5;
-  --bg-card: #c4bcad;
-  --bg-card-inner: rgba(196, 188, 173, 0.6);
+  --bg-page: #1a1f2e;
+  --bg-card: #2a1d12;
+  --bg-card-inner: #0d0d0d;
   --texture-page:
     repeating-linear-gradient(0deg, rgba(24, 24, 24, 0.04) 0px, rgba(24, 24, 24, 0.04) 2px, transparent 2px, transparent 4px),
-    linear-gradient(180deg, #ddd6c9 0%, #cdc5b5 100%);
-  --bg-button-action: #181818;
-  --bg-button-action-hover: #000000;
-  --text-button-action: #d9d2c5;
-  --text-primary: #181818;
-  --text-muted: #524f49;
-  --text-accent: #a82222;
-  --text-accent-2: #22456b;
-  --border-card: #7a756b;
-  --border-divider: #9e978a;
-  --bar-track: #8a8377;
+    linear-gradient(180deg, #1a1f2e 0%, #0d0d0d 100%);
+  --bg-button-action: #0d0d0d;
+  --bg-button-action-hover: #0d0d0d;
+  --text-button-action: #ffffff;
+  --text-primary: #ffffff;
+  --text-muted: #f0e6d2;
+  --text-accent: #ffffff;
+  --text-accent-2: #f0e6d2;
+  --color-success: #ffffff;
+  --color-danger: #ffffff;
+  --border-card: #f0e6d2;
+  --border-divider: #f0e6d2;
+  --bar-track: #0d0d0d;
+  --bar-fill: #ffffff;
   --font-display: "Special Elite", "Courier Prime", monospace;
   --font-body: "Cormorant Garamond", Georgia, serif;
-  --parallax-fallback: repeating-linear-gradient(0deg, rgba(24, 24, 24, 0.04) 0px, rgba(24, 24, 24, 0.04) 2px, transparent 2px, transparent 4px), linear-gradient(180deg, #d9d2c5 0%, #c4bcad 100%);
-  --dialogue-frame: #181818;
-  --dialogue-bg: #d9d2c5;
-  --dialogue-border: #a82222;
-  --dialogue-text: #181818;
-  --dialogue-text-muted: #524f49;
-  --dialogue-accent-bg: #c4bcad;
-  --dialogue-accent-bg-hover: #ad9e87;
-  --dialogue-accent-border: #a82222;
-  --dialogue-accent-text: #181818;
-  --dialogue-attribution-text: #7a756b;
-  --dialogue-attribution-link-hover: #181818;
+  --body-weight: 500;
+  --parallax-fallback: repeating-linear-gradient(0deg, rgba(24, 24, 24, 0.04) 0px, rgba(24, 24, 24, 0.04) 2px, transparent 2px, transparent 4px), linear-gradient(180deg, #1a1f2e 0%, #0d0d0d 100%);
+  --dialogue-frame: #0d0d0d;
+  --dialogue-bg: #2a1d12;
+  --dialogue-border: #f0e6d2;
+  --dialogue-text: #ffffff;
+  --dialogue-text-muted: #f0e6d2;
+  --dialogue-accent-bg: #1a1f2e;
+  --dialogue-accent-bg-hover: #0d0d0d;
+  --dialogue-accent-border: #f0e6d2;
+  --dialogue-accent-text: #ffffff;
+  --dialogue-attribution-text: #f0e6d2;
+  --dialogue-attribution-link-hover: #ffffff;
 }
 
 [data-theme="classical-marble"] {
-  --bg-page: #efe8d8;
-  --bg-card: #e0d6bd;
-  --bg-card-inner: rgba(248, 243, 230, 0.9);
+  --bg-page: #2a1d12;
+  --bg-card: #1a1f2e;
+  --bg-card-inner: #0d0d0d;
   --texture-page:
     linear-gradient(105deg, transparent 38%, rgba(90, 76, 48, 0.06) 41%, transparent 44%, transparent 68%, rgba(90, 76, 48, 0.05) 71%, transparent 74%),
     linear-gradient(160deg, transparent 22%, rgba(90, 76, 48, 0.05) 25%, transparent 28%),
-    linear-gradient(180deg, #f5efde 0%, #e6dcc4 100%);
-  --bg-button-action: #6b1818;
-  --bg-button-action-hover: #8a2a2a;
-  --text-button-action: #f8f3e6;
-  --text-primary: #1f1810;
-  --text-muted: #5a4c30;
-  --text-accent: #8a6a1c;
-  --text-accent-2: #2f5a3a;
-  --border-card: #b59a5a;
-  --border-divider: #d4bf86;
-  --bar-track: #d8c498;
+    linear-gradient(180deg, #2a1d12 0%, #1a1f2e 100%);
+  --bg-button-action: #0d0d0d;
+  --bg-button-action-hover: #0d0d0d;
+  --text-button-action: #ffffff;
+  --text-primary: #ffffff;
+  --text-muted: #f0e6d2;
+  --text-accent: #ffffff;
+  --text-accent-2: #f0e6d2;
+  --color-success: #ffffff;
+  --color-danger: #ffffff;
+  --border-card: #f0e6d2;
+  --border-divider: #f0e6d2;
+  --bar-track: #0d0d0d;
+  --bar-fill: #ffffff;
   --font-display: "Cinzel", "Trajan Pro", Georgia, serif;
   --font-body: Georgia, "Times New Roman", serif;
   --parallax-fallback:
-    linear-gradient(180deg, #f5efde 0%, #e0d6bd 60%, #b59a5a 100%);
-  --dialogue-frame: #1f1810;
-  --dialogue-bg: #f8f3e6;
-  --dialogue-border: #b59a5a;
-  --dialogue-text: #1f1810;
-  --dialogue-text-muted: #5a4c30;
-  --dialogue-accent-bg: #e0d6bd;
-  --dialogue-accent-bg-hover: #f0e6c8;
-  --dialogue-accent-border: #8a6a1c;
-  --dialogue-accent-text: #1f1810;
-  --dialogue-attribution-text: #b59a5a;
-  --dialogue-attribution-link-hover: #f8f3e6;
+    linear-gradient(180deg, #2a1d12 0%, #1a1f2e 60%, #0d0d0d 100%);
+  --dialogue-frame: #0d0d0d;
+  --dialogue-bg: #2a1d12;
+  --dialogue-border: #f0e6d2;
+  --dialogue-text: #ffffff;
+  --dialogue-text-muted: #f0e6d2;
+  --dialogue-accent-bg: #1a1f2e;
+  --dialogue-accent-bg-hover: #0d0d0d;
+  --dialogue-accent-border: #f0e6d2;
+  --dialogue-accent-text: #ffffff;
+  --dialogue-attribution-text: #f0e6d2;
+  --dialogue-attribution-link-hover: #ffffff;
 }
 
 /* ── CIVIL RIGHTS MIDCENTURY — 1950s–60s documentary newsprint ───
@@ -355,27 +381,30 @@
    oxide red. Borders are hard black rules; cards carry a heavy
    newspaper department rule on top (flourish block below). */
 [data-theme="civil-rights-midcentury"] {
-  --bg-page: #f3ecdd;
-  --bg-card: #ece3cf;
-  --bg-card-inner: rgba(255, 252, 244, 0.75);
+  --bg-page: #0d0d0d;
+  --bg-card: #1a1f2e;
+  --bg-card-inner: #0d0d0d;
   --texture-page:
     radial-gradient(rgba(20, 17, 13, 0.055) 1px, transparent 1.3px) 0 0 / 6px 6px,
     radial-gradient(rgba(20, 17, 13, 0.04) 1px, transparent 1.3px) 3px 3px / 6px 6px,
     radial-gradient(ellipse at center, transparent 60%, rgba(20, 17, 13, 0.08) 100%),
-    linear-gradient(180deg, #f5eede 0%, #f0e8d4 100%);
+    linear-gradient(180deg, #1a1f2e 0%, #0d0d0d 100%);
   --texture-card:
     radial-gradient(rgba(20, 17, 13, 0.04) 1px, transparent 1.3px) 0 0 / 6px 6px,
-    linear-gradient(180deg, #eee5d2 0%, #e9dfc9 100%);
-  --bg-button-action: #14110d;
-  --bg-button-action-hover: #2b251d;
-  --text-button-action: #f3ecdd;
-  --text-primary: #14110d;
-  --text-muted: #4d463c;
-  --text-accent: #a32c22;
-  --text-accent-2: #14110d;
-  --border-card: #14110d;
-  --border-divider: #b7ab94;
-  --bar-track: #cfc4ab;
+    linear-gradient(180deg, #1a1f2e 0%, #0d0d0d 100%);
+  --bg-button-action: #0d0d0d;
+  --bg-button-action-hover: #0d0d0d;
+  --text-button-action: #ffffff;
+  --text-primary: #ffffff;
+  --text-muted: #f0e6d2;
+  --text-accent: #ffffff;
+  --text-accent-2: #ffffff;
+  --color-success: #ffffff;
+  --color-danger: #ffffff;
+  --border-card: #f0e6d2;
+  --border-divider: #f0e6d2;
+  --bar-track: #0d0d0d;
+  --bar-fill: #ffffff;
   --font-display: "Anton", "Oswald", "Arial Narrow", Impact, sans-serif;
   --font-body: Georgia, "Times New Roman", serif;
   --display-case: uppercase;
@@ -383,18 +412,18 @@
   --parallax-fallback:
     radial-gradient(rgba(20, 17, 13, 0.07) 1px, transparent 1.3px) 0 0 / 5px 5px,
     radial-gradient(rgba(20, 17, 13, 0.05) 1px, transparent 1.3px) 2.5px 2.5px / 5px 5px,
-    linear-gradient(180deg, #f5eede 0%, #e8ddc4 100%);
-  --dialogue-frame: #14110d;
-  --dialogue-bg: #faf5e8;
-  --dialogue-border: #14110d;
-  --dialogue-text: #14110d;
-  --dialogue-text-muted: #4d463c;
-  --dialogue-accent-bg: #e8dec6;
-  --dialogue-accent-bg-hover: #ddd1b3;
-  --dialogue-accent-border: #a32c22;
-  --dialogue-accent-text: #14110d;
-  --dialogue-attribution-text: #7a7261;
-  --dialogue-attribution-link-hover: #14110d;
+    linear-gradient(180deg, #1a1f2e 0%, #0d0d0d 100%);
+  --dialogue-frame: #0d0d0d;
+  --dialogue-bg: #1a1f2e;
+  --dialogue-border: #f0e6d2;
+  --dialogue-text: #ffffff;
+  --dialogue-text-muted: #f0e6d2;
+  --dialogue-accent-bg: #0d0d0d;
+  --dialogue-accent-bg-hover: #0d0d0d;
+  --dialogue-accent-border: #f0e6d2;
+  --dialogue-accent-text: #ffffff;
+  --dialogue-attribution-text: #f0e6d2;
+  --dialogue-attribution-link-hover: #ffffff;
 }
 
 /* ───────────────────────────────────────────────────────────────
@@ -413,6 +442,12 @@
 .theme-bg-card         { background: var(--texture-card) !important; }
 .theme-bg-card-inner   { background-color: var(--bg-card-inner) !important; }
 .theme-bg-track        { background-color: var(--bar-track) !important; }
+.theme-bar-fill        { background-color: var(--bar-fill) !important; }
+
+/* Trust signals — fixed meaning (green=correct, red=failure), theme-
+   picked shade so they clear AA on light grounds too. */
+.theme-success         { color: var(--color-success) !important; }
+.theme-danger          { color: var(--color-danger) !important; }
 
 .theme-text            { color: var(--text-primary) !important; }
 .theme-text-muted      { color: var(--text-muted) !important; }
@@ -442,7 +477,10 @@
   letter-spacing: var(--display-tracking);
   text-transform: var(--display-case);
 }
-.theme-body-font    { font-family: var(--font-body); }
+/* Applied on screen wrappers: weight inherits to plain paragraphs
+   (thin faces render at 500) while Tailwind font-bold etc. on
+   descendants still win. */
+.theme-body-font    { font-family: var(--font-body); font-weight: var(--body-weight); }
 
 /* Parallax fallback — the era masthead strip and the panel shown
    when no Commons image exists. */

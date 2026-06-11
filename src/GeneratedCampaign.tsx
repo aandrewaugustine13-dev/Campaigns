@@ -293,7 +293,7 @@ function GenericTriviaEngine({
   return (
     <div className="border theme-border theme-bg-card-inner rounded p-4 space-y-3">
       <p className="text-xs theme-text-accent theme-display-font font-bold uppercase tracking-wide">
-        Knowledge Check {streak > 0 && <span className="text-emerald-500">(streak: {streak})</span>}
+        Knowledge Check {streak > 0 && <span className="theme-success">(streak: {streak})</span>}
       </p>
       <p className="text-base theme-text leading-relaxed">{question.question}</p>
       {answered === null ? (
@@ -310,7 +310,7 @@ function GenericTriviaEngine({
         </div>
       ) : (
         <div className="space-y-2">
-          <p className={`text-sm font-bold ${correct ? "text-emerald-400" : "text-red-400"}`}>
+          <p className={`text-sm font-bold ${correct ? "theme-success" : "theme-danger"}`}>
             {correct ? "Correct!" : "Not quite."}
           </p>
           {(explanation || question.fact) && (
@@ -1459,9 +1459,10 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
         )}
         <h1 className={`text-3xl font-bold theme-display-font ${themeConfig.accent}`}>{data.title}</h1>
         <p className={themeConfig.subtext}>{data.subtitle}</p>
-        <p className={`${themeConfig.subtext} text-sm`}>{data.introBody}</p>
+        {/* The premise paragraph is body reading, not a caption — full ink. */}
+        <p className="theme-text text-sm">{data.introBody}</p>
         <button onClick={start} className={`px-8 py-3 ${themeConfig.button} rounded font-bold transition-colors`}>{!isCharacterMode(data) && !isProjectMode(data) ? "BEGIN OUTFIT" : "BEGIN"}</button>
-        <button onClick={backToMenu} className={`block w-full ${themeConfig.subtext} opacity-60 hover:opacity-100 text-xs mt-2`}>&larr; Back to Campaigns</button>
+        <button onClick={backToMenu} className={`block w-full ${themeConfig.subtext} opacity-90 hover:opacity-100 text-xs mt-2`}>&larr; Back to Campaigns</button>
       </div>
     </div>
   );
@@ -1580,7 +1581,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
           {data.revenuePerUnit > 0 && (
             <div className="theme-bg-card theme-border border rounded p-3 space-y-1 text-xs">
               <h2 className="theme-text-accent theme-display-font font-bold uppercase tracking-wide text-center mb-1">Ledger</h2>
-              <div className="flex justify-between theme-text-muted"><span>Outfit Cost</span><span className="text-red-400">-${cost.toLocaleString()}</span></div>
+              <div className="flex justify-between theme-text-muted"><span>Outfit Cost</span><span className="theme-danger">-${cost.toLocaleString()}</span></div>
               <div className="flex justify-between theme-text-muted">
                 <span className="capitalize">{data.resourceLabels[primaryKey] ?? primaryKey} (Start)</span>
                 <span className="theme-text">{primaryStart}</span>
@@ -1592,12 +1593,12 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
               {state.survived && (
                 <div className="flex justify-between theme-text-muted">
                   <span>Value (${data.revenuePerUnit}/unit)</span>
-                  <span className="text-emerald-400">+${revenue.toLocaleString()}</span>
+                  <span className="theme-success">+${revenue.toLocaleString()}</span>
                 </div>
               )}
               <div className="border-t theme-divider mt-1 pt-1 flex justify-between font-bold">
                 <span className="theme-text">Net</span>
-                <span className={profit >= 0 ? "text-emerald-400" : "text-red-500"}>{profit >= 0 ? "+" : ""}${profit.toLocaleString()}</span>
+                <span className={profit >= 0 ? "theme-success" : "theme-danger"}>{profit >= 0 ? "+" : ""}${profit.toLocaleString()}</span>
               </div>
             </div>
           )}
@@ -1609,7 +1610,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
               <span className="theme-text-accent">{state.historicalKnowledge} points</span>
             </div>
             <div className="w-full theme-bg-track rounded-full h-2 mt-1">
-              <div className="bg-amber-500 h-2 rounded-full transition-all" style={{ width: `${Math.min(state.historicalKnowledge / 30 * 100, 100)}%` }} />
+              <div className="theme-bar-fill h-2 rounded-full transition-all" style={{ width: `${Math.min(state.historicalKnowledge / 30 * 100, 100)}%` }} />
             </div>
             {state.knowledgeLog.length > 0 && (
               <div className="mt-2 space-y-0.5">
@@ -1663,7 +1664,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
 
           <div className="text-center pb-4 space-y-2">
             <button onClick={() => { setState(makeInit()); setExamTaken(false); setExamCorrect(0); setExamTotal(0); setExamPct(0); setRetakeUsed(false); setRetaking(false); setVerdictAck(false); setLeftTownId(null); }} className="px-5 py-2 theme-btn-action font-bold rounded transition-colors">Run It Again</button>
-            <br /><button onClick={backToMenu} className="text-xs theme-text-muted opacity-70 hover:opacity-100 transition-opacity">&larr; Back to Campaigns</button>
+            <br /><button onClick={backToMenu} className="text-xs theme-text-muted opacity-90 hover:opacity-100 transition-opacity">&larr; Back to Campaigns</button>
           </div>
         </div>
         {showLog && <CampaignLogModal entries={state.decisions} themed onClose={() => setShowLog(false)} />}
@@ -1716,7 +1717,9 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
           <div className="max-w-xl xl:max-w-2xl mx-auto flex flex-col">
             <GenericParallax progress={progress} pace={state.pace} title={data.title} />
             {/* Context/Flavor Card at the top */}
-            <div className={`${themeConfig.container} opacity-80 border-b ${themeConfig.sidebar} p-3 shadow-inner`}>
+            {/* No opacity on this wrapper: it dims the TEXT below AA, not
+                just the ground. Muted ink at full strength is the quiet look. */}
+            <div className={`${themeConfig.container} border-b ${themeConfig.sidebar} p-3 shadow-inner`}>
               <p className={`${themeConfig.subtext} text-sm italic leading-relaxed font-serif`}>
                 "{getProgressPhrase(data, progress / 100)} {getRegionFlavor(data, progress)}"
               </p>
@@ -1736,7 +1739,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                 <div className="flex items-center gap-2">
                   <ResourceIcon label="knowledge" className={`w-3 h-3 ${themeConfig.subtext}`} />
                   <div className="w-24 theme-bg-track rounded-full h-1.5">
-                    <div className="bg-amber-500 h-1.5 rounded-full transition-all" style={{ width: `${Math.min(state.historicalKnowledge / 30 * 100, 100)}%` }} />
+                    <div className="theme-bar-fill h-1.5 rounded-full transition-all" style={{ width: `${Math.min(state.historicalKnowledge / 30 * 100, 100)}%` }} />
                   </div>
                   <span className={`${themeConfig.subtext} text-[10px]`}>{state.historicalKnowledge}</span>
                 </div>
@@ -1795,7 +1798,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                 />
               ))}
             </div>
-            {state.objectiveNotice && <p className="text-xs text-emerald-300 mt-0.5">{state.objectiveNotice}</p>}
+            {state.objectiveNotice && <p className="text-xs theme-success mt-0.5">{state.objectiveNotice}</p>}
           </div>
         </div>
 
@@ -1927,7 +1930,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
             {state.phase === "event_trivia" && state.pendingEventQuestion && (
               <div className={`border ${themeConfig.routeCard} rounded p-3 space-y-2`}>
                 <p className={`text-sm ${themeConfig.routeText} font-bold theme-display-font`}>Quick Knowledge Check</p>
-                <p className={`text-sm ${themeConfig.subtext}`}>{state.pendingEventQuestion.question}</p>
+                <p className="text-sm theme-text">{state.pendingEventQuestion.question}</p>
                 <div className="space-y-1">
                   {state.pendingEventQuestion.choices.map((c, i) => (
                     <button key={i} onClick={() => handleEventTriviaAnswer(i)} className={`w-full text-left text-xs ${themeConfig.routeButton} rounded px-2 py-1 transition-colors`}>
@@ -1935,7 +1938,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
                     </button>
                   ))}
                 </div>
-                <p className={`text-[11px] ${themeConfig.routeText} opacity-80`}>Correct answer: +1 Insight. Wrong answer: no penalty.</p>
+                <p className={`text-[11px] ${themeConfig.routeText}`}>Correct answer: +1 Insight. Wrong answer: no penalty.</p>
               </div>
             )}
 
@@ -1953,7 +1956,8 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
             {state.phase === "result" && (
               <div className="space-y-3">
                 <div className={`border ${themeConfig.card} rounded p-3`}>
-                  <p className={`${themeConfig.subtext} text-sm leading-relaxed`}>{state.resultText}</p>
+                  {/* Event outcome prose — body reading, full ink. */}
+                  <p className="theme-text text-sm leading-relaxed">{state.resultText}</p>
                 </div>
                 <button onClick={continueGame} className={`w-full py-2 ${themeConfig.button} rounded text-sm font-bold transition-colors`}>Continue Expedition</button>
               </div>

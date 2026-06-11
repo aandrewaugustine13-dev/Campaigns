@@ -116,7 +116,7 @@ export default function PushYourLuckEngine({ event, onUpdate, onLeave, backdropI
           <h2 className="theme-text-accent font-bold text-lg mb-2 tracking-wide theme-display-font">{event.title}</h2>
           <div className="theme-bg-card-inner theme-divider border p-3 rounded space-y-2 h-40 overflow-y-auto text-xs leading-relaxed">
             {log.map((entry, i) => (
-              <p key={i} className={entry.includes('CRITICAL FAILURE') ? 'text-red-400 font-bold' : entry.includes('SUCCESS') ? 'text-emerald-400' : 'theme-text'}>
+              <p key={i} className={entry.includes('CRITICAL FAILURE') ? 'theme-danger font-bold' : entry.includes('SUCCESS') ? 'theme-success' : 'theme-text'}>
                 {entry}
               </p>
             ))}
@@ -130,7 +130,9 @@ export default function PushYourLuckEngine({ event, onUpdate, onLeave, backdropI
               className="w-full text-left p-3 theme-btn-action rounded text-sm font-bold border theme-border flex justify-between items-center"
             >
               <span>▶ {currentAttempt.buttonText}</span>
-              <span className="text-red-300 text-xs">Risk: {Math.round(currentAttempt.riskChance * 100)}%</span>
+              {/* Sits on the dark btn-action ground in every theme, so a light
+                  tint (not theme-danger, which goes dark on light themes). */}
+              <span className="text-red-200 text-xs">Risk: {Math.round(currentAttempt.riskChance * 100)}%</span>
             </button>
           )}
 

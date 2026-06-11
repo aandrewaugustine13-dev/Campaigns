@@ -9,9 +9,10 @@ import { truncateCredit } from "./lib/attribution";
 // Fully theme-driven: every surface, border, font, and accent reads
 // the CSS variables from themes.css (inherited from the data-theme
 // wrapper). Outside a wrapper (Chisholm in App.tsx) the :root
-// fallbacks reproduce the legacy dark amber look. The only fixed
-// colors are the correct/wrong trust signals, which are deliberately
-// identical across themes.
+// fallbacks reproduce the legacy dark amber look. Correct/wrong
+// trust signals keep a fixed green/red meaning but read their shade
+// from --color-success/--color-danger so they stay AA on light
+// parchment grounds.
 // ═══════════════════════════════════════════════════════════════
 
 type SagePhase = "intro" | "question" | "result";
@@ -137,7 +138,7 @@ export default function SageEncounter({ sage, onComplete }: Props) {
                 </button>
               ))}
             </div>
-            <p className="text-[10px] theme-text-muted opacity-70 mt-2 text-center">
+            <p className="text-[10px] theme-text-muted mt-2 text-center">
               {sage.question.teksRef}
             </p>
           </div>
@@ -158,7 +159,7 @@ export default function SageEncounter({ sage, onComplete }: Props) {
             }}
           >
             <p
-              className={`text-lg font-bold theme-display-font ${wasCorrect ? "text-emerald-500" : "text-red-500"}`}
+              className={`text-lg font-bold theme-display-font ${wasCorrect ? "theme-success" : "theme-danger"}`}
             >
               {wasCorrect ? "Correct" : "Not quite"}
             </p>
@@ -168,11 +169,11 @@ export default function SageEncounter({ sage, onComplete }: Props) {
           {!wasCorrect && (
             <div className="border theme-divider rounded-lg p-3 theme-bg-card-inner">
               <p className="text-xs theme-text-muted mb-1">You answered:</p>
-              <p className="text-sm text-red-500 line-through mb-2">
+              <p className="text-sm theme-danger line-through mb-2">
                 {sage.question.choices[selectedAnswer]}
               </p>
               <p className="text-xs theme-text-muted mb-1">Correct answer:</p>
-              <p className="text-sm text-emerald-600 font-bold">
+              <p className="text-sm theme-success font-bold">
                 {sage.question.choices[sage.question.correctIndex]}
               </p>
             </div>

@@ -196,7 +196,7 @@ export default function FinalExam({
       <div className={`border rounded-lg p-4 space-y-4 ${ui.card}`}>
         <div className="text-center">
           <h2 className={`text-lg font-bold ${ui.accent}`}>{title}</h2>
-          <p className={`text-4xl font-bold mt-1 ${passed ? "text-emerald-400" : "text-red-400"}`}>
+          <p className={`text-4xl font-bold mt-1 ${passed ? "theme-success" : "theme-danger"}`}>
             {correctCount} / {total}
           </p>
         </div>
@@ -205,7 +205,7 @@ export default function FinalExam({
             const wasRight = answers[i] === q.shuffledCorrect;
             return (
               <div key={q.id} className={`border rounded-lg p-2.5 ${ui.inner}`}>
-                <p className={`text-xs font-bold ${wasRight ? "text-emerald-400" : "text-red-400"}`}>
+                <p className={`text-xs font-bold ${wasRight ? "theme-success" : "theme-danger"}`}>
                   {wasRight ? "Correct" : "Missed"} · {q.question}
                 </p>
                 {q.fact && <p className={`text-xs mt-1 ${ui.muted}`}>{q.fact}</p>}
@@ -228,7 +228,7 @@ export default function FinalExam({
     <div className={`border rounded-lg p-4 space-y-4 ${ui.card}`}>
       <div className="text-center">
         <h2 className={`text-lg font-bold ${ui.accent}`}>{title}</h2>
-        <p className={`text-4xl font-bold mt-1 ${passed ? "text-emerald-400" : "text-red-400"}`}>
+        <p className={`text-4xl font-bold mt-1 ${passed ? "theme-success" : "theme-danger"}`}>
           {correctCount} / {total}
         </p>
         <p className={`text-sm mt-1 ${ui.muted}`}>
@@ -246,7 +246,7 @@ export default function FinalExam({
               const wasRight = answers[i] === q.shuffledCorrect;
               return (
                 <div key={q.id} className={`border rounded-lg p-2.5 ${ui.inner}`}>
-                  <p className={`text-xs font-bold ${wasRight ? "text-emerald-400" : "text-red-400"}`}>
+                  <p className={`text-xs font-bold ${wasRight ? "theme-success" : "theme-danger"}`}>
                     {wasRight ? "Correct" : "Missed"} · {q.question}
                   </p>
                   {q.fact && <p className={`text-xs mt-1 ${ui.muted}`}>{q.fact}</p>}

@@ -197,19 +197,19 @@ export function ResourceBar({
 }) {
   return (
     <div className={`flex items-center gap-2 ${pulseState === "loss" ? "juice-flash-loss" : pulseState === "gain" ? "juice-flash-gain" : ""}`}>
-      <span className="w-20 text-stone-400 text-xs flex items-center gap-1.5">
+      <span className="w-20 theme-text-muted text-xs flex items-center gap-1.5">
         {icon ? icon : label}
       </span>
-      <div className="flex-1 bg-stone-700 rounded-full h-2 overflow-hidden border border-stone-600">
+      <div className="flex-1 theme-bg-track rounded-full h-2 overflow-hidden border theme-divider">
         <div
           className={`${color} h-2 rounded-full transition-all duration-500`}
           style={{ width: `${value}%` }}
         />
       </div>
       <span className={`text-xs w-6 text-right font-bold transition-colors duration-200 ${
-        pulseState === "loss" ? "text-red-400" :
-        pulseState === "gain" ? "text-emerald-300" :
-        "text-stone-500"
+        pulseState === "loss" ? "theme-danger" :
+        pulseState === "gain" ? "theme-success" :
+        "theme-text-muted"
       }`}>
         {value}
       </span>
