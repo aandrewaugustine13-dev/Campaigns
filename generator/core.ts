@@ -12,6 +12,7 @@ import { type FaultLineSpec, validateFaultLine } from "./faultline.js";
 import { faultLineToCampaignPieces, reserveClosingDilemma, validateEndgameRhythm } from "./faultlineCompile.js";
 import { applyRelationshipTracks, validateRelationshipTracks } from "./relationshipTracks.js";
 import type { FlagDecl } from "./schema.js";
+import { runFactGate, type FactGateResult } from "./factGate.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -47,6 +48,7 @@ export interface GenerateInputs {
   // those fixed beats. Gated entirely on its own presence: when absent,
   // generation is byte-for-byte identical to the systems path.
   faultLine?: FaultLineSpec;
+  referenceFacts?: string[];
 }
 
 export interface GenerateResult {
@@ -131,6 +133,7 @@ STRUCTURAL RULES:
   - EMBED THE ANSWERS IN THE NARRATIVE — NEVER SIGNPOST THEM. Do NOT label answers, do NOT restate or echo the question wording, do NOT write "the answer is" or "remember that" or "importantly". The tested facts must sit naturally inside a readable recap of what happened. A player who paid attention can RE-SCAN and find them fast; a player who didn't must actually READ and absorb. A thinly-disguised answer key (facts in question-order, or each sentence obviously keyed to one question) FAILS this — write a genuine recap that happens to be complete, not a list in disguise.
   - BUDGET THE WORDS ON THE TESTED FACTS. The tested specifics are NON-NEGOTIABLE and must all fit inside ~300 words; atmospheric color and non-load-bearing flavor are what you CUT to make room for them. Spend the budget on the facts the exam tests plus just enough connective narrative to keep it a genuine recap (not a list); trim everything that isn't carrying a tested fact or the through-line. If you are running long, cut flavor, never a tested specific.
   - TONE: clear, informative, age-appropriate explanation — the STUDY/CLOSURE register, NOT the verdict's compressed gravitas. Straightforwardly explanatory is correct here; the job is comprehension, not emotional weight. Reference the real events, the people, and the historicalContext so it reinforces what the playthrough actually covered.
+  - SELF-CHECK MANDATE (do this before finalizing): Go through EVERY exam question — every sage question AND every event-trivia question, one at a time. For each one, find the EXACT phrase or sentence in your review summary that gives a student the information to answer it correctly. If you cannot point to a specific phrase that carries that answer, the answer is MISSING — revise the summary to embed it (naturally, not labeled) before finalizing. Do not finalize until every single exam question has a locatable answer in the summary prose. Missing even one answer is a failure: a student cannot study what is not there.
 - Outcomes must have positive integer \`weight\` values. Higher weight = more likely.
 - Resource keys in effects/rewards/penalties MUST be keys that exist in initialResources. This is critical — a mismatched key silently breaks the game.
 - Sage thresholds are trail progress percentages (0-100) at which the sage encounter triggers. Space them roughly evenly across the journey.
@@ -364,6 +367,20 @@ function buildRelationshipLaw(): string {
 
 export function buildUserMessage(inputs: GenerateInputs, priorErrors?: string[]): string {
   const locked = buildLockedConstraints(inputs);
+  let referenceFactsBlock = "";
+  if (inputs.referenceFacts && inputs.referenceFacts.length > 0) {
+    referenceFactsBlock = [
+      "",
+      "=== VETTED REFERENCE FACTS (GROUND TRUTH) ===",
+      "",
+      "These historical facts are certified historically accurate for this topic. Every historical detail (names, dates, places, numbers) in your generated events, trivia questions, correct answer choices, and review summary must be strictly grounded in this list. You are forbidden from inventing historical details not present here or contradicting these facts.",
+      "",
+      ...inputs.referenceFacts.map((f) => `- ${f}`),
+      "",
+      "=== END VETTED REFERENCE FACTS ===",
+      ""
+    ].join("\n");
+  }
   // Gated solely on faultLine presence — never folded into the frame/economy/
   // cast conditionals, since systems campaigns carry those. Empty ⇒ the
   // systems prompt is byte-for-byte unchanged.
@@ -397,7 +414,7 @@ export function buildUserMessage(inputs: GenerateInputs, priorErrors?: string[])
 \`\`\`typescript
 ${schemaSource}
 \`\`\`
-${locked}${faultLineContext}${relationshipLaw}
+${locked}${faultLineContext}${relationshipLaw}${referenceFactsBlock}
 ${exampleIntro}
 
 ${loadExample()}
@@ -484,6 +501,12 @@ export async function generateCampaign(
   // latest dilemma. Gated on faultLine — strict no-op for systems campaigns.
   if (inputs.faultLine) reserveClosingDilemma(data);
 
+  // NOTE: the fact gate deliberately does NOT run here. It runs in
+  // generateValidatedCampaign on the ACCEPTED attempt only — running it
+  // per-attempt would spend the Opus check (and correction cycles) on
+  // campaigns the structural gate is about to discard, and a gate
+  // rejection must never feed the regeneration loop (regeneration
+  // re-rolls the fabrication dice; see factGate.ts header).
   const validation = validate(data);
 
   return { data, validation, elapsedSeconds };
@@ -534,8 +557,46 @@ export function validateForDelivery(
   if (inputs.personalEconomy) {
     findings.push(...validatePersonalEconomy(inputs.personalEconomy).map((f) => ({ ...f, field: `personalEconomy.${f.field}`, source: "spec" as const })));
   }
+
   const errorCount = findings.filter((f) => f.level === "error").length;
   return { findings, errorCount };
+}
+
+// Convert a fact-gate outcome into delivery findings. Residual claims
+// are listed individually (quote + why) so server logs and the studio
+// can surface exactly what was flagged; keyed-answer rejection is an
+// error, non-keyed residuals ship as warnings.
+function factGateFindings(gate: FactGateResult): DeliveryFinding[] {
+  const findings: DeliveryFinding[] = [];
+  if (gate.status === "gate-error") {
+    findings.push({
+      level: "warn",
+      field: "factGate.error",
+      message: "fact gate errored after retry — campaign shipped UNCHECKED",
+      source: "data",
+    });
+    return findings;
+  }
+  if (gate.status === "rejected-keyed-answer" || gate.status === "rejected-structural") {
+    for (const r of gate.residual) {
+      findings.push({
+        level: "error",
+        field: gate.status === "rejected-structural" ? "factGate.structural" : (r.quizKeyed ? "factGate.keyedAnswer" : "factGate.residual"),
+        message: `"${r.quote.slice(0, 140)}" — ${r.why}`,
+        source: "data",
+      });
+    }
+  } else if (gate.status === "shipped-with-warnings") {
+    for (const r of gate.residual) {
+      findings.push({
+        level: "warn",
+        field: "factGate.residual",
+        message: `"${r.quote.slice(0, 140)}" — ${r.why}`,
+        source: "data",
+      });
+    }
+  }
+  return findings;
 }
 
 export interface GenerateValidatedResult {
@@ -546,6 +607,10 @@ export interface GenerateValidatedResult {
   errorCount: number;
   attempts: number;
   elapsedSeconds: number;
+  // Fact-gate outcome for the accepted attempt. Absent when the gate is
+  // disabled (opts.factGate=false) or the structural gate already
+  // rejected every attempt. Residuals also ride `findings`.
+  factGate?: FactGateResult;
 }
 
 // The delivery gate. Runs the single-shot generator, validates the result with
@@ -560,9 +625,12 @@ export interface GenerateValidatedResult {
 export async function generateValidatedCampaign(
   apiKey: string,
   inputs: GenerateInputs,
-  opts: { maxRegen?: number } = {},
+  // factGate: default ON. Set false for the legacy byte-identical path
+  // (no Opus fact check, no corrections) — the escape hatch.
+  opts: { maxRegen?: number; factGate?: boolean } = {},
 ): Promise<GenerateValidatedResult> {
   const maxRegen = opts.maxRegen ?? 0;
+  const factGateOn = opts.factGate !== false;
   const tag = inputs.faultLine ? "character" : "systems";
   let last!: GenerateResult;
   let lastFindings: DeliveryFinding[] = [];
@@ -595,6 +663,47 @@ export async function generateValidatedCampaign(
     }
 
     if (errorCount === 0) {
+      // ── FACT GATE — runs on the ACCEPTED attempt only, after the
+      // structural gate passes. Detect → surgically correct → re-verify
+      // (factGate.ts); it never regenerates, and its rejection is FINAL:
+      // a keyed-quiz residual must not re-enter the regeneration lottery
+      // that produced it (a fresh roll fabricates a different fact, as
+      // four consecutive Montgomery eval runs showed).
+      if (factGateOn) {
+        const gateStart = Date.now();
+        const gate = await runFactGate(
+          apiKey,
+          last.data,
+          inputs.standard ? `${inputs.topic} — standard: ${inputs.standard}` : inputs.topic,
+        );
+        totalElapsed += (Date.now() - gateStart) / 1000;
+        const gateFindings = factGateFindings(gate);
+        findings.push(...gateFindings);
+        const gateErrors = gateFindings.filter((f) => f.level === "error").length;
+        if (gateErrors > 0) {
+          console.warn(`[generate] ${tag} attempt ${attempt}/${maxRegen + 1}: fact-gate REJECT (${gateErrors} error${gateErrors === 1 ? "" : "s"}) — final, no regeneration`);
+          return {
+            status: "rejected",
+            data: last.data,
+            validation: last.validation,
+            findings,
+            errorCount: gateErrors,
+            attempts: attempt,
+            elapsedSeconds: totalElapsed,
+            factGate: gate,
+          };
+        }
+        return {
+          status: "ok",
+          data: last.data,
+          validation: last.validation,
+          findings,
+          errorCount: 0,
+          attempts: attempt,
+          elapsedSeconds: totalElapsed,
+          factGate: gate,
+        };
+      }
       return {
         status: "ok",
         data: last.data,
