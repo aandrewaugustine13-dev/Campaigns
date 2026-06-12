@@ -1,0 +1,431 @@
+{
+  "id": "erie_canal",
+  "title": "ERIE CANAL",
+  "subtitle": "New York State, 1817–1825",
+  "introBody": "Albany, 1817. The New York State Legislature has approved the canal. You are the Erie Canal Commission — responsible for funding, building, and completing 363 miles of waterway through wilderness and rock. Every dollar, every worker, every engineering decision is yours.",
+  "trailFeedOpener": "July 1817: Governor Clinton turns the first shovel of earth near Rome, New York. The Commission meets to chart the year ahead.",
+  "theme": "broadsheet-sepia",
+  "isPublished": false,
+  "progressionMode": "project",
+  "totalDays": 2920,
+  "daysPerTurn": 90,
+  "totalDistance": 0,
+  "distanceUnit": "",
+  "initialResources": {
+    "funding": 55,
+    "workforce": 25,
+    "engineering": 20,
+    "political_support": 55
+  },
+  "resourceCaps": {
+    "funding": 100,
+    "workforce": 100,
+    "engineering": 100,
+    "political_support": 100
+  },
+  "resourceLabels": {
+    "funding": "State Treasury",
+    "workforce": "Labor Force",
+    "engineering": "Technical Expertise",
+    "political_support": "Public Support"
+  },
+  "paces": [],
+  "events": [
+    {
+      "id": "limestone_obstruction",
+      "phase_min": 0.05,
+      "phase_max": 0.35,
+      "weight": 5,
+      "title": "Rock in the Way",
+      "text": "Surveyors hit a dense limestone ridge near Lockport. Blasting through it will cost money and time, but a detour adds miles and weakens the route. Your engineers await orders.",
+      "type": "standard",
+      "imageSearchQuery": "Lockport New York Erie Canal locks",
+      "choices": [
+        {
+          "text": "Blast through. Hire extra powder men.",
+          "effects": {
+            "funding": -12,
+            "workforce": -5,
+            "engineering": 10
+          },
+          "result": "The crews blast a deep cut through the rock. Costly, but your engineers learn techniques no American crew had used before."
+        },
+        {
+          "text": "Reroute around the ridge.",
+          "effects": {
+            "funding": -6,
+            "engineering": -5,
+            "political_support": -8
+          },
+          "result": "The detour adds weeks and draws criticism in Albany. Opponents call it proof of poor planning."
+        },
+        {
+          "text": "Pause work. Commission a full survey first.",
+          "effects": {
+            "funding": -4,
+            "political_support": -5,
+            "engineering": 5
+          },
+          "result": "The survey reveals a passable line through the ridge. Progress resumes — slowly — but better informed."
+        }
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Erie_Canal_and_Flight_of_Five_Locks_from_Canal_Street%2C_Lockport%2C_New_York_-_20210531.jpg/960px-Erie_Canal_and_Flight_of_Five_Locks_from_Canal_Street%2C_Lockport%2C_New_York_-_20210531.jpg",
+        "artist": "Andre Carrotflower",
+        "license": "CC BY-SA 4.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AErie_Canal_and_Flight_of_Five_Locks_from_Canal_Street%2C_Lockport%2C_New_York_-_20210531.jpg",
+        "searchQuery": "Lockport New York Erie Canal locks"
+      }
+    },
+    {
+      "id": "irish_worker_fever",
+      "phase_min": 0.2,
+      "phase_max": 0.65,
+      "weight": 5,
+      "title": "Fever in the Work Camps",
+      "text": "Malaria spreads through camps near the Montezuma Marshes. Hundreds of Irish laborers are too sick to work. Crews are halving. The marshes cannot be drained fast enough.",
+      "type": "standard",
+      "imageSearchQuery": "Erie Canal laborers digging 1820",
+      "choices": [
+        {
+          "text": "Pay sick wages and bring in camp doctors.",
+          "effects": {
+            "funding": -10,
+            "workforce": 8,
+            "political_support": 5
+          },
+          "result": "Workers see the Commission treated them fairly. Word spreads; new recruits arrive. Progress resumes.",
+          "moralTag": "principled"
+        },
+        {
+          "text": "Replace sick workers immediately. No pay for idle men.",
+          "effects": {
+            "workforce": -10,
+            "political_support": -8,
+            "funding": 3
+          },
+          "result": "The camps grow hostile. Foremen report threats. Three work gangs walk off entirely.",
+          "moralTag": "self-serving"
+        },
+        {
+          "text": "Redirect work to drier sections while sickness passes.",
+          "effects": {
+            "funding": -4,
+            "workforce": -3,
+            "engineering": 3
+          },
+          "result": "Progress slows but the outbreak eases on its own. The marshes wait.",
+          "moralTag": "obvious"
+        }
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Sunset_over_the_Erie_Canal_in_North_Tonawanda%2C_NY..jpg/960px-Sunset_over_the_Erie_Canal_in_North_Tonawanda%2C_NY..jpg",
+        "artist": "Joshua Karn",
+        "license": "CC BY-SA 3.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ASunset_over_the_Erie_Canal_in_North_Tonawanda%2C_NY..jpg",
+        "searchQuery": "Erie Canal laborers digging 1820"
+      }
+    },
+    {
+      "id": "opposition_in_albany",
+      "phase_min": 0.3,
+      "phase_max": 0.75,
+      "weight": 4,
+      "title": "Trouble in the Legislature",
+      "text": "Critics in Albany demand a full accounting of costs. A legislator calls the canal 'Clinton's Folly' and proposes halting bond sales. The Commission must respond before the next session.",
+      "type": "standard",
+      "imageSearchQuery": "DeWitt Clinton governor New York portrait",
+      "choices": [
+        {
+          "text": "Open the books. Show completed sections and toll projections.",
+          "effects": {
+            "political_support": 12,
+            "funding": 5,
+            "engineering": -2
+          },
+          "result": "The transparency wins moderates over. Bond sales resume. Clinton calls it a turning point.",
+          "moralTag": "principled"
+        },
+        {
+          "text": "Rally canal-district representatives to block the vote.",
+          "effects": {
+            "political_support": 5,
+            "funding": -3,
+            "workforce": -2
+          },
+          "result": "The vote is blocked, but the opposition grows louder. You bought time, not goodwill.",
+          "moralTag": "self-serving"
+        },
+        {
+          "text": "Say nothing. Let the session pass quietly.",
+          "effects": {
+            "political_support": -10,
+            "funding": -6
+          },
+          "result": "The silence reads as guilt. Two newspapers print editorials demanding the project be abandoned.",
+          "moralTag": "obvious"
+        }
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/DeWitt_Clinton_by_Rembrandt_Peale.jpg/960px-DeWitt_Clinton_by_Rembrandt_Peale.jpg",
+        "artist": "Rembrandt Peale",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ADeWitt_Clinton_by_Rembrandt_Peale.jpg",
+        "searchQuery": "DeWitt Clinton governor New York portrait"
+      }
+    },
+    {
+      "id": "first_toll_section",
+      "phase_min": 0.55,
+      "phase_max": 0.85,
+      "weight": 4,
+      "title": "First Tolls — A Proof of Concept",
+      "text": "The central section from Utica to Salina is navigable. You can open it for tolls immediately or hold the announcement until more miles are finished to make a bigger impression.",
+      "type": "push_luck",
+      "imageSearchQuery": "Erie Canal packet boat 1823",
+      "leaveText": "Hold off. Wait until more of the canal is complete.",
+      "attempts": [
+        {
+          "id": "toll_1",
+          "buttonText": "Announce the Utica–Salina section open.",
+          "successText": "Boats line up immediately. Toll revenue surprises the legislature. Political support surges.",
+          "failureText": "A lock gate fails on opening day. Critics say the Commission rushed. Support wobbles.",
+          "riskChance": 0.2,
+          "rewards": {
+            "funding": 10,
+            "political_support": 12
+          },
+          "penalties": {
+            "political_support": -8,
+            "engineering": -5
+          }
+        },
+        {
+          "id": "toll_2",
+          "buttonText": "Invite legislators aboard a demonstration boat.",
+          "successText": "The ride converts three fence-sitters. They vote for expanded bond sales the next week.",
+          "failureText": "The boat runs aground in a shallow cut. An embarrassing scene. Two legislators leave early.",
+          "riskChance": 0.35,
+          "rewards": {
+            "political_support": 15,
+            "funding": 8
+          },
+          "penalties": {
+            "political_support": -12,
+            "engineering": -4
+          }
+        }
+      ],
+      "image": {
+        "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/f/fb/The_Well_Known_Packet_Ship..jpg",
+        "artist": "Alberto http://audium.blogspot.com",
+        "license": "CC BY 2.0",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AThe_Well_Known_Packet_Ship..jpg",
+        "searchQuery": "Erie Canal packet boat 1823"
+      }
+    }
+  ],
+  "sages": [
+    {
+      "id": "dewitt_clinton",
+      "name": "DeWitt Clinton",
+      "title": "Governor and Canal Champion",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/DeWitt_Clinton_by_Rembrandt_Peale.jpg/330px-DeWitt_Clinton_by_Rembrandt_Peale.jpg",
+      "portraitAttribution": {
+        "artist": "Rembrandt Peale",
+        "license": "Public domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ADeWitt_Clinton_by_Rembrandt_Peale.jpg"
+      },
+      "threshold": 20,
+      "bio": "DeWitt Clinton served as Governor of New York and was the canal's most powerful political champion. He staked his career on the project, enduring the nickname 'Clinton's Folly' until the canal proved its critics wrong.",
+      "greeting": "Governor Clinton visits the Commission office with a rolled map under his arm and impatience in his eyes.",
+      "advice": "\"Every delay gives our enemies ammunition. Show them completed miles and they fall silent. The canal must speak louder than I can.\"",
+      "question": {
+        "question": "Why did DeWitt Clinton call the Erie Canal essential to New York's economy?",
+        "choices": [
+          "It would give the U.S. Navy a water route to the Great Lakes",
+          "It would cut the cost and time of shipping goods between the Great Lakes and the Atlantic",
+          "It would replace the Hudson River as the main source of fresh water",
+          "It would allow New York to tax Pennsylvania's coal trade"
+        ],
+        "correctIndex": 1,
+        "explanation": "Clinton argued the canal would connect western farm goods to eastern markets at a fraction of overland freight costs, making New York City the commercial hub of the continent. He was right — freight rates dropped by about 90% after opening.",
+        "teksRef": "TEKS 8.10 — Erie Canal's role in regional economic development"
+      },
+      "reward": {
+        "correct": {
+          "political_support": 10,
+          "funding": 6
+        },
+        "wrong": {
+          "political_support": 4
+        },
+        "knowledgeCorrect": 4,
+        "knowledgeWrong": 2
+      }
+    },
+    {
+      "id": "benjamin_wright",
+      "name": "Benjamin Wright",
+      "title": "Chief Engineer",
+      "portrait": "/faces/sage_benjamin_wright.png",
+      "portraitAttribution": {
+        "artist": "Unknown",
+        "license": "Public Domain",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Benjamin_Wright_engineer.jpg"
+      },
+      "threshold": 60,
+      "bio": "Benjamin Wright was appointed Chief Engineer of the Erie Canal — a remarkable choice, since he was a self-trained surveyor with no formal engineering degree. He developed American hydraulic cement and trained a generation of U.S. engineers on the project.",
+      "greeting": "Wright spreads his survey notes across the Commission table, pointing to a cross-section of the Lockport escarpment.",
+      "advice": "\"We had no textbooks for this. Every problem we solved here will be the textbook. Train the men who dig alongside you — they carry the knowledge forward.\"",
+      "question": {
+        "question": "What key engineering material did crews develop during the Erie Canal's construction?",
+        "choices": [
+          "Steel-reinforced concrete",
+          "Hydraulic cement that hardened underwater",
+          "Steam-powered drilling explosive",
+          "Cast-iron lock gates"
+        ],
+        "correctIndex": 1,
+        "explanation": "American engineers discovered a natural cement rock near Chittenango, New York. When burned and mixed with water it hardened even when submerged — essential for watertight locks. This hydraulic cement was one of the canal's key innovations.",
+        "teksRef": "TEKS 8.10 — Engineering innovation and canal construction"
+      },
+      "reward": {
+        "correct": {
+          "engineering": 12,
+          "workforce": 5
+        },
+        "wrong": {
+          "engineering": 4
+        },
+        "knowledgeCorrect": 4,
+        "knowledgeWrong": 2
+      }
+    }
+  ],
+  "route": [
+    {
+      "id": "start",
+      "title": "Erie Canal Commission, Albany",
+      "description": "The Commission oversees the canal project from groundbreaking to completion.",
+      "edges": []
+    }
+  ],
+  "eventTrivia": [
+    {
+      "id": "et1",
+      "question": "How did the Erie Canal most directly change freight costs?",
+      "choices": [
+        "It eliminated the need for road repairs in New York",
+        "It reduced shipping costs between the Great Lakes and New York City by roughly 90%",
+        "It allowed the state to tax all goods entering from Canada"
+      ],
+      "correctIndex": 1,
+      "fact": "Before the canal, moving a ton of goods overland from Buffalo to New York City cost about $100 and took weeks. After 1825, the canal cut that cost to roughly $10 and the travel time to about 10 days."
+    },
+    {
+      "id": "et2",
+      "question": "Which engineering innovation made watertight canal locks possible?",
+      "choices": [
+        "Steel-reinforced concrete developed in Europe",
+        "Hydraulic cement discovered near Chittenango, New York, that hardened underwater",
+        "Wooden planking sealed with pine tar imported from the South"
+      ],
+      "correctIndex": 1,
+      "fact": "Workers found a natural cement rock near Chittenango that, when burned and ground, produced a hydraulic cement that hardened even underwater — a discovery that made the canal's locks durable and watertight."
+    },
+    {
+      "id": "et3",
+      "question": "What was the canal's most important long-term economic effect on New York City?",
+      "choices": [
+        "It made New York the leading port and commercial center of the United States",
+        "It shifted New York's economy from trade to manufacturing",
+        "It allowed New York to surpass Pennsylvania in coal production"
+      ],
+      "correctIndex": 0,
+      "fact": "By connecting the Great Lakes to the Hudson River and Atlantic coast, the Erie Canal funneled the produce of the entire interior through New York City, making it the nation's dominant commercial and financial center within a generation."
+    }
+  ],
+  "trailPath": [],
+  "trailStops": [],
+  "mapImage": "/faces/map_erie_canal.png",
+  "outfitConfig": {
+    "budget": 1200,
+    "baseCrew": 0,
+    "baseHorses": 0,
+    "baseSupplies": 0,
+    "costs": {
+      "surveyingEquipment": 200,
+      "workerRecruitment": 150,
+      "engineeringConsultation": 250,
+      "blastingPowder": 100,
+      "lockTimber": 120,
+      "medicalSupplies": 80
+    },
+    "wageCosts": {},
+    "wageMorale": {},
+    "herdOptions": []
+  },
+  "primaryResourceKey": "funding",
+  "primaryResourceStart": 55,
+  "revenuePerUnit": 1,
+  "historicalContext": "The Erie Canal opened on October 26, 1825, when Governor DeWitt Clinton poured a keg of Lake Erie water into New York Harbor in a ceremony called the 'Wedding of the Waters.' The 363-mile canal dropped freight costs from Buffalo to New York City by roughly 90% and transformed New York City into the commercial capital of North America. Within fifteen years, the canal had paid for its entire construction cost through tolls. It accelerated westward migration, fueled the growth of cities like Buffalo, Rochester, and Syracuse, and made American agriculture globally competitive. The canal was built primarily by Irish immigrant laborers working in dangerous conditions, and by self-taught American engineers who developed new techniques — including hydraulic cement — that had no precedent in the United States.",
+  "imageStyleKeyword": "lithograph",
+  "pixelColors": {
+    "skin": "#D4A574",
+    "coat": "#4A3728",
+    "shirt": "#C8B89A",
+    "hat": "#2C1810",
+    "hair": "#1A0F0A",
+    "shadow": "#3D2B1F"
+  },
+  "pixelFaces": {
+    "commissioner": [
+      {
+        "threshold": 75,
+        "sprite": "commissioner_confident",
+        "label": "Confident"
+      },
+      {
+        "threshold": 40,
+        "sprite": "commissioner_strained",
+        "label": "Strained"
+      },
+      {
+        "threshold": 0,
+        "sprite": "commissioner_beleaguered",
+        "label": "Beleaguered"
+      }
+    ],
+    "engineer": [
+      {
+        "threshold": 75,
+        "sprite": "engineer_focused",
+        "label": "Focused"
+      },
+      {
+        "threshold": 40,
+        "sprite": "engineer_worried",
+        "label": "Worried"
+      },
+      {
+        "threshold": 0,
+        "sprite": "engineer_lost",
+        "label": "Lost"
+      }
+    ]
+  },
+  "verdict": {
+    "good": "You held the line when it cost you. You paid sick wages when it was cheaper not to. You opened the books when secrecy was easier. The canal opened on October 26, 1825, and DeWitt Clinton poured Lake Erie water into the harbor. Freight costs collapsed. New York City became the commercial capital of the continent. The Irish workers who survived the Montezuma fever never got a monument, but you did not forget them when you could have. That is what it looked like to build something that lasted.",
+    "bad": "You kept the project moving by spending whoever was in the way. Sick workers replaced, not paid. Critics outmaneuvered, not answered. The canal opened on time, and the tolls paid for it all within a generation. History recorded the ribbon-cutting and forgot the rest. You got the outcome and avoided the cost, and the men who paid it have no names on any plaque. The canal worked. What you built it on is a different question.",
+    "indifferent": "Every hard choice found you looking for the exit. Not for the workers, not for the critics — for the path that asked the least. The canal opened in 1825 anyway, because enough people around you refused to coast. Freight rates dropped 90 percent. New York became the commercial capital of America. You were the Commission the whole time. You just never decided to be."
+  },
+  "reviewSummary": "The Erie Canal Commission broke ground near Rome, New York, in July 1817 and spent eight years pushing 363 miles of waterway through wilderness, marshland, and solid rock. Funding the project required a constant balancing act: the state issued canal bonds, sought legislative appropriations, and — once sections were navigable — collected tolls to prove the investment was sound. Governor DeWitt Clinton staked his career on the project, enduring the 'Clinton's Folly' label until the numbers silenced his critics. The canal's core argument was economic: moving a ton of goods from Buffalo to New York City overland cost around $100 and took weeks. After 1825, the canal cut that cost by roughly 90 percent, to about $10, with travel time dropping to around ten days. That transformation made New York City the leading port and commercial center of the United States within a generation, channeling the produce of the entire interior through its harbor. Building the canal demanded engineering solutions that did not yet exist in America. Chief Engineer Benjamin Wright, a self-taught surveyor, led crews through some of the hardest terrain on the route. Near Chittenango, workers discovered a natural cement rock that, when burned and ground, produced a hydraulic cement that hardened even underwater — the key material that made watertight locks possible. The workforce was drawn heavily from Irish immigrants who labored in dangerous conditions, particularly through the disease-ridden Montezuma Marshes where malaria devastated camps. The canal opened on October 26, 1825, in a ceremony called the 'Wedding of the Waters,' when Clinton poured a keg of Lake Erie water into New York Harbor. It paid back its full construction cost through tolls within fifteen years, fueled the growth of Buffalo, Rochester, and Syracuse, accelerated westward migration, and made American agriculture competitive on global markets.",
+  "backdropImage": {
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Sunset_over_the_Erie_Canal_in_North_Tonawanda%2C_NY..jpg/960px-Sunset_over_the_Erie_Canal_in_North_Tonawanda%2C_NY..jpg",
+    "artist": "Joshua Karn",
+    "license": "CC BY-SA 3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ASunset_over_the_Erie_Canal_in_North_Tonawanda%2C_NY..jpg",
+    "searchQuery": "Erie Canal"
+  }
+}

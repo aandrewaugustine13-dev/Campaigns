@@ -1,0 +1,1177 @@
+{
+  "meta": {
+    "timestamp": "2026-06-12-0049",
+    "startedAt": "2026-06-12T04:49:05.682Z",
+    "gitCommit": "9378910",
+    "pricing": {
+      "model": "claude-sonnet-4-6",
+      "inputPerM": 3,
+      "outputPerM": 15,
+      "cacheWritePerM": 3.75,
+      "cacheReadPerM": 0.3
+    },
+    "graders": {
+      "cheap": "claude-haiku-4-5",
+      "strong": "claude-opus-4-8",
+      "skipped": false
+    },
+    "maxRegen": 2,
+    "phase": 2,
+    "harnessVersion": 2
+  },
+  "campaigns": [
+    {
+      "key": "montgomery",
+      "label": "Montgomery",
+      "topic": "The Montgomery Bus Boycott",
+      "mode": "character",
+      "grade": "8th grade",
+      "standard": "The Civil Rights Movement: the Montgomery Bus Boycott and everyday courage in 1955 Alabama",
+      "status": "ok",
+      "title": "381 DAYS",
+      "attempts": 1,
+      "dimensions": {
+        "schema-valid": {
+          "status": "warn",
+          "detail": "[flags→reads] Flag \"family\" is declared but never read by any variant; [flags→reads] Flag \"community\" is declared but never read by any variant"
+        },
+        "no-inert-choice": {
+          "status": "pass",
+          "detail": "every multi-option choice carries a felt consequence"
+        },
+        "no-lethal-degradation": {
+          "status": "pass",
+          "detail": "personal resources degrade, never kill"
+        },
+        "moral-tag-valid": {
+          "status": "pass",
+          "detail": "all moralTags ∈ {principled, self-serving, obvious}"
+        },
+        "resource-keys": {
+          "status": "pass",
+          "detail": "all effects reference declared resource keys"
+        },
+        "verdict-present": {
+          "status": "pass",
+          "detail": "all 3 verdict passages present and non-empty"
+        },
+        "summary-present": {
+          "status": "pass",
+          "detail": "review summary present"
+        },
+        "reading-level": {
+          "status": "pass",
+          "detail": "FK 6.8 vs target 8 (band ±2 pass / ±3 warn; 2615 words of body prose)"
+        },
+        "prose-length": {
+          "status": "pass",
+          "detail": "verdict passages 5-10 sentences; summary 275-425 words"
+        },
+        "factual-accuracy": {
+          "status": "pass",
+          "detail": "NONE — no false or invented historical claims found"
+        },
+        "standard-alignment": {
+          "status": "pass",
+          "detail": "addresses the standard — e.g. \"The Montgomery Bus Boycott lasted 381 days, from December 5, 1955, to December 21, 1956. Organized by the Montgomery Imp\""
+        },
+        "age-appropriate": {
+          "status": "pass",
+          "detail": "NONE — no age-inappropriate content found"
+        },
+        "verdict-lands": {
+          "status": "fail",
+          "detail": "good: congratulatory (\"you showed up when the carpool needed a driver, and you told the truth when a small lie wo\")"
+        },
+        "answers-embedded": {
+          "status": "pass",
+          "detail": "all 17 exam answers embedded naturally in the summary"
+        }
+      },
+      "graders": [
+        {
+          "dimension": "factual-accuracy",
+          "model": "claude-opus-4-8",
+          "rawResponse": "{\"claims\": []}",
+          "parsed": {
+            "claims": []
+          }
+        },
+        {
+          "dimension": "standard-alignment",
+          "model": "claude-haiku-4-5",
+          "rawResponse": "```json\n{\n  \"addresses\": true,\n  \"quotes\": [\n    \"The Montgomery Bus Boycott lasted 381 days, from December 5, 1955, to December 21, 1956. Organized by the Montgomery Improvement Association under Martin Luther King Jr., it succeeded because roughly 70 percent of the bus system's riders were Black and willing to walk, carpool, and sacrifice for more than a year.\",\n    \"The boycott launched the modern civil rights movement and established King as its national voice — but it was won by tens of thousands of ordinary Black Montgomerians who made the same hard choice, morning after morning, for 381 mornings.\",\n    \"Jo Ann Robinson led the Women's Political Council and organized the overnight printing and distribution of over 52,000 boycott flyers on December 1–2, 1955.\",\n    \"E. D. Nixon was the head of the Montgomery NAACP chapter and a Pullman porter with connections across the civil rights network. He posted Rosa Parks's bail the night of her arrest and recognized her case as the right test case to challenge bus segregation.\",\n    \"The Supreme Court ruled bus segregation unconstitutional in Browder v. Gayle, and integrated service began December 21, 1956.\"\n  ]\n}\n```",
+          "parsed": {
+            "addresses": true,
+            "quotes": [
+              "The Montgomery Bus Boycott lasted 381 days, from December 5, 1955, to December 21, 1956. Organized by the Montgomery Improvement Association under Martin Luther King Jr., it succeeded because roughly 70 percent of the bus system's riders were Black and willing to walk, carpool, and sacrifice for more than a year.",
+              "The boycott launched the modern civil rights movement and established King as its national voice — but it was won by tens of thousands of ordinary Black Montgomerians who made the same hard choice, morning after morning, for 381 mornings.",
+              "Jo Ann Robinson led the Women's Political Council and organized the overnight printing and distribution of over 52,000 boycott flyers on December 1–2, 1955.",
+              "E. D. Nixon was the head of the Montgomery NAACP chapter and a Pullman porter with connections across the civil rights network. He posted Rosa Parks's bail the night of her arrest and recognized her case as the right test case to challenge bus segregation.",
+              "The Supreme Court ruled bus segregation unconstitutional in Browder v. Gayle, and integrated service began December 21, 1956."
+            ]
+          }
+        },
+        {
+          "dimension": "age-appropriate",
+          "model": "claude-haiku-4-5",
+          "rawResponse": "```json\n{\"findings\": []}\n```",
+          "parsed": {
+            "findings": []
+          }
+        },
+        {
+          "dimension": "verdict-lands",
+          "model": "claude-haiku-4-5",
+          "rawResponse": "```json\n{\n  \"passages\": {\n    \"good\": {\n      \"judgesCharacter\": true,\n      \"tiesToRealOutcome\": true,\n      \"congratulatory\": true,\n      \"quote\": \"you showed up when the carpool needed a driver, and you told the truth when a small lie would have protected you\"\n    },\n    \"bad\": {\n      \"judgesCharacter\": true,\n      \"tiesToRealOutcome\": true,\n      \"congratulatory\": false,\n      \"quote\": \"you just quietly made the calculation, time and again, that your comfort or your safety was worth more than the person walking next to you\"\n    },\n    \"indifferent\": {\n      \"judgesCharacter\": true,\n      \"tiesToRealOutcome\": true,\n      \"congratulatory\": false,\n      \"quote\": \"When the choices were hard you found the middle road, and there was usually a middle road available\"\n    }\n  }\n}\n```",
+          "parsed": {
+            "passages": {
+              "good": {
+                "judgesCharacter": true,
+                "tiesToRealOutcome": true,
+                "congratulatory": true,
+                "quote": "you showed up when the carpool needed a driver, and you told the truth when a small lie would have protected you"
+              },
+              "bad": {
+                "judgesCharacter": true,
+                "tiesToRealOutcome": true,
+                "congratulatory": false,
+                "quote": "you just quietly made the calculation, time and again, that your comfort or your safety was worth more than the person walking next to you"
+              },
+              "indifferent": {
+                "judgesCharacter": true,
+                "tiesToRealOutcome": true,
+                "congratulatory": false,
+                "quote": "When the choices were hard you found the middle road, and there was usually a middle road available"
+              }
+            }
+          }
+        },
+        {
+          "dimension": "answers-embedded",
+          "model": "claude-haiku-4-5",
+          "rawResponse": "```json\n{\n  \"questions\": [\n    {\n      \"id\": \"et1\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"On December 1, 1955, Rosa Parks was arrested for refusing to give up her bus seat.\"\n    },\n    {\n      \"id\": \"et2\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"Jo Ann Robinson, president of the Women's Political Council, printed and distributed over 52,000 flyers overnight, calling Black residents to stay off the buses starting December 5.\"\n    },\n    {\n      \"id\": \"et3\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"That evening, thousands filled Holt Street Baptist Church to overflowing, with hundreds standing in the street outside — the first mass meeting of the boycott.\"\n    },\n    {\n      \"id\": \"et4\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"The crowd elected 26-year-old Reverend Martin Luther King Jr., newly installed pastor of Dexter Avenue Baptist Church, as president of the Montgomery Improvement Association.\"\n    },\n    {\n      \"id\": \"et5\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"Integrated bus service began the next day, December 21, 1956 — exactly 381 days after the boycott started.\"\n    },\n    {\n      \"id\": \"et6\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"Black residents made up roughly 70 percent of the bus company's ridership, so empty buses created immediate and severe economic pressure.\"\n    },\n    {\n      \"id\": \"et7\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"The MIA organized a carpool network of over 300 volunteer vehicles, dispatched from church parking lots across the city, to replace the bus routes Black residents had abandoned.\"\n    },\n    {\n      \"id\": \"et8\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"Police Commissioner Clyde Sellers, a member of the White Citizens' Council, ordered officers to cite carpool drivers for loitering, insurance violations, and speed traps.\"\n    },\n    {\n      \"id\": \"et9\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"That legal strategy culminated in Browder v. Gayle, in which the Supreme Court ruled that bus segregation was unconstitutional.\"\n    },\n    {\n      \"id\": \"et10\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"Integrated bus service began the next day, December 21, 1956 — exactly 381 days after the boycott started.\"\n    },\n    {\n      \"id\": \"et11\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"The crowd elected 26-year-old Reverend Martin Luther King Jr., newly installed pastor of Dexter Avenue Baptist Church, as president of the Montgomery Improvement Association.\"\n    },\n    {\n      \"id\": \"et12\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"Black residents made up roughly 70 percent of the bus company's ridership, so empty buses created immediate and severe economic pressure.\"\n    },\n    {\n      \"id\": \"et13\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"Attorney Clifford Durr, a white civil rights lawyer, provided legal counsel to Parks and boycott leaders, connecting street-level protest to legal strategy.\"\n    },\n    {\n      \"id\": \"et14\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"Jo Ann Robinson, president of the Women's Political Council, printed and distributed over 52,000 flyers overnight, calling Black residents to stay off the buses starting December 5. The WPC's existing community network made that overnight mobilization possible.\"\n    },\n    {\n      \"id\": \"sageq_jo_ann_robinson\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"Jo Ann Robinson, president of the Women's Political Council, printed and distributed over 52,000 flyers overnight, calling Black residents to stay off the buses starting December 5.\"\n    },\n    {\n      \"id\": \"sageq_ed_nixon\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"E. D. Nixon — the Montgomery NAACP chapter leader — posted her bail and began organizing.\"\n    },\n    {\n      \"id\": \"sageq_clifford_durr\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"That legal strategy culminated in Browder v. Gayle, in which the Supreme Court ruled that bus segregation was unconstitutional.\"\n    }\n  ]\n}\n```",
+          "parsed": {
+            "questions": [
+              {
+                "id": "et1",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "On December 1, 1955, Rosa Parks was arrested for refusing to give up her bus seat."
+              },
+              {
+                "id": "et2",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "Jo Ann Robinson, president of the Women's Political Council, printed and distributed over 52,000 flyers overnight, calling Black residents to stay off the buses starting December 5."
+              },
+              {
+                "id": "et3",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "That evening, thousands filled Holt Street Baptist Church to overflowing, with hundreds standing in the street outside — the first mass meeting of the boycott."
+              },
+              {
+                "id": "et4",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "The crowd elected 26-year-old Reverend Martin Luther King Jr., newly installed pastor of Dexter Avenue Baptist Church, as president of the Montgomery Improvement Association."
+              },
+              {
+                "id": "et5",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "Integrated bus service began the next day, December 21, 1956 — exactly 381 days after the boycott started."
+              },
+              {
+                "id": "et6",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "Black residents made up roughly 70 percent of the bus company's ridership, so empty buses created immediate and severe economic pressure."
+              },
+              {
+                "id": "et7",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "The MIA organized a carpool network of over 300 volunteer vehicles, dispatched from church parking lots across the city, to replace the bus routes Black residents had abandoned."
+              },
+              {
+                "id": "et8",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "Police Commissioner Clyde Sellers, a member of the White Citizens' Council, ordered officers to cite carpool drivers for loitering, insurance violations, and speed traps."
+              },
+              {
+                "id": "et9",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "That legal strategy culminated in Browder v. Gayle, in which the Supreme Court ruled that bus segregation was unconstitutional."
+              },
+              {
+                "id": "et10",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "Integrated bus service began the next day, December 21, 1956 — exactly 381 days after the boycott started."
+              },
+              {
+                "id": "et11",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "The crowd elected 26-year-old Reverend Martin Luther King Jr., newly installed pastor of Dexter Avenue Baptist Church, as president of the Montgomery Improvement Association."
+              },
+              {
+                "id": "et12",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "Black residents made up roughly 70 percent of the bus company's ridership, so empty buses created immediate and severe economic pressure."
+              },
+              {
+                "id": "et13",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "Attorney Clifford Durr, a white civil rights lawyer, provided legal counsel to Parks and boycott leaders, connecting street-level protest to legal strategy."
+              },
+              {
+                "id": "et14",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "Jo Ann Robinson, president of the Women's Political Council, printed and distributed over 52,000 flyers overnight, calling Black residents to stay off the buses starting December 5. The WPC's existing community network made that overnight mobilization possible."
+              },
+              {
+                "id": "sageq_jo_ann_robinson",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "Jo Ann Robinson, president of the Women's Political Council, printed and distributed over 52,000 flyers overnight, calling Black residents to stay off the buses starting December 5."
+              },
+              {
+                "id": "sageq_ed_nixon",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "E. D. Nixon — the Montgomery NAACP chapter leader — posted her bail and began organizing."
+              },
+              {
+                "id": "sageq_clifford_durr",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "That legal strategy culminated in Browder v. Gayle, in which the Supreme Court ruled that bus segregation was unconstitutional."
+              }
+            ]
+          }
+        }
+      ],
+      "fleschKincaid": 6.8,
+      "metrics": {
+        "tokensIn": 58311,
+        "tokensOut": 15481,
+        "cacheWriteTokens": 0,
+        "cacheReadTokens": 0,
+        "costUSD": 0.4131,
+        "wallSeconds": 276.4,
+        "stages": [
+          {
+            "stage": "frame",
+            "calls": 1,
+            "tokensIn": 1290,
+            "tokensOut": 619,
+            "seconds": 18.572
+          },
+          {
+            "stage": "faultline",
+            "calls": 1,
+            "tokensIn": 1354,
+            "tokensOut": 1106,
+            "seconds": 26.445
+          },
+          {
+            "stage": "personal-economy",
+            "calls": 1,
+            "tokensIn": 1006,
+            "tokensOut": 884,
+            "seconds": 21.163
+          },
+          {
+            "stage": "cast",
+            "calls": 1,
+            "tokensIn": 803,
+            "tokensOut": 991,
+            "seconds": 20.196
+          },
+          {
+            "stage": "campaign",
+            "calls": 2,
+            "tokensIn": 32722,
+            "tokensOut": 9487,
+            "seconds": 162.369
+          },
+          {
+            "stage": "grader:factual-accuracy",
+            "calls": 1,
+            "tokensIn": 8056,
+            "tokensOut": 595,
+            "seconds": 7.569
+          },
+          {
+            "stage": "grader:standard-alignment",
+            "calls": 1,
+            "tokensIn": 5527,
+            "tokensOut": 294,
+            "seconds": 3.476
+          },
+          {
+            "stage": "grader:age-appropriate",
+            "calls": 1,
+            "tokensIn": 5561,
+            "tokensOut": 13,
+            "seconds": 0.621
+          },
+          {
+            "stage": "grader:verdict-lands",
+            "calls": 1,
+            "tokensIn": 611,
+            "tokensOut": 233,
+            "seconds": 1.84
+          },
+          {
+            "stage": "grader:answers-embedded",
+            "calls": 1,
+            "tokensIn": 1381,
+            "tokensOut": 1259,
+            "seconds": 6.144
+          }
+        ]
+      },
+      "findings": [
+        {
+          "level": "warn",
+          "field": "flags→reads",
+          "message": "Flag \"family\" is declared but never read by any variant",
+          "source": "data"
+        },
+        {
+          "level": "warn",
+          "field": "flags→reads",
+          "message": "Flag \"community\" is declared but never read by any variant",
+          "source": "data"
+        }
+      ],
+      "data": {
+        "id": "montgomery_bus_boycott",
+        "title": "381 DAYS",
+        "subtitle": "Montgomery, Alabama, 1955–1956",
+        "introBody": "December 1955, Montgomery, Alabama. Rosa Parks has been arrested for refusing to give up her bus seat. Tonight, flyers are circulating through your neighborhood. Tomorrow, nobody rides the bus. You are a Black working adult in this city, and what you do next will cost you something real.",
+        "trailFeedOpener": "Monday, December 5, 1955: the buses roll nearly empty through Montgomery's streets.",
+        "theme": "civil-rights-midcentury",
+        "isPublished": false,
+        "progressionMode": "project",
+        "totalDays": 381,
+        "daysPerTurn": 8,
+        "totalDistance": 0,
+        "distanceUnit": "",
+        "initialResources": {
+          "pocketMoney": 38,
+          "standing": 50,
+          "endurance": 75
+        },
+        "resourceCaps": {
+          "pocketMoney": 120,
+          "standing": 100,
+          "endurance": 100
+        },
+        "resourceLabels": {
+          "pocketMoney": "Cash on Hand",
+          "standing": "Standing in the Community",
+          "endurance": "Body and Spirit"
+        },
+        "paces": [],
+        "events": [
+          {
+            "id": "fl_setter",
+            "phase_min": 0,
+            "phase_max": 0.3,
+            "weight": 5,
+            "title": "Week Six of the Boycott — The Employer Ultimatum",
+            "text": "Six weeks in, your feet are blistered, the carpool is unreliable, and your supervisor pulls you aside before your shift. He is not unkind — he says he respects you — but the company has a policy now: workers who participate in 'outside agitation' will be let go by end of month. He gives you a week to decide. That night your spouse sets the bills on the table without a word. The church meeting is tomorrow. Both feel like a deadline.",
+            "type": "standard",
+            "choices": [
+              {
+                "text": "Tell no one at the church meeting. The next morning you board the bus before dawn, when the streets are still empty, so no neighbor sees you.",
+                "flagWrites": {
+                  "chose_family_over_boycott": true
+                },
+                "result": "You have drawn the boundary of what you can sacrifice at the edge of your front door. Your family comes first — fully and without apology — and you have chosen to carry that privately rather than ask others to carry it with you."
+              },
+              {
+                "text": "Stand up at the church meeting and tell them about the ultimatum. You do not know how you will make it work, but you tell your supervisor the next morning you will not be returning to the bus.",
+                "flagWrites": {
+                  "chose_family_over_boycott": false
+                },
+                "result": "You have placed your household inside the larger household of the movement, trusting — or hoping — that collective endurance is a form of protection too. You have made your family's struggle visible and bet on solidarity over security."
+              }
+            ]
+          },
+          {
+            "id": "first_mass_meeting",
+            "phase_min": 0,
+            "phase_max": 0.12,
+            "weight": 8,
+            "title": "The Night of Holt Street",
+            "text": "Holt Street Baptist Church is packed wall to wall — hundreds spilling into the street outside. A young pastor named King is speaking. His voice carries even where you're standing on the sidewalk. You could push inside, or simply go home and rest before the long walk tomorrow.",
+            "type": "standard",
+            "imageSearchQuery": "Holt Street Baptist Church Montgomery 1955",
+            "trivia": [
+              "Jo Ann Robinson and the Women's Political Council printed over 52,000 flyers in a single night to call Black residents to boycott.",
+              "Martin Luther King Jr. was only 26 years old when he was elected president of the Montgomery Improvement Association."
+            ],
+            "choices": [
+              {
+                "text": "Push inside. Be counted among those who showed up.",
+                "effects": {
+                  "endurance": -4,
+                  "standing": 8
+                },
+                "flagWrites": {
+                  "community": 2
+                },
+                "result": "The church shakes with voices. You are one of them. Your feet will remember this tomorrow, but so will the people who saw you here.",
+                "moralTag": "principled"
+              },
+              {
+                "text": "Stay on the sidewalk. You'll hear enough.",
+                "effects": {
+                  "endurance": 0,
+                  "standing": 2
+                },
+                "flagWrites": {
+                  "community": 0
+                },
+                "result": "You catch the shape of it from outside. King's voice carries. You go home knowing tomorrow the real work begins.",
+                "moralTag": "obvious"
+              },
+              {
+                "text": "Head home early. Rest matters for the long walk tomorrow.",
+                "effects": {
+                  "endurance": 5,
+                  "standing": -4
+                },
+                "flagWrites": {
+                  "community": -1,
+                  "family": 1
+                },
+                "result": "You sleep well. But neighbors who saw you leave early say nothing when you pass them in the morning."
+              }
+            ],
+            "image": {
+              "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Holt_St_Baptist_Church_June09_02.jpg/960px-Holt_St_Baptist_Church_June09_02.jpg",
+              "artist": "Chris Pruitt",
+              "license": "CC BY-SA 3.0",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AHolt_St_Baptist_Church_June09_02.jpg",
+              "searchQuery": "Holt Street Baptist Church Montgomery 1955"
+            }
+          },
+          {
+            "id": "carpool_duty",
+            "phase_min": 0.08,
+            "phase_max": 0.35,
+            "weight": 6,
+            "title": "Carpool Pickup, 5:30 a.m.",
+            "text": "The MIA carpool runs out of church lots across the city — over 300 volunteer vehicles picking up workers before dawn. You signed up for a pickup run this week. But your own feet are blistered and your shift starts in ninety minutes. Skipping would leave three people stranded at the corner of Cleveland and Oak.",
+            "type": "standard",
+            "imageSearchQuery": "Montgomery carpool boycott 1956",
+            "trivia": [
+              "The MIA organized more than 300 volunteer vehicles dispatched from church parking lots to replace the bus routes."
+            ],
+            "choices": [
+              {
+                "text": "Make the pickup run. Don't leave them stranded.",
+                "effects": {
+                  "endurance": -6,
+                  "pocketMoney": -3
+                },
+                "flagWrites": {
+                  "community": 3,
+                  "family": -1
+                },
+                "result": "Three neighbors climb in, grateful and quiet. You get to work late and your supervisor marks it. Worth it — barely.",
+                "moralTag": "principled"
+              },
+              {
+                "text": "Send word ahead and skip this once.",
+                "effects": {
+                  "standing": -6,
+                  "endurance": 2
+                },
+                "flagWrites": {
+                  "community": -2
+                },
+                "result": "Those three walked two miles in the dark. They make it, but one is late to work and gets docked. The carpool organizer gives you a look at church Sunday.",
+                "moralTag": "self-serving"
+              },
+              {
+                "text": "Go halfway — drop two, let the third walk a shorter stretch.",
+                "effects": {
+                  "endurance": -3,
+                  "standing": 2
+                },
+                "flagWrites": {
+                  "community": 1
+                },
+                "result": "A compromise. Two ride, one walks less than a mile. Nobody is thrilled, but nobody is truly stranded either.",
+                "moralTag": "obvious"
+              }
+            ],
+            "image": {
+              "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Rosa_Parks_1956.jpg/960px-Rosa_Parks_1956.jpg",
+              "artist": "UPI",
+              "license": "Public domain",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ARosa_Parks_1956.jpg",
+              "searchQuery": "Montgomery carpool boycott 1956"
+            }
+          },
+          {
+            "id": "police_harassment_carpool",
+            "phase_min": 0.25,
+            "phase_max": 0.55,
+            "weight": 7,
+            "title": "Pulled Over — Loitering Charge",
+            "text": "Commissioner Sellers has ordered police to cite carpool drivers for anything they can find: loitering, insurance violations, speed traps. A patrol car pulls behind you at a church lot pickup. The officer takes his time getting out. You have three passengers and twelve dollars in your pocket.",
+            "type": "standard",
+            "imageSearchQuery": "Clyde Sellers Montgomery Alabama 1956",
+            "trivia": [
+              "Montgomery Police Commissioner Clyde Sellers was a member of the White Citizens' Council and personally ordered officers to harass carpool drivers with citations for loitering, insurance violations, and speed traps."
+            ],
+            "choices": [
+              {
+                "text": "Stay calm. Answer politely, produce your documents, say nothing more.",
+                "effects": {
+                  "endurance": -5,
+                  "standing": 4
+                },
+                "flagWrites": {
+                  "community": 2
+                },
+                "result": "He writes a loitering ticket anyway — three dollars you can't spare. You accept it without giving him more. Your passengers exhale when the car finally moves.",
+                "moralTag": "principled"
+              },
+              {
+                "text": "Pay the fine on the spot to make it go away fast.",
+                "effects": {
+                  "pocketMoney": -8,
+                  "endurance": -2
+                },
+                "flagWrites": {
+                  "community": 0
+                },
+                "result": "Eight dollars gone. The officer smirks. You pull away intact, but thinner.",
+                "moralTag": "obvious"
+              },
+              {
+                "text": "Argue the charge. You know your rights.",
+                "effects": {
+                  "endurance": -8,
+                  "pocketMoney": -12,
+                  "standing": 6
+                },
+                "flagWrites": {
+                  "community": 2,
+                  "family": -2
+                },
+                "result": "He hauls you in for two hours. You miss your shift entirely. The charge doesn't stick — Clifford Durr's name gets you released — but the day is gone and so is the money.",
+                "moralTag": "principled"
+              }
+            ],
+            "image": {
+              "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Rosa_Parks_1956.jpg/960px-Rosa_Parks_1956.jpg",
+              "artist": "UPI",
+              "license": "Public domain",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ARosa_Parks_1956.jpg",
+              "searchQuery": "Clyde Sellers Montgomery Alabama 1956"
+            }
+          },
+          {
+            "id": "citizens_council_threat",
+            "phase_min": 0.38,
+            "phase_max": 0.65,
+            "weight": 5,
+            "title": "White Citizens' Council Flyer on Your Door",
+            "text": "Someone slid a White Citizens' Council leaflet under your door overnight. It names boycott participants as 'outside agitators' and lists consequences for businesses that employ them. Your landlord calls that morning — nervous, not unkind — asking if you're planning to 'keep up with this trouble.'",
+            "type": "standard",
+            "imageSearchQuery": "White Citizens Council Montgomery Alabama",
+            "choices": [
+              {
+                "text": "Tell your landlord plainly: yes, you're staying out of the buses.",
+                "effects": {
+                  "standing": 6,
+                  "endurance": -4
+                },
+                "flagWrites": {
+                  "community": 2,
+                  "family": -1
+                },
+                "result": "He goes quiet and hangs up. You don't know if you still have a place to live next month. But you said the true thing.",
+                "moralTag": "principled"
+              },
+              {
+                "text": "Say you're 'thinking it over' to buy time without lying outright.",
+                "effects": {
+                  "endurance": -3,
+                  "standing": -3
+                },
+                "flagWrites": {
+                  "community": -1,
+                  "family": 1
+                },
+                "result": "He sounds relieved. You feel the hollowness of it all afternoon.",
+                "moralTag": "obvious"
+              },
+              {
+                "text": "Tell him what he wants to hear to protect the rent.",
+                "effects": {
+                  "pocketMoney": 5,
+                  "standing": -8,
+                  "endurance": -5
+                },
+                "flagWrites": {
+                  "community": -3,
+                  "family": 2
+                },
+                "result": "The rent is safe for now. A neighbor who overheard stops greeting you at the mailbox.",
+                "moralTag": "self-serving"
+              }
+            ],
+            "image": {
+              "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Montgomery_American_Myths_%26_Legends_Vol_2.djvu/page1-960px-Montgomery_American_Myths_%26_Legends_Vol_2.djvu.jpg",
+              "artist": "Charles Montgomery Skinner",
+              "license": "Public domain",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AMontgomery_American_Myths_%26_Legends_Vol_2.djvu",
+              "searchQuery": "White Citizens Council Montgomery Alabama photograph"
+            }
+          },
+          {
+            "id": "bombing_night",
+            "phase_min": 0.55,
+            "phase_max": 0.78,
+            "weight": 5,
+            "title": "The Night They Bombed King's House",
+            "text": "Word spreads fast: a bomb was thrown at Reverend King's home on South Jackson Street tonight. His wife and daughter were inside. He's safe and he's already asking the crowd outside to go home peacefully. Some of your neighbors are furious. Some are afraid. You have to decide what you are right now.",
+            "type": "standard",
+            "imageSearchQuery": "Martin Luther King Jr Montgomery 1956",
+            "trivia": [
+              "Martin Luther King Jr. was elected president of the Montgomery Improvement Association on December 5, 1955, the same day the boycott began."
+            ],
+            "choices": [
+              {
+                "text": "Go to South Jackson Street. Stand with the crowd. Then go home when King asks.",
+                "effects": {
+                  "endurance": -5,
+                  "standing": 6
+                },
+                "flagWrites": {
+                  "community": 3,
+                  "family": -2
+                },
+                "result": "You are there when he speaks. His calm costs him something. Yours costs you something too. You walk home in the dark and do not sleep much.",
+                "moralTag": "principled"
+              },
+              {
+                "text": "Stay home. Keep your family off the street tonight.",
+                "effects": {
+                  "endurance": 2,
+                  "standing": -3
+                },
+                "flagWrites": {
+                  "family": 2,
+                  "community": -1
+                },
+                "result": "You hold your children close and listen through the window. It's the right call for them. You'll wonder for a long time if it was the right call for you.",
+                "moralTag": "obvious"
+              },
+              {
+                "text": "Go and stay after King asks the crowd to disperse.",
+                "effects": {
+                  "endurance": -7,
+                  "standing": 3
+                },
+                "flagWrites": {
+                  "community": 1,
+                  "family": -2
+                },
+                "result": "You stay until police push the crowd back. Your anger is real. But you notice King watching the faces of those who won't leave, and his own face is tired.",
+                "moralTag": "obvious"
+              }
+            ],
+            "image": {
+              "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Martin_Luther_King%2C_Jr..jpg/960px-Martin_Luther_King%2C_Jr..jpg",
+              "artist": "Creator:Bernie Faingold",
+              "license": "Public domain",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AMartin_Luther_King%2C_Jr..jpg",
+              "searchQuery": "Martin Luther King Jr Montgomery 1956"
+            }
+          },
+          {
+            "id": "supreme_court_ruling_climax",
+            "phase_min": 0.85,
+            "phase_max": 1,
+            "weight": 9,
+            "title": "December 20, 1956 — The Order Arrives",
+            "text": "The Supreme Court's order reaches Montgomery today. Bus segregation is unconstitutional — Browder v. Gayle. Tomorrow, December 21, integrated buses roll. After 381 days, it's over. Tonight the church is full again and someone asks if you'll speak about what this cost you. You have never spoken in front of a crowd.",
+            "type": "standard",
+            "imageSearchQuery": "Rosa Parks Montgomery bus 1956",
+            "choices": [
+              {
+                "text": "Stand up and speak. Name what it cost — your feet, your pocket, your fear.",
+                "effects": {
+                  "standing": 10,
+                  "endurance": -5
+                },
+                "flagWrites": {
+                  "community": 3,
+                  "family": 1
+                },
+                "result": "Your voice shakes at first. Then it steadies. You name the things that nearly broke you and did not. The room listens the way rooms listen when someone tells the truth.",
+                "moralTag": "principled"
+              },
+              {
+                "text": "Let someone else speak. Sit with your family tonight.",
+                "effects": {
+                  "endurance": 5,
+                  "standing": 2
+                },
+                "flagWrites": {
+                  "family": 3,
+                  "community": -1
+                },
+                "result": "Your children fall asleep against you in the pew. Tomorrow morning you will all ride the bus together for the first time with your heads up. That's enough. That's everything.",
+                "moralTag": "obvious"
+              },
+              {
+                "text": "Slip out early. You've given enough — the victory speaks for itself.",
+                "effects": {
+                  "pocketMoney": 0,
+                  "endurance": 6,
+                  "standing": -5
+                },
+                "flagWrites": {
+                  "family": 1,
+                  "community": -2
+                },
+                "result": "The cold air outside is clean. You walk home the same route you walked a hundred mornings without a bus. Tonight it feels different. Tomorrow it will be different. You allow yourself that, quietly, alone.",
+                "moralTag": "self-serving"
+              }
+            ],
+            "image": {
+              "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/1956_face_detail%2C_Rosa_Parks_being_fingerprinted_by_Deputy_Sheriff_D.H._Lackey_after_being_arrested_on_February_22%2C_1956%2C_during_the_Montgomery_bus_boycott_%28cropped%29.jpg/960px-thumbnail.jpg",
+              "artist": "Associated Press",
+              "license": "Public domain",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3A1956_face_detail%2C_Rosa_Parks_being_fingerprinted_by_Deputy_Sheriff_D.H._Lackey_after_being_arrested_on_February_22%2C_1956%2C_during_the_Montgomery_bus_boycott_(cropped).jpg",
+              "searchQuery": "Rosa Parks Montgomery bus 1956 photograph"
+            }
+          },
+          {
+            "id": "fl_reader_0",
+            "phase_min": 0.35,
+            "phase_max": 0.85,
+            "weight": 5,
+            "title": "Month Four — A Neighbor Loses Their Job Too",
+            "text": {
+              "default": "Word reaches you that the Hendersons, two houses down, were let go this week for staying out. Mrs. Henderson nods to you on the porch and you nod back, and neither of you says anything. You have been riding the bus for weeks now. You do not know if she knows. You do not know what you would say if she did. The thing you protected is still intact. The thing you paid for it sits somewhere you cannot quite locate.",
+              "variants": [
+                {
+                  "whenFlag": "chose_family_over_boycott",
+                  "equals": true,
+                  "text": "Word reaches you that the Hendersons, two houses down, were let go this week for staying out. Mrs. Henderson nods to you on the porch and you nod back, and neither of you says anything. You have been riding the bus for weeks now. You do not know if she knows. You do not know what you would say if she did. The thing you protected is still intact. The thing you paid for it sits somewhere you cannot quite locate."
+                },
+                {
+                  "whenFlag": "chose_family_over_boycott",
+                  "equals": false,
+                  "text": "Word reaches you that the Hendersons, two houses down, were let go this week for staying out. Mrs. Henderson nods to you on the porch and something passes between you that is not quite solidarity and not quite grief — it is the recognition of people who have made the same bet and are still waiting to learn what it pays. Your own account is overdrawn. You do not regret the choice. You are not certain that is a comfort."
+                }
+              ]
+            },
+            "type": "standard",
+            "choices": [
+              {
+                "text": "Go on."
+              }
+            ]
+          }
+        ],
+        "sages": [
+          {
+            "id": "jo_ann_robinson",
+            "name": "Jo Ann Robinson",
+            "title": "Women's Political Council President",
+            "portrait": "/faces/sage_robinson.png",
+            "threshold": 10,
+            "bio": "Jo Ann Robinson led the Women's Political Council and organized the overnight printing and distribution of over 52,000 boycott flyers on December 1–2, 1955. Her logistical groundwork is why Black Montgomery knew to stay off the buses on December 5.",
+            "greeting": "She stops you outside the church after the organizing meeting, a stack of papers under one arm. She looks like she hasn't slept.",
+            "advice": "\"The buses will notice empty seats before they notice speeches. Show up to your pickup, every morning, and bring someone with you who doesn't have a ride.\"",
+            "question": {
+              "question": "Who organized the printing and distribution of over 52,000 boycott flyers overnight on December 1–2, 1955?",
+              "choices": [
+                "Martin Luther King Jr. and the MIA executive board",
+                "E. D. Nixon and the NAACP chapter",
+                "Jo Ann Robinson and the Women's Political Council",
+                "Rosa Parks and Clifford Durr"
+              ],
+              "correctIndex": 2,
+              "explanation": "Jo Ann Robinson, president of the Women's Political Council, organized the printing and distribution of over 52,000 flyers in a single night after Rosa Parks's arrest. The WPC's infrastructure made mass mobilization possible before King ever addressed a crowd.",
+              "teksRef": "8.29(C) — Civic participation and civil rights organizing"
+            },
+            "reward": {
+              "correct": {
+                "standing": 8,
+                "endurance": 5
+              },
+              "wrong": {
+                "standing": 3
+              },
+              "knowledgeCorrect": 4,
+              "knowledgeWrong": 2
+            }
+          },
+          {
+            "id": "ed_nixon",
+            "name": "E. D. Nixon",
+            "title": "NAACP Chapter Leader",
+            "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/ED_Nixon_1955.jpg/330px-ED_Nixon_1955.jpg",
+            "threshold": 38,
+            "bio": "E. D. Nixon was the head of the Montgomery NAACP chapter and a Pullman porter with connections across the civil rights network. He posted Rosa Parks's bail the night of her arrest and recognized her case as the right test case to challenge bus segregation.",
+            "greeting": "You see him outside the courthouse, talking quietly to Clifford Durr. He waves you over like he's been expecting you.",
+            "advice": "\"Rosa wasn't the first. She was the right one — steady, clean record, respected. We had to be ready when the right moment came. Now it has. Don't waste it.\"",
+            "question": {
+              "question": "What did E. D. Nixon do the night Rosa Parks was arrested on December 1, 1955?",
+              "choices": [
+                "Led the first march down Dexter Avenue",
+                "Posted Rosa Parks's bail and began organizing the boycott",
+                "Printed the flyers calling for the December 5 boycott",
+                "Telephoned the Supreme Court about bus segregation"
+              ],
+              "correctIndex": 1,
+              "explanation": "E. D. Nixon posted Rosa Parks's bail the night of December 1, 1955, and immediately began working with Jo Ann Robinson and others to organize the boycott. His experience with the NAACP gave the movement its strategic foundation from the very first night.",
+              "teksRef": "8.29(C) — Civil rights leadership and strategic organizing"
+            },
+            "reward": {
+              "correct": {
+                "standing": 7,
+                "pocketMoney": 4
+              },
+              "wrong": {
+                "standing": 2
+              },
+              "knowledgeCorrect": 4,
+              "knowledgeWrong": 2
+            },
+            "portraitAttribution": {
+              "artist": "Associated Press",
+              "license": "Public domain",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AED_Nixon_1955.jpg"
+            }
+          },
+          {
+            "id": "clifford_durr",
+            "name": "Clifford Durr",
+            "title": "Civil Rights Attorney",
+            "portrait": "/faces/sage_durr.png",
+            "threshold": 68,
+            "bio": "Clifford Durr was a white civil rights attorney in Montgomery who provided legal counsel to Rosa Parks and boycott leaders. He and his wife Virginia were rare white Southern allies who understood that legal strategy and street-level protest had to work together.",
+            "greeting": "You find him at a folding table in the church basement, papers spread everywhere. He looks up over his glasses.",
+            "advice": "\"When they cite you for loitering, write down everything — time, officer's name, exact words. The Browder case is being built one injustice at a time. Yours might be the one that matters.\"",
+            "question": {
+              "question": "In which Supreme Court case did the Court rule that bus segregation in Montgomery was unconstitutional?",
+              "choices": [
+                "Brown v. Board of Education",
+                "Plessy v. Ferguson",
+                "Browder v. Gayle",
+                "Parks v. City of Montgomery"
+              ],
+              "correctIndex": 2,
+              "explanation": "The Supreme Court affirmed bus segregation was unconstitutional in Browder v. Gayle. The desegregation order arrived in Montgomery on December 20, 1956, and integrated service began December 21 — 381 days after the boycott started.",
+              "teksRef": "8.29(C) — Legal challenges and Supreme Court decisions in the civil rights era"
+            },
+            "reward": {
+              "correct": {
+                "endurance": 8,
+                "standing": 6
+              },
+              "wrong": {
+                "endurance": 3
+              },
+              "knowledgeCorrect": 4,
+              "knowledgeWrong": 2
+            }
+          }
+        ],
+        "route": [
+          {
+            "id": "start",
+            "title": "Montgomery, Alabama, 1955–1956",
+            "description": "381 days of walking, waiting, and holding the line.",
+            "edges": []
+          }
+        ],
+        "eventTrivia": [
+          {
+            "id": "et1",
+            "question": "On what date was Rosa Parks arrested for refusing to give up her bus seat?",
+            "choices": [
+              "December 5, 1955",
+              "December 1, 1955",
+              "November 15, 1955",
+              "January 3, 1956"
+            ],
+            "correctIndex": 1,
+            "fact": "Rosa Parks was arrested on Thursday, December 1, 1955. E. D. Nixon posted her bail that same night."
+          },
+          {
+            "id": "et2",
+            "question": "How many flyers did Jo Ann Robinson's WPC distribute calling for the December 5 boycott?",
+            "choices": [
+              "Over 52,000",
+              "About 5,000",
+              "Around 20,000",
+              "More than 100,000"
+            ],
+            "correctIndex": 0,
+            "fact": "Jo Ann Robinson and the Women's Political Council printed and distributed over 52,000 flyers in a single night."
+          },
+          {
+            "id": "et3",
+            "question": "Where was the first mass meeting of the Montgomery Bus Boycott held on December 5, 1955?",
+            "choices": [
+              "Dexter Avenue Baptist Church",
+              "Sixteenth Street Baptist Church",
+              "Holt Street Baptist Church",
+              "Montgomery City Hall"
+            ],
+            "correctIndex": 2,
+            "fact": "The first mass meeting filled Holt Street Baptist Church to overflowing, with hundreds standing outside in the street."
+          },
+          {
+            "id": "et4",
+            "question": "How old was Martin Luther King Jr. when he was elected MIA president on December 5, 1955?",
+            "choices": [
+              "32",
+              "26",
+              "29",
+              "22"
+            ],
+            "correctIndex": 1,
+            "fact": "King was 26 years old and the newly installed pastor of Dexter Avenue Baptist Church when the MIA elected him president."
+          },
+          {
+            "id": "et5",
+            "question": "How long did the Montgomery Bus Boycott last?",
+            "choices": [
+              "90 days",
+              "200 days",
+              "381 days",
+              "500 days"
+            ],
+            "correctIndex": 2,
+            "fact": "The boycott lasted exactly 381 days, from December 5, 1955, until integrated service began on December 21, 1956."
+          },
+          {
+            "id": "et6",
+            "question": "What fraction of the Montgomery bus company's riders were Black?",
+            "choices": [
+              "About half",
+              "Roughly 70 percent",
+              "About one-third",
+              "Nearly all of them"
+            ],
+            "correctIndex": 1,
+            "fact": "Black residents made up roughly 70 percent of the bus company's ridership, which is why the boycott created severe economic pressure."
+          },
+          {
+            "id": "et7",
+            "question": "How many volunteer vehicles did the MIA carpool network operate?",
+            "choices": [
+              "About 50",
+              "Over 300",
+              "Around 150",
+              "Fewer than 100"
+            ],
+            "correctIndex": 1,
+            "fact": "The MIA organized over 300 volunteer vehicles dispatched from church parking lots across the city."
+          },
+          {
+            "id": "et8",
+            "question": "What tactics did Commissioner Clyde Sellers order police to use against carpool drivers?",
+            "choices": [
+              "Arrest them for trespassing on bus routes",
+              "Cite them for loitering, insurance violations, and speed traps",
+              "Impound their vehicles permanently",
+              "Fine their employers for allowing it"
+            ],
+            "correctIndex": 1,
+            "fact": "Sellers, a White Citizens' Council member, ordered police to cite carpool drivers for loitering, insurance violations, and speed traps to break the network."
+          },
+          {
+            "id": "et9",
+            "question": "In which Supreme Court case was Montgomery bus segregation ruled unconstitutional?",
+            "choices": [
+              "Brown v. Board of Education",
+              "Browder v. Gayle",
+              "Parks v. Montgomery Transit",
+              "Nixon v. City of Montgomery"
+            ],
+            "correctIndex": 1,
+            "fact": "The Supreme Court affirmed bus segregation unconstitutional in Browder v. Gayle; the order arrived December 20, 1956."
+          },
+          {
+            "id": "et10",
+            "question": "On what date did integrated bus service actually begin in Montgomery?",
+            "choices": [
+              "December 5, 1956",
+              "December 20, 1956",
+              "December 21, 1956",
+              "January 1, 1957"
+            ],
+            "correctIndex": 2,
+            "fact": "The desegregation order arrived on December 20, 1956, and integrated service began the next day, December 21, 1956."
+          },
+          {
+            "id": "et11",
+            "question": "What church was Martin Luther King Jr. the newly installed pastor of in December 1955?",
+            "choices": [
+              "Holt Street Baptist Church",
+              "Sixteenth Street Baptist Church",
+              "Dexter Avenue Baptist Church",
+              "First Baptist Church of Montgomery"
+            ],
+            "correctIndex": 2,
+            "fact": "King was the newly installed pastor of Dexter Avenue Baptist Church when he was elected MIA president on December 5, 1955."
+          },
+          {
+            "id": "et12",
+            "question": "Why did the empty buses create such strong economic pressure on the city's transit system?",
+            "choices": [
+              "The city owned the buses outright and lost tax money",
+              "Black residents made up roughly 70 percent of ridership",
+              "White riders also joined the boycott in large numbers",
+              "The federal government subsidized bus fares that were now uncollected"
+            ],
+            "correctIndex": 1,
+            "fact": "Because Black riders made up about 70 percent of the bus company's customers, the boycott immediately threatened the system's financial survival."
+          },
+          {
+            "id": "et13",
+            "question": "Who was Clifford Durr and why did the boycott leadership rely on him?",
+            "choices": [
+              "A Black pastor who organized the MIA's carpool routes",
+              "A white civil rights attorney who provided legal counsel to Parks and boycott leaders",
+              "A federal judge who ruled on the Browder case",
+              "A journalist who covered the boycott for Northern newspapers"
+            ],
+            "correctIndex": 1,
+            "fact": "Clifford Durr was a white civil rights attorney in Montgomery who provided legal counsel to Rosa Parks and boycott leaders, making him a rare and crucial white Southern ally."
+          },
+          {
+            "id": "et14",
+            "question": "What organization did Jo Ann Robinson lead, and what made it essential to the boycott's launch?",
+            "choices": [
+              "The NAACP; it provided bail money for arrested participants",
+              "The Women's Political Council; it had the organizational network to distribute 52,000 flyers overnight",
+              "The Montgomery Improvement Association; it coordinated the carpool dispatching",
+              "The Southern Christian Leadership Conference; it had national fundraising contacts"
+            ],
+            "correctIndex": 1,
+            "fact": "Robinson led the Women's Political Council, whose existing community network made it possible to print and distribute over 52,000 flyers in a single night, ensuring word reached Black Montgomery before December 5."
+          }
+        ],
+        "trailPath": [],
+        "trailStops": [],
+        "mapImage": "/faces/map_montgomery.png",
+        "outfitConfig": {
+          "budget": 60,
+          "baseCrew": 0,
+          "baseHorses": 0,
+          "baseSupplies": 0,
+          "costs": {
+            "sturdy_shoes": 8,
+            "church_collection": 5,
+            "carpool_fuel": 10,
+            "legal_fund": 7,
+            "extra_food": 4
+          },
+          "wageCosts": {},
+          "wageMorale": {},
+          "herdOptions": []
+        },
+        "primaryResourceKey": "endurance",
+        "primaryResourceStart": 75,
+        "revenuePerUnit": 0,
+        "historicalContext": "The Montgomery Bus Boycott lasted 381 days, from December 5, 1955, to December 21, 1956. Organized by the Montgomery Improvement Association under Martin Luther King Jr., it succeeded because roughly 70 percent of the bus system's riders were Black and willing to walk, carpool, and sacrifice for more than a year. The Supreme Court ruled bus segregation unconstitutional in Browder v. Gayle, and integrated service began December 21, 1956. The boycott launched the modern civil rights movement and established King as its national voice — but it was won by tens of thousands of ordinary Black Montgomerians who made the same hard choice, morning after morning, for 381 mornings.",
+        "pixelColors": {
+          "skin": "#8B5E3C",
+          "hair": "#1A1A1A",
+          "shirt": "#4A6741",
+          "pants": "#2E2E2E",
+          "background": "#C8B89A"
+        },
+        "pixelFaces": {
+          "participant": [
+            {
+              "threshold": 75,
+              "sprite": "participant_strong",
+              "label": "Holding Strong"
+            },
+            {
+              "threshold": 45,
+              "sprite": "participant_weary",
+              "label": "Wearing Thin"
+            },
+            {
+              "threshold": 20,
+              "sprite": "participant_spent",
+              "label": "Nearly Spent"
+            },
+            {
+              "threshold": 0,
+              "sprite": "participant_broken",
+              "label": "Broken Down"
+            }
+          ]
+        },
+        "imageStyleKeyword": "photograph",
+        "verdict": {
+          "good": "You held the line. Not every morning — some mornings it cost you more than you had, and you paid it anyway. You walked when your feet said stop, you showed up when the carpool needed a driver, and you told the truth when a small lie would have protected you. The boycott succeeded. On December 21, 1956, the buses ran integrated for the first time. Tens of thousands of people like you made that happen by making the same choice, day after day, for 381 days. History remembers King's words. It was your feet that proved them true.",
+          "bad": "You were there. You didn't cross a picket line in a grand gesture — you just quietly made the calculation, time and again, that your comfort or your safety was worth more than the person walking next to you. The boycott won anyway. The buses integrated. You got the benefit without paying the full price, and now you have to decide what that means to you. The people who walked every morning through December and January and February and on into the following fall — they paid something you didn't. You can tell yourself you had no choice. You had choices. You can remember what you chose.",
+          "indifferent": "You moved through 381 days of one of the most consequential struggles American working people ever waged, and it barely grazed you. When the choices were hard you found the middle road, and there was usually a middle road available. The boycott won. December 21, 1956, the buses integrated. You were in Montgomery for all of it. You will tell people you were part of it, and that will be true — technically true. But the people who gave something real will know the difference, and somewhere you know it too."
+        },
+        "reviewSummary": "On December 1, 1955, Rosa Parks was arrested for refusing to give up her bus seat. That same night, E. D. Nixon — the Montgomery NAACP chapter leader — posted her bail and began organizing. Jo Ann Robinson, president of the Women's Political Council, printed and distributed over 52,000 flyers overnight, calling Black residents to stay off the buses starting December 5. The WPC's existing community network made that overnight mobilization possible.\n\nOn December 5, 1955, Montgomery's buses rolled nearly empty. That evening, thousands filled Holt Street Baptist Church to overflowing, with hundreds standing in the street outside — the first mass meeting of the boycott. The crowd elected 26-year-old Reverend Martin Luther King Jr., newly installed pastor of Dexter Avenue Baptist Church, as president of the Montgomery Improvement Association. The MIA organized a carpool network of over 300 volunteer vehicles, dispatched from church parking lots across the city, to replace the bus routes Black residents had abandoned.\n\nBlack residents made up roughly 70 percent of the bus company's ridership, so empty buses created immediate and severe economic pressure. City leaders fought back. Police Commissioner Clyde Sellers, a member of the White Citizens' Council, ordered officers to cite carpool drivers for loitering, insurance violations, and speed traps. White Citizens' Council members threatened employers and landlords. Bombs were thrown at King's home on South Jackson Street.\n\nThe movement held. Attorney Clifford Durr, a white civil rights lawyer, provided legal counsel to Parks and boycott leaders, connecting street-level protest to legal strategy. That legal strategy culminated in Browder v. Gayle, in which the Supreme Court ruled that bus segregation was unconstitutional. The desegregation order arrived in Montgomery on December 20, 1956. Integrated bus service began the next day, December 21, 1956 — exactly 381 days after the boycott started.",
+        "backdropImage": {
+          "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Rosa_Parks%2C_November_1956_%28cropped%29.jpg/960px-Rosa_Parks%2C_November_1956_%28cropped%29.jpg",
+          "artist": "Unknown author",
+          "license": "Public domain",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ARosa_Parks%2C_November_1956_(cropped).jpg",
+          "searchQuery": "a Black Montgomery resident and boycott participant"
+        },
+        "flags": [
+          {
+            "id": "family",
+            "type": "numeric",
+            "initial": 0,
+            "min": -10,
+            "max": 10,
+            "label": "How those closest to you come to regard you"
+          },
+          {
+            "id": "community",
+            "type": "numeric",
+            "initial": 0,
+            "min": -10,
+            "max": 10,
+            "label": "How the wider community comes to regard you"
+          },
+          {
+            "id": "chose_family_over_boycott",
+            "type": "tristate",
+            "initial": null,
+            "label": "When the ultimatum came, did you protect your household or hold the collective line?"
+          }
+        ]
+      }
+    }
+  ]
+}

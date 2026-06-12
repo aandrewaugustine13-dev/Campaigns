@@ -1,0 +1,451 @@
+{
+  "meta": {
+    "timestamp": "2026-06-12-0102",
+    "startedAt": "2026-06-12T05:02:30.532Z",
+    "gitCommit": "9378910",
+    "pricing": {
+      "model": "claude-sonnet-4-6",
+      "inputPerM": 3,
+      "outputPerM": 15,
+      "cacheWritePerM": 3.75,
+      "cacheReadPerM": 0.3
+    },
+    "graders": {
+      "cheap": "claude-haiku-4-5",
+      "strong": "claude-opus-4-8",
+      "skipped": false
+    },
+    "maxRegen": 2,
+    "phase": 2,
+    "harnessVersion": 2
+  },
+  "campaigns": [
+    {
+      "key": "pullman",
+      "label": "Pullman",
+      "topic": "The Pullman Strike of 1894",
+      "mode": "character",
+      "grade": "8th grade",
+      "standard": "The Pullman Strike of 1894: railroad labor, the company town, the national boycott, and federal intervention in the Gilded Age",
+      "status": "exception",
+      "error": "Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CbxnAV6P7tGcpjVxvihEB\"}",
+      "attempts": 0,
+      "dimensions": {
+        "schema-valid": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "no-inert-choice": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "no-lethal-degradation": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "moral-tag-valid": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "verdict-present": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "summary-present": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "resource-keys": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "reading-level": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "prose-length": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        }
+      },
+      "fleschKincaid": null,
+      "metrics": {
+        "tokensIn": 0,
+        "tokensOut": 0,
+        "cacheWriteTokens": 0,
+        "cacheReadTokens": 0,
+        "costUSD": 0,
+        "wallSeconds": 0.8,
+        "stages": []
+      },
+      "findings": [],
+      "data": null
+    },
+    {
+      "key": "montgomery",
+      "label": "Montgomery",
+      "topic": "The Montgomery Bus Boycott",
+      "mode": "character",
+      "grade": "8th grade",
+      "standard": "The Civil Rights Movement: the Montgomery Bus Boycott and everyday courage in 1955 Alabama",
+      "status": "exception",
+      "error": "Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CbxnAYZzP8VsTbmgaV9Bv\"}",
+      "attempts": 0,
+      "dimensions": {
+        "schema-valid": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "no-inert-choice": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "no-lethal-degradation": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "moral-tag-valid": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "verdict-present": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "summary-present": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "resource-keys": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "reading-level": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "prose-length": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        }
+      },
+      "fleschKincaid": null,
+      "metrics": {
+        "tokensIn": 0,
+        "tokensOut": 0,
+        "cacheWriteTokens": 0,
+        "cacheReadTokens": 0,
+        "costUSD": 0,
+        "wallSeconds": 1.1,
+        "stages": []
+      },
+      "findings": [],
+      "data": null
+    },
+    {
+      "key": "war1812",
+      "label": "War of 1812",
+      "topic": "The War of 1812",
+      "mode": "character",
+      "grade": "8th grade",
+      "standard": "The War of 1812: impressment and the road to war, the burning of Washington, Fort McHenry, and what the war settled for the young republic",
+      "status": "exception",
+      "error": "Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CbxnAb6YRqXouP8Zus7iC\"}",
+      "attempts": 0,
+      "dimensions": {
+        "schema-valid": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "no-inert-choice": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "no-lethal-degradation": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "moral-tag-valid": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "verdict-present": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "summary-present": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "resource-keys": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "reading-level": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "prose-length": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        }
+      },
+      "fleschKincaid": null,
+      "metrics": {
+        "tokensIn": 0,
+        "tokensOut": 0,
+        "cacheWriteTokens": 0,
+        "cacheReadTokens": 0,
+        "costUSD": 0,
+        "wallSeconds": 0.2,
+        "stages": []
+      },
+      "findings": [],
+      "data": null
+    },
+    {
+      "key": "erie",
+      "label": "Erie Canal",
+      "topic": "Erie Canal",
+      "mode": "systems",
+      "grade": "8th grade",
+      "standard": "TEKS 8.10 — how the Erie Canal's waterway and transportation drove regional economic development in the early 19th century",
+      "status": "exception",
+      "error": "Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CbxnAbhzqVY4CeKr3j6NE\"}",
+      "attempts": 0,
+      "dimensions": {
+        "schema-valid": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "no-inert-choice": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "no-lethal-degradation": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "moral-tag-valid": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "verdict-present": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "summary-present": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "resource-keys": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "reading-level": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "prose-length": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        }
+      },
+      "fleschKincaid": null,
+      "metrics": {
+        "tokensIn": 0,
+        "tokensOut": 0,
+        "cacheWriteTokens": 0,
+        "cacheReadTokens": 0,
+        "costUSD": 0,
+        "wallSeconds": 0.2,
+        "stages": []
+      },
+      "findings": [],
+      "data": null
+    },
+    {
+      "key": "crusade",
+      "label": "Third Crusade",
+      "topic": "The Third Crusade",
+      "mode": "character",
+      "grade": "7th grade",
+      "standard": "The Third Crusade (1189-1192): Richard the Lionheart and Saladin, the siege of Acre, and the struggle over Jerusalem in the medieval world",
+      "status": "exception",
+      "error": "Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CbxnAcm17ectvepZtpyMo\"}",
+      "attempts": 0,
+      "dimensions": {
+        "schema-valid": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "no-inert-choice": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "no-lethal-degradation": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "moral-tag-valid": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "verdict-present": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "summary-present": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "resource-keys": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "reading-level": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "prose-length": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        }
+      },
+      "fleschKincaid": null,
+      "metrics": {
+        "tokensIn": 0,
+        "tokensOut": 0,
+        "cacheWriteTokens": 0,
+        "cacheReadTokens": 0,
+        "costUSD": 0,
+        "wallSeconds": 0.2,
+        "stages": []
+      },
+      "findings": [],
+      "data": null
+    },
+    {
+      "key": "dustbowl",
+      "label": "Dust Bowl",
+      "topic": "The Dust Bowl",
+      "mode": "character",
+      "grade": "8th grade",
+      "standard": "The Dust Bowl and the Great Depression: tenant farmers, drought, and migration west in the 1930s",
+      "status": "exception",
+      "error": "Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CbxnAdgZxWGYBUGR1osoK\"}",
+      "attempts": 0,
+      "dimensions": {
+        "schema-valid": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "no-inert-choice": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "no-lethal-degradation": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "moral-tag-valid": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "verdict-present": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "summary-present": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "resource-keys": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "reading-level": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "prose-length": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        }
+      },
+      "fleschKincaid": null,
+      "metrics": {
+        "tokensIn": 0,
+        "tokensOut": 0,
+        "cacheWriteTokens": 0,
+        "cacheReadTokens": 0,
+        "costUSD": 0,
+        "wallSeconds": 0.2,
+        "stages": []
+      },
+      "findings": [],
+      "data": null
+    },
+    {
+      "key": "lewisclark",
+      "label": "Lewis & Clark",
+      "topic": "Lewis and Clark Expedition",
+      "mode": "systems",
+      "grade": "5th grade",
+      "standard": "TEKS 5.1(A), 5.1(B) — Historical significance of the Lewis and Clark Expedition, its role in westward expansion, and its interactions with Native peoples",
+      "status": "exception",
+      "error": "Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CbxnAeFJCCPbxPRvzXgth\"}",
+      "attempts": 0,
+      "dimensions": {
+        "schema-valid": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "no-inert-choice": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "no-lethal-degradation": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "moral-tag-valid": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "verdict-present": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "summary-present": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "resource-keys": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "reading-level": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        },
+        "prose-length": {
+          "status": "fail",
+          "detail": "generation failed — nothing to check"
+        }
+      },
+      "fleschKincaid": null,
+      "metrics": {
+        "tokensIn": 0,
+        "tokensOut": 0,
+        "cacheWriteTokens": 0,
+        "cacheReadTokens": 0,
+        "costUSD": 0,
+        "wallSeconds": 0.3,
+        "stages": []
+      },
+      "findings": [],
+      "data": null
+    }
+  ]
+}
