@@ -3,8 +3,9 @@
 // ════════════════════════════════════════════════════════════════
 // EVAL HARNESS — Tier 1 deterministic + Tier 2 model-graded + Tier 3 metrics
 //
-// Executes the rubric in docs/RUBRIC.md against the fixed 7-topic
-// test set: generates each campaign via generateValidatedCampaign
+// Executes the rubric in docs/RUBRIC.md against the fixed test set
+// (7 rubric topics + Pearl Harbor, the short-event timeline case):
+// generates each campaign via generateValidatedCampaign
 // (the real delivery gate, maxRegen=2 so the attempts metric is
 // meaningful), consolidates the existing validator findings into
 // named pass/warn/fail dimensions, adds the two NEW deterministic
@@ -153,7 +154,9 @@ function costUSD(calls: ApiCallRecord[]): number {
 }
 
 // ════════════════════════════════════════════════════════════════
-// TEST SET — the rubric's fixed 7 topics. Topic/era/mode come from
+// TEST SET — the rubric's fixed 7 topics plus Pearl Harbor (the
+// short, compressed event that exercises timeline-coherence).
+// Topic/era/mode come from
 // the rubric; the standard strings and grades are the harness's
 // canonical inputs (Erie and Lewis & Clark reuse the repo's existing
 // canonical input sets verbatim; Montgomery and Dust Bowl reuse the
@@ -197,6 +200,17 @@ const TEST_SET: TopicSpec[] = [
     standard: "The War of 1812: impressment and the road to war, the burning of Washington, Fort McHenry, and what the war settled for the young republic",
     role: "A young militiaman in the War of 1812",
     description: "A state militiaman serving through invasion scares, supply failures, and the defense of his home region.",
+  },
+  {
+    // Short, compressed event — the positive test case for
+    // timeline-coherence. The generator picks its own totalDays /
+    // daysPerTurn from the standard; that timescale choice is exactly
+    // what this topic exists to exercise.
+    key: "pearlharbor", label: "Pearl Harbor", mode: "character",
+    topic: "The Attack on Pearl Harbor", grade: "8th grade",
+    standard: "World War II: the December 7, 1941 attack on Pearl Harbor and the United States' entry into the Second World War",
+    role: "A U.S. sailor stationed at Pearl Harbor in December 1941",
+    description: "A sailor aboard ship at Pearl Harbor living through the morning of the attack and its immediate aftermath.",
   },
   {
     key: "erie", label: "Erie Canal", mode: "systems",
@@ -354,6 +368,75 @@ function checkProseLength(d: any): DimensionResult {
   return { status: worst, detail: problems.length ? problems.join("; ") : "verdict passages 5-10 sentences; summary 275-425 words" };
 }
 
+// ── Timeline coherence (Part 1, deterministic) ────────────────────
+// The engine's character-mode "time passes" beats compute their span
+// from daysPerTurn × turns-skipped, capped at MAX_SKIP_CHUNK turns per
+// beat, then render it with skipDurationLine (ported verbatim from
+// src/GeneratedCampaign.tsx so the check reads the EXACT words a learner
+// would see). A beat is a bridge over dead air; it only reads sensibly
+// when the campaign has enough turns that a single beat spans a minority
+// of the event AND its announced calendar unit matches how long the
+// whole event actually is. A short event configured with a long-campaign
+// timescale violates this — too few turns, or one beat swallowing the
+// event, or "weeks/months pass" announced inside a sub-fortnight span
+// (the Pearl Harbor failure). Beats fire in character mode only
+// (isCharacterMode === flags present); systems campaigns never show
+// them, so the dimension is n/a-pass there.
+const MAX_SKIP_CHUNK = 6; // mirrors src/GeneratedCampaign.tsx
+
+// Ported verbatim from the engine — same bands, same words.
+const TL_NUM_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
+const tlCap = (w: string) => w.charAt(0).toUpperCase() + w.slice(1);
+function skipDurationLine(days: number): string {
+  const d = Math.max(1, Math.round(days));
+  if (d === 1) return "A day passes.";
+  if (d <= 10) return `${tlCap(TL_NUM_WORDS[d])} days pass.`;
+  if (d <= 24) return `${tlCap(TL_NUM_WORDS[Math.max(2, Math.round(d / 7))])} weeks pass.`;
+  if (d <= 45) return "A month passes.";
+  if (d <= 75) return "Two months pass.";
+  const m = Math.round(d / 30);
+  const word = TL_NUM_WORDS[Math.min(m, 10)];
+  return m * 30 > d ? `Nearly ${word} months pass.` : `${tlCap(word)} months pass.`;
+}
+
+function checkTimelineCoherence(d: any): DimensionResult {
+  const isCharacterMode = (d?.flags?.length ?? 0) > 0;
+  if (!isCharacterMode) {
+    return { status: "pass", detail: "n/a — systems mode (no character 'time passes' beats fire)" };
+  }
+  const totalDays = Number(d?.totalDays) || 0;
+  const daysPerTurn = Number(d?.daysPerTurn) || 0;
+  if (totalDays <= 0 || daysPerTurn <= 0) {
+    return { status: "warn", detail: `cannot assess — totalDays=${d?.totalDays}, daysPerTurn=${d?.daysPerTurn}` };
+  }
+
+  const totalTurns = totalDays / daysPerTurn;
+  const maxBeatDays = Math.min(MAX_SKIP_CHUNK * daysPerTurn, totalDays);
+  const frac = maxBeatDays / totalDays;
+  const worstLine = skipDurationLine(maxBeatDays);
+  const coarseUnit = /week|month/.test(worstLine); // beat announces weeks or months
+
+  // FAIL conditions — the beat language is absurd for the event's span:
+  //  1. the whole event fits inside a single skip chunk (≤6 turns) — one
+  //     beat can swallow it entirely;
+  //  2. a beat announces weeks/months while the entire event is ≤2 weeks;
+  //  3. a single beat covers >60% of the whole event.
+  // WARN — borderline: very few turns (<9), or one beat covers >50%.
+  const fails: string[] = [];
+  if (totalTurns < MAX_SKIP_CHUNK) fails.push(`only ~${totalTurns.toFixed(1)} turns — one beat can skip the whole event`);
+  if (coarseUnit && totalDays <= 14) fails.push(`beat says "${worstLine}" but the entire event is only ${totalDays} days`);
+  if (frac > 0.6) fails.push(`one beat covers ${Math.round(frac * 100)}% of the campaign`);
+
+  const warns: string[] = [];
+  if (totalTurns < 9) warns.push(`only ~${totalTurns.toFixed(1)} turns — dead-air collapse can dominate`);
+  if (frac > 0.5) warns.push(`one beat covers ${Math.round(frac * 100)}% of the campaign`);
+
+  const status: CheckStatus = fails.length ? "fail" : warns.length ? "warn" : "pass";
+  const reasons = fails.length ? fails : warns;
+  const facts = `${totalDays}d / ${daysPerTurn}d-per-turn ≈ ${totalTurns.toFixed(1)} turns; worst beat "${worstLine}" spans ${Math.round(maxBeatDays)}d (${Math.round(frac * 100)}% of event)`;
+  return { status, detail: reasons.length ? `${reasons.join("; ")} — ${facts}` : facts };
+}
+
 // ════════════════════════════════════════════════════════════════
 // TIER 1 — consolidate EXISTING validator findings into named
 // dimensions. Each finding is routed to exactly one dimension by
@@ -369,6 +452,7 @@ const TIER1_DIMENSIONS = [
   "resource-keys",
   "reading-level",
   "prose-length",
+  "timeline-coherence",
 ] as const;
 
 // Tier 2 — model-graded (rubric order; v1 = safety/credibility critical)
@@ -455,6 +539,7 @@ function consolidateTier1(
   const rl = checkReadingLevel(d, grade);
   dims["reading-level"] = { status: rl.status, detail: rl.detail };
   dims["prose-length"] = checkProseLength(d);
+  dims["timeline-coherence"] = checkTimelineCoherence(d);
 
   return { dimensions: dims, fk: rl.fk };
 }
@@ -468,8 +553,13 @@ function consolidateTier1(
 // ════════════════════════════════════════════════════════════════
 import { parseModelJson } from "./json.js";
 
+// "timeline-coherence" is a Tier-1 deterministic dimension that ALSO
+// carries a cheap Tier-2 grader component (historical-duration
+// plausibility), so it appears here alongside the pure Tier-2 names.
+type GradedName = Tier2Name | "timeline-coherence";
+
 interface GraderRecord {
-  dimension: Tier2Name;
+  dimension: GradedName;
   model: string;
   rawResponse: string;
   parsed: unknown;
@@ -554,7 +644,7 @@ function buildExamSheet(d: any): string {
 const GRADER_SYSTEM = `You are a strict, literal grader for kid-facing educational history-game content. You answer ONLY the narrow question asked. Every judgment must QUOTE the exact evidence from the provided content, or answer NONE/NO — never editorialize, never grade overall quality. Output ONLY the requested JSON object, no markdown fences, no commentary.`;
 
 interface GraderSpec {
-  dimension: Tier2Name;
+  dimension: GradedName;
   model: string;
   maxTokens: number;
   thinking: boolean;
@@ -695,6 +785,34 @@ Output JSON: {"questions": [{"id": "<question id>", "inSummary": bool, "style": 
       return { status: "pass", detail: `all ${qs.length} exam answers embedded naturally in the summary` };
     },
   },
+  {
+    // timeline-coherence Part 2 — cheap grader. Catches what the
+    // deterministic check cannot: a config that is internally coherent
+    // (enough turns, proportionate beat language) but HISTORICALLY wrong
+    // — e.g. a multi-year event smoothly configured as 90 days, or a
+    // single-day event stretched to weeks. Narrow, duration-only,
+    // state-the-real-span-or-confirm. Merged into the deterministic
+    // timeline-coherence verdict (worst-of) by mergeDimensions().
+    dimension: "timeline-coherence",
+    model: GRADER_CHEAP,
+    maxTokens: 600,
+    thinking: false,
+    buildPrompt: (d, spec) => `This educational history game is about: ${spec.topic}
+It is configured so the player lives through the event over ${d.totalDays} in-game days.
+
+Judge ONLY the duration. Is ${d.totalDays} days a plausible span for the real historical event or period this game depicts?
+- If the real event spanned MUCH less or MUCH more time than ${d.totalDays} days, set "plausible" false and state the actual rough duration.
+- Otherwise set "plausible" true (PLAUSIBLE).
+
+Output JSON: {"plausible": true|false, "actualDuration": "<rough real duration, or null>", "note": "<short phrase, or null>"}`,
+    judge: (p) => {
+      if (typeof p?.plausible !== "boolean") return { status: "warn", detail: "grader output unparseable" };
+      if (p.plausible) return { status: "pass", detail: `PLAUSIBLE — configured span fits the real event` };
+      const dur = typeof p.actualDuration === "string" && p.actualDuration.trim() ? p.actualDuration.trim() : "much shorter/longer";
+      const note = typeof p.note === "string" && p.note.trim() ? ` (${p.note.trim()})` : "";
+      return { status: "warn", detail: `implausible span — real event ≈ ${dur}${note}` };
+    },
+  },
 ];
 
 async function runGraders(
@@ -732,6 +850,30 @@ async function runGraders(
     }
   }
   return { dimensions, records };
+}
+
+// Merge Tier-1 dimensions with Tier-2 grader dimensions. Almost all
+// dimensions belong to exactly one tier, so a plain spread is correct —
+// EXCEPT timeline-coherence, which has BOTH a deterministic component
+// (from consolidateTier1) and a grader component (historical-duration
+// plausibility): those two are folded into one verdict (worst-of
+// status; both rationales kept, labeled [config]/[history]).
+const STATUS_ORDER: Record<CheckStatus, number> = { pass: 0, warn: 1, fail: 2 };
+
+function combineTimeline(det: DimensionResult, grader: DimensionResult): DimensionResult {
+  const status = STATUS_ORDER[grader.status] > STATUS_ORDER[det.status] ? grader.status : det.status;
+  return { status, detail: `[config] ${det.detail} · [history] ${grader.detail}` };
+}
+
+function mergeDimensions(
+  t1: Partial<Record<DimensionName, DimensionResult>>,
+  t2: Partial<Record<DimensionName, DimensionResult>>,
+): Partial<Record<DimensionName, DimensionResult>> {
+  const merged = { ...t1, ...t2 };
+  if (t1["timeline-coherence"] && t2["timeline-coherence"]) {
+    merged["timeline-coherence"] = combineTimeline(t1["timeline-coherence"], t2["timeline-coherence"]);
+  }
+  return merged;
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -876,7 +1018,7 @@ async function runTopic(apiKey: string, spec: TopicSpec, skipGrade = false): Pro
     error,
     title: typeof d?.title === "string" ? d.title : undefined,
     attempts: result?.attempts ?? 0,
-    dimensions: { ...dimensions, ...graderDims },
+    dimensions: mergeDimensions(dimensions, graderDims),
     graders: graderRecords,
     fleschKincaid: fk,
     metrics: {
@@ -965,13 +1107,19 @@ function buildMarkdown(meta: any, campaigns: CampaignEval[]): string {
   lines.push("");
 
   // ── Tier-2 judgments in full (the audit surface: every judgment
-  // carries its quoted evidence; spot-check these against the source) ──
-  const anyGraded = campaigns.some((c) => TIER2_DIMENSIONS.some((n) => c.dimensions[n]));
+  // carries its quoted evidence; spot-check these against the source).
+  // Includes timeline-coherence's grader component — shown only when its
+  // grader actually ran (a record exists), so a --skip-grade run's
+  // deterministic-only verdict doesn't masquerade as a graded judgment. ──
+  const AUDIT_DIMENSIONS: GradedName[] = [...TIER2_DIMENSIONS, "timeline-coherence"];
+  const isGraded = (c: CampaignEval, n: GradedName) =>
+    !!c.dimensions[n] && !!c.graders?.some((g) => g.dimension === n);
+  const anyGraded = campaigns.some((c) => AUDIT_DIMENSIONS.some((n) => isGraded(c, n)));
   if (anyGraded) {
     lines.push("## Tier-2 grader judgments (audit surface)");
     lines.push("");
     for (const c of campaigns) {
-      const graded = TIER2_DIMENSIONS.filter((n) => c.dimensions[n]);
+      const graded = AUDIT_DIMENSIONS.filter((n) => isGraded(c, n));
       if (graded.length === 0) continue;
       lines.push(`### ${c.label}`);
       for (const n of graded) {
@@ -1108,7 +1256,7 @@ async function main() {
       // Recompute Tier 1 from the stored findings + data, then merge Tier 2.
       const { dimensions: t1, fk } = consolidateTier1({ findings: c.findings, data: c.data }, c.grade, false);
       const { dimensions: t2, records } = await runGraders(apiKey, c.data, gradeSpec);
-      c.dimensions = { ...t1, ...t2 };
+      c.dimensions = mergeDimensions(t1, t2);
       c.fleschKincaid = fk;
       c.graders = records;
       c.standard = gradeSpec.standard;
