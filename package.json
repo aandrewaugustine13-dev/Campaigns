@@ -15,6 +15,7 @@
     "joseph": "npx tsx generator/inspect-joseph.ts",
     "track-range": "npx tsx generator/inspect-track-range.ts",
     "test:faultline": "npx tsx generator/faultlineCompile.test.ts",
+    "test:storyplan": "npx tsx generator/storyPlanCompile.test.ts",
     "test:numeric-flag": "npx tsx generator/numericFlag.test.ts",
     "test:relationship-tracks": "npx tsx generator/relationshipTracks.test.ts",
     "test:personal-economy": "npx tsx generator/personalEconomy.test.ts",
