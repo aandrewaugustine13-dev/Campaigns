@@ -663,6 +663,33 @@ interface GameState {
 // React). Imported at the top of this file; behavior for pin-free campaigns is
 // byte-identical to the previous in-component versions.
 
+// THE END-OF-RUN FLUSH (the hard-pin guarantee). The run may not end while any
+// pinned (narrative-spine) beat is still unfired: at EVERY goal-reached
+// transition the engine drains the next pending pin as an event instead of
+// ending, one per turn, in pinSeq order — so a checked beat ALWAYS appears, even
+// on a run too short for its window to come up normally. Only when no pins
+// remain does the run actually close (survived). A pin-free campaign hits
+// flushPendingPin → null → the normal end immediately, so existing campaigns are
+// byte-identical. Used at all three goal→end sites (simulateTurn, continueGame,
+// finalizeChoice) because the turn is split across them and any one can reach
+// the goal first — the bug a real-engine playthrough caught.
+function flushOrEnd(data: CampaignData, s: GameState): GameState {
+  const flush = flushPendingPin(data.events as GameEvent[], s.eventCounts);
+  if (!flush) return { ...s, phase: "end" as const, gameOver: true, survived: true };
+  return {
+    ...s,
+    eventCounts: { ...s.eventCounts, [flush.id]: (s.eventCounts[flush.id] ?? 0) + 1 },
+    eventLastTurn: { ...s.eventLastTurn, [flush.id]: s.turn },
+    currentEvent: { ...flush, triviaGate: false },
+    resultText: "",
+    phase: "event" as const,
+    lastEventWasReader: (flush.choices?.length ?? 0) === 1,
+    riskHintsOn: false,
+    pendingChoiceIndex: null,
+    pendingEventQuestion: null,
+  };
+}
+
 // Choose an event-trivia gate question, preferring unseen ones and recycling
 // the bank when exhausted, so the gate stays varied across a long run.
 function selectGateQuestion(
@@ -927,25 +954,8 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
         }
       }
       if (hasReachedGoal(data, s.day, s.distance)) {
-        // END-OF-RUN FLUSH: the run may not end while any pinned (narrative-
-        // spine) beat is still unfired. Drain them one per turn, in pinSeq
-        // order, as real events before the close — so a checked beat ALWAYS
-        // appears, even on a run too short for its window to come up normally.
-        // No-op when the campaign has no pins (flushPendingPin returns null),
-        // so the goal transition is byte-identical for pin-free campaigns.
-        const flush = flushPendingPin(data.events as GameEvent[], s.eventCounts);
-        if (flush) {
-          s.eventCounts = { ...s.eventCounts, [flush.id]: (s.eventCounts[flush.id] ?? 0) + 1 };
-          s.eventLastTurn = { ...s.eventLastTurn, [flush.id]: s.turn };
-          s.currentEvent = { ...flush, triviaGate: false };
-          s.phase = "event";
-          s.lastEventWasReader = (flush.choices?.length ?? 0) === 1;
-          s.riskHintsOn = false;
-          s.pendingChoiceIndex = null;
-          s.pendingEventQuestion = null;
-          return s;
-        }
-        return { ...s, phase: "end" as const, gameOver: true, survived: true };
+        // Flush any unfired pinned beats before the run can close (no-op without pins).
+        return flushOrEnd(data, s);
       }
 
       // Objectives — "quests" are journey framing (timed sub-goals incl. a
@@ -1161,9 +1171,9 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       // byte-identically to before.
       if (isCharacterMode(data) && s.resultText.trim() === "") {
         s.currentEvent = null;
-        if (hasReachedGoal(data, s.day, s.distance) || s.earlySale) {
-          return { ...s, phase: "end" as const, gameOver: true, survived: true };
-        }
+        if (s.earlySale) return { ...s, phase: "end" as const, gameOver: true, survived: true };
+        // Goal reached on a no-result reader: flush remaining pinned beats first.
+        if (hasReachedGoal(data, s.day, s.distance)) return flushOrEnd(data, s);
         s.phase = "sailing";
         return s;
       }
@@ -1240,9 +1250,11 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
           return { ...s, phase: "end" as const, gameOver: true, survived: false };
         }
       }
-      if (hasReachedGoal(data, s.day, s.distance) || s.earlySale) {
-        return { ...s, phase: "end" as const, gameOver: true, survived: true };
-      }
+      if (s.earlySale) return { ...s, phase: "end" as const, gameOver: true, survived: true };
+      // Goal reached: flush any remaining pinned beats before closing (the run
+      // is split across simulateTurn/continueGame/finalizeChoice, and this is the
+      // path a post-event "Continue" takes — it must flush too, not just end).
+      if (hasReachedGoal(data, s.day, s.distance)) return flushOrEnd(data, s);
       s.phase = "sailing";
       return s;
     });
