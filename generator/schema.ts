@@ -146,6 +146,19 @@ export interface GameEvent {
   weight: number;
   title: string;
   text: FlagText;               // plain string, or flag-keyed variants (Stage B)
+  // NARRATIVE SPINE (optional & additive — absent ⇒ a normal pool event,
+  // byte-identical). A `pinned` event is GUARANTEED to fire: the engine drains
+  // pinned events deterministically, in `pinSeq` order, ahead of the weighted
+  // pool, and flushes any still-unfired pins before the run can end. `pinSeq` is
+  // the arc-order index (0 = first beat) used both to order firing and to detect
+  // out-of-order arcs. The weighted pool fills the turns AROUND the pins.
+  pinned?: boolean;
+  pinSeq?: number;
+  // Per-event SIGNIFICANCE: why this MOMENT matters — the causal / character
+  // stakes — as distinct from `text` (which sets the scene and the logistical
+  // stakes). Feeds the narrative-coherence harness and steers authoring; v1 does
+  // NOT render it. Optional & additive ⇒ absent changes nothing.
+  significance?: string;
   type?: "standard" | "push_luck";
   choices?: Choice[];
   attempts?: PushAttempt[];
@@ -346,4 +359,14 @@ export interface CampaignData {
   // signposted). Always shown at the end as closure/study aid; on a failed exam
   // the screen also offers a retake. Absent ⇒ byte-identical.
   reviewSummary?: string;
+
+  // Story-level ENDING (narrative meaning-making; optional & additive). The
+  // "what it all added up to" synthesis — significance and irony — DISTINCT from
+  // both the `verdict` (which judges the PLAYER's character) and `reviewSummary`
+  // (which is a study-aid recap that embeds exam answers). Spec voice/content:
+  // "the Battle of New Orleans was militarily pointless since the treaty was
+  // already signed, but it made Jackson a national icon and let a bruised
+  // country feel like it won." Authored by the narrative-plan stage and rendered
+  // at the close as its own beat. Absent ⇒ no story-ending panel (byte-identical).
+  storyMeaning?: string;
 }
