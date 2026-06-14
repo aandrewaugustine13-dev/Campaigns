@@ -365,6 +365,38 @@ function buildRelationshipLaw(): string {
   return lines.join("\n");
 }
 
+// Reading-level calibration, derived from the requested grade. The bare grade
+// LABEL alone never moved the needle: generated prose clustered around FK 7.8
+// regardless of grade, so a 5th-grade request read like an 8th-grade one. This
+// gives the model concrete, grade-scaled levers (sentence length, vocabulary,
+// syllable bias) plus an ASYMMETRIC target — aim a little BELOW the nominal
+// grade, because the audience reads below level and overshooting the grade is a
+// failure while undershooting is fine. Sets DIFFICULTY only; it operates WITHIN
+// the brevity caps in the system prompt and never lengthens anything.
+function readingLevelSpec(grade: string): string {
+  const m = grade.match(/(\d+)/);
+  const g = m ? parseInt(m[1], 10) : 8;
+  const gc = Math.max(4, Math.min(8, g)); // clamp for the sentence-length ladder
+  const ladder: Record<number, { avg: string; max: number }> = {
+    4: { avg: "7-9", max: 12 },
+    5: { avg: "8-10", max: 13 },
+    6: { avg: "9-11", max: 14 },
+    7: { avg: "10-12", max: 16 },
+    8: { avg: "11-13", max: 18 },
+  };
+  const { avg, max: maxLen } = ladder[gc];
+  const aim = Math.max(2, g - 1);
+  const clauses = g <= 6
+    ? "avoid clauses nested inside clauses"
+    : "at most one short subordinate clause, never nested";
+  return [
+    `- READING LEVEL: write for grade ${g}, but AIM a little SIMPLER (around grade ${aim}). The audience reads BELOW grade level, so simpler is always better — prose HARDER than grade ${g} is a failure; prose easier than the target is never a problem. This sets reading DIFFICULTY and operates WITHIN the brevity caps above; it does not lengthen anything.`,
+    `  - Sentences: average about ${avg} words, ${maxLen} words maximum. One idea per sentence; ${clauses}.`,
+    `  - Vocabulary: choose the most common, concrete everyday word over a longer or more abstract one; prefer one- and two-syllable words and avoid four-syllable abstractions where a plain word exists.`,
+    `  - An unavoidable historical term (e.g. "impressment", "boycott", "tariff") is fine, but define it in plain words the first time it appears.`,
+  ].join("\n");
+}
+
 export function buildUserMessage(inputs: GenerateInputs, priorErrors?: string[]): string {
   const locked = buildLockedConstraints(inputs);
   let referenceFactsBlock = "";
@@ -395,6 +427,7 @@ export function buildUserMessage(inputs: GenerateInputs, priorErrors?: string[])
   const triviaSpec = inputs.faultLine
     ? `- Number of event trivia (gate questions): emit a DISTINCT bank of at least ${inputs.numQuestions}, but SIZED TO THIS CAMPAIGN'S LENGTH. The engine draws a short knowledge-check every few turns across the entire run, so a small bank will visibly repeat. For a time-based / project campaign, emit roughly ONE distinct question per THREE turns of your own totalDays \u00f7 daysPerTurn (e.g. a ~48-turn span \u2248 16 questions), capped at about 16 to stay within the output budget. Each is a brief factual check; a larger bank is strictly better than a repeating one.`
     : `- Number of event trivia (gate questions): ${inputs.numQuestions}`;
+  const readingLevel = readingLevelSpec(inputs.grade);
   const exampleIntro = locked
     ? "Here is one example campaign (Chisholm Trail). Treat it as ONE possible shape among many — your structure follows the LOCKED CONSTRAINTS above, NOT this example:"
     : "Here is a complete example campaign (Chisholm Trail) so you can see the level of detail, tone, and structure expected:";
@@ -423,6 +456,7 @@ Now generate a new campaign with these parameters:
 - Topic: ${inputs.topic}
 - Standard: ${inputs.standard}
 - Grade / reading level: ${inputs.grade}
+${readingLevel}
 - Number of events: ${inputs.length}
 ${triviaSpec}
 - Number of sage encounters: ${inputs.numSages}
