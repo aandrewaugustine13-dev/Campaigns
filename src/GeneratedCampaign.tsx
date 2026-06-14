@@ -801,6 +801,11 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   // Verdict gate: the moral verdict is shown BEFORE the exam; acknowledging it
   // falls through to the quiz. Reset wherever the exam state resets.
   const [verdictAck, setVerdictAck] = useState(false);
+  // Story-meaning gate: the narrative-spine ENDING (storyMeaning) is shown FIRST
+  // at the close — the historical "what it all added up to" — before the verdict
+  // (which judges the player) and the review summary (the study recap). Reset
+  // wherever the exam/verdict state resets. Absent storyMeaning ⇒ gate skipped.
+  const [storyMeaningAck, setStoryMeaningAck] = useState(false);
 
   // One handler for both the first attempt and the single retake. First attempt:
   // record the raw score. Retake: cap at 80, keep the better — adopt the retake
@@ -847,7 +852,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     const firstPhase = !isCharacterMode(data) && !isProjectMode(data) ? "outfit" : "sailing";
     setState({ ...makeInit(), phase: firstPhase });
     setExamTaken(false); setExamCorrect(0); setExamTotal(0); setExamPct(0);
-    setRetakeUsed(false); setRetaking(false); setVerdictAck(false); setLeftTownId(null);
+    setRetakeUsed(false); setRetaking(false); setVerdictAck(false); setStoryMeaningAck(false); setLeftTownId(null);
   }, [makeInit, data]);
   const backToMenu = useCallback(() => { onBack(); }, [onBack]);
 
@@ -1442,6 +1447,29 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   if (state.phase === "outfit") return <GenericOutfitScreen data={data} onDone={onOutfitDone} />;
 
   if (state.phase === "end") {
+    // ── Story meaning: the narrative-spine ENDING, shown FIRST at the close ──
+    // The historical "what it all added up to" (significance + irony) — DISTINCT
+    // from the verdict (which judges the player) and the review summary (a study
+    // recap). Gated on data.storyMeaning so campaigns without a spine skip
+    // straight to the verdict (byte-identical). Acknowledging falls through to
+    // the verdict gate below.
+    if (data.storyMeaning && !storyMeaningAck) {
+      return (
+        <div data-theme={theme} className="h-screen theme-bg-page theme-text theme-body-font flex items-center justify-center p-6 overflow-y-auto">
+          <div className="max-w-xl w-full space-y-8 py-8 text-center">
+            <p className={`text-xs uppercase tracking-widest theme-text-muted`}>What it all added up to</p>
+            <p className="theme-text text-lg leading-relaxed font-serif whitespace-pre-line">{data.storyMeaning}</p>
+            <button
+              onClick={() => setStoryMeaningAck(true)}
+              className="px-8 py-3 theme-btn-action font-bold rounded transition-colors"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     // ── Moral verdict: the campaign's closing judgment, BEFORE the quiz ──
     // One of the three authored passages, selected by the hidden moral counts
     // (engaged-vs-coasted). Shows ONLY the prose — no score, no tally, no
@@ -1635,7 +1663,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
           )}
 
           <div className="text-center pb-4 space-y-2">
-            <button onClick={() => { setState(makeInit()); setExamTaken(false); setExamCorrect(0); setExamTotal(0); setExamPct(0); setRetakeUsed(false); setRetaking(false); setVerdictAck(false); setLeftTownId(null); }} className="px-5 py-2 theme-btn-action font-bold rounded transition-colors">Run It Again</button>
+            <button onClick={() => { setState(makeInit()); setExamTaken(false); setExamCorrect(0); setExamTotal(0); setExamPct(0); setRetakeUsed(false); setRetaking(false); setVerdictAck(false); setStoryMeaningAck(false); setLeftTownId(null); }} className="px-5 py-2 theme-btn-action font-bold rounded transition-colors">Run It Again</button>
             <br /><button onClick={backToMenu} className="text-xs theme-text-muted opacity-90 hover:opacity-100 transition-opacity">&larr; Back to Campaigns</button>
           </div>
         </div>
