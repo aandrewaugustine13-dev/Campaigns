@@ -44,6 +44,7 @@ import { generateFrame } from "./frame.js";
 import { generatePersonalEconomy } from "./personalEconomy.js";
 import { generateCast } from "./cast.js";
 import { generateFaultLine } from "./faultline.js";
+import { generateStoryPlan } from "./storyPlan.js";
 import {
   generateValidatedCampaign,
   type GenerateInputs,
@@ -175,6 +176,11 @@ interface TopicSpec {
   description?: string;
   // full locked Stage-1 inputs (Erie fixture path)
   lockedInputs?: Partial<GenerateInputs>;
+  // When true, author a narrative plan (storyPlan stage) and generate WITH it,
+  // so the campaign carries the pinned arc + storyMeaning the narrative-coherence
+  // dimension measures. Systems-mode only for now (character coexistence with the
+  // fault line is a separate, later step). Absent ⇒ no spine (unchanged).
+  spine?: boolean;
 }
 
 const erieFixture = JSON.parse(readFileSync(resolve(__root, "fixtures/erie.json"), "utf8"));
@@ -195,11 +201,12 @@ const TEST_SET: TopicSpec[] = [
     description: "A bus-riding domestic worker deciding daily whether to walk, organize, and hold out across the 381-day boycott.",
   },
   {
-    key: "war1812", label: "War of 1812", mode: "character",
+    // The narrative-coherence test case (systems mode + spine): the New Orleans
+    // irony is the worked example for the meaning-making ending. Generated WITH
+    // a story plan so the pinned arc + storyMeaning exist to measure.
+    key: "war1812", label: "War of 1812", mode: "systems", spine: true,
     topic: "The War of 1812", grade: "8th grade",
     standard: "The War of 1812: impressment and the road to war, the burning of Washington, Fort McHenry, and what the war settled for the young republic",
-    role: "A young militiaman in the War of 1812",
-    description: "A state militiaman serving through invasion scares, supply failures, and the defense of his home region.",
   },
   {
     // Short, compressed event — the positive test case for
@@ -445,6 +452,45 @@ function checkTimelineCoherence(d: any): DimensionResult {
   return { status, detail: reasons.length ? `${reasons.join("; ")} — ${facts}` : facts };
 }
 
+// ── Narrative coherence (deterministic) ───────────────────────────
+// Measures whether the narrative SPINE actually bound: are the planned beats
+// PINNED into the campaign, in arc order, with agency at the peaks, and is the
+// meaning-making ending present? This is the detector for "did the hard-pin +
+// storyMeaning wiring work" — run on the produced `data`, not the plan. A
+// campaign generated WITHOUT a spine (no pinned events, no storyMeaning) is
+// n/a-pass, exactly as timeline-coherence is n/a for systems mode.
+function checkNarrativeCoherence(d: any): DimensionResult {
+  const events: any[] = Array.isArray(d?.events) ? d.events : [];
+  const pinned = events.filter((e) => e?.pinned === true);
+  const hasMeaning = typeof d?.storyMeaning === "string" && d.storyMeaning.trim().length > 0;
+
+  if (pinned.length === 0 && !hasMeaning)
+    return { status: "pass", detail: "n/a — no narrative spine (campaign generated without a plan)" };
+
+  const problems: string[] = [];
+  // both halves of the spine must be present
+  if (pinned.length === 0) problems.push("storyMeaning present but NO pinned beats — the arc was not pinned");
+  if (!hasMeaning) problems.push("pinned beats present but storyMeaning MISSING — no meaning-making ending");
+
+  let decisions = 0;
+  if (pinned.length > 0) {
+    const seqs = pinned.map((e) => e.pinSeq).filter((n) => typeof n === "number").sort((a, b) => a - b);
+    if (!(seqs.length === pinned.length && seqs.every((s, i) => s === i)))
+      problems.push(`pinSeq not contiguous 0..${pinned.length - 1} (got ${seqs.join(",")})`);
+    const bySeq = [...pinned].sort((a, b) => (a.pinSeq ?? 0) - (b.pinSeq ?? 0));
+    let monotonic = true;
+    for (let i = 1; i < bySeq.length; i++) if (!(bySeq[i].phase_min > bySeq[i - 1].phase_min)) monotonic = false;
+    if (!monotonic) problems.push("pinned phase_min not strictly increasing by pinSeq (arc out of order)");
+    const missingSig = bySeq.filter((e) => typeof e.significance !== "string" || !e.significance.trim()).length;
+    if (missingSig) problems.push(`${missingSig} pinned beat(s) missing significance`);
+    decisions = pinned.filter((e) => (e.choices?.length ?? 0) >= 2).length;
+    if (decisions === 0) problems.push("no pinned beat offers a real decision (≥2 choices) — agency missing from the arc");
+  }
+
+  if (problems.length) return { status: "fail", detail: problems.join("; ") };
+  return { status: "pass", detail: `spine intact: ${pinned.length} pinned beats in arc order, ${decisions} decision beat(s) + meaning ending` };
+}
+
 // ════════════════════════════════════════════════════════════════
 // TIER 1 — consolidate EXISTING validator findings into named
 // dimensions. Each finding is routed to exactly one dimension by
@@ -461,6 +507,7 @@ const TIER1_DIMENSIONS = [
   "reading-level",
   "prose-length",
   "timeline-coherence",
+  "narrative-coherence",
 ] as const;
 
 // Tier 2 — model-graded (rubric order; v1 = safety/credibility critical)
@@ -470,6 +517,7 @@ const TIER2_DIMENSIONS = [
   "age-appropriate",     // v1, cheap grader
   "verdict-lands",       // v2, cheap grader
   "answers-embedded",    // v2, cheap grader
+  "meaning-lands",       // narrative spine — the story-level ending
 ] as const;
 
 const DIMENSIONS = [...TIER1_DIMENSIONS, ...TIER2_DIMENSIONS] as const;
@@ -484,6 +532,7 @@ function routeFinding(f: DeliveryFinding): DimensionName {
   if (field.includes("moralTag") || msg.includes("moralTag")) return "moral-tag-valid";
   if (field.startsWith("verdict")) return "verdict-present";
   if (field === "reviewSummary") return "summary-present";
+  if (field === "storyMeaning" || field.includes("pinned") || field.includes("pinSeq")) return "narrative-coherence";
   if (
     field === "events→resources" || field === "primaryResourceKey" ||
     field === "resourceLabels" || field === "resourceCaps" ||
@@ -548,6 +597,7 @@ function consolidateTier1(
   dims["reading-level"] = { status: rl.status, detail: rl.detail };
   dims["prose-length"] = checkProseLength(d);
   dims["timeline-coherence"] = checkTimelineCoherence(d);
+  dims["narrative-coherence"] = checkNarrativeCoherence(d);
 
   return { dimensions: dims, fk: rl.fk };
 }
@@ -658,6 +708,10 @@ interface GraderSpec {
   thinking: boolean;
   buildPrompt: (d: any, spec: TopicSpec | { standard: string; grade: string; topic: string }) => string;
   judge: (parsed: any) => DimensionResult;
+  // Optional gate: skip this grader when it doesn't apply to the campaign (the
+  // dimension is then left absent → renders n/a, not fail). E.g. meaning-lands
+  // only runs when the campaign carries a storyMeaning.
+  applies?: (d: any) => boolean;
 }
 
 const GRADERS: GraderSpec[] = [
@@ -821,6 +875,37 @@ Output JSON: {"plausible": true|false, "actualDuration": "<rough real duration, 
       return { status: "warn", detail: `implausible span — real event ≈ ${dur}${note}` };
     },
   },
+  {
+    // narrative spine — does the story-level ENDING make meaning? Only runs when
+    // the campaign carries a storyMeaning (the spine). Distinct from verdict-lands
+    // (which judges the PLAYER) and answers-embedded (a study recap): this asks
+    // whether the close states SIGNIFICANCE / IRONY — what it all added up to —
+    // rather than retelling the sequence.
+    dimension: "meaning-lands",
+    model: GRADER_CHEAP,
+    maxTokens: 1200,
+    thinking: false,
+    applies: (d) => typeof d?.storyMeaning === "string" && d.storyMeaning.trim().length > 0,
+    buildPrompt: (d, spec) => `Topic: ${spec.topic}
+
+STORY ENDING (the game's closing "what it all added up to" passage):
+${d.storyMeaning ?? "(absent)"}
+
+This is the story-level ending of a history game. A GOOD one makes MEANING — it states the SIGNIFICANCE and/or IRONY of what happened, what the whole thing amounted to (e.g. "a war that settled none of its causes yet gave a fractured nation the myth it needed"). A BAD one merely RECAPS the sequence of events ("first this happened, then that, then finally…").
+
+Does it make significance/irony rather than recap? Quote the exact phrase that does it, or answer NO.
+
+Output JSON: {"makesMeaning": true|false, "isRecap": true|false, "quote": "<the significance/irony phrase, or null>"}`,
+    judge: (p) => {
+      if (typeof p?.makesMeaning !== "boolean") return { status: "warn", detail: "grader output unparseable" };
+      const quote = typeof p.quote === "string" && p.quote.trim() ? p.quote.trim() : "";
+      if (p.makesMeaning && !p.isRecap && quote)
+        return { status: "pass", detail: `makes meaning — "${quote.slice(0, 120)}"` };
+      if (p.makesMeaning && p.isRecap)
+        return { status: "warn", detail: `partly meaning, partly recap — "${quote.slice(0, 100)}"` };
+      return { status: "fail", detail: quote ? `reads as recap, not significance — "${quote.slice(0, 120)}"` : "NO — no significance/irony, reads as a recap" };
+    },
+  },
 ];
 
 async function runGraders(
@@ -833,6 +918,7 @@ async function runGraders(
   const records: GraderRecord[] = [];
 
   for (const g of GRADERS) {
+    if (g.applies && !g.applies(d)) continue; // n/a — leave the dimension absent
     collector.stage = `grader:${g.dimension}`;
     try {
       const raw = await withRetry(`grader ${g.dimension}`, async () => {
@@ -980,10 +1066,25 @@ async function runTopic(apiKey: string, spec: TopicSpec, skipGrade = false): Pro
       };
       collector.stage = "campaign";
     } else {
+      // Systems path. A spine topic first authors a narrative plan and a larger
+      // event bank (more pool around the pinned beats); a plain systems topic is
+      // unchanged.
+      let storyPlan: GenerateInputs["storyPlan"];
+      if (spec.spine) {
+        collector.stage = "storyplan";
+        console.log("  → story plan …");
+        const sp = await withRetry("storyplan", () =>
+          generateStoryPlan(spec.standard, apiKey, {
+            topic: spec.topic, campaignType: "systems", progressionMode: "project",
+          }),
+        );
+        storyPlan = sp.data;
+      }
       collector.stage = "campaign";
       inputs = {
         topic: spec.topic, standard: spec.standard, grade: spec.grade,
-        length: 5, numQuestions: 3, numSages: 3, difficulty: "medium",
+        length: spec.spine ? 8 : 5, numQuestions: spec.spine ? 6 : 3, numSages: 3, difficulty: "medium",
+        ...(storyPlan ? { storyPlan } : {}),
       };
     }
 
