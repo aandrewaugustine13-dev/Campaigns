@@ -5,6 +5,7 @@ import {
   ChevronRight, ChevronDown, Package
 } from "lucide-react";
 import { truncateCredit } from "./lib/attribution";
+import { selectEvent, weightedPick, flushPendingPin, MAX_EVENT_REPEATS } from "./eventSelection";
 
 function ResourceIcon({ label, className }: { label: string; className?: string }) {
   const l = label.toLowerCase();
@@ -574,6 +575,10 @@ function selectVerdict(principled: number, selfServing: number, obvious: number)
 interface GameEvent {
   id: string; phase_min: number; phase_max: number; weight: number;
   title: string; text: FlagText;
+  // Narrative-spine fields (optional & additive). A pinned beat is guaranteed
+  // to fire in pinSeq order via the pin lane in eventSelection.ts; significance
+  // is author/harness metadata (not rendered in v1).
+  pinned?: boolean; pinSeq?: number; significance?: string;
   type?: "standard" | "push_luck";
   choices?: Choice[];
   attempts?: { id: string; buttonText: string; successText: string; failureText: string; riskChance: number; rewards: Resources; penalties: Resources }[];
@@ -653,73 +658,10 @@ interface GameState {
 // ENGINE HELPERS
 // ═════════════════════════════════════════════════════════════════
 
-function weightedPick<T extends { weight?: number }>(items: T[]): T {
-  const total = items.reduce((s, i) => s + (i.weight || 1), 0);
-  let r = Math.random() * total;
-  for (const item of items) { r -= item.weight || 1; if (r <= 0) return item; }
-  return items[0];
-}
-
-// How the engine paces event repetition. Generated campaigns often ship with
-// a small event bank (5–8) packed into overlapping phase windows, so without
-// these guards the same event ("workers strike", "clear the stumps") fires
-// turn after turn once the unseen pool empties.
-const EVENT_COOLDOWN_TURNS = 4; // an event can't recur within this many turns
-const MAX_EVENT_REPEATS = 2;    // ...and can fire at most this many times total
-
-// Choose the next event for this turn. Brand-new events always win; a
-// previously seen event is only eligible again once it has cooled down AND is
-// still under its repeat cap. When nothing qualifies we return null so the
-// expedition simply travels this turn rather than replaying old content.
-function selectEvent(
-  day: number,
-  totalDays: number,
-  events: GameEvent[],
-  routeTag: string,
-  counts: Record<string, number>,
-  lastTurn: Record<string, number>,
-  turn: number,
-  maxRepeats: number,
-  avoidReader = false,
-): GameEvent | null {
-  const p = totalDays > 0 ? day / totalDays : 0;
-  const inPhase = events.filter(e => p >= e.phase_min && p <= e.phase_max);
-  if (inPhase.length === 0) return null;
-
-  const tilt = (e: GameEvent) => {
-    let w = e.weight || 1;
-    if (routeTag === "SAFE") w = Math.max(1, w - 1);
-    if (routeTag === "FAST") w += 1;
-    return Math.max(1, w);
-  };
-
-  const fresh = inPhase.filter(e => !counts[e.id]);
-  // Character moral dilemmas must fire EXACTLY ONCE (maxRepeats=1): a repeated
-  // dilemma reads as a bug, not content. With maxRepeats=1 this filter is always
-  // empty (any fired event has count ≥ 1), so each event plays once and the turn
-  // simply advances when the fresh pool is spent. Systems campaigns keep the 2×
-  // refire (resource events recurring is fine), so their behavior is unchanged.
-  const reusable = inPhase.filter(e =>
-    (counts[e.id] ?? 0) > 0 &&
-    (counts[e.id] ?? 0) < maxRepeats &&
-    turn - (lastTurn[e.id] ?? -Infinity) >= EVENT_COOLDOWN_TURNS,
-  );
-  let pool = fresh.length > 0 ? fresh : reusable;
-  if (pool.length === 0) return null;
-  // Endgame-rhythm backstop (character mode only; avoidReader is false for
-  // systems, so their selection is byte-identical). Never fire two no-choice
-  // "Go on." reader beats in a row: if the last event was a reader, prefer a
-  // real choice. If ONLY readers remain eligible, defer to travel (return null)
-  // rather than stacking a second reader — the deferred reader stays FRESH
-  // (uncounted) and fires next turn once a travel beat has separated them, so
-  // it's deferred, never DROPPED.
-  if (avoidReader) {
-    const withChoice = pool.filter(e => (e.choices?.length ?? 0) > 1);
-    if (withChoice.length > 0) pool = withChoice;
-    else return null;
-  }
-  return weightedPick(pool.map(e => ({ ...e, weight: tilt(e) })));
-}
+// weightedPick, selectEvent, and the cooldown/repeat constants now live in
+// ./eventSelection (extracted so the pin guarantee is unit-testable without
+// React). Imported at the top of this file; behavior for pin-free campaigns is
+// byte-identical to the previous in-component versions.
 
 // Choose an event-trivia gate question, preferring unseen ones and recycling
 // the bank when exhausted, so the gate stays varied across a long run.
@@ -985,6 +927,24 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
         }
       }
       if (hasReachedGoal(data, s.day, s.distance)) {
+        // END-OF-RUN FLUSH: the run may not end while any pinned (narrative-
+        // spine) beat is still unfired. Drain them one per turn, in pinSeq
+        // order, as real events before the close — so a checked beat ALWAYS
+        // appears, even on a run too short for its window to come up normally.
+        // No-op when the campaign has no pins (flushPendingPin returns null),
+        // so the goal transition is byte-identical for pin-free campaigns.
+        const flush = flushPendingPin(data.events as GameEvent[], s.eventCounts);
+        if (flush) {
+          s.eventCounts = { ...s.eventCounts, [flush.id]: (s.eventCounts[flush.id] ?? 0) + 1 };
+          s.eventLastTurn = { ...s.eventLastTurn, [flush.id]: s.turn };
+          s.currentEvent = { ...flush, triviaGate: false };
+          s.phase = "event";
+          s.lastEventWasReader = (flush.choices?.length ?? 0) === 1;
+          s.riskHintsOn = false;
+          s.pendingChoiceIndex = null;
+          s.pendingEventQuestion = null;
+          return s;
+        }
         return { ...s, phase: "end" as const, gameOver: true, survived: true };
       }
 
