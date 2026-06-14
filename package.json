@@ -13,6 +13,7 @@
     "frame": "npx tsx generator/inspect-frame.ts",
     "faultline": "npx tsx generator/inspect-faultline.ts",
     "storyplan": "npx tsx generator/inspect-storyplan.ts",
+    "pinned-campaign": "npx tsx generator/inspect-pinned-campaign.ts",
     "joseph": "npx tsx generator/inspect-joseph.ts",
     "track-range": "npx tsx generator/inspect-track-range.ts",
     "test:faultline": "npx tsx generator/faultlineCompile.test.ts",
