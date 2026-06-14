@@ -1,0 +1,2365 @@
+{
+  "meta": {
+    "timestamp": "2026-06-13-2333",
+    "startedAt": "2026-06-14T03:33:26.287Z",
+    "gitCommit": "49be61b",
+    "pricing": {
+      "model": "claude-sonnet-4-6",
+      "inputPerM": 3,
+      "outputPerM": 15,
+      "cacheWritePerM": 3.75,
+      "cacheReadPerM": 0.3
+    },
+    "graders": {
+      "cheap": "claude-haiku-4-5",
+      "strong": "claude-opus-4-8",
+      "skipped": false
+    },
+    "maxRegen": 2,
+    "phase": 2,
+    "harnessVersion": 2
+  },
+  "campaigns": [
+    {
+      "key": "pearlharbor",
+      "label": "Pearl Harbor",
+      "topic": "The Attack on Pearl Harbor",
+      "mode": "character",
+      "grade": "8th grade",
+      "standard": "World War II: the December 7, 1941 attack on Pearl Harbor and the United States' entry into the Second World War",
+      "status": "ok",
+      "title": "DAY OF INFAMY",
+      "attempts": 1,
+      "dimensions": {
+        "schema-valid": {
+          "status": "warn",
+          "detail": "[flags→reads] Flag \"family\" is declared but never read by any variant; [flags→reads] Flag \"community\" is declared but never read by any variant"
+        },
+        "no-inert-choice": {
+          "status": "pass",
+          "detail": "every multi-option choice carries a felt consequence"
+        },
+        "no-lethal-degradation": {
+          "status": "pass",
+          "detail": "personal resources degrade, never kill"
+        },
+        "moral-tag-valid": {
+          "status": "pass",
+          "detail": "all moralTags ∈ {principled, self-serving, obvious}"
+        },
+        "resource-keys": {
+          "status": "pass",
+          "detail": "all effects reference declared resource keys"
+        },
+        "verdict-present": {
+          "status": "pass",
+          "detail": "all 3 verdict passages present and non-empty"
+        },
+        "summary-present": {
+          "status": "pass",
+          "detail": "review summary present"
+        },
+        "reading-level": {
+          "status": "pass",
+          "detail": "FK 6.3 vs target 8 (-1.7 over; asymmetric band: pass ≤+0.5 / warn ≤+1.5 / fail >+1.5, easier always passes; 2413 words of body prose)"
+        },
+        "prose-length": {
+          "status": "pass",
+          "detail": "verdict passages 5-10 sentences; summary 275-425 words"
+        },
+        "timeline-coherence": {
+          "status": "fail",
+          "detail": "[config] only ~5.0 turns — one beat can skip the whole event; one beat covers 100% of the campaign — 5d / 1d-per-turn ≈ 5.0 turns; worst beat \"Five days pass.\" spans 5d (100% of event) · [history] implausible span — real event ≈ approximately 2 hours on December 7, 1941 (Attack occurred in a single morning; 5 days is implausibly extended)"
+        },
+        "factual-accuracy": {
+          "status": "fail",
+          "detail": "\"The USS Arizona exploded and sank after its forward ammunition magazine was hit. More than 1,177 of its crew died\" — The accepted figure for USS Arizona deaths is 1,177, not 'more than 1,177'; the phrasing overstates the actual number."
+        },
+        "standard-alignment": {
+          "status": "pass",
+          "detail": "addresses the standard — e.g. \"The attack on Pearl Harbor on December 7, 1941 killed 2,403 Americans and wounded 1,178 more. Eight battleships were sun\""
+        },
+        "age-appropriate": {
+          "status": "pass",
+          "detail": "NONE — no age-inappropriate content found"
+        },
+        "verdict-lands": {
+          "status": "pass",
+          "detail": "all 3 passages judge character, tie to the real outcome, non-congratulatory"
+        },
+        "answers-embedded": {
+          "status": "fail",
+          "detail": "1/18 answers NOT in summary: Q [pt13]"
+        }
+      },
+      "graders": [
+        {
+          "dimension": "factual-accuracy",
+          "model": "claude-opus-4-8",
+          "rawResponse": "{\"claims\": [{\"quote\": \"The USS Arizona exploded and sank after its forward ammunition magazine was hit. More than 1,177 of its crew died\", \"why\": \"The accepted figure for USS Arizona deaths is 1,177, not 'more than 1,177'; the phrasing overstates the actual number.\"}]}",
+          "parsed": {
+            "claims": [
+              {
+                "quote": "The USS Arizona exploded and sank after its forward ammunition magazine was hit. More than 1,177 of its crew died",
+                "why": "The accepted figure for USS Arizona deaths is 1,177, not 'more than 1,177'; the phrasing overstates the actual number."
+              }
+            ]
+          }
+        },
+        {
+          "dimension": "standard-alignment",
+          "model": "claude-haiku-4-5",
+          "rawResponse": "```json\n{\"addresses\": true, \"quotes\": [\"The attack on Pearl Harbor on December 7, 1941 killed 2,403 Americans and wounded 1,178 more. Eight battleships were sunk or damaged. Japan hoped to cripple the U.S. Pacific Fleet before America could resist Japan's expansion across Asia. Instead, the attack ended American isolationism overnight. Congress declared war on Japan on December 8, and Germany and Italy declared war on the United States on December 11.\", \"On December 8, President Roosevelt stood before Congress and called December 7 'a date which will live in infamy.' The Senate voted 82 to 0 and the House voted 388 to 1 to declare war on Japan. On December 11, Germany and Italy declared war on the United States, pulling America into the full global conflict.\", \"The attack began at 7:55 a.m. on Sunday, December 7, 1941 — a time when most sailors were still at breakfast or asleep.\", \"Vice Admiral Chuichi Nagumo commanded Kido Butai — the six-carrier strike force that launched the attack.\"]}\n```",
+          "parsed": {
+            "addresses": true,
+            "quotes": [
+              "The attack on Pearl Harbor on December 7, 1941 killed 2,403 Americans and wounded 1,178 more. Eight battleships were sunk or damaged. Japan hoped to cripple the U.S. Pacific Fleet before America could resist Japan's expansion across Asia. Instead, the attack ended American isolationism overnight. Congress declared war on Japan on December 8, and Germany and Italy declared war on the United States on December 11.",
+              "On December 8, President Roosevelt stood before Congress and called December 7 'a date which will live in infamy.' The Senate voted 82 to 0 and the House voted 388 to 1 to declare war on Japan. On December 11, Germany and Italy declared war on the United States, pulling America into the full global conflict.",
+              "The attack began at 7:55 a.m. on Sunday, December 7, 1941 — a time when most sailors were still at breakfast or asleep.",
+              "Vice Admiral Chuichi Nagumo commanded Kido Butai — the six-carrier strike force that launched the attack."
+            ]
+          }
+        },
+        {
+          "dimension": "age-appropriate",
+          "model": "claude-haiku-4-5",
+          "rawResponse": "```json\n{\"findings\": []}\n```",
+          "parsed": {
+            "findings": []
+          }
+        },
+        {
+          "dimension": "verdict-lands",
+          "model": "claude-haiku-4-5",
+          "rawResponse": "```json\n{\n  \"passages\": {\n    \"good\": {\n      \"judgesCharacter\": true,\n      \"tiesToRealOutcome\": true,\n      \"congratulatory\": false,\n      \"quote\": \"You kept your word and held your ground. When it cost you to tell the truth, you told it anyway.\"\n    },\n    \"bad\": {\n      \"judgesCharacter\": true,\n      \"tiesToRealOutcome\": true,\n      \"congratulatory\": false,\n      \"quote\": \"You covered for the officer who needed covering, skipped the salvage shift, passed blame when it was convenient.\"\n    },\n    \"indifferent\": {\n      \"judgesCharacter\": true,\n      \"tiesToRealOutcome\": true,\n      \"congratulatory\": false,\n      \"quote\": \"Every time a choice arrived, you waited for it to get easier, and someone else made it. You did not lie, but you did not speak. You did not run, but you did not step forward.\"\n    }\n  }\n}\n```",
+          "parsed": {
+            "passages": {
+              "good": {
+                "judgesCharacter": true,
+                "tiesToRealOutcome": true,
+                "congratulatory": false,
+                "quote": "You kept your word and held your ground. When it cost you to tell the truth, you told it anyway."
+              },
+              "bad": {
+                "judgesCharacter": true,
+                "tiesToRealOutcome": true,
+                "congratulatory": false,
+                "quote": "You covered for the officer who needed covering, skipped the salvage shift, passed blame when it was convenient."
+              },
+              "indifferent": {
+                "judgesCharacter": true,
+                "tiesToRealOutcome": true,
+                "congratulatory": false,
+                "quote": "Every time a choice arrived, you waited for it to get easier, and someone else made it. You did not lie, but you did not speak. You did not run, but you did not step forward."
+              }
+            }
+          }
+        },
+        {
+          "dimension": "answers-embedded",
+          "model": "claude-haiku-4-5",
+          "rawResponse": "```json\n{\"questions\": [{\"id\": \"Q [pt1]\", \"inSummary\": true, \"style\": \"embedded\", \"quote\": \"The attack began at 7:55 a.m.\"}, {\"id\": \"Q [pt2]\", \"inSummary\": true, \"style\": \"embedded\", \"quote\": \"2,403 Americans who died that day\"}, {\"id\": \"Q [pt3]\", \"inSummary\": true, \"style\": \"embedded\", \"quote\": \"The USS Arizona exploded after its forward ammunition magazine was hit, killing more than 1,177 of its crew\"}, {\"id\": \"Q [pt4]\", \"inSummary\": true, \"style\": \"embedded\", \"quote\": \"Japanese planners chose a Sunday morning because American ships were in port and many sailors were off duty\"}, {\"id\": \"Q [pt5]\", \"inSummary\": true, \"style\": \"embedded\", \"quote\": \"which launched 353 aircraft in two waves from six carriers\"}, {\"id\": \"Q [pt6]\", \"inSummary\": true, \"style\": \"embedded\", \"quote\": \"All three U.S. aircraft carriers were at sea and survived\"}, {\"id\": \"Q [pt7]\", \"inSummary\": true, \"style\": \"embedded\", \"quote\": \"Nagumo chose not to launch a third attack wave\"}, {\"id\": \"Q [pt8]\", \"inSummary\": true, \"style\": \"embedded\", \"quote\": \"most Americans supported isolationism — the belief that the United States should stay out of foreign wars\"}, {\"id\": \"Q [pt9]\", \"inSummary\": true, \"style\": \"embedded\", \"quote\": \"Vice Admiral Chuichi Nagumo commanded the strike force, called Kido Butai\"}, {\"id\": \"Q [pt10]\", \"inSummary\": true, \"style\": \"embedded\", \"quote\": \"On December 11, Germany and Italy declared war on the United States\"}, {\"id\": \"Q [pt11]\", \"inSummary\": true, \"style\": \"embedded\", \"quote\": \"President Roosevelt stood before Congress and called December 7 'a date which will live in infamy'\"}, {\"id\": \"Q [pt12]\", \"inSummary\": true, \"style\": \"embedded\", \"quote\": \"USS Nevada was the only battleship to get underway during the attack\"}, {\"id\": \"Q [pt13]\", \"inSummary\": false, \"style\": null, \"quote\": null}, {\"id\": \"Q [pt14]\", \"inSummary\": true, \"style\": \"embedded\", \"quote\": \"The Senate voted 82 to 0 and the House voted 388 to 1 to declare war on Japan\"}, {\"id\": \"Q [pt15]\", \"inSummary\": true, \"style\": \"embedded\", \"quote\": \"That decision left Pearl Harbor's fuel storage tanks, repair docks, and submarine base mostly intact\"}, {\"id\": \"Q [sageq_kimmel]\", \"inSummary\": true, \"style\": \"embedded\", \"quote\": \"Eight battleships were sunk or damaged along Battleship Row\"}, {\"id\": \"Q [sageq_yamamoto]\", \"inSummary\": true, \"style\": \"embedded\", \"quote\": \"hoping to knock out the U.S. Pacific Fleet before America could resist Japan's expansion in Asia\"}, {\"id\": \"Q [sageq_roosevelt]\", \"inSummary\": true, \"style\": \"embedded\", \"quote\": \"The Senate voted 82 to 0 and the House voted 388 to 1 to declare war on Japan\"}]}\n```",
+          "parsed": {
+            "questions": [
+              {
+                "id": "Q [pt1]",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "The attack began at 7:55 a.m."
+              },
+              {
+                "id": "Q [pt2]",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "2,403 Americans who died that day"
+              },
+              {
+                "id": "Q [pt3]",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "The USS Arizona exploded after its forward ammunition magazine was hit, killing more than 1,177 of its crew"
+              },
+              {
+                "id": "Q [pt4]",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "Japanese planners chose a Sunday morning because American ships were in port and many sailors were off duty"
+              },
+              {
+                "id": "Q [pt5]",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "which launched 353 aircraft in two waves from six carriers"
+              },
+              {
+                "id": "Q [pt6]",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "All three U.S. aircraft carriers were at sea and survived"
+              },
+              {
+                "id": "Q [pt7]",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "Nagumo chose not to launch a third attack wave"
+              },
+              {
+                "id": "Q [pt8]",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "most Americans supported isolationism — the belief that the United States should stay out of foreign wars"
+              },
+              {
+                "id": "Q [pt9]",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "Vice Admiral Chuichi Nagumo commanded the strike force, called Kido Butai"
+              },
+              {
+                "id": "Q [pt10]",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "On December 11, Germany and Italy declared war on the United States"
+              },
+              {
+                "id": "Q [pt11]",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "President Roosevelt stood before Congress and called December 7 'a date which will live in infamy'"
+              },
+              {
+                "id": "Q [pt12]",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "USS Nevada was the only battleship to get underway during the attack"
+              },
+              {
+                "id": "Q [pt13]",
+                "inSummary": false,
+                "style": null,
+                "quote": null
+              },
+              {
+                "id": "Q [pt14]",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "The Senate voted 82 to 0 and the House voted 388 to 1 to declare war on Japan"
+              },
+              {
+                "id": "Q [pt15]",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "That decision left Pearl Harbor's fuel storage tanks, repair docks, and submarine base mostly intact"
+              },
+              {
+                "id": "Q [sageq_kimmel]",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "Eight battleships were sunk or damaged along Battleship Row"
+              },
+              {
+                "id": "Q [sageq_yamamoto]",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "hoping to knock out the U.S. Pacific Fleet before America could resist Japan's expansion in Asia"
+              },
+              {
+                "id": "Q [sageq_roosevelt]",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "The Senate voted 82 to 0 and the House voted 388 to 1 to declare war on Japan"
+              }
+            ]
+          }
+        },
+        {
+          "dimension": "timeline-coherence",
+          "model": "claude-haiku-4-5",
+          "rawResponse": "```json\n{\"plausible\": false, \"actualDuration\": \"approximately 2 hours on December 7, 1941\", \"note\": \"Attack occurred in a single morning; 5 days is implausibly extended\"}\n```",
+          "parsed": {
+            "plausible": false,
+            "actualDuration": "approximately 2 hours on December 7, 1941",
+            "note": "Attack occurred in a single morning; 5 days is implausibly extended"
+          }
+        }
+      ],
+      "fleschKincaid": 6.3,
+      "metrics": {
+        "tokensIn": 68566,
+        "tokensOut": 15895,
+        "cacheWriteTokens": 0,
+        "cacheReadTokens": 0,
+        "costUSD": 0.4647,
+        "wallSeconds": 281.8,
+        "stages": [
+          {
+            "stage": "frame",
+            "calls": 1,
+            "tokensIn": 1298,
+            "tokensOut": 666,
+            "seconds": 14.739
+          },
+          {
+            "stage": "faultline",
+            "calls": 1,
+            "tokensIn": 1369,
+            "tokensOut": 1262,
+            "seconds": 30.426
+          },
+          {
+            "stage": "personal-economy",
+            "calls": 1,
+            "tokensIn": 1021,
+            "tokensOut": 895,
+            "seconds": 21.791
+          },
+          {
+            "stage": "cast",
+            "calls": 1,
+            "tokensIn": 811,
+            "tokensOut": 943,
+            "seconds": 19.244
+          },
+          {
+            "stage": "campaign",
+            "calls": 4,
+            "tokensIn": 44222,
+            "tokensOut": 9663,
+            "seconds": 163.382
+          },
+          {
+            "stage": "grader:factual-accuracy",
+            "calls": 1,
+            "tokensIn": 7522,
+            "tokensOut": 1031,
+            "seconds": 13.548
+          },
+          {
+            "stage": "grader:standard-alignment",
+            "calls": 1,
+            "tokensIn": 5090,
+            "tokensOut": 262,
+            "seconds": 2.463
+          },
+          {
+            "stage": "grader:age-appropriate",
+            "calls": 1,
+            "tokensIn": 5116,
+            "tokensOut": 13,
+            "seconds": 1.432
+          },
+          {
+            "stage": "grader:verdict-lands",
+            "calls": 1,
+            "tokensIn": 547,
+            "tokensOut": 249,
+            "seconds": 1.633
+          },
+          {
+            "stage": "grader:answers-embedded",
+            "calls": 1,
+            "tokensIn": 1340,
+            "tokensOut": 855,
+            "seconds": 4.505
+          },
+          {
+            "stage": "grader:timeline-coherence",
+            "calls": 1,
+            "tokensIn": 230,
+            "tokensOut": 56,
+            "seconds": 1.023
+          }
+        ]
+      },
+      "findings": [
+        {
+          "level": "warn",
+          "field": "flags→reads",
+          "message": "Flag \"family\" is declared but never read by any variant",
+          "source": "data"
+        },
+        {
+          "level": "warn",
+          "field": "flags→reads",
+          "message": "Flag \"community\" is declared but never read by any variant",
+          "source": "data"
+        }
+      ],
+      "data": {
+        "id": "pearl_harbor_1941",
+        "title": "DAY OF INFAMY",
+        "subtitle": "Pearl Harbor, December 7–11, 1941",
+        "introBody": "Sunday morning, December 7, 1941. You are a young enlisted sailor aboard a battleship at Pearl Harbor. The harbor is calm. The sky is clear. Then the planes come.",
+        "trailFeedOpener": "December 7, 1941: The first bombs fall on Pearl Harbor at 7:55 a.m.",
+        "theme": "civil-rights-midcentury",
+        "isPublished": false,
+        "progressionMode": "project",
+        "totalDays": 5,
+        "daysPerTurn": 1,
+        "totalDistance": 0,
+        "distanceUnit": "",
+        "initialResources": {
+          "pay": 18,
+          "condition": 55,
+          "standing": 55
+        },
+        "resourceCaps": {
+          "pay": 60,
+          "condition": 100,
+          "standing": 100
+        },
+        "resourceLabels": {
+          "pay": "Cash on hand",
+          "condition": "Physical and mental bearing",
+          "standing": "Trust among your crew and officers"
+        },
+        "paces": [],
+        "events": [
+          {
+            "id": "fl_setter",
+            "phase_min": 0,
+            "phase_max": 0.3,
+            "weight": 5,
+            "title": "Pearl Harbor — the first hour of the attack, amid smoke and fire on the harbor deck",
+            "text": "The sailor has just dragged himself out of the water onto a listing, burning deck. Amid the chaos he hears his friend Eddie calling from beneath a collapsed gun mount — alive, burned, pinned, terrified. Twenty feet away a cluster of young sailors stand frozen with no petty officer in sight, ammunition at hand, an anti-aircraft gun still operational but unmanned. He cannot split himself. The attack is still ongoing. No one is coming.",
+            "type": "standard",
+            "choices": [
+              {
+                "text": "Go to Eddie. Get him out. He's your friend and he's calling your name.",
+                "flagWrites": {
+                  "loyalty_to_particular_over_collective": true
+                },
+                "result": "The sailor plants himself in the particular — the person you know, the face you can see, the love that makes the uniform mean something in the first place. He is not refusing duty; he is insisting that duty without this is hollow."
+              },
+              {
+                "text": "Leave Eddie. Get to those men and that gun. It's what you trained for.",
+                "flagWrites": {
+                  "loyalty_to_particular_over_collective": false
+                },
+                "result": "The sailor accepts the terrible arithmetic of his oath — that the uniform requires him to love the many over the one, even the one he knows. He is not indifferent to Eddie; he is paying the exact price his identity as a Navy man demands."
+              }
+            ]
+          },
+          {
+            "id": "smoke_and_oil",
+            "phase_min": 0.05,
+            "phase_max": 0.3,
+            "weight": 5,
+            "title": "Oil on the Water",
+            "text": "The harbor is covered in burning oil. Wounded men call out from the black water. A rescue boat is already full. You spot a wooden hatch cover floating nearby — enough to hold one man.",
+            "type": "standard",
+            "imageSearchQuery": "Pearl Harbor burning oil battleship row 1941",
+            "choices": [
+              {
+                "text": "Jump in and swim the hatch cover to the nearest man.",
+                "effects": {
+                  "condition": -8,
+                  "standing": 6
+                },
+                "flagWrites": {
+                  "community": 2
+                },
+                "result": "You pull him onto the hatch. He's badly burned but alive. Your arms shake for an hour after.",
+                "moralTag": "principled"
+              },
+              {
+                "text": "Wave the rescue boat back — shout where the man is.",
+                "effects": {
+                  "standing": 2
+                },
+                "flagWrites": {
+                  "community": 1
+                },
+                "result": "The boat swings back and gets him. It takes longer than swimming would have.",
+                "moralTag": "obvious"
+              },
+              {
+                "text": "Stay on deck. You're needed at your station.",
+                "effects": {
+                  "standing": -3
+                },
+                "flagWrites": {
+                  "community": -1
+                },
+                "result": "You report to your station. The man in the water is pulled out later by someone else.",
+                "moralTag": "self-serving"
+              }
+            ],
+            "image": {
+              "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Naval_photograph_documenting_the_Japanese_attack_on_Pearl_Harbor%2C_Hawaii_which_initiated_US_participation_in_World..._-_NARA_-_295988.jpg/960px-Naval_photograph_documenting_the_Japanese_attack_on_Pearl_Harbor%2C_Hawaii_which_initiated_US_participation_in_World..._-_NARA_-_295988.jpg",
+              "artist": "Department of the Navy. Fourteenth Naval District. (1916 - 09/18/1947), Photographer (NARA record: 1172763)",
+              "license": "Public domain",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ANaval_photograph_documenting_the_Japanese_attack_on_Pearl_Harbor%2C_Hawaii_which_initiated_US_participation_in_World..._-_NARA_-_295988.jpg",
+              "searchQuery": "Pearl Harbor burning oil battleship row 1941 photograph"
+            }
+          },
+          {
+            "id": "false_rumor",
+            "phase_min": 0.15,
+            "phase_max": 0.45,
+            "weight": 4,
+            "title": "The Wrong Name",
+            "text": "A shipmate tells you he saw your friend Martinez listed among the dead. Later you learn the list had a clerical error — it was a different man. But others already heard you repeat it.",
+            "type": "standard",
+            "imageSearchQuery": "Pearl Harbor casualty list Navy 1941",
+            "choices": [
+              {
+                "text": "Tell everyone right away — you got it wrong.",
+                "effects": {
+                  "standing": 3
+                },
+                "flagWrites": {
+                  "community": 2,
+                  "family": -1
+                },
+                "result": "It stings to admit it. But the men respect you more for correcting it fast.",
+                "moralTag": "principled"
+              },
+              {
+                "text": "Say nothing. The error will sort itself out.",
+                "effects": {
+                  "standing": -4
+                },
+                "flagWrites": {
+                  "community": -2
+                },
+                "result": "Martinez's bunkmates grieve all day before the truth comes out. They remember who spread it.",
+                "moralTag": "obvious"
+              },
+              {
+                "text": "Blame the shipmate who told you.",
+                "effects": {
+                  "standing": -6,
+                  "pay": -2
+                },
+                "flagWrites": {
+                  "community": -3
+                },
+                "result": "Word gets around quickly. Sailors don't trust a man who passes blame.",
+                "moralTag": "self-serving"
+              }
+            ],
+            "image": {
+              "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Exterior_oblique_view_of_the_south_end_and_the_west_side_-_U.S._Naval_Base%2C_Pearl_Harbor%2C_Temporary_Decontamination_Center%2C_Corner_of_Avenue_D_and_Seventh_Street%2C_Pearl_City%2C_Honolulu_HABS_HI-489-2.tif/lossy-page1-960px-thumbnail.tif.jpg",
+              "artist": "Franzen, David",
+              "license": "Public domain",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AExterior_oblique_view_of_the_south_end_and_the_west_side_-_U.S._Naval_Base%2C_Pearl_Harbor%2C_Temporary_Decontamination_Center%2C_Corner_of_Avenue_D_and_Seventh_Street%2C_Pearl_City%2C_Honolulu_HABS_HI-489-2.tif",
+              "searchQuery": "Pearl Harbor casualty list Navy 1941 photograph"
+            }
+          },
+          {
+            "id": "letter_home",
+            "phase_min": 0.3,
+            "phase_max": 0.6,
+            "weight": 4,
+            "title": "Letter Home",
+            "text": "The Navy says outgoing mail is restricted — no details about the attack allowed through censors. Your mother doesn't know if you're alive. You have a stamp and five minutes.",
+            "type": "standard",
+            "imageSearchQuery": "Navy sailor writing letter 1941 wartime censorship",
+            "choices": [
+              {
+                "text": "Write the truth: 'I'm alive. Don't worry about the rest.'",
+                "effects": {
+                  "pay": -1,
+                  "condition": 4
+                },
+                "flagWrites": {
+                  "family": 3
+                },
+                "result": "The censor passes it. Your mother gets it four days later. She keeps it in her Bible.",
+                "moralTag": "principled"
+              },
+              {
+                "text": "Write nothing. Wait until you're sure what's allowed.",
+                "effects": {
+                  "condition": -3
+                },
+                "flagWrites": {
+                  "family": -2
+                },
+                "result": "Your mother reads about Pearl Harbor in the newspaper and has no word from you for two weeks.",
+                "moralTag": "obvious"
+              },
+              {
+                "text": "Slip in details about ship damage — she should know.",
+                "effects": {
+                  "standing": -5,
+                  "pay": -1
+                },
+                "flagWrites": {
+                  "family": 1,
+                  "community": -2
+                },
+                "result": "The letter is flagged and confiscated. A petty officer calls you in. The information could have helped the enemy.",
+                "moralTag": "self-serving"
+              }
+            ],
+            "image": {
+              "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/b/bc/Unit_731_-_Complex.jpg",
+              "artist": "Unknown author",
+              "license": "Public domain",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AUnit_731_-_Complex.jpg",
+              "searchQuery": "Navy sailor writing letter 1941 wartime censorship"
+            }
+          },
+          {
+            "id": "salvage_duty",
+            "phase_min": 0.4,
+            "phase_max": 0.7,
+            "weight": 5,
+            "title": "Salvage Shift",
+            "text": "Officers need volunteers for underwater salvage — recovering bodies and equipment from sunken ships. It is brutal work. You have already done two shifts without sleep.",
+            "type": "standard",
+            "imageSearchQuery": "Pearl Harbor salvage divers USS Arizona wreck",
+            "choices": [
+              {
+                "text": "Volunteer for another shift.",
+                "effects": {
+                  "condition": -12,
+                  "standing": 7
+                },
+                "flagWrites": {
+                  "community": 3,
+                  "family": -1
+                },
+                "result": "You go back down. The work is terrible. Your petty officer tells you he won't forget it.",
+                "moralTag": "principled"
+              },
+              {
+                "text": "Say you'll go if no one else steps up.",
+                "effects": {
+                  "condition": -5,
+                  "standing": 2
+                },
+                "flagWrites": {
+                  "community": 1
+                },
+                "result": "Another man volunteers first. You avoid the worst of it.",
+                "moralTag": "obvious"
+              },
+              {
+                "text": "Claim a sore shoulder. Sit this one out.",
+                "effects": {
+                  "standing": -5
+                },
+                "flagWrites": {
+                  "community": -2
+                },
+                "result": "The shoulder story gets around. No one calls you a liar out loud, but you feel their eyes.",
+                "moralTag": "self-serving"
+              }
+            ],
+            "image": {
+              "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/USS_Arizona_Memorial_%28aerial_view%29.jpg/960px-USS_Arizona_Memorial_%28aerial_view%29.jpg",
+              "artist": "DoD photo by: PH3(AW/SW) JAYME PASTORIC, USN",
+              "license": "Public domain",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AUSS_Arizona_Memorial_(aerial_view).jpg",
+              "searchQuery": "Pearl Harbor salvage divers USS Arizona wreck"
+            }
+          },
+          {
+            "id": "interrogation_room",
+            "phase_min": 0.55,
+            "phase_max": 0.8,
+            "weight": 4,
+            "title": "The Officer's Questions",
+            "text": "An intelligence officer interviews you about what you saw during the attack. He asks about a junior officer who may have made an error that cost lives. You saw it happen.",
+            "type": "standard",
+            "imageSearchQuery": "Navy intelligence office 1941 Pearl Harbor inquiry",
+            "choices": [
+              {
+                "text": "Tell the truth — say exactly what you saw.",
+                "effects": {
+                  "standing": 5
+                },
+                "flagWrites": {
+                  "community": 2,
+                  "family": -1
+                },
+                "result": "The officer writes it down carefully. The investigation moves forward. It sits heavy, but it's done.",
+                "moralTag": "principled"
+              },
+              {
+                "text": "Give a vague answer — you weren't sure of the details.",
+                "effects": {
+                  "standing": -3,
+                  "condition": -4
+                },
+                "flagWrites": {
+                  "community": -1
+                },
+                "result": "The officer knows you're hedging. It goes in your file.",
+                "moralTag": "obvious"
+              },
+              {
+                "text": "Cover for the officer — say you didn't see anything.",
+                "effects": {
+                  "standing": -6,
+                  "pay": 3
+                },
+                "flagWrites": {
+                  "community": -3,
+                  "family": 1
+                },
+                "result": "The officer thanks you quietly and slips you a few dollars. Something about it feels wrong.",
+                "moralTag": "self-serving"
+              }
+            ],
+            "image": {
+              "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Attack_on_Pearl_Harbor_Japanese_planes_view.jpg/960px-Attack_on_Pearl_Harbor_Japanese_planes_view.jpg",
+              "artist": "Imperial Japanese Navy",
+              "license": "Public domain",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AAttack_on_Pearl_Harbor_Japanese_planes_view.jpg",
+              "searchQuery": "Navy intelligence office 1941 Pearl Harbor inquiry"
+            }
+          },
+          {
+            "id": "war_vote_news",
+            "phase_min": 0.85,
+            "phase_max": 1,
+            "weight": 5,
+            "title": "Congress Votes for War",
+            "text": "It's December 8. A radio crackles with President Roosevelt's words: 'a date which will live in infamy.' Congress has voted. The United States is at war. A shipmate asks what you plan to do next.",
+            "type": "standard",
+            "imageSearchQuery": "Franklin Roosevelt Day of Infamy speech Congress December 8 1941",
+            "choices": [
+              {
+                "text": "Volunteer for the next deployment — you're in this now.",
+                "effects": {
+                  "standing": 6,
+                  "condition": -5
+                },
+                "flagWrites": {
+                  "community": 3,
+                  "family": -3
+                },
+                "result": "Your name goes on the list. Your family won't know for weeks. But you know what you're doing and why.",
+                "moralTag": "principled"
+              },
+              {
+                "text": "Ask about getting a transfer closer to home.",
+                "effects": {
+                  "standing": -4,
+                  "condition": 5
+                },
+                "flagWrites": {
+                  "family": 3,
+                  "community": -3
+                },
+                "result": "The petty officer looks at you hard. He says he'll pass it along. He doesn't sound like he means it.",
+                "moralTag": "self-serving"
+              },
+              {
+                "text": "Say nothing — wait and see where the Navy sends you.",
+                "effects": {
+                  "condition": 2
+                },
+                "flagWrites": {
+                  "community": -1,
+                  "family": 1
+                },
+                "result": "You keep your head down. Orders will come when they come.",
+                "moralTag": "obvious"
+              }
+            ],
+            "image": {
+              "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Fdr_delivers_speech.jpg/960px-Fdr_delivers_speech.jpg",
+              "artist": "United States Government.",
+              "license": "Public domain",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AFdr_delivers_speech.jpg",
+              "searchQuery": "Franklin Roosevelt Day of Infamy speech Congress December 8 1941"
+            }
+          },
+          {
+            "id": "fl_reader_0",
+            "phase_min": 0.35,
+            "phase_max": 0.85,
+            "weight": 5,
+            "title": "Weeks later — the sailor learns he is being considered for a commendation; an officer asks him to describe what he did in the first minutes of the attack",
+            "text": {
+              "default": "He tells the officer about Eddie — how he pulled him clear, how Eddie lived three more days before the burns took him anyway. The officer nods and moves on. The commendation does not come. What comes instead is the knowledge that he was there when Eddie said his name for the last time, and that this is something no citation could give and no court-martial could take. Whether that is enough is a question he stops trying to answer.",
+              "variants": [
+                {
+                  "whenFlag": "loyalty_to_particular_over_collective",
+                  "equals": true,
+                  "text": "He tells the officer about Eddie — how he pulled him clear, how Eddie lived three more days before the burns took him anyway. The officer nods and moves on. The commendation does not come. What comes instead is the knowledge that he was there when Eddie said his name for the last time, and that this is something no citation could give and no court-martial could take. Whether that is enough is a question he stops trying to answer."
+                },
+                {
+                  "whenFlag": "loyalty_to_particular_over_collective",
+                  "equals": false,
+                  "text": "He tells the officer about the men, the gun, the rounds they got off. The officer calls it exactly what the Navy needs. The commendation comes through. He accepts it and does not mention Eddie. In the barracks that night he takes out the photograph of the two of them in dress whites on the pier and he looks at it for a long time. He does not know yet whether he will be able to explain to himself, let alone to Eddie's mother, what the medal cost."
+                }
+              ]
+            },
+            "type": "standard",
+            "choices": [
+              {
+                "text": "Go on."
+              }
+            ]
+          }
+        ],
+        "sages": [
+          {
+            "id": "kimmel",
+            "name": "Admiral Husband E. Kimmel",
+            "title": "Commander in Chief, U.S. Pacific Fleet",
+            "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Admiral_Husband_E._Kimmel%2C_USN.jpg/330px-Admiral_Husband_E._Kimmel%2C_USN.jpg",
+            "threshold": 20,
+            "bio": "Admiral Kimmel commanded the entire U.S. Pacific Fleet on December 7, 1941. His fleet was caught at anchor when the Japanese attacked. He was relieved of command ten days later and spent the rest of his life insisting that Washington had withheld key warnings from him.",
+            "greeting": "You are standing near a railing when an officer you recognize waves you over. It's Admiral Kimmel. He looks older than his rank photo. He stares out at the harbor.",
+            "advice": "He says quietly: 'We had warnings. Not clear ones, but warnings. No one connected the dots in time. Remember that — the enemy does not always announce himself.'",
+            "question": {
+              "question": "Where were most of the U.S. Pacific Fleet battleships when the attack began?",
+              "choices": [
+                "At sea on patrol",
+                "Anchored at Pearl Harbor",
+                "Docked in San Diego",
+                "Scattered across the Pacific"
+              ],
+              "correctIndex": 1,
+              "explanation": "Most of the Pacific Fleet's battleships were anchored in a line at Pearl Harbor called Battleship Row. This made them easy targets. The U.S. aircraft carriers happened to be at sea that day, which spared them from the attack.",
+              "teksRef": "WWII Standard — U.S. entry and the attack on Pearl Harbor"
+            },
+            "reward": {
+              "correct": {
+                "standing": 6,
+                "condition": 3
+              },
+              "wrong": {
+                "standing": 2
+              },
+              "knowledgeCorrect": 4,
+              "knowledgeWrong": 2
+            },
+            "portraitAttribution": {
+              "artist": "USS ArizonaPearl Harbor National Memorial",
+              "license": "Public domain",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AAdmiral_Husband_E._Kimmel%2C_USN.jpg"
+            }
+          },
+          {
+            "id": "yamamoto",
+            "name": "Admiral Isoroku Yamamoto",
+            "title": "Commander, Imperial Japanese Combined Fleet",
+            "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Portrait_of_Yamamoto_Isoroku.jpg/330px-Portrait_of_Yamamoto_Isoroku.jpg",
+            "threshold": 50,
+            "bio": "Admiral Yamamoto designed the Pearl Harbor attack. He had studied at Harvard and knew American industry well. He believed Japan had to knock out the U.S. fleet fast — before American factories and manpower made the war unwinnable for Japan.",
+            "greeting": "You read a captured intelligence summary passed down from command. It contains a translated quote attributed to Yamamoto — though no one can confirm he ever said it.",
+            "advice": "The quote reads: 'I fear we have only awakened a sleeping giant and filled him with a terrible resolve.' The attribution is unverified — no documentary record confirms Yamamoto ever said or wrote it — but the sentiment spread widely among American sailors anyway.",
+            "question": {
+              "question": "What did Yamamoto hope to achieve by attacking Pearl Harbor?",
+              "choices": [
+                "Destroy the U.S. Army's ground forces",
+                "Capture Hawaii as a Japanese territory",
+                "Knock out the U.S. Pacific Fleet before America could fight back",
+                "Force the U.S. to sell its Pacific islands to Japan"
+              ],
+              "correctIndex": 2,
+              "explanation": "Yamamoto's plan was to cripple the U.S. Pacific Fleet in a surprise strike. If Japan could destroy American naval power quickly, it hoped to secure its empire in the Pacific before the United States could rebuild and respond. He worried this would fail in the long run — and he was right.",
+              "teksRef": "WWII Standard — Japanese strategic objectives and the Pacific Theater"
+            },
+            "reward": {
+              "correct": {
+                "standing": 5,
+                "condition": 4
+              },
+              "wrong": {
+                "standing": 2
+              },
+              "knowledgeCorrect": 4,
+              "knowledgeWrong": 2
+            },
+            "portraitAttribution": {
+              "artist": "Unknown author",
+              "license": "Public domain",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3APortrait_of_Yamamoto_Isoroku.jpg"
+            }
+          },
+          {
+            "id": "roosevelt",
+            "name": "President Franklin D. Roosevelt",
+            "title": "President of the United States",
+            "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/President_Franklin_D._Roosevelt-1941.jpg/330px-President_Franklin_D._Roosevelt-1941.jpg",
+            "threshold": 80,
+            "bio": "President Roosevelt led the United States through both the Great Depression and most of World War II. On December 8, 1941, he stood before Congress and called December 7 'a date which will live in infamy.' Congress voted for war within hours.",
+            "greeting": "The radio on the dock crackles to life. Every man around you goes quiet. It is the President's voice.",
+            "advice": "He says: 'No matter how long it may take us to overcome this premeditated invasion, the American people in their righteous might will win through to absolute victory.' The men around you stand a little straighter.",
+            "question": {
+              "question": "What did Congress do the day after the Pearl Harbor attack?",
+              "choices": [
+                "Voted to evacuate Hawaii",
+                "Declared war on Japan",
+                "Demanded Japan pay for the ships",
+                "Ordered a peace treaty negotiation"
+              ],
+              "correctIndex": 1,
+              "explanation": "On December 8, 1941, Congress declared war on Japan. The vote was 82 to 0 in the Senate and 388 to 1 in the House. Only Representative Jeannette Rankin voted no. Germany and Italy then declared war on the United States on December 11, bringing America fully into World War II.",
+              "teksRef": "WWII Standard — U.S. declaration of war and entry into WWII"
+            },
+            "reward": {
+              "correct": {
+                "standing": 6,
+                "condition": 5
+              },
+              "wrong": {
+                "standing": 3
+              },
+              "knowledgeCorrect": 4,
+              "knowledgeWrong": 2
+            },
+            "portraitAttribution": {
+              "artist": "Unknown",
+              "license": "Public domain",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3APresident_Franklin_D._Roosevelt-1941.jpg"
+            }
+          }
+        ],
+        "route": [
+          {
+            "id": "start",
+            "title": "Pearl Harbor, December 7–11, 1941",
+            "description": "You are a sailor at Pearl Harbor during the worst days of the attack and its aftermath.",
+            "edges": []
+          }
+        ],
+        "eventTrivia": [
+          {
+            "id": "pt1",
+            "question": "What time did the Japanese attack on Pearl Harbor begin?",
+            "choices": [
+              "5:30 a.m.",
+              "7:55 a.m.",
+              "10:00 a.m.",
+              "12:00 p.m."
+            ],
+            "correctIndex": 1,
+            "fact": "The attack began at 7:55 a.m. on Sunday, December 7, 1941 — a time when most sailors were still at breakfast or asleep."
+          },
+          {
+            "id": "pt2",
+            "question": "How many Americans were killed in the Pearl Harbor attack?",
+            "choices": [
+              "About 500",
+              "About 1,200",
+              "About 2,403",
+              "About 4,000"
+            ],
+            "correctIndex": 2,
+            "fact": "2,403 Americans were killed in the attack, and about 1,178 more were wounded."
+          },
+          {
+            "id": "pt3",
+            "question": "Which U.S. ship suffered the most casualties at Pearl Harbor?",
+            "choices": [
+              "USS Oklahoma",
+              "USS Arizona",
+              "USS Nevada",
+              "USS West Virginia"
+            ],
+            "correctIndex": 1,
+            "fact": "The USS Arizona exploded and sank after its forward ammunition magazine was hit. More than 1,177 of its crew died — almost half the total American deaths at Pearl Harbor."
+          },
+          {
+            "id": "pt4",
+            "question": "Why did Japan choose a Sunday morning for the attack?",
+            "choices": [
+              "Japanese tradition required Sunday battles",
+              "They expected the fleet to be in port and off guard",
+              "American radar did not work on Sundays",
+              "The weather was better on Sundays"
+            ],
+            "correctIndex": 1,
+            "fact": "Japanese planners chose Sunday morning because U.S. ships were typically in port and many sailors were off duty. A weekend attack gave Japan the element of surprise."
+          },
+          {
+            "id": "pt5",
+            "question": "How many Japanese aircraft took part in the attack?",
+            "choices": [
+              "About 50",
+              "About 100",
+              "About 353",
+              "About 600"
+            ],
+            "correctIndex": 2,
+            "fact": "Japan launched 353 aircraft in two waves from six aircraft carriers. The strike was one of the largest carrier-based air attacks in history at that time."
+          },
+          {
+            "id": "pt6",
+            "question": "What lucky fact saved the U.S. Pacific Fleet from total destruction?",
+            "choices": [
+              "American planes shot down most attackers",
+              "The aircraft carriers were not in port that day",
+              "The battleships were armored against bombs",
+              "A storm scattered the Japanese fleet"
+            ],
+            "correctIndex": 1,
+            "fact": "All three U.S. Pacific Fleet aircraft carriers — USS Enterprise, Lexington, and Saratoga — were away from Pearl Harbor that day. Carriers would prove to be the most important ships of the Pacific War."
+          },
+          {
+            "id": "pt7",
+            "question": "What did Nagumo decide NOT to do after the two attack waves?",
+            "choices": [
+              "Report his losses to Yamamoto",
+              "Launch a third attack wave",
+              "Return to Japan",
+              "Bomb the Hawaiian civilian population"
+            ],
+            "correctIndex": 1,
+            "fact": "Vice Admiral Nagumo chose not to launch a third attack wave. A third wave could have destroyed Pearl Harbor's fuel storage and repair docks. Many historians argue this decision let America recover far faster than Japan expected."
+          },
+          {
+            "id": "pt8",
+            "question": "Before Pearl Harbor, most Americans wanted to stay out of the war. What is this position called?",
+            "choices": [
+              "Imperialism",
+              "Isolationism",
+              "Pacifism",
+              "Neutralism"
+            ],
+            "correctIndex": 1,
+            "fact": "Isolationism — the belief that the United States should stay out of foreign wars — was the dominant view in America before December 7. Pearl Harbor ended that debate almost overnight."
+          },
+          {
+            "id": "pt9",
+            "question": "Who commanded the Japanese carrier strike force called Kido Butai?",
+            "choices": [
+              "Admiral Yamamoto",
+              "Vice Admiral Nagumo",
+              "Admiral Kimmel",
+              "General Tojo"
+            ],
+            "correctIndex": 1,
+            "fact": "Vice Admiral Chuichi Nagumo commanded Kido Butai — the six-carrier strike force that launched the attack. Yamamoto designed the plan, but Nagumo commanded it in the field."
+          },
+          {
+            "id": "pt10",
+            "question": "How did Germany and Italy respond after the U.S. declared war on Japan?",
+            "choices": [
+              "They asked Japan to surrender",
+              "They declared war on the United States",
+              "They offered to negotiate peace",
+              "They stayed neutral"
+            ],
+            "correctIndex": 1,
+            "fact": "On December 11, 1941 — just four days after Pearl Harbor — Germany and Italy declared war on the United States. This brought America into the European war as well."
+          },
+          {
+            "id": "pt11",
+            "question": "What phrase did Roosevelt use to describe December 7, 1941 in his speech to Congress?",
+            "choices": [
+              "'A day of great shame'",
+              "'The end of American peace'",
+              "'A date which will live in infamy'",
+              "'The hour America awoke'"
+            ],
+            "correctIndex": 2,
+            "fact": "Roosevelt called December 7 'a date which will live in infamy.' The phrase became one of the most famous lines in American political history."
+          },
+          {
+            "id": "pt12",
+            "question": "Which battleship was the only one to get underway during the attack?",
+            "choices": [
+              "USS Arizona",
+              "USS Nevada",
+              "USS Oklahoma",
+              "USS Pennsylvania"
+            ],
+            "correctIndex": 1,
+            "fact": "USS Nevada was the only battleship to get underway during the attack. Japanese pilots tried to sink her in the channel to block the harbor, but she was beached instead and later repaired."
+          },
+          {
+            "id": "pt13",
+            "question": "What role did the Hawaiian Islands play for the U.S. Navy in 1941?",
+            "choices": [
+              "A training base for new recruits only",
+              "The main base for the U.S. Pacific Fleet",
+              "A civilian supply depot",
+              "A hospital base with no combat ships"
+            ],
+            "correctIndex": 1,
+            "fact": "Pearl Harbor was the home base of the U.S. Pacific Fleet. Its location in the central Pacific made it the key point for projecting American naval power across the ocean."
+          },
+          {
+            "id": "pt14",
+            "question": "What was the vote in the U.S. Senate on the declaration of war against Japan?",
+            "choices": [
+              "50 to 32",
+              "82 to 0",
+              "65 to 17",
+              "100 to 0"
+            ],
+            "correctIndex": 1,
+            "fact": "The Senate voted 82 to 0 in favor of war. The House voted 388 to 1. The near-unanimous vote showed how completely Pearl Harbor had united American public opinion."
+          },
+          {
+            "id": "pt15",
+            "question": "What did the Japanese attack leave mostly untouched at Pearl Harbor?",
+            "choices": [
+              "The battleships",
+              "The fuel storage tanks and repair docks",
+              "The airfields",
+              "The submarine base"
+            ],
+            "correctIndex": 1,
+            "fact": "The Japanese attack destroyed battleships and aircraft but left Pearl Harbor's fuel storage tanks, repair facilities, and submarine base largely intact. These would prove vital for America's Pacific recovery."
+          }
+        ],
+        "trailPath": [],
+        "trailStops": [],
+        "mapImage": "/faces/map_pearl_harbor.png",
+        "outfitConfig": {
+          "budget": 18,
+          "baseCrew": 1,
+          "baseHorses": 0,
+          "baseSupplies": 0,
+          "costs": {
+            "extraRations": 2,
+            "firstAidKit": 3,
+            "letterStamps": 1,
+            "workGloves": 2
+          },
+          "wageCosts": {},
+          "wageMorale": {},
+          "herdOptions": []
+        },
+        "primaryResourceKey": "standing",
+        "primaryResourceStart": 55,
+        "revenuePerUnit": 0,
+        "historicalContext": "The attack on Pearl Harbor on December 7, 1941 killed 2,403 Americans and wounded 1,178 more. Eight battleships were sunk or damaged. Japan hoped to cripple the U.S. Pacific Fleet before America could resist Japan's expansion across Asia. Instead, the attack ended American isolationism overnight. Congress declared war on Japan on December 8, and Germany and Italy declared war on the United States on December 11. The U.S. aircraft carriers, which were at sea during the attack, survived and became the backbone of the Pacific War. The war would last nearly four more years before Japan surrendered in September 1945.",
+        "imageStyleKeyword": "photograph",
+        "pixelColors": {
+          "skin": "#D4A574",
+          "hair": "#3B2314",
+          "uniform": "#4A5240",
+          "accent": "#8B9E6D",
+          "shadow": "#2C2C2C",
+          "highlight": "#F0E8D0"
+        },
+        "pixelFaces": {
+          "sailor": [
+            {
+              "threshold": 80,
+              "sprite": "sailor_good",
+              "label": "Steady"
+            },
+            {
+              "threshold": 50,
+              "sprite": "sailor_worn",
+              "label": "Worn"
+            },
+            {
+              "threshold": 20,
+              "sprite": "sailor_shaken",
+              "label": "Shaken"
+            },
+            {
+              "threshold": 0,
+              "sprite": "sailor_broken",
+              "label": "Broken"
+            }
+          ]
+        },
+        "verdict": {
+          "good": "You kept your word and held your ground. When it cost you to tell the truth, you told it anyway. When the work was terrible, you went back down. You came out of Pearl Harbor with oil still in your lungs and your name still good. The 2,403 men who didn't come out — you carried them the right way. Not by forgetting them. By staying the kind of person worth fighting beside.",
+          "bad": "You made it through. Technically. You covered for the officer who needed covering, skipped the salvage shift, passed blame when it was convenient. Nobody died because of you — not directly. But you built something in those five days, and it was small. The men who held the line at Pearl Harbor did it for each other. You were there for yourself. The harbor remembers what it cost. You found a way not to pay it.",
+          "indifferent": "You were there. That is not nothing — December 7 happened around you and you survived it. But every time a choice arrived, you waited for it to get easier, and someone else made it. You did not lie, but you did not speak. You did not run, but you did not step forward. 2,403 Americans died that morning. The ones who lived and did something carried that weight into the war. You carried mostly yourself. History doesn't record where you stood. You would have trouble saying, either."
+        },
+        "reviewSummary": "On the morning of December 7, 1941, Japan launched a surprise attack on the U.S. naval base at Pearl Harbor, Hawaii. Japanese planners chose a Sunday morning because American ships were in port and many sailors were off duty. Vice Admiral Chuichi Nagumo commanded the strike force, called Kido Butai, which launched 353 aircraft in two waves from six carriers. Admiral Yamamoto had designed the plan, hoping to knock out the U.S. Pacific Fleet before America could resist Japan's expansion in Asia. A quote attributed to him — though never verified in any documentary record — warned that the attack would only awaken a sleeping giant.\n\nThe attack began at 7:55 a.m. Eight battleships were sunk or damaged along Battleship Row. The USS Arizona exploded after its forward ammunition magazine was hit, killing more than 1,177 of its crew — nearly half of the 2,403 Americans who died that day. About 1,178 more were wounded. USS Nevada was the only battleship to get underway during the attack; Japanese pilots tried to sink her in the channel, but she was beached and later repaired.\n\nNagumo chose not to launch a third attack wave. That decision left Pearl Harbor's fuel storage tanks, repair docks, and submarine base mostly intact — resources that proved vital to America's recovery. All three U.S. aircraft carriers were at sea and survived. Carriers would become the most powerful weapons of the Pacific War.\n\nBefore Pearl Harbor, most Americans supported isolationism — the belief that the United States should stay out of foreign wars. The attack ended that debate overnight. On December 8, President Roosevelt stood before Congress and called December 7 'a date which will live in infamy.' The Senate voted 82 to 0 and the House voted 388 to 1 to declare war on Japan. On December 11, Germany and Italy declared war on the United States, pulling America into the full global conflict. The war would continue until Japan surrendered in September 1945.",
+        "backdropImage": {
+          "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Attack_on_Pearl_Harbor_Japanese_planes_view.jpg/960px-Attack_on_Pearl_Harbor_Japanese_planes_view.jpg",
+          "artist": "Imperial Japanese Navy",
+          "license": "Public domain",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AAttack_on_Pearl_Harbor_Japanese_planes_view.jpg",
+          "searchQuery": "a U.S. Navy sailor at Pearl Harbor"
+        },
+        "flags": [
+          {
+            "id": "family",
+            "type": "numeric",
+            "initial": 0,
+            "min": -10,
+            "max": 10,
+            "label": "How those closest to you come to regard you"
+          },
+          {
+            "id": "community",
+            "type": "numeric",
+            "initial": 0,
+            "min": -10,
+            "max": 10,
+            "label": "How the wider community comes to regard you"
+          },
+          {
+            "id": "loyalty_to_particular_over_collective",
+            "type": "tristate",
+            "initial": null,
+            "label": "When the moment came, who did he choose?"
+          }
+        ]
+      }
+    },
+    {
+      "key": "lewisclark",
+      "label": "Lewis & Clark",
+      "topic": "Lewis and Clark Expedition",
+      "mode": "systems",
+      "grade": "5th grade",
+      "standard": "TEKS 5.1(A), 5.1(B) — Historical significance of the Lewis and Clark Expedition, its role in westward expansion, and its interactions with Native peoples",
+      "status": "ok",
+      "title": "LEWIS & CLARK EXPEDITION",
+      "attempts": 1,
+      "dimensions": {
+        "schema-valid": {
+          "status": "pass",
+          "detail": "parses; conforms to CampaignData"
+        },
+        "no-inert-choice": {
+          "status": "pass",
+          "detail": "every multi-option choice carries a felt consequence"
+        },
+        "no-lethal-degradation": {
+          "status": "pass",
+          "detail": "personal resources degrade, never kill"
+        },
+        "moral-tag-valid": {
+          "status": "pass",
+          "detail": "all moralTags ∈ {principled, self-serving, obvious}"
+        },
+        "resource-keys": {
+          "status": "pass",
+          "detail": "all effects reference declared resource keys"
+        },
+        "verdict-present": {
+          "status": "pass",
+          "detail": "all 3 verdict passages present and non-empty"
+        },
+        "summary-present": {
+          "status": "pass",
+          "detail": "review summary present"
+        },
+        "reading-level": {
+          "status": "pass",
+          "detail": "FK 4.5 vs target 5 (-0.5 over; asymmetric band: pass ≤+0.5 / warn ≤+1.5 / fail >+1.5, easier always passes; 1018 words of body prose)"
+        },
+        "prose-length": {
+          "status": "pass",
+          "detail": "verdict passages 5-10 sentences; summary 275-425 words"
+        },
+        "timeline-coherence": {
+          "status": "warn",
+          "detail": "[config] n/a — systems mode (no character 'time passes' beats fire) · [history] implausible span — real event ≈ approximately 2.5 years (May 1804 - September 1806) (Real expedition lasted roughly 860+ days, not 180)"
+        },
+        "factual-accuracy": {
+          "status": "pass",
+          "detail": "NONE — no false or invented historical claims found"
+        },
+        "standard-alignment": {
+          "status": "pass",
+          "detail": "addresses the standard — e.g. \"The Lewis and Clark Expedition lasted from 1804 to 1806. The Corps of Discovery traveled over 8,000 miles round trip. Th\""
+        },
+        "age-appropriate": {
+          "status": "pass",
+          "detail": "NONE — no age-inappropriate content found"
+        },
+        "verdict-lands": {
+          "status": "pass",
+          "detail": "all 3 passages judge character, tie to the real outcome, non-congratulatory"
+        },
+        "answers-embedded": {
+          "status": "pass",
+          "detail": "all 6 exam answers embedded naturally in the summary"
+        }
+      },
+      "graders": [
+        {
+          "dimension": "factual-accuracy",
+          "model": "claude-opus-4-8",
+          "rawResponse": "{\"claims\": []}",
+          "parsed": {
+            "claims": []
+          }
+        },
+        {
+          "dimension": "standard-alignment",
+          "model": "claude-haiku-4-5",
+          "rawResponse": "```json\n{\"addresses\": true, \"quotes\": [\"The Lewis and Clark Expedition lasted from 1804 to 1806. The Corps of Discovery traveled over 8,000 miles round trip. They met more than 50 Native peoples, made maps of the West, and returned with journals full of new plants and animals. Their work helped the United States understand and later settle the land west of the Mississippi.\", \"Their detailed maps and journals helped future settlers understand the rivers, mountains, and peoples of the West, encouraging westward expansion across the continent.\", \"A Shoshone woman named Sacagawea joined the Corps in 1804. She guided the group through lands she knew and served as a translator when the Corps met Native peoples.\", \"the Shoshone chief Cameahwait — Sacagawea's own brother — agreed to trade horses with the Corps. The Nez Perce people helped them survive the steep, snowy Bitterroot Mountains.\"]}\n```",
+          "parsed": {
+            "addresses": true,
+            "quotes": [
+              "The Lewis and Clark Expedition lasted from 1804 to 1806. The Corps of Discovery traveled over 8,000 miles round trip. They met more than 50 Native peoples, made maps of the West, and returned with journals full of new plants and animals. Their work helped the United States understand and later settle the land west of the Mississippi.",
+              "Their detailed maps and journals helped future settlers understand the rivers, mountains, and peoples of the West, encouraging westward expansion across the continent.",
+              "A Shoshone woman named Sacagawea joined the Corps in 1804. She guided the group through lands she knew and served as a translator when the Corps met Native peoples.",
+              "the Shoshone chief Cameahwait — Sacagawea's own brother — agreed to trade horses with the Corps. The Nez Perce people helped them survive the steep, snowy Bitterroot Mountains."
+            ]
+          }
+        },
+        {
+          "dimension": "age-appropriate",
+          "model": "claude-haiku-4-5",
+          "rawResponse": "```json\n{\"findings\": []}\n```",
+          "parsed": {
+            "findings": []
+          }
+        },
+        {
+          "dimension": "verdict-lands",
+          "model": "claude-haiku-4-5",
+          "rawResponse": "```json\n{\n  \"passages\": {\n    \"good\": {\n      \"judgesCharacter\": true,\n      \"tiesToRealOutcome\": true,\n      \"congratulatory\": false,\n      \"quote\": \"You did right by the people in front of you. What came after was bigger than any one choice.\"\n    },\n    \"bad\": {\n      \"judgesCharacter\": true,\n      \"tiesToRealOutcome\": true,\n      \"congratulatory\": false,\n      \"quote\": \"You just weren't the best version of it.\"\n    },\n    \"indifferent\": {\n      \"judgesCharacter\": true,\n      \"tiesToRealOutcome\": true,\n      \"congratulatory\": false,\n      \"quote\": \"History remembers the Corps of Discovery. It does not remember the ones who passed through without deciding anything.\"\n    }\n  }\n}\n```",
+          "parsed": {
+            "passages": {
+              "good": {
+                "judgesCharacter": true,
+                "tiesToRealOutcome": true,
+                "congratulatory": false,
+                "quote": "You did right by the people in front of you. What came after was bigger than any one choice."
+              },
+              "bad": {
+                "judgesCharacter": true,
+                "tiesToRealOutcome": true,
+                "congratulatory": false,
+                "quote": "You just weren't the best version of it."
+              },
+              "indifferent": {
+                "judgesCharacter": true,
+                "tiesToRealOutcome": true,
+                "congratulatory": false,
+                "quote": "History remembers the Corps of Discovery. It does not remember the ones who passed through without deciding anything."
+              }
+            }
+          }
+        },
+        {
+          "dimension": "answers-embedded",
+          "model": "claude-haiku-4-5",
+          "rawResponse": "```json\n{\n  \"questions\": [\n    {\n      \"id\": \"lc1\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"President Thomas Jefferson sent Meriwether Lewis and William Clark west to explore the Louisiana Territory\"\n    },\n    {\n      \"id\": \"lc2\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"She guided the group through lands she knew and served as a translator when the Corps met Native peoples.\"\n    },\n    {\n      \"id\": \"lc3\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"Their detailed maps and journals helped future settlers understand the rivers, mountains, and peoples of the West, encouraging westward expansion across the continent.\"\n    },\n    {\n      \"id\": \"sageq_jefferson\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"President Thomas Jefferson sent Meriwether Lewis and William Clark west to explore the Louisiana Territory — land the United States had just bought from France — and to find a water route to the Pacific Ocean.\"\n    },\n    {\n      \"id\": \"sageq_sacagawea\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"She guided the group through lands she knew and served as a translator when the Corps met Native peoples.\"\n    },\n    {\n      \"id\": \"sageq_clark\",\n      \"inSummary\": true,\n      \"style\": \"embedded\",\n      \"quote\": \"Their detailed maps and journals helped future settlers understand the rivers, mountains, and peoples of the West, encouraging westward expansion across the continent.\"\n    }\n  ]\n}\n```",
+          "parsed": {
+            "questions": [
+              {
+                "id": "lc1",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "President Thomas Jefferson sent Meriwether Lewis and William Clark west to explore the Louisiana Territory"
+              },
+              {
+                "id": "lc2",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "She guided the group through lands she knew and served as a translator when the Corps met Native peoples."
+              },
+              {
+                "id": "lc3",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "Their detailed maps and journals helped future settlers understand the rivers, mountains, and peoples of the West, encouraging westward expansion across the continent."
+              },
+              {
+                "id": "sageq_jefferson",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "President Thomas Jefferson sent Meriwether Lewis and William Clark west to explore the Louisiana Territory — land the United States had just bought from France — and to find a water route to the Pacific Ocean."
+              },
+              {
+                "id": "sageq_sacagawea",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "She guided the group through lands she knew and served as a translator when the Corps met Native peoples."
+              },
+              {
+                "id": "sageq_clark",
+                "inSummary": true,
+                "style": "embedded",
+                "quote": "Their detailed maps and journals helped future settlers understand the rivers, mountains, and peoples of the West, encouraging westward expansion across the continent."
+              }
+            ]
+          }
+        },
+        {
+          "dimension": "timeline-coherence",
+          "model": "claude-haiku-4-5",
+          "rawResponse": "```json\n{\"plausible\": false, \"actualDuration\": \"approximately 2.5 years (May 1804 - September 1806)\", \"note\": \"Real expedition lasted roughly 860+ days, not 180\"}\n```",
+          "parsed": {
+            "plausible": false,
+            "actualDuration": "approximately 2.5 years (May 1804 - September 1806)",
+            "note": "Real expedition lasted roughly 860+ days, not 180"
+          }
+        }
+      ],
+      "fleschKincaid": 4.5,
+      "metrics": {
+        "tokensIn": 34715,
+        "tokensOut": 9797,
+        "cacheWriteTokens": 0,
+        "cacheReadTokens": 0,
+        "costUSD": 0.2601,
+        "wallSeconds": 147.1,
+        "stages": [
+          {
+            "stage": "campaign",
+            "calls": 2,
+            "tokensIn": 23534,
+            "tokensOut": 8308,
+            "seconds": 129.428
+          },
+          {
+            "stage": "grader:factual-accuracy",
+            "calls": 1,
+            "tokensIn": 4105,
+            "tokensOut": 566,
+            "seconds": 7.676
+          },
+          {
+            "stage": "grader:standard-alignment",
+            "calls": 1,
+            "tokensIn": 2722,
+            "tokensOut": 217,
+            "seconds": 2.18
+          },
+          {
+            "stage": "grader:age-appropriate",
+            "calls": 1,
+            "tokensIn": 2735,
+            "tokensOut": 13,
+            "seconds": 0.678
+          },
+          {
+            "stage": "grader:verdict-lands",
+            "calls": 1,
+            "tokensIn": 538,
+            "tokensOut": 212,
+            "seconds": 1.442
+          },
+          {
+            "stage": "grader:answers-embedded",
+            "calls": 1,
+            "tokensIn": 851,
+            "tokensOut": 424,
+            "seconds": 3.186
+          },
+          {
+            "stage": "grader:timeline-coherence",
+            "calls": 1,
+            "tokensIn": 230,
+            "tokensOut": 57,
+            "seconds": 1.372
+          }
+        ]
+      },
+      "findings": [],
+      "data": {
+        "id": "lewis_clark",
+        "title": "LEWIS & CLARK EXPEDITION",
+        "subtitle": "Camp Dubois to the Pacific, 1804",
+        "introBody": "Spring, 1804. Camp Dubois, Illinois. President Jefferson picked you to lead the Corps of Discovery west. You must find a path to the Pacific Ocean. Get your supplies ready — the trail ahead is long and unknown.",
+        "trailFeedOpener": "May 1804: the Corps of Discovery pushes off from Camp Dubois into the Missouri River current.",
+        "theme": "expedition-journal",
+        "isPublished": false,
+        "progressionMode": "journey",
+        "totalDays": 180,
+        "daysPerTurn": 6,
+        "totalDistance": 3700,
+        "distanceUnit": "miles",
+        "initialResources": {
+          "food": 60,
+          "medicine": 50,
+          "morale": 60,
+          "ammo": 70,
+          "canoes": 8,
+          "goodwill": 55
+        },
+        "resourceCaps": {
+          "food": 100,
+          "medicine": 100,
+          "morale": 100,
+          "ammo": 100,
+          "canoes": 10,
+          "goodwill": 100
+        },
+        "resourceLabels": {
+          "food": "food",
+          "medicine": "med",
+          "morale": "morale",
+          "ammo": "ammo",
+          "canoes": "canoes",
+          "goodwill": "goodwill"
+        },
+        "paces": [
+          {
+            "id": "rest",
+            "label": "Rest",
+            "desc": "4 mi/day · Crew heals and morale grows",
+            "mpd": 4,
+            "fx": {
+              "food": -1,
+              "morale": 3,
+              "medicine": 1
+            }
+          },
+          {
+            "id": "steady",
+            "label": "Steady",
+            "desc": "8 mi/day · Standard pace",
+            "mpd": 8,
+            "fx": {
+              "food": -2,
+              "morale": -1,
+              "ammo": -1
+            }
+          },
+          {
+            "id": "push",
+            "label": "Push",
+            "desc": "14 mi/day · Hard on the crew",
+            "mpd": 14,
+            "fx": {
+              "food": -4,
+              "morale": -5,
+              "medicine": -2,
+              "ammo": -2
+            }
+          }
+        ],
+        "events": [
+          {
+            "id": "great_falls_portage",
+            "phase_min": 0.3,
+            "phase_max": 0.55,
+            "weight": 5,
+            "type": "standard",
+            "title": "The Great Falls Portage",
+            "text": "The Missouri River drops off a huge cliff — the Great Falls of Montana. There is no way to paddle past it. The crew must carry everything on foot for eighteen miles.",
+            "trivia": [
+              "The Great Falls portage took the Corps nearly a month.",
+              "The men built rough carts from cottonwood trees to haul the canoes."
+            ],
+            "sageAdvice": [
+              {
+                "name": "Sergeant Gass",
+                "role": "Corps carpenter",
+                "line": "We cut wheels from a tree. It was slow and painful."
+              }
+            ],
+            "choices": [
+              {
+                "text": "Build carts. Carry everything the long way.",
+                "effects": {
+                  "food": -8,
+                  "morale": -5,
+                  "medicine": -3
+                },
+                "result": "It takes weeks. Feet bleed. But all the canoes make it."
+              },
+              {
+                "text": "Leave heavy gear behind. Move faster.",
+                "effects": {
+                  "food": -3,
+                  "ammo": -15,
+                  "morale": 2
+                },
+                "result": "You move quicker but lose a lot of powder and shot."
+              },
+              {
+                "text": "Split the crew. Half portage, half hunt for food.",
+                "outcomes": [
+                  {
+                    "weight": 6,
+                    "effects": {
+                      "food": 8,
+                      "morale": 2,
+                      "medicine": -2
+                    },
+                    "result": "Good plan. Hunters bring back elk. The portage goes well."
+                  },
+                  {
+                    "weight": 4,
+                    "effects": {
+                      "food": -4,
+                      "morale": -6,
+                      "canoes": -1
+                    },
+                    "result": "Half the crew gets lost. One canoe cracks on a rock."
+                  }
+                ]
+              }
+            ],
+            "imageSearchQuery": "Great Falls Missouri River Montana",
+            "image": {
+              "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Central_Ave_and_Civic_Center_2.JPG/960px-Central_Ave_and_Civic_Center_2.JPG",
+              "artist": "Montanabw",
+              "license": "CC BY-SA 3.0",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ACentral_Ave_and_Civic_Center_2.JPG",
+              "searchQuery": "Great Falls Missouri River Montana"
+            }
+          },
+          {
+            "id": "shoshone_contact",
+            "phase_min": 0.45,
+            "phase_max": 0.65,
+            "weight": 6,
+            "type": "standard",
+            "title": "Meeting the Shoshone",
+            "text": "You need horses to cross the Rocky Mountains. The Shoshone people have horses. Sacagawea recognizes the chief — he is her brother. This is a rare chance to trade.",
+            "trivia": [
+              "Sacagawea was a Shoshone woman who served as guide and translator.",
+              "Without Shoshone horses, the Corps could not have crossed the Rockies."
+            ],
+            "sageAdvice": [
+              {
+                "name": "Sacagawea",
+                "role": "Guide and translator",
+                "line": "My people will help if we treat them with respect."
+              }
+            ],
+            "choices": [
+              {
+                "text": "Trade fairly. Offer medals and goods.",
+                "effects": {
+                  "goodwill": 15,
+                  "morale": 5,
+                  "ammo": -5
+                },
+                "result": "Chief Cameahwait agrees to trade. You get horses and a guide.",
+                "moralTag": "principled"
+              },
+              {
+                "text": "Threaten them to get horses faster.",
+                "effects": {
+                  "goodwill": -20,
+                  "morale": -8,
+                  "ammo": -10
+                },
+                "result": "They pull back. You get no horses. The crossing looks very bad now.",
+                "moralTag": "self-serving"
+              },
+              {
+                "text": "Let Sacagawea talk. Wait and see.",
+                "outcomes": [
+                  {
+                    "weight": 7,
+                    "effects": {
+                      "goodwill": 8,
+                      "morale": 3
+                    },
+                    "result": "Her reunion with her brother opens doors. A good outcome."
+                  },
+                  {
+                    "weight": 3,
+                    "effects": {
+                      "goodwill": -5,
+                      "morale": -3
+                    },
+                    "result": "Talks stall. Mistrust lingers. You lose days waiting."
+                  }
+                ],
+                "moralTag": "obvious"
+              }
+            ],
+            "imageSearchQuery": "Sacagawea Shoshone chief Lewis Clark",
+            "image": {
+              "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Detail_Lewis_%26_Clark_at_Three_Forks.jpg/960px-Detail_Lewis_%26_Clark_at_Three_Forks.jpg",
+              "artist": "Edgar Samuel Paxson",
+              "license": "Public domain",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ADetail_Lewis_%26_Clark_at_Three_Forks.jpg",
+              "searchQuery": "Sacagawea Shoshone chief Lewis Clark"
+            }
+          },
+          {
+            "id": "rocky_mountain_crossing",
+            "phase_min": 0.55,
+            "phase_max": 0.72,
+            "weight": 5,
+            "type": "standard",
+            "title": "The Rocky Mountains",
+            "text": "The mountains are steeper than anyone expected. Snow covers the high passes. Men are cold and hungry. A wrong turn here could end everything.",
+            "trivia": [
+              "The Nez Perce people helped the Corps survive the Rockies.",
+              "The Corps crossed the Bitterroot Mountains in deep snow with little food."
+            ],
+            "choices": [
+              {
+                "text": "Push through fast before more snow falls.",
+                "outcomes": [
+                  {
+                    "weight": 5,
+                    "effects": {
+                      "food": -12,
+                      "morale": -8,
+                      "medicine": -5
+                    },
+                    "result": "You make it, but barely. Three men need care on the other side."
+                  },
+                  {
+                    "weight": 5,
+                    "effects": {
+                      "food": -18,
+                      "morale": -12,
+                      "canoes": -1
+                    },
+                    "result": "A blizzard hits. You lose a canoe and a lot of food."
+                  }
+                ]
+              },
+              {
+                "text": "Ask the Nez Perce for help and food.",
+                "effects": {
+                  "food": 10,
+                  "morale": 6,
+                  "goodwill": 10,
+                  "medicine": 3
+                },
+                "result": "The Nez Perce feed the Corps and show you the safe path down.",
+                "moralTag": "principled"
+              },
+              {
+                "text": "Rest two days and gather strength first.",
+                "effects": {
+                  "food": -6,
+                  "morale": 5,
+                  "medicine": 3
+                },
+                "result": "The rest helps. The crossing is still hard but the crew holds together."
+              }
+            ],
+            "imageSearchQuery": "Bitterroot Mountains snow crossing explorers",
+            "image": {
+              "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Moraine_Lake_17092005.jpg/960px-Moraine_Lake_17092005.jpg",
+              "artist": "Gorgo",
+              "license": "Public domain",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AMoraine_Lake_17092005.jpg",
+              "searchQuery": "Bitterroot Mountains snow crossing explorers"
+            }
+          },
+          {
+            "id": "columbia_river_rapids",
+            "phase_min": 0.72,
+            "phase_max": 0.88,
+            "weight": 4,
+            "type": "push_luck",
+            "title": "Columbia River Rapids",
+            "text": "The Columbia River rushes toward the Pacific. The rapids are wild and loud. Local tribes say to portage. But portaging costs days.",
+            "leaveText": "Portage around the rapids. Play it safe.",
+            "attempts": [
+              {
+                "id": "rapids_1",
+                "buttonText": "Run the first set of rapids.",
+                "successText": "You ride the wave through. The crew cheers. Good time made.",
+                "failureText": "A canoe tips. You lose supplies but pull everyone out alive.",
+                "riskChance": 0.25,
+                "rewards": {
+                  "morale": 8,
+                  "food": 3
+                },
+                "penalties": {
+                  "canoes": -1,
+                  "food": -8,
+                  "morale": -5
+                }
+              },
+              {
+                "id": "rapids_2",
+                "buttonText": "Run the second, harder set.",
+                "successText": "Another clean run. The crew feels unstoppable.",
+                "failureText": "Two canoes smash on rocks. Medicine and ammo lost.",
+                "riskChance": 0.45,
+                "rewards": {
+                  "morale": 10,
+                  "food": 5
+                },
+                "penalties": {
+                  "canoes": -2,
+                  "medicine": -12,
+                  "ammo": -10
+                }
+              },
+              {
+                "id": "rapids_3",
+                "buttonText": "Take on the biggest falls.",
+                "successText": "A perfect run. Local people watch in shock and respect.",
+                "failureText": "The canoe shatters. You lose everything in it.",
+                "riskChance": 0.65,
+                "rewards": {
+                  "morale": 15,
+                  "goodwill": 8
+                },
+                "penalties": {
+                  "canoes": -2,
+                  "food": -15,
+                  "ammo": -15,
+                  "morale": -10
+                }
+              }
+            ],
+            "imageSearchQuery": "Columbia River rapids canoe 1805",
+            "image": {
+              "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Columbia_River_from_Rowena_Crest_Viewpoint_looking_east.jpg/960px-Columbia_River_from_Rowena_Crest_Viewpoint_looking_east.jpg",
+              "artist": "Steven Pavlov",
+              "license": "CC BY-SA 4.0",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AColumbia_River_from_Rowena_Crest_Viewpoint_looking_east.jpg",
+              "searchQuery": "Columbia River rapids canoe 1805"
+            }
+          },
+          {
+            "id": "winter_camp_vote",
+            "phase_min": 0.85,
+            "phase_max": 0.97,
+            "weight": 5,
+            "type": "standard",
+            "title": "Where to Winter?",
+            "text": "The Corps reaches the Pacific coast in November. Winter is here. Everyone must vote on where to build the winter camp. This vote included York and Sacagawea — something rare for 1805.",
+            "trivia": [
+              "The vote at Fort Clatsop included York, an enslaved man, and Sacagawea.",
+              "This was one of the first votes in America that included a Black man and a Native woman."
+            ],
+            "choices": [
+              {
+                "text": "Let everyone vote. Honor all voices.",
+                "effects": {
+                  "morale": 12,
+                  "goodwill": 8
+                },
+                "result": "Everyone votes. Morale soars. Fort Clatsop is chosen by the group.",
+                "moralTag": "principled"
+              },
+              {
+                "text": "Decide yourself. Leaders lead.",
+                "effects": {
+                  "morale": -8,
+                  "goodwill": -5
+                },
+                "result": "Grumbling fills camp. The corps feels unheard.",
+                "moralTag": "self-serving"
+              },
+              {
+                "text": "Ask the officers only. Keep it simple.",
+                "effects": {
+                  "morale": -3,
+                  "goodwill": -2
+                },
+                "result": "A few grumble but the decision gets made. York and Sacagawea are left out.",
+                "moralTag": "obvious"
+              }
+            ],
+            "imageSearchQuery": "Fort Clatsop Oregon winter camp 1805",
+            "image": {
+              "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Fort_Clatsop_replica_2007.jpg/960px-Fort_Clatsop_replica_2007.jpg",
+              "artist": "Glenn Scofield Williams from USA",
+              "license": "CC BY 2.0",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AFort_Clatsop_replica_2007.jpg",
+              "searchQuery": "Fort Clatsop Oregon winter camp 1805"
+            }
+          }
+        ],
+        "sages": [
+          {
+            "id": "jefferson",
+            "name": "Thomas Jefferson",
+            "title": "President of the United States",
+            "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Official_Presidential_portrait_of_Thomas_Jefferson_%28by_Rembrandt_Peale%2C_1800%29.jpg/330px-Official_Presidential_portrait_of_Thomas_Jefferson_%28by_Rembrandt_Peale%2C_1800%29.jpg",
+            "threshold": 10,
+            "bio": "Thomas Jefferson was the third U.S. president. He bought the Louisiana Territory from France in 1803. He sent Lewis and Clark west to explore it and find a path to the Pacific.",
+            "greeting": "A courier brings a sealed letter from Washington. It is from President Jefferson himself.",
+            "advice": "\"Map everything. Meet the Native peoples with respect. Find the Northwest Passage — a water route to the Pacific. The nation is counting on you.\"",
+            "question": {
+              "question": "Why did President Jefferson send Lewis and Clark west?",
+              "choices": [
+                "To start a war with Native peoples",
+                "To find gold and silver mines",
+                "To explore the Louisiana Territory and find a route to the Pacific",
+                "To build a railroad to California"
+              ],
+              "correctIndex": 2,
+              "explanation": "Jefferson bought the Louisiana Territory from France in 1803 and wanted it explored. He sent Lewis and Clark to map the land, meet Native peoples, and find a water route to the Pacific Ocean.",
+              "teksRef": "TEKS 5.1(A) — Historical significance of the Lewis and Clark Expedition"
+            },
+            "reward": {
+              "correct": {
+                "morale": 8,
+                "food": 5
+              },
+              "wrong": {
+                "morale": 3
+              },
+              "knowledgeCorrect": 4,
+              "knowledgeWrong": 2
+            },
+            "portraitAttribution": {
+              "artist": "Rembrandt Peale",
+              "license": "Public domain",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AOfficial_Presidential_portrait_of_Thomas_Jefferson_(by_Rembrandt_Peale%2C_1800).jpg"
+            }
+          },
+          {
+            "id": "sacagawea",
+            "name": "Sacagawea",
+            "title": "Shoshone Guide and Translator",
+            "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Detail_Lewis_%26_Clark_at_Three_Forks.jpg/330px-Detail_Lewis_%26_Clark_at_Three_Forks.jpg",
+            "threshold": 45,
+            "bio": "Sacagawea was a Shoshone woman who joined the Corps in 1804. She guided the expedition through her homeland. Her presence showed Native peoples that the Corps came in peace.",
+            "greeting": "Sacagawea walks up to your campfire with her baby, Jean Baptiste, on her back. She points to the mountains ahead.",
+            "advice": "\"I know these lands. I know these people. Trust me and we will find the way through the mountains.\"",
+            "question": {
+              "question": "How did Sacagawea help the Lewis and Clark Expedition?",
+              "choices": [
+                "She cooked all the meals for the corps",
+                "She guided the corps and translated for Native peoples",
+                "She sailed the boats down the Columbia River",
+                "She carried all the food and supplies"
+              ],
+              "correctIndex": 1,
+              "explanation": "Sacagawea served as a guide through lands she knew and helped translate when the Corps met Native peoples. Her presence, especially with her baby, helped show that the group came in peace.",
+              "teksRef": "TEKS 5.1(B) — Lewis and Clark interactions with Native peoples"
+            },
+            "reward": {
+              "correct": {
+                "goodwill": 10,
+                "morale": 5
+              },
+              "wrong": {
+                "goodwill": 4
+              },
+              "knowledgeCorrect": 4,
+              "knowledgeWrong": 2
+            },
+            "portraitAttribution": {
+              "artist": "Edgar Samuel Paxson",
+              "license": "Public domain",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ADetail_Lewis_%26_Clark_at_Three_Forks.jpg"
+            }
+          },
+          {
+            "id": "clark",
+            "name": "William Clark",
+            "title": "Co-Commander, Corps of Discovery",
+            "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/William_Clark-Charles_Willson_Peale.jpg/330px-William_Clark-Charles_Willson_Peale.jpg",
+            "threshold": 75,
+            "bio": "William Clark co-led the expedition with Meriwether Lewis. He made maps of the new lands and kept detailed journals. His maps helped future settlers move west.",
+            "greeting": "Clark spreads a large hand-drawn map on a flat rock. He traces the rivers with his finger and looks up at you.",
+            "advice": "\"Every river, every mountain — I write it down. These maps will open the West. That is why we are here.\"",
+            "question": {
+              "question": "What was one lasting result of the Lewis and Clark Expedition?",
+              "choices": [
+                "The Corps built the first railroad west",
+                "Their maps and journals helped open the West to more settlers",
+                "They found a gold mine in Oregon",
+                "They started the first city on the Pacific coast"
+              ],
+              "correctIndex": 1,
+              "explanation": "Lewis and Clark kept detailed journals and made maps of the lands they crossed. These records helped future settlers understand the routes, rivers, and peoples of the West, which encouraged westward expansion.",
+              "teksRef": "TEKS 5.1(A) — Role of Lewis and Clark in westward expansion"
+            },
+            "reward": {
+              "correct": {
+                "morale": 8,
+                "ammo": 5
+              },
+              "wrong": {
+                "morale": 3
+              },
+              "knowledgeCorrect": 4,
+              "knowledgeWrong": 2
+            },
+            "portraitAttribution": {
+              "artist": "Charles Willson Peale",
+              "license": "Public domain",
+              "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AWilliam_Clark-Charles_Willson_Peale.jpg"
+            }
+          }
+        ],
+        "route": [
+          {
+            "id": "start",
+            "title": "Camp Dubois",
+            "description": "The Corps prepares to push into the unknown.",
+            "edges": [
+              {
+                "to": "missouri_river",
+                "tag": "SAFE",
+                "label": "Follow the Missouri River north"
+              },
+              {
+                "to": "overland_path",
+                "tag": "FAST",
+                "label": "Cut overland across the plains"
+              }
+            ]
+          },
+          {
+            "id": "missouri_river",
+            "title": "Missouri River",
+            "description": "Wide and fast — the highway of the plains.",
+            "edges": [
+              {
+                "to": "mandan_villages",
+                "tag": "SAFE",
+                "label": "Stop at Mandan villages"
+              },
+              {
+                "to": "great_plains",
+                "tag": "FAST",
+                "label": "Push hard upriver"
+              }
+            ]
+          },
+          {
+            "id": "overland_path",
+            "title": "Overland Trail",
+            "description": "Faster miles but harder on the crew.",
+            "edges": [
+              {
+                "to": "great_plains",
+                "tag": "FAST",
+                "label": "Race across the open plains"
+              },
+              {
+                "to": "mandan_villages",
+                "tag": "PROFIT",
+                "label": "Swing north to trade"
+              }
+            ]
+          },
+          {
+            "id": "mandan_villages",
+            "title": "Mandan Villages",
+            "description": "A safe winter stop and trade hub on the Upper Missouri.",
+            "edges": [
+              {
+                "to": "rockies",
+                "tag": "SAFE",
+                "label": "Head west with Shoshone guides"
+              }
+            ]
+          },
+          {
+            "id": "great_plains",
+            "title": "Great Plains",
+            "description": "Big sky, buffalo, and long miles.",
+            "edges": [
+              {
+                "to": "rockies",
+                "tag": "FAST",
+                "label": "Push straight for the mountains"
+              }
+            ]
+          },
+          {
+            "id": "rockies",
+            "title": "Rocky Mountains",
+            "description": "The hardest part of the whole journey.",
+            "edges": [
+              {
+                "to": "columbia_route",
+                "tag": "SAFE",
+                "label": "Follow the river west"
+              },
+              {
+                "to": "columbia_route",
+                "tag": "FAST",
+                "label": "Run the rapids down to the coast"
+              }
+            ]
+          },
+          {
+            "id": "columbia_route",
+            "title": "Columbia River",
+            "description": "The final river road to the Pacific.",
+            "edges": [
+              {
+                "to": "finish",
+                "tag": "PROFIT",
+                "label": "Reach the Pacific coast"
+              }
+            ]
+          },
+          {
+            "id": "finish",
+            "title": "The Pacific Ocean",
+            "description": "You made it. The end of the continent.",
+            "edges": []
+          }
+        ],
+        "eventTrivia": [
+          {
+            "id": "lc1",
+            "question": "Who did President Jefferson send to explore the Louisiana Territory?",
+            "choices": [
+              "George Washington and Benjamin Franklin",
+              "Lewis and Clark",
+              "Davy Crockett and Daniel Boone"
+            ],
+            "correctIndex": 1,
+            "fact": "Jefferson sent Meriwether Lewis and William Clark to lead the Corps of Discovery west in 1804."
+          },
+          {
+            "id": "lc2",
+            "question": "Why was Sacagawea important to the expedition?",
+            "choices": [
+              "She built all the canoes",
+              "She guided the Corps and helped talk to Native peoples",
+              "She carried the expedition's maps from Washington"
+            ],
+            "correctIndex": 1,
+            "fact": "Sacagawea knew the land and the languages. She helped the Corps travel safely and trade with Native peoples."
+          },
+          {
+            "id": "lc3",
+            "question": "What did Lewis and Clark bring back that helped open the West?",
+            "choices": [
+              "Gold and silver",
+              "Maps and journals of the land",
+              "New kinds of horses"
+            ],
+            "correctIndex": 1,
+            "fact": "Their detailed maps and journals showed future settlers the rivers, mountains, and peoples of the West."
+          }
+        ],
+        "trailPath": [
+          [
+            52,
+            60
+          ],
+          [
+            50,
+            57
+          ],
+          [
+            48,
+            54
+          ],
+          [
+            46,
+            51
+          ],
+          [
+            44,
+            48
+          ],
+          [
+            42,
+            45
+          ],
+          [
+            40,
+            42
+          ],
+          [
+            38,
+            39
+          ],
+          [
+            36,
+            36
+          ],
+          [
+            34,
+            33
+          ],
+          [
+            32,
+            30
+          ],
+          [
+            30,
+            28
+          ],
+          [
+            28,
+            26
+          ],
+          [
+            26,
+            28
+          ],
+          [
+            24,
+            30
+          ],
+          [
+            22,
+            32
+          ],
+          [
+            20,
+            34
+          ],
+          [
+            18,
+            33
+          ],
+          [
+            16,
+            31
+          ],
+          [
+            14,
+            29
+          ],
+          [
+            12,
+            27
+          ],
+          [
+            10,
+            25
+          ]
+        ],
+        "trailStops": [
+          {
+            "id": "camp_dubois",
+            "name": "Camp Dubois",
+            "pathIndex": 0,
+            "pct": 0,
+            "supply": true
+          },
+          {
+            "id": "st_louis",
+            "name": "St. Louis",
+            "pathIndex": 2,
+            "pct": 10,
+            "supply": true
+          },
+          {
+            "id": "mandan",
+            "name": "Mandan Villages",
+            "pathIndex": 6,
+            "pct": 30,
+            "supply": true
+          },
+          {
+            "id": "great_falls",
+            "name": "Great Falls",
+            "pathIndex": 10,
+            "pct": 50,
+            "supply": false
+          },
+          {
+            "id": "shoshone_camp",
+            "name": "Shoshone Camp",
+            "pathIndex": 14,
+            "pct": 63,
+            "supply": true
+          },
+          {
+            "id": "fort_clatsop",
+            "name": "Fort Clatsop",
+            "pathIndex": 18,
+            "pct": 88,
+            "supply": true
+          },
+          {
+            "id": "pacific",
+            "name": "Pacific Ocean",
+            "pathIndex": 21,
+            "pct": 100,
+            "supply": false
+          }
+        ],
+        "mapImage": "/faces/map_lewis_clark.png",
+        "outfitConfig": {
+          "budget": 1500,
+          "baseCrew": 10,
+          "baseHorses": 8,
+          "baseSupplies": 35,
+          "costs": {
+            "soldier": 100,
+            "horse": 45,
+            "supply": 5,
+            "rifle": 40,
+            "medicine": 60,
+            "canoe": 80,
+            "tradingGoods": 70
+          },
+          "wageCosts": {
+            "low": 0,
+            "standard": 120,
+            "good": 280
+          },
+          "wageMorale": {
+            "low": 30,
+            "standard": 50,
+            "good": 70
+          },
+          "herdOptions": []
+        },
+        "primaryResourceKey": "morale",
+        "primaryResourceStart": 60,
+        "revenuePerUnit": 1,
+        "historicalContext": "The Lewis and Clark Expedition lasted from 1804 to 1806. The Corps of Discovery traveled over 8,000 miles round trip. They met more than 50 Native peoples, made maps of the West, and returned with journals full of new plants and animals. Their work helped the United States understand and later settle the land west of the Mississippi. York, an enslaved Black man, and Sacagawea, a Shoshone woman, both played key roles. Meriwether Lewis died in 1809. William Clark lived until 1838 and served as superintendent of Indian affairs.",
+        "pixelColors": {
+          "skin": "#D4A574",
+          "coat": "#5B4A2E",
+          "hat": "#3B2F1E",
+          "water": "#4A7FA5",
+          "grass": "#6B8C42",
+          "sky": "#A8C5DA"
+        },
+        "pixelFaces": {
+          "captain": [
+            {
+              "threshold": 75,
+              "sprite": "captain_good",
+              "label": "Confident"
+            },
+            {
+              "threshold": 40,
+              "sprite": "captain_tired",
+              "label": "Worn Down"
+            },
+            {
+              "threshold": 0,
+              "sprite": "captain_grim",
+              "label": "Near Breaking"
+            }
+          ],
+          "scout": [
+            {
+              "threshold": 75,
+              "sprite": "scout_good",
+              "label": "Sharp"
+            },
+            {
+              "threshold": 40,
+              "sprite": "scout_tired",
+              "label": "Tired"
+            },
+            {
+              "threshold": 0,
+              "sprite": "scout_grim",
+              "label": "Lost"
+            }
+          ],
+          "guide": [
+            {
+              "threshold": 75,
+              "sprite": "guide_good",
+              "label": "Trusted"
+            },
+            {
+              "threshold": 40,
+              "sprite": "guide_tired",
+              "label": "Strained"
+            },
+            {
+              "threshold": 0,
+              "sprite": "guide_grim",
+              "label": "Distant"
+            }
+          ]
+        },
+        "imageStyleKeyword": "engraving",
+        "verdict": {
+          "good": "You treated people with respect — Native peoples, enslaved men, women who knew the land. Every time it cost you something, you paid it. The Corps made it to the Pacific and back. Lewis died three years later, troubled and alone. Clark lived long enough to see what the maps made possible: settlers flooding west, and the same Native peoples you respected losing their lands. You did right by the people in front of you. What came after was bigger than any one choice.",
+          "bad": "You pushed when you should have listened. You took when you could have traded. The Corps still made it — the journals still got written, the maps still got made. But you left a trail of bad feeling behind you. The Native peoples who helped you survive got little in return. York voted nowhere. Sacagawea was left out. History remembers the expedition as a great achievement. It was. You just weren't the best version of it.",
+          "indifferent": "You kept your head down and let things happen. Never pushed for wrong, never stood for right — just moved forward and let others decide the hard parts. The Corps reached the Pacific. The maps got made. None of that took much from you, because you didn't offer much. History remembers the Corps of Discovery. It does not remember the ones who passed through without deciding anything."
+        },
+        "reviewSummary": "In 1804, President Thomas Jefferson sent Meriwether Lewis and William Clark west to explore the Louisiana Territory — land the United States had just bought from France — and to find a water route to the Pacific Ocean. They led a group called the Corps of Discovery, made up of soldiers, scouts, and volunteers. A Shoshone woman named Sacagawea joined the Corps in 1804. She guided the group through lands she knew and served as a translator when the Corps met Native peoples. Her presence, especially with her baby on her back, helped show that the expedition came in peace. York, an enslaved Black man owned by Clark, also traveled with the Corps and played a key role throughout the journey. One of the hardest parts of the trip was the Great Falls of Montana, where the Missouri River dropped off a cliff. The Corps had to carry all their canoes and supplies on foot for eighteen miles around it. After the Falls, they needed horses to cross the Rocky Mountains. The Shoshone chief Cameahwait — Sacagawea's own brother — agreed to trade horses with the Corps. The Nez Perce people helped them survive the steep, snowy Bitterroot Mountains. On the Columbia River, the Corps paddled wild rapids toward the Pacific coast. They reached it in November 1805. When the time came to choose a winter camp, Lewis and Clark held a vote. That vote included York and Sacagawea — one of the first votes in America to include a Black man and a Native woman. They built Fort Clatsop on the Oregon coast and wintered there. The Corps returned home in 1806. Their detailed maps and journals helped future settlers understand the rivers, mountains, and peoples of the West, encouraging westward expansion across the continent.",
+        "backdropImage": {
+          "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/8/85/Lewis_and_Clark.jpg",
+          "artist": "Unknown",
+          "license": "Public domain",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ALewis_and_Clark.jpg",
+          "searchQuery": "Lewis and Clark Expedition"
+        }
+      }
+    }
+  ]
+}
