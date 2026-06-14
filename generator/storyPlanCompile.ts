@@ -24,7 +24,7 @@
 // resolution is carried by storyMeaning (an end-screen beat), not an event.
 // ════════════════════════════════════════════════════════════════
 
-import type { GameEvent } from "./schema.js";
+import type { Choice, GameEvent } from "./schema.js";
 import type { NarrativePlan, PlanBeat } from "./storyPlan.js";
 
 export interface StoryPlanPieces {
@@ -37,6 +37,13 @@ export interface StoryPlanPieces {
 // passes a narrowed band that avoids the fault-line's reserved windows.
 export interface CompileOptions {
   band?: { min: number; max: number };
+  /** The campaign's MAIN (score) resource key. A decision beat's authored
+   * choices carry their `stake` as an effect on THIS key — so the choices have
+   * real mechanical stakes on the actual economy. Known only at splice time
+   * (after the main call authors resources); applyStoryPlan passes data
+   * .primaryResourceKey. When absent, choiced beats degrade to a witnessing
+   * beat (a single "Go on.") so the output stays play-legal. */
+  primaryResourceKey?: string;
 }
 
 const DEFAULT_BAND = { min: 0.05, max: 0.95 } as const;
@@ -60,11 +67,36 @@ function sliceBand(lo: number, hi: number, n: number): { min: number; max: numbe
   }));
 }
 
+// A no-choice witnessing beat (resolution, or a degraded fallback). One neutral
+// forward choice keeps it a valid, playable standard event.
+const READER_CHOICE: Choice[] = [{ text: "Go on." }];
+
+// Build the playable choices for a beat. A decision beat (cause/escalation/
+// climax) with authored choices maps each `stake` onto the campaign's MAIN
+// resource so the choice has real mechanical weight; the `result` prose rides
+// along. A resolution beat — or any beat with no authored choices, or when no
+// primaryResourceKey is available to carry the stake — is a witnessing "Go on."
+// beat (the agency is meant to live at the rising action and climax, not here).
+function buildChoices(beat: PlanBeat, primaryResourceKey?: string): Choice[] {
+  if (beat.role === "resolution" || !beat.choices || beat.choices.length === 0) return READER_CHOICE;
+  if (!primaryResourceKey) return READER_CHOICE;
+  return beat.choices.map((c) => ({
+    text: c.text,
+    result: c.result,
+    effects: { [primaryResourceKey]: c.stake },
+  }));
+}
+
 // One included beat → one pinned, playable standard event. The scene becomes
 // the event text VERBATIM; significance rides along (harness + future render).
-// A single neutral forward choice makes it a valid, playable event — richer
-// choices are out of scope for the compiler (mirrors the fault-line reader).
-function buildPinnedEvent(beat: PlanBeat, seq: number, window: { min: number; max: number }): GameEvent {
+// Decision beats carry their authored choices (the player ACTS at the peaks);
+// the resolution is a witnessing beat.
+function buildPinnedEvent(
+  beat: PlanBeat,
+  seq: number,
+  window: { min: number; max: number },
+  primaryResourceKey?: string,
+): GameEvent {
   return {
     id: beat.id,
     phase_min: window.min,
@@ -76,7 +108,7 @@ function buildPinnedEvent(beat: PlanBeat, seq: number, window: { min: number; ma
     pinned: true,
     pinSeq: seq,
     type: "standard",
-    choices: [{ text: "Go on." }],
+    choices: buildChoices(beat, primaryResourceKey),
   } satisfies GameEvent;
 }
 
@@ -91,6 +123,6 @@ export function storyPlanToCampaignPieces(
   const band = opts.band ?? DEFAULT_BAND;
   const included = plan.beats.filter((b) => b.included);
   const windows = sliceBand(band.min, band.max, included.length);
-  const pinnedEvents = included.map((beat, i) => buildPinnedEvent(beat, i, windows[i]));
+  const pinnedEvents = included.map((beat, i) => buildPinnedEvent(beat, i, windows[i], opts.primaryResourceKey));
   return { pinnedEvents, storyMeaning: plan.meaning };
 }

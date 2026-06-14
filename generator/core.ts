@@ -555,10 +555,14 @@ export function applyStoryPlan(
   opts: { characterMode?: boolean } = {},
 ): void {
   if (!storyPlan) return;
-  const pieces = storyPlanToCampaignPieces(
-    storyPlan,
-    opts.characterMode ? { band: { min: 0.35, max: 0.82 } } : {},
-  );
+  // The main call has already authored the economy, so the real primary (score)
+  // resource key is known here — pass it so decision beats' choices carry their
+  // stake as an effect on the actual resource.
+  const primaryResourceKey = typeof data.primaryResourceKey === "string" ? data.primaryResourceKey : undefined;
+  const pieces = storyPlanToCampaignPieces(storyPlan, {
+    primaryResourceKey,
+    ...(opts.characterMode ? { band: { min: 0.35, max: 0.82 } } : {}),
+  });
   const pinnedIds = new Set(pieces.pinnedEvents.map((e) => e.id));
   const existingEvents = Array.isArray(data.events) ? (data.events as Record<string, unknown>[]) : [];
   const survivors = existingEvents.filter((e) => !(e && pinnedIds.has(e.id as string)));

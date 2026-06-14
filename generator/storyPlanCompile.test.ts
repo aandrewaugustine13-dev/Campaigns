@@ -49,6 +49,10 @@ const plan: NarrativePlan = {
         "In Congress, the War Hawks win. Impressment of American sailors and British arms in the Northwest have built to a breaking point, and the young republic votes for war against the strongest navy on earth.",
       significance:
         "It establishes WHY: the grievances and overconfidence that drag an unready nation into war set the stakes for everything that follows.",
+      choices: [
+        { text: "Vote for war now", result: "The declaration passes; the country is committed, ready or not.", stake: 6 },
+        { text: "Push for more preparation first", result: "You buy time, but the War Hawks brand you a coward.", stake: -4 },
+      ],
       phaseHint: 0.1,
       included: true,
     },
@@ -60,6 +64,10 @@ const plan: NarrativePlan = {
         "The easy conquest of Canada collapses into retreat. Militias melt away at the border and the war that was supposed to be quick grinds into humiliation.",
       significance:
         "The first escalation: the war the nation expected to win cheaply is already going wrong, raising the cost of the choice made at the start.",
+      choices: [
+        { text: "Order another push north", result: "The second invasion bleeds out like the first.", stake: -7 },
+        { text: "Pull back and defend the border", result: "You cede the offensive but save the army.", stake: 3 },
+      ],
       phaseHint: 0.4,
       included: true,
     },
@@ -71,6 +79,10 @@ const plan: NarrativePlan = {
         "British troops march into Washington and put the Capitol and the President's House to the torch. The government flees; the nation's pride burns with its buildings.",
       significance:
         "Stakes rise to the homeland itself — the lowest point, which makes the coming victory feel like redemption even when it changes nothing.",
+      choices: [
+        { text: "Rally the militia to retake the capital", result: "A ragged force gathers; morale flickers back.", stake: 5 },
+        { text: "Regroup and protect Baltimore instead", result: "You abandon Washington's ashes for the next fight.", stake: -3 },
+      ],
       phaseHint: 0.6,
       included: true,
     },
@@ -93,6 +105,11 @@ const plan: NarrativePlan = {
         "Behind cotton bales and mud ramparts, Jackson's ragtag line shatters the British assault. It is the most lopsided American victory of the war.",
       significance:
         "The climax the whole arc builds to — and the hinge of the irony: a total victory in a battle that, unknown to anyone present, no longer mattered.",
+      choices: [
+        { text: "Hold the line behind the cotton bales", result: "The British charge breaks against your defenses.", stake: 9 },
+        { text: "Sally out to meet them in the open", result: "Glory beckons, but you trade your advantage away.", stake: -6 },
+        { text: "Negotiate a bloodless British withdrawal", result: "No legend is born, but no one dies for nothing.", stake: -2 },
+      ],
       phaseHint: 0.88,
       included: true,
     },
@@ -198,7 +215,7 @@ function main() {
     planErrors.map((f) => `[${f.field}] ${f.message}`).join("; "));
   console.log("");
 
-  const pieces = storyPlanToCampaignPieces(plan);
+  const pieces = storyPlanToCampaignPieces(plan, { primaryResourceKey: "resolve" });
   const ev = pieces.pinnedEvents;
 
   // 1) Included-only, in arc order.
@@ -232,6 +249,30 @@ function main() {
   check("title preserved verbatim", climax.title === climaxBeat.title);
   check("each pinned event is a playable standard event with a forward choice",
     ev.every((e) => e.type === "standard" && Array.isArray(e.choices) && e.choices.length >= 1));
+  console.log("");
+
+  // 3b) DECISION beats carry real choices (stake → primary resource); the
+  //     RESOLUTION beat stays a witnessing "Go on." beat.
+  console.log("pinnedEvents — choices (agency at the peaks):");
+  const decisionBeats = ev.filter((e) => e.id !== "beat_ghent");
+  check("every cause/escalation/climax beat has ≥2 real choices",
+    decisionBeats.every((e) => (e.choices?.length ?? 0) >= 2),
+    decisionBeats.map((e) => `${e.id}:${e.choices?.length}`).join(" "));
+  check("decision-beat choices carry their stake as an effect on the primary resource (resolve)",
+    decisionBeats.every((e) => (e.choices ?? []).every((c) => c.effects && typeof c.effects.resolve === "number" && c.effects.resolve !== 0)));
+  const climaxChoices = climax.choices ?? [];
+  check("the climax offers 3 choices with DISTINCT stakes (a real trade-off, not one right answer)",
+    climaxChoices.length === 3 && new Set(climaxChoices.map((c) => c.effects?.resolve)).size === 3,
+    climaxChoices.map((c) => c.effects?.resolve).join(", "));
+  check("climax choice result prose is preserved verbatim",
+    climaxChoices[0]?.result === plan.beats.find((b) => b.id === "beat_neworleans")!.choices![0].result);
+  const resolution = ev.find((e) => e.id === "beat_ghent")!;
+  check("the RESOLUTION beat is a choiceless witnessing beat (single \"Go on.\")",
+    (resolution.choices?.length ?? 0) === 1 && resolution.choices![0].text === "Go on." && !resolution.choices![0].effects);
+  // Degrade-safe: without a primaryResourceKey, choiced beats fall back to readers.
+  const noKey = storyPlanToCampaignPieces(plan);
+  check("without a primaryResourceKey, decision beats degrade to valid \"Go on.\" readers",
+    noKey.pinnedEvents.every((e) => (e.choices?.length ?? 0) === 1 && e.choices![0].text === "Go on."));
   console.log("");
 
   // 4) storyMeaning carried verbatim.

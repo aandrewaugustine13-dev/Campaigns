@@ -43,6 +43,26 @@ const ROLE_RANK: Record<BeatRole, number> = {
   resolution: 3,
 };
 
+// The beats where the player must ACT: rising action and the climax carry real
+// decisions. The resolution is a witnessing/aftermath beat and stays choiceless.
+const DECISION_ROLES: BeatRole[] = ["cause", "escalation", "climax"];
+
+// A choice on a rising-action / climax beat. Authored resource-BLIND: the plan
+// runs before the campaign's bespoke resources exist, so a choice cannot name
+// them. Instead it carries an abstract `stake` — the choice's net effect on the
+// campaign's MAIN (score) resource — which the compiler maps onto the real
+// primaryResourceKey at splice time, when resources are known.
+export interface PlanBeatChoice {
+  /** The player-facing option text (one short line). */
+  text: string;
+  /** The narrative consequence shown after choosing — distinct per choice. */
+  result: string;
+  /** Net effect on the campaign's MAIN resource: a NON-ZERO integer, roughly
+   * -10 (a real cost/sacrifice) to +10 (a strong gain). Every choice must
+   * matter; a costly "right thing" is a negative stake. */
+  stake: number;
+}
+
 export interface PlanBeat {
   /** Stable id, e.g. "beat_neworleans" — becomes the pinned event id. */
   id: string;
@@ -56,6 +76,11 @@ export interface PlanBeat {
   /** WHY this moment matters: the causal / character stakes. Becomes the
    * pinned event's `significance` and the teacher's checkbox explanation. */
   significance: string;
+  /** Real decisions for this beat. REQUIRED (2–3) on cause / escalation /
+   * climax beats — the player must ACT at the arc's rising action and peak.
+   * OMITTED on a resolution beat, which is the aftermath/meaning-landing where
+   * WITNESSING is dramatically correct (the compiler makes it a "Go on." beat). */
+  choices?: PlanBeatChoice[];
   /** Suggested 0–1 arc position; the compiler enforces actual ordering by
    * role + array order, but this is the author's intent and the teacher hint. */
   phaseHint: number;
@@ -147,6 +172,33 @@ export function validateStoryPlan(data: unknown): StoryPlanFinding[] {
     if (typeof bb.included !== "boolean")
       push("error", `${prefix}.included`, "included must be a boolean");
 
+    // CHOICES: required (2–3) on included decision beats; the resolution stays a
+    // choiceless witnessing beat. (Only validated when the role is known.)
+    if (bb.included === true && BEAT_ROLES.includes(role)) {
+      const choices = bb.choices;
+      if (DECISION_ROLES.includes(role)) {
+        if (!Array.isArray(choices) || choices.length < 2) {
+          push("error", `${prefix}.choices`, `a ${role} beat must offer a real decision: 2–3 choices (the player ACTS at the arc's rising action and climax)`);
+        } else {
+          if (choices.length > 3)
+            push("warn", `${prefix}.choices`, `${choices.length} choices is hard to read on the panel — prefer 2–3`);
+          choices.forEach((c, ci) => {
+            const cc = c as Record<string, unknown>;
+            if (typeof cc.text !== "string" || (cc.text as string).trim().length === 0)
+              push("error", `${prefix}.choices[${ci}].text`, "Missing or empty: text");
+            if (typeof cc.result !== "string" || (cc.result as string).trim().length === 0)
+              push("error", `${prefix}.choices[${ci}].result`, "Missing or empty: result");
+            if (typeof cc.stake !== "number" || !Number.isInteger(cc.stake) || cc.stake === 0)
+              push("error", `${prefix}.choices[${ci}].stake`, "stake must be a NON-ZERO integer (the choice's net effect on the main resource)");
+            else if (Math.abs(cc.stake as number) > 12)
+              push("warn", `${prefix}.choices[${ci}].stake`, "stake magnitude > 12 is large — keep roughly -10..+10");
+          });
+        }
+      } else if (role === "resolution" && Array.isArray(choices) && choices.length > 0) {
+        push("warn", `${prefix}.choices`, "a resolution beat should be a choiceless aftermath beat — choices here will be dropped (the compiler makes it a witnessing beat)");
+      }
+    }
+
     // The arc-shape checks below only consider INCLUDED beats — an excluded
     // beat is never compiled, so it cannot break the arc.
     if (bb.included === true && BEAT_ROLES.includes(role))
@@ -207,6 +259,12 @@ EVERY BEAT CARRIES ITS STAKES:
 - "id" is a short stable kebab-case id prefixed "beat_" (e.g. "beat_neworleans"), unique within the plan.
 - "included" is true for every beat you author (the teacher will later toggle beats off; you propose them all on).
 
+THE PLAYER ACTS AT THE PEAKS (this is the heart of the game):
+- This is a decision game. The agency MUST live at the arc's tentpole moments, not in the filler around them. So EVERY cause, escalation, and CLIMAX beat carries "choices": 2-3 real decisions the player faces in that moment, under its specific pressure. The climax in particular is the player's hardest, highest-stakes decision — never a passive "watch it happen".
+- Each choice has: "text" (one short line — the action taken), "result" (the distinct consequence shown after choosing — what that path costs or wins, in concrete terms), and "stake" (a NON-ZERO integer, roughly -10 to +10, the choice's net effect on the nation's MAIN resource — its standing/momentum/public support). A bold gamble that could backfire, a cautious hedge, a costly principled stand: give them DIFFERENT stakes and DIFFERENT results so the decision genuinely matters. A choice that does the right thing at real cost has a NEGATIVE stake; that is correct and good.
+- The choices must be REAL trade-offs grounded in what this historical actor could actually have done at this moment — not a right answer and two wrong ones. A thoughtful person could defend more than one.
+- EXCEPTION — the RESOLUTION beat has NO choices. It is the aftermath where the meaning lands, and WITNESSING it (not acting) is dramatically correct. Omit "choices" entirely on the resolution beat.
+
 THE MEANING — THE STORY-LEVEL ENDING (this is the payoff):
 - "meaning" is the "what it all added up to" synthesis — SIGNIFICANCE and IRONY, not a recap. It states what the events MEANT, the gap between what happened and what it changed. It is shown at the very end as the story's close, and it is DISTINCT from any moral judgment of the player and from any study recap.
 - GOLD-STANDARD register — author "meaning" in THIS voice. For the War of 1812 (Battle of New Orleans): "The Battle of New Orleans was militarily pointless — the Treaty of Ghent had already been signed weeks before — but it made Andrew Jackson a national icon and let a bruised, divided country feel like it had won, papering over a war that settled almost nothing." Note what it does: states the irony, names the real consequence, refuses to just retell the sequence.
@@ -217,10 +275,11 @@ HISTORICAL HONESTY: every beat and the meaning must be grounded in the REAL hist
 
 OUTPUT SHAPE (TypeScript for reference — output JSON only):
 type BeatRole = "cause" | "escalation" | "climax" | "resolution";
-interface PlanBeat { id: string; role: BeatRole; title: string; scene: string; significance: string; phaseHint: number; included: boolean; }
+interface PlanBeatChoice { text: string; result: string; stake: number; }
+interface PlanBeat { id: string; role: BeatRole; title: string; scene: string; significance: string; choices?: PlanBeatChoice[]; phaseHint: number; included: boolean; }
 interface NarrativePlan { throughline: string; meaning: string; beats: PlanBeat[]; }
 
-RULES: 4-6 beats, in arc order, with exactly one cause, one climax, one resolution, and one to three escalations between. Each beat has all fields; included is true. meaning makes significance, not a recap. Output ONLY the JSON object conforming to NarrativePlan.`;
+RULES: 4-6 beats, in arc order, with exactly one cause, one climax, one resolution, and one to three escalations between. Each beat has all fields; included is true. Every cause/escalation/climax beat has "choices" (2-3 real decisions, each with text + result + a non-zero stake); the resolution beat OMITS choices. meaning makes significance, not a recap. Output ONLY the JSON object conforming to NarrativePlan.`;
 
 export interface StoryPlanInputs {
   /** The authoritative subject of the campaign (what it is about). */
@@ -280,7 +339,7 @@ export async function generateStoryPlan(
 
   const stream = client.messages.stream({
     model: "claude-sonnet-4-6",
-    max_tokens: 3000,
+    max_tokens: 4000,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: buildUserMessage(standard, inputs) }],
   });
