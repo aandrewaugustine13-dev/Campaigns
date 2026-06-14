@@ -306,18 +306,26 @@ function gradeNumber(grade: string): number {
   return m ? parseInt(m[1], 10) : 8;
 }
 
-// Band proposal: PASS within target grade ±2 (a campaign reads fine a
-// little below grade; much above it shuts out struggling readers),
-// WARN within ±3, FAIL beyond.
+// Band (ASYMMETRIC — undershooting the grade is fine for below-level readers;
+// overshooting locks them out, so only TOO-HARD is penalized). With over =
+// fk − target:
+//   over ≤ +0.5        → PASS  (at/below target; the +0.5 absorbs FK run-to-run
+//                               noise — the same campaign can swing ~1.5 grades
+//                               across generations, so a dead-on hit shouldn't flicker)
+//   +0.5 < over ≤ +1.5 → WARN  (overshooting, up to ~1.5 grades too hard)
+//   over > +1.5        → FAIL  (clearly above the requested grade)
+// No lower bound: prose easier than the target ALWAYS passes. Replaces the old
+// symmetric ±2/±3 band, which never failed and only warned a 5th-grade target
+// that came back FK 7.5 — exactly the too-hard case this is meant to catch.
 function checkReadingLevel(d: any, grade: string): DimensionResult & { fk: number } {
   const prose = collectBodyProse(d);
   const { grade: fk, words } = fleschKincaidGrade(prose);
   const target = gradeNumber(grade);
-  const dist = Math.abs(fk - target);
-  const status: CheckStatus = dist <= 2 ? "pass" : dist <= 3 ? "warn" : "fail";
+  const over = Math.round((fk - target) * 10) / 10;
+  const status: CheckStatus = over <= 0.5 ? "pass" : over <= 1.5 ? "warn" : "fail";
   return {
     status, fk,
-    detail: `FK ${fk} vs target ${target} (band ±2 pass / ±3 warn; ${words} words of body prose)`,
+    detail: `FK ${fk} vs target ${target} (${over >= 0 ? "+" : ""}${over} over; asymmetric band: pass ≤+0.5 / warn ≤+1.5 / fail >+1.5, easier always passes; ${words} words of body prose)`,
   };
 }
 
