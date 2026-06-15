@@ -46,15 +46,28 @@ describe("storyPlanReview — pure logic", () => {
     expect(s.includedCount).toBe(3);
   });
 
-  it("canConfirm goes FALSE when the only climax is excluded (arc breaks)", () => {
-    const p = setBeatIncluded(makePlan(), "k", false);
-    const s = reviewStatus(p);
+  it("unchecking the only climax is an ARC error (restore a beat), not content", () => {
+    const s = reviewStatus(setBeatIncluded(makePlan(), "k", false));
     expect(s.canConfirm).toBe(false);
-    expect(s.errors.join(" ")).toMatch(/climax/i);
+    expect(s.arcErrors.join(" ")).toMatch(/climax/i);
+    expect(s.contentErrors).toEqual([]);
   });
 
-  it("canConfirm goes FALSE when the cause is excluded", () => {
-    expect(reviewStatus(setBeatIncluded(makePlan(), "c", false)).canConfirm).toBe(false);
+  it("unchecking the cause is an ARC error", () => {
+    const s = reviewStatus(setBeatIncluded(makePlan(), "c", false));
+    expect(s.canConfirm).toBe(false);
+    expect(s.arcErrors.length).toBeGreaterThan(0);
+    expect(s.contentErrors).toEqual([]);
+  });
+
+  it("a stake-0 choice on a decision beat is a CONTENT error (regenerate), not arc", () => {
+    const p = makePlan();
+    // corrupt a climax choice to stake 0 — all beats still checked
+    (p.beats.find((b) => b.id === "k")!.choices as { stake: number }[])[0].stake = 0;
+    const s = reviewStatus(p);
+    expect(s.canConfirm).toBe(false);
+    expect(s.arcErrors).toEqual([]); // NOT a restore-a-beat problem
+    expect(s.contentErrors.join(" ")).toMatch(/stake/i);
   });
 });
 
@@ -78,7 +91,7 @@ describe("StoryPlanReview — checklist component", () => {
     expect(passed.beats.filter((b) => b.included)).toHaveLength(3);
   });
 
-  it("disables Build and warns when the climax is unchecked", () => {
+  it("disables Build and shows 'restore a beat' when the climax is unchecked", () => {
     const onConfirm = vi.fn();
     const { getAllByRole, getByText, container } = render(<StoryPlanReview plan={makePlan()} onConfirm={onConfirm} />);
     // climax is the 3rd checkbox (index 2)
@@ -88,5 +101,24 @@ describe("StoryPlanReview — checklist component", () => {
     expect((container.textContent ?? "").toLowerCase()).toContain("arc no longer holds");
     fireEvent.click(build);
     expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it("on a CONTENT error shows the regenerate path, NOT 'restore a beat'", () => {
+    const onConfirm = vi.fn();
+    const onRegenerate = vi.fn();
+    const plan = makePlan();
+    (plan.beats.find((b) => b.id === "k")!.choices as { stake: number }[])[0].stake = 0; // malformed
+    const { getByText, queryByText, container } = render(
+      <StoryPlanReview plan={plan} onConfirm={onConfirm} onRegenerate={onRegenerate} />,
+    );
+    const text = (container.textContent ?? "").toLowerCase();
+    // Honest message + regenerate button; NOT the impossible "restore a beat".
+    expect(text).toContain("editing can't fix");
+    expect(text).not.toContain("arc no longer holds");
+    const build = getByText(/build campaign/i) as HTMLButtonElement;
+    expect(build.disabled).toBe(true);
+    fireEvent.click(getByText(/regenerate the story plan/i));
+    expect(onRegenerate).toHaveBeenCalledTimes(1);
+    expect(queryByText(/restore a beat/i)).toBeNull();
   });
 });

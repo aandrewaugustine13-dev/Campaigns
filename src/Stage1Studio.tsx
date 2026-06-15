@@ -123,6 +123,9 @@ export default function Stage1Studio({
   // and toggles in the "plan" step before generation. Reset whenever we
   // re-propose, since a type/perspective change invalidates the prior arc.
   const [storyPlan, setStoryPlan] = useState<NarrativePlan | null>(null);
+  // True while re-proposing just the story plan from the review step (the
+  // "regenerate" path for a plan with a content error editing can't fix).
+  const [planBusy, setPlanBusy] = useState(false);
 
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -232,6 +235,27 @@ export default function Stage1Studio({
       setStep("build");
     } catch (e) {
       fail(proposeEconomyAndCast, e);
+    }
+  };
+
+  // Re-propose ONLY the story plan (the review step's regenerate path). The
+  // server self-repairs malformed plans; this is the backstop when one slips
+  // through with a content error the teacher can't fix by toggling beats.
+  const regenPlan = async () => {
+    if (!frame) return;
+    const persp = perspectives[perspectiveIdx] ?? frame.recommendedPerspective;
+    const perspective = `${persp.role} — ${persp.description}`;
+    setPlanBusy(true);
+    try {
+      const { data } = await postJson<{ data: NarrativePlan }>("/api/storyplan", {
+        standard: inputs.standard, topic: inputs.topic.trim(), perspective,
+        campaignType: frame.campaignType, progressionMode: frame.progressionMode,
+      });
+      setStoryPlan(data);
+    } catch (e) {
+      fail(regenPlan, e);
+    } finally {
+      setPlanBusy(false);
     }
   };
 
@@ -646,6 +670,8 @@ export default function Stage1Studio({
         plan={storyPlan}
         onConfirm={(edited) => { setStoryPlan(edited); generate(edited); }}
         onBack={() => setStep("build")}
+        onRegenerate={regenPlan}
+        regenerating={planBusy}
       />
     );
   }

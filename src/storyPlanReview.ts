@@ -33,28 +33,42 @@ export function isDecisionBeat(beat: PlanBeat): boolean {
 export interface ReviewStatus {
   includedCount: number;
   total: number;
-  // Error-level arc problems with the CURRENT inclusion (e.g. the only climax
-  // was excluded). Empty ⇒ the arc still holds.
-  errors: string[];
+  // ARC-shape errors — the inclusion set no longer forms a valid arc (e.g. the
+  // only climax was unchecked). The teacher FIXES these by restoring a beat.
+  arcErrors: string[];
+  // CONTENT errors — a malformed field the model produced (e.g. a choice with
+  // stake 0, a missing scene). Toggling beats can't fix these; the only honest
+  // path is to REGENERATE the plan. Not the teacher's problem.
+  contentErrors: string[];
   // Non-blocking notes (e.g. no escalation left — a thin but legal arc).
   warnings: string[];
-  // The teacher may confirm only when the included beats still form a valid arc.
+  // Confirm requires a valid arc AND no content errors.
   canConfirm: boolean;
 }
 
+// An arc-shape finding is one about the SET of beats (cause/climax/resolution/
+// escalation presence, arc order, or the beats array itself) — fields matching
+// /^beats(\.|$)/. A per-beat field error ("beats[2].choices[0].stake") or a
+// top-level field ("meaning") is CONTENT, not fixable by toggling inclusion.
+const ARC_FIELD_RE = /^beats(\.|$)/;
+
 // Read the current plan's review status off validateStoryPlan, so the arc rule
 // (≥1 cause, exactly one climax, ≥1 resolution, arc order) is enforced by the
-// same code the generator uses — never a divergent copy.
+// same code the generator uses — never a divergent copy. Errors are SPLIT by
+// whether the teacher can fix them (restore a beat) or not (regenerate).
 export function reviewStatus(plan: NarrativePlan): ReviewStatus {
   const findings = validateStoryPlan(plan);
-  const errors = findings.filter((f) => f.level === "error").map((f) => f.message);
+  const errs = findings.filter((f) => f.level === "error");
+  const arcErrors = errs.filter((f) => ARC_FIELD_RE.test(f.field)).map((f) => f.message);
+  const contentErrors = errs.filter((f) => !ARC_FIELD_RE.test(f.field)).map((f) => f.message);
   const warnings = findings.filter((f) => f.level === "warn").map((f) => f.message);
   const includedCount = plan.beats.filter((b) => b.included).length;
   return {
     includedCount,
     total: plan.beats.length,
-    errors,
+    arcErrors,
+    contentErrors,
     warnings,
-    canConfirm: errors.length === 0 && includedCount > 0,
+    canConfirm: arcErrors.length === 0 && contentErrors.length === 0 && includedCount > 0,
   };
 }

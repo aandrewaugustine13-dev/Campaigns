@@ -61,7 +61,7 @@ export interface StoryPlanInputs {
   progressionMode?: "journey" | "project";
 }
 
-function buildUserMessage(standard: string, inputs: StoryPlanInputs): string {
+function buildUserMessage(standard: string, inputs: StoryPlanInputs, priorErrors?: string[]): string {
   const { topic, perspective, campaignType, progressionMode } = inputs;
   // The descriptive SUBJECT (when provided) is authoritative; the code is
   // supporting metadata (mirrors frame.ts / faultline.ts).
@@ -84,12 +84,19 @@ function buildUserMessage(standard: string, inputs: StoryPlanInputs): string {
     ? "\nThis is a CHARACTER campaign: it already has a separate moral fault line that owns the player's defining choice at the very start and a climactic dilemma at the very end. Do NOT duplicate those — let your CAUSE establish the world and pressure (not a second identity choice), and let your CLIMAX be this person's defining HISTORICAL confrontation. The resolution's meaning is the historical close, not a verdict on the player.\n"
     : "";
 
+  // Sighted repair: on a retry, feed back the prior attempt's validation errors
+  // so the model fixes those exact fields instead of re-rolling blind (mirrors
+  // the campaign generator's feedback block). Empty on the first attempt.
+  const feedback = priorErrors && priorErrors.length
+    ? `\nYOUR PREVIOUS ATTEMPT FAILED THESE VALIDATION CHECKS. Fix EVERY one — re-author the offending field(s) so it passes, keeping the rest faithful to the rules above (in particular: EVERY choice on a cause/escalation/climax beat needs a NON-ZERO integer stake, and the resolution beat carries NO choices):\n${priorErrors.map((e) => `- ${e}`).join("\n")}\n`
+    : "";
+
   return `Author the narrative plan for a campaign built on THIS standard:
 
 ${subjectBlock}
 ${frameBlock}${characterNote}
 Work the real history of this subject into an ORDERED arc: a cause that sets it in motion, escalation that raises the stakes, the climax it builds to, and the resolution that makes its meaning land. Give every beat playable scene prose and a one-sentence significance (why it matters in the chain of cause and consequence). Then write "meaning": the "what it all added up to" synthesis — the true irony of this history, in the gold-standard voice, not a recap.
-
+${feedback}
 Output ONLY the JSON object conforming to NarrativePlan.`;
 }
 
@@ -103,21 +110,40 @@ export async function generateStoryPlan(
   standard: string,
   apiKey: string,
   inputs: StoryPlanInputs = {},
+  // Number of EXTRA repair attempts after the first. The model occasionally
+  // slips a forbidden value (e.g. a stake-0 choice) despite the prompt; a
+  // sighted retry that feeds the validation errors back lets the plan self-heal
+  // before it ever reaches the teacher. Default 2.
+  opts: { maxRepair?: number } = {},
 ): Promise<GenerateStoryPlanResult> {
   const client = new Anthropic({ apiKey });
+  const maxRepair = opts.maxRepair ?? 2;
 
-  const stream = client.messages.stream({
-    model: "claude-sonnet-4-6",
-    max_tokens: 4000,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: buildUserMessage(standard, inputs) }],
-  });
+  let last!: GenerateStoryPlanResult;
+  let priorErrors: string[] = [];
+  for (let attempt = 0; attempt <= maxRepair; attempt++) {
+    const stream = client.messages.stream({
+      model: "claude-sonnet-4-6",
+      max_tokens: 4000,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: "user", content: buildUserMessage(standard, inputs, attempt > 0 ? priorErrors : undefined) }],
+    });
 
-  let rawText = "";
-  stream.on("text", (t) => { rawText += t; });
-  await stream.finalMessage();
+    let rawText = "";
+    stream.on("text", (t) => { rawText += t; });
+    await stream.finalMessage();
 
-  const data = parseModelJson<NarrativePlan>(rawText);
-  const findings = validateStoryPlan(data);
-  return { data, raw: rawText, findings };
+    const data = parseModelJson<NarrativePlan>(rawText);
+    const findings = validateStoryPlan(data);
+    last = { data, raw: rawText, findings };
+
+    const errors = findings.filter((f) => f.level === "error");
+    if (errors.length === 0) return last;
+    // Feed the exact failures back and try once more.
+    priorErrors = errors.map((f) => `${f.field}: ${f.message}`);
+    if (attempt < maxRepair) console.warn(`[storyplan] attempt ${attempt + 1}/${maxRepair + 1}: ${errors.length} error(s) — repairing`);
+  }
+  // Best effort after exhausting repairs: return the last attempt; its findings
+  // still carry the errors so the UI's regenerate path is the backstop.
+  return last;
 }

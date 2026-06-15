@@ -19,12 +19,18 @@ export default function StoryPlanReview({
   plan,
   onConfirm,
   onBack,
+  onRegenerate,
   busy = false,
+  regenerating = false,
 }: {
   plan: NarrativePlan;
   onConfirm: (plan: NarrativePlan) => void;
   onBack?: () => void;
+  // Re-propose the whole plan from the model — the honest path when the plan has
+  // a CONTENT error (a malformed field) that toggling beats can't fix.
+  onRegenerate?: () => void;
   busy?: boolean;
+  regenerating?: boolean;
 }) {
   const [edited, setEdited] = useState<NarrativePlan>(plan);
   const status = reviewStatus(edited);
@@ -86,16 +92,34 @@ export default function StoryPlanReview({
             <p className="text-sm text-stone-200 leading-relaxed">{edited.meaning}</p>
           </div>
 
-          {/* Validity */}
-          {status.errors.length > 0 && (
+          {/* Validity — arc-shape errors (restore a beat) are the teacher's to
+              fix; content errors (a malformed field) are not — offer regenerate. */}
+          {status.arcErrors.length > 0 && (
             <div className="bg-red-950/40 border border-red-800 rounded p-3 space-y-1">
               <p className="text-red-300 text-xs font-bold">The arc no longer holds — restore a beat to continue:</p>
               <ul className="list-disc list-inside text-red-300/90 text-xs space-y-0.5">
-                {status.errors.map((e, i) => <li key={i}>{e}</li>)}
+                {status.arcErrors.map((e, i) => <li key={i}>{e}</li>)}
               </ul>
             </div>
           )}
-          {status.errors.length === 0 && status.warnings.length > 0 && (
+          {status.contentErrors.length > 0 && (
+            <div className="bg-red-950/40 border border-red-800 rounded p-3 space-y-2">
+              <p className="text-red-300 text-xs font-bold">This plan has a problem that editing can't fix — regenerate it:</p>
+              <ul className="list-disc list-inside text-red-300/90 text-xs space-y-0.5">
+                {status.contentErrors.map((e, i) => <li key={i}>{e}</li>)}
+              </ul>
+              {onRegenerate && (
+                <button
+                  onClick={onRegenerate}
+                  disabled={regenerating}
+                  className="px-4 py-1.5 bg-red-800 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed rounded text-xs font-bold transition-colors"
+                >
+                  {regenerating ? "Regenerating…" : "↻ Regenerate the story plan"}
+                </button>
+              )}
+            </div>
+          )}
+          {status.arcErrors.length === 0 && status.contentErrors.length === 0 && status.warnings.length > 0 && (
             <p className="text-amber-400/80 text-xs">{status.warnings.join(" · ")}</p>
           )}
 
