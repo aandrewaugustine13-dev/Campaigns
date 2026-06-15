@@ -20,6 +20,7 @@
     "test:storyplan": "npx tsx generator/storyPlanCompile.test.ts",
     "test:pinning": "npx tsx generator/eventPinning.test.ts",
     "test:flush": "vitest run src/narrativeFlush.test.tsx",
+    "test:review": "vitest run src/storyPlanReview.test.tsx",
     "test:numeric-flag": "npx tsx generator/numericFlag.test.ts",
     "test:relationship-tracks": "npx tsx generator/relationshipTracks.test.ts",
     "test:personal-economy": "npx tsx generator/personalEconomy.test.ts",

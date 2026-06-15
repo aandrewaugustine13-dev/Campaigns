@@ -46,7 +46,7 @@ const ROLE_RANK: Record<BeatRole, number> = {
 
 // The beats where the player must ACT: rising action and the climax carry real
 // decisions. The resolution is a witnessing/aftermath beat and stays choiceless.
-const DECISION_ROLES: BeatRole[] = ["cause", "escalation", "climax"];
+export const DECISION_ROLES: BeatRole[] = ["cause", "escalation", "climax"];
 
 // A choice on a rising-action / climax beat. Authored resource-BLIND: the plan
 // runs before the campaign's bespoke resources exist, so a choice cannot name
