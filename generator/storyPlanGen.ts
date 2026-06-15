@@ -59,6 +59,10 @@ export interface StoryPlanInputs {
   campaignType?: "systems" | "character";
   /** From the frame: "journey" or "project" — shapes how beats advance. */
   progressionMode?: "journey" | "project";
+  /** PRODUCT 2 (narrative) — when set, instruct the author to add an
+   * `endingFragment` to every decision-beat choice and validate its presence.
+   * Off ⇒ the systems plan path is byte-identical (no fragment authored). */
+  requireEndingFragments?: boolean;
 }
 
 function buildUserMessage(standard: string, inputs: StoryPlanInputs, priorErrors?: string[]): string {
@@ -84,6 +88,14 @@ function buildUserMessage(standard: string, inputs: StoryPlanInputs, priorErrors
     ? "\nThis is a CHARACTER campaign: it already has a separate moral fault line that owns the player's defining choice at the very start and a climactic dilemma at the very end. Do NOT duplicate those — let your CAUSE establish the world and pressure (not a second identity choice), and let your CLIMAX be this person's defining HISTORICAL confrontation. The resolution's meaning is the historical close, not a verdict on the player.\n"
     : "";
 
+  // PRODUCT 2 (narrative): the deterministically-assembled ending recites the
+  // player's OWN choices back. So EVERY decision-beat choice must carry an
+  // `endingFragment` in ADDITION to the fields in the OUTPUT SHAPE. (Systems
+  // plans omit this block entirely ⇒ byte-identical.)
+  const endingNote = inputs.requireEndingFragments
+    ? `\nNARRATIVE-ENDING REQUIREMENT (this campaign assembles a responsive ending from the player's choices): give EVERY choice on a cause/escalation/climax beat an additional field "endingFragment" — ONE retrospective, past-tense sentence the ending will RECITE BACK if the player picked that option. It names what they DID at this beat and what it cost or won, and it must read aloud naturally in sequence with the other beats' fragments and flow toward the closing synthesis ("meaning"). It is DISTINCT from "result": "result" is the immediate in-the-moment consequence; "endingFragment" is the looking-back-from-the-end voice. Example pair — result: "The declaration passes; the country is committed, ready or not." → endingFragment: "You cast your vote for war, and a republic that was not ready marched anyway." The resolution beat has no choices and needs no fragment. So each such choice has: text, result, stake, AND endingFragment.\n`
+    : "";
+
   // Sighted repair: on a retry, feed back the prior attempt's validation errors
   // so the model fixes those exact fields instead of re-rolling blind (mirrors
   // the campaign generator's feedback block). Empty on the first attempt.
@@ -94,7 +106,7 @@ function buildUserMessage(standard: string, inputs: StoryPlanInputs, priorErrors
   return `Author the narrative plan for a campaign built on THIS standard:
 
 ${subjectBlock}
-${frameBlock}${characterNote}
+${frameBlock}${characterNote}${endingNote}
 Work the real history of this subject into an ORDERED arc: a cause that sets it in motion, escalation that raises the stakes, the climax it builds to, and the resolution that makes its meaning land. Give every beat playable scene prose and a one-sentence significance (why it matters in the chain of cause and consequence). Then write "meaning": the "what it all added up to" synthesis — the true irony of this history, in the gold-standard voice, not a recap.
 ${feedback}
 Output ONLY the JSON object conforming to NarrativePlan.`;
@@ -134,7 +146,7 @@ export async function generateStoryPlan(
     await stream.finalMessage();
 
     const data = parseModelJson<NarrativePlan>(rawText);
-    const findings = validateStoryPlan(data);
+    const findings = validateStoryPlan(data, { requireEndingFragments: inputs.requireEndingFragments });
     last = { data, raw: rawText, findings };
 
     const errors = findings.filter((f) => f.level === "error");

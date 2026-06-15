@@ -62,6 +62,16 @@ export interface PlanBeatChoice {
    * -10 (a real cost/sacrifice) to +10 (a strong gain). Every choice must
    * matter; a costly "right thing" is a negative stake. */
   stake: number;
+  /** PRODUCT 2 (narrative) only — the ENDING FRAGMENT. One retrospective,
+   * past-tense sentence the deterministically-assembled ending RECITES BACK if
+   * the player picked this option: it names what they did at this beat and what
+   * it cost or won, written to read aloud in sequence with the other beats'
+   * chosen fragments and to flow into the constant closing synthesis. DISTINCT
+   * from `result` (the immediate, in-the-moment consequence). Optional at the
+   * type level (systems plans never use it); REQUIRED by validation on every
+   * decision-beat choice when `requireEndingFragments` is set (the narrative
+   * product). */
+  endingFragment?: string;
 }
 
 export interface PlanBeat {
@@ -113,7 +123,18 @@ export interface StoryPlanFinding {
 // Two or more such markers reads as a recap. Noisy is fine — it only WARNS.
 const SEQ_MARKER_RE = /\b(first|then|next|after that|afterwards?|finally|in the end|lastly)\b/gi;
 
-export function validateStoryPlan(data: unknown): StoryPlanFinding[] {
+// `requireEndingFragments` — set by the NARRATIVE product (Product 2). When on,
+// every decision-beat choice must carry a non-empty `endingFragment` (the
+// sentence the assembled ending recites back). Off by default ⇒ systems plans
+// validate exactly as before (the field is ignored).
+export interface ValidateStoryPlanOptions {
+  requireEndingFragments?: boolean;
+}
+
+export function validateStoryPlan(
+  data: unknown,
+  opts: ValidateStoryPlanOptions = {},
+): StoryPlanFinding[] {
   const f: StoryPlanFinding[] = [];
   const push = (level: "error" | "warn", field: string, message: string) =>
     f.push({ level, field, message });
@@ -193,6 +214,11 @@ export function validateStoryPlan(data: unknown): StoryPlanFinding[] {
               push("error", `${prefix}.choices[${ci}].stake`, "stake must be a NON-ZERO integer (the choice's net effect on the main resource)");
             else if (Math.abs(cc.stake as number) > 12)
               push("warn", `${prefix}.choices[${ci}].stake`, "stake magnitude > 12 is large — keep roughly -10..+10");
+            // NARRATIVE product: each decision-beat choice must author the ending
+            // fragment the assembled ending recites back. (Systems plans skip this.)
+            if (opts.requireEndingFragments &&
+                (typeof cc.endingFragment !== "string" || (cc.endingFragment as string).trim().length === 0))
+              push("error", `${prefix}.choices[${ci}].endingFragment`, "endingFragment must be a non-empty string — the retrospective sentence the ending recites for this choice (distinct from `result`)");
           });
         }
       } else if (role === "resolution" && Array.isArray(choices) && choices.length > 0) {

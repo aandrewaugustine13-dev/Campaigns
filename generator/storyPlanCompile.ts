@@ -84,6 +84,10 @@ function buildChoices(beat: PlanBeat, primaryResourceKey?: string): Choice[] {
     text: c.text,
     result: c.result,
     effects: { [primaryResourceKey]: c.stake },
+    // PRODUCT 2: carry the authored ending fragment onto the playable choice so
+    // the deterministic ending assembler can recite it. Absent ⇒ omitted (the
+    // systems product authors no fragment, so the choice is byte-identical).
+    ...(c.endingFragment ? { endingFragment: c.endingFragment } : {}),
   }));
 }
 

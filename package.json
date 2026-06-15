@@ -19,6 +19,7 @@
     "test:faultline": "npx tsx generator/faultlineCompile.test.ts",
     "test:storyplan": "npx tsx generator/storyPlanCompile.test.ts",
     "test:narrative": "npx tsx generator/narrativeCampaign.test.ts",
+    "test:ending-fragment": "npx tsx generator/endingFragment.test.ts",
     "test:pinning": "npx tsx generator/eventPinning.test.ts",
     "test:flush": "vitest run src/narrativeFlush.test.tsx",
     "test:review": "vitest run src/storyPlanReview.test.tsx",

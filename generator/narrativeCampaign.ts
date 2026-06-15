@@ -173,6 +173,9 @@ export async function generateNarrativeCampaign(
     topic: inputs.topic,
     perspective: inputs.perspective,
     campaignType: "character",
+    // Product 2 assembles a responsive ending from the player's choices, so the
+    // plan must author an endingFragment per decision-beat choice.
+    requireEndingFragments: true,
   });
 
   const o = inputs.identity ?? {};

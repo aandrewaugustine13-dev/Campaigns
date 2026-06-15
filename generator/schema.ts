@@ -121,6 +121,12 @@ export interface Choice {
   // absent ⇒ untagged ⇒ byte-identical. (Stage 1 foundation: the tally is
   // accumulated but not yet read; the verdict that consumes it ships later.)
   moralTag?: "principled" | "self-serving" | "obvious";
+  // PRODUCT 2 (narrative) — the ENDING FRAGMENT the deterministically-assembled
+  // ending recites back if this option was chosen (a retrospective, past-tense
+  // sentence, distinct from `result`). Compiled from PlanBeatChoice.endingFragment
+  // by storyPlanCompile. Optional & additive: absent ⇒ byte-identical (systems
+  // choices never carry it, and the assembler simply skips a missing fragment).
+  endingFragment?: string;
 }
 
 export interface PushAttempt {
