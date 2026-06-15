@@ -288,6 +288,18 @@ export interface FaceLevel {
   label: string;
 }
 
+// PRODUCT discriminator. The generator core serves TWO products that share the
+// pure modules but NOT the feature set:
+//   "systems"   — the Oregon-Trail-style game (sage, push-your-luck, multi-
+//                 resource economy, expedition/outfit, route/trail). The default.
+//   "narrative" — the first-person choose-your-own-adventure: a fixed historical
+//                 SPINE (all-pinned beats) + choice-memory + a deterministically
+//                 assembled ending. SHEDS every systems feature (it never authors
+//                 them). Built by its own thin orchestrator (narrativeCampaign.ts);
+//                 the systems path is untouched.
+// Absent ⇒ "systems" (back-compat: every pre-existing campaign is byte-identical).
+export type ProductType = "systems" | "narrative";
+
 // ═════════════════════════════════════════════════════════════════
 // CampaignData — the full JSON-serializable output target
 // ═════════════════════════════════════════════════════════════════
@@ -306,6 +318,11 @@ export interface CampaignData {
    * "project": time-based phases (totalDays / daysPerTurn required, travel
    * fields left empty). Validator gates journey-only checks on this value. */
   progressionMode?: "journey" | "project";
+  /** Which PRODUCT this campaign belongs to. Absent ⇒ "systems" (back-compat).
+   * "narrative" tells the validator/engine this is the spine-only CYOA — it
+   * SHEDS the systems machinery (sage, route, outfit, multi-resource economy)
+   * rather than leaving it half-populated. See ProductType above. */
+  productType?: ProductType;
 
   // Journey parameters
   totalDays: number;

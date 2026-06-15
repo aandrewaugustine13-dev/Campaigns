@@ -57,6 +57,19 @@ export function validate(data: unknown): ValidationReport {
     findings.push(err("progressionMode", 'progressionMode must be "journey" or "project" if present'));
   }
 
+  // ── Product discriminator ────────────────────────────────────
+  // "narrative" is the spine-only CYOA (Product 2): it SHEDS the systems
+  // machinery, so the existence checks for sage / route / outfit are gated OFF
+  // for it below (their SHAPE is still validated if present). The academics
+  // layer (eventTrivia / exam) is SHARED & STATIC and is wired into the
+  // narrative orchestrator in a later step, so its existence check is gated off
+  // here too for now. Absent / "systems" ⇒ every check fires exactly as before
+  // (byte-identical for Product 1).
+  const isNarrative = d.productType === "narrative";
+  if (d.productType !== undefined && d.productType !== "systems" && d.productType !== "narrative") {
+    findings.push(err("productType", 'productType must be "systems" or "narrative" if present'));
+  }
+
   // ── Identity fields ──────────────────────────────────────────
   for (const key of ["id", "title", "subtitle", "introBody", "trailFeedOpener", "primaryResourceKey", "historicalContext"] as const) {
     check(key, typeof d[key] === "string" && (d[key] as string).length > 0, `Missing or empty string: ${key}`);
@@ -441,8 +454,11 @@ export function validate(data: unknown): ValidationReport {
   }
 
   // ── Sages ────────────────────────────────────────────────────
+  // Systems-only: the narrative product has NO sage (shed). Require a non-empty
+  // bank only for systems; still validate the SHAPE of any sages present.
   const sages = d.sages;
-  check("sages", Array.isArray(sages) && (sages as unknown[]).length > 0, "sages must be a non-empty array");
+  if (!isNarrative)
+    check("sages", Array.isArray(sages) && (sages as unknown[]).length > 0, "sages must be a non-empty array");
   if (Array.isArray(sages)) {
     const sageIds = new Set<string>();
     for (let i = 0; i < sages.length; i++) {
@@ -484,9 +500,16 @@ export function validate(data: unknown): ValidationReport {
   }
 
   // ── Route coherence ──────────────────────────────────────────
+  // Systems-only: the narrative product is linear (the spine IS the path) and
+  // carries no branching route. Require it only for systems; shape-check any present.
   const route = d.route;
-  check("route", Array.isArray(route) && (route as unknown[]).length > 0, "route must be a non-empty array");
-  if (Array.isArray(route)) {
+  if (!isNarrative)
+    check("route", Array.isArray(route) && (route as unknown[]).length > 0, "route must be a non-empty array");
+  // Coherence is meaningful only for a populated route; an empty narrative route
+  // (the linear spine carries no branching nodes) is skipped. The `!isNarrative`
+  // guard keeps the systems path byte-identical even for an (already-rejected)
+  // empty systems route.
+  if (Array.isArray(route) && (!isNarrative || route.length > 0)) {
     const routeIds = new Set<string>();
     for (const node of route as Record<string, unknown>[]) {
       if (typeof node.id === "string") routeIds.add(node.id);
@@ -511,8 +534,12 @@ export function validate(data: unknown): ValidationReport {
   }
 
   // ── Event trivia ─────────────────────────────────────────────
+  // Academics (eventTrivia / exam) are SHARED & STATIC across both products, but
+  // are wired into the narrative orchestrator in a later step; until then the
+  // existence check is gated off for narrative. Shape-check any present.
   const eventTrivia = d.eventTrivia;
-  check("eventTrivia", Array.isArray(eventTrivia) && (eventTrivia as unknown[]).length > 0, "eventTrivia must be a non-empty array");
+  if (!isNarrative)
+    check("eventTrivia", Array.isArray(eventTrivia) && (eventTrivia as unknown[]).length > 0, "eventTrivia must be a non-empty array");
   if (Array.isArray(eventTrivia)) {
     for (let i = 0; i < eventTrivia.length; i++) {
       const q = eventTrivia[i] as Record<string, unknown>;
@@ -549,6 +576,9 @@ export function validate(data: unknown): ValidationReport {
   }
 
   // ── Outfit config ────────────────────────────────────────────
+  // The narrative product has no expedition/outfit screen (shed), but the type
+  // still carries the field, so it ships a structurally-valid EMPTY outfit
+  // (budget 0, no costs) — which passes this check unchanged. No gate needed.
   const oc = d.outfitConfig as Record<string, unknown> | undefined;
   check("outfitConfig", typeof oc === "object" && oc !== null, "Missing outfitConfig");
   if (typeof oc === "object" && oc !== null) {
