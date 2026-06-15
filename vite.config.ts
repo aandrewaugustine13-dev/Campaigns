@@ -215,6 +215,23 @@ function generatorApiPlugin(): Plugin {
         );
         return { data, findings };
       });
+
+      // The narrative-spine plan: an ordered arc of beats + the meaning the
+      // story lands on. Takes { standard, topic, campaignType, progressionMode,
+      // perspective } and returns { data, findings }. The teacher reviews/edits
+      // the beats (include/exclude) before the confirmed plan is locked into the
+      // generate payload as `storyPlan`; core.ts compiles its included beats
+      // into pinned events and sets storyMeaning.
+      jsonPost(server, '/api/storyplan', async (apiKey, inputs) => {
+        const { generateStoryPlan } = await import('./generator/storyPlanGen.ts');
+        const { data, findings } = await generateStoryPlan(String(inputs.standard ?? ''), apiKey, {
+          topic: inputs.topic ? String(inputs.topic) : undefined,
+          perspective: inputs.perspective ? String(inputs.perspective) : undefined,
+          campaignType: inputs.campaignType === 'character' || inputs.campaignType === 'systems' ? inputs.campaignType : undefined,
+          progressionMode: inputs.progressionMode === 'journey' || inputs.progressionMode === 'project' ? inputs.progressionMode : undefined,
+        });
+        return { data, findings };
+      });
     },
   };
 }

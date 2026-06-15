@@ -5,7 +5,9 @@ import type { SystemsEconomy } from "../generator/economy";
 import type { ProposedCast } from "../generator/cast";
 import type { FaultLineSpec } from "../generator/faultline";
 import type { PersonalEconomy } from "../generator/personalEconomy";
+import type { NarrativePlan } from "../generator/storyPlan";
 import { generateCampaignJob } from "./generateClient";
+import StoryPlanReview from "./StoryPlanReview";
 
 // ═══════════════════════════════════════════════════════════════
 // Stage 1 Studio — the teacher-facing flow that turns a single TEKS
@@ -14,7 +16,7 @@ import { generateCampaignJob } from "./generateClient";
 // reviews and chooses from, then locks those inputs into full generation.
 // ═══════════════════════════════════════════════════════════════
 
-type Step = "input" | "frame" | "build" | "generating" | "error";
+type Step = "input" | "frame" | "build" | "plan" | "generating" | "error";
 
 interface Inputs {
   standard: string;
@@ -117,6 +119,10 @@ export default function Stage1Studio({
   // Character campaigns only: the moral fault line proposed for the chosen
   // perspective. Null for systems campaigns (and reset whenever we re-propose).
   const [faultLine, setFaultLine] = useState<FaultLineSpec | null>(null);
+  // The narrative-spine plan (both modes): an ordered arc the teacher reviews
+  // and toggles in the "plan" step before generation. Reset whenever we
+  // re-propose, since a type/perspective change invalidates the prior arc.
+  const [storyPlan, setStoryPlan] = useState<NarrativePlan | null>(null);
 
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -173,6 +179,7 @@ export default function Stage1Studio({
       setPersonalEconomy(null);
       setCast(null);
       setFaultLine(null);
+      setStoryPlan(null);
       setSwitchingType(null);
     } catch (e) {
       setSwitchingType(null);
@@ -209,11 +216,18 @@ export default function Stage1Studio({
       const flP: Promise<{ data: FaultLineSpec } | null> = isCharacter
         ? postJson<{ data: FaultLineSpec }>("/api/faultline", { standard: inputs.standard, topic, perspective })
         : Promise.resolve(null);
-      const [sysEco, persEco, cst, fl] = await Promise.all([sysEcoP, persEcoP, castP, flP]);
+      // The narrative-spine plan (both modes) — proposed in parallel so it's
+      // ready for the teacher's review step right after build.
+      const spP = postJson<{ data: NarrativePlan }>("/api/storyplan", {
+        standard: inputs.standard, topic, perspective,
+        campaignType: frame.campaignType, progressionMode: frame.progressionMode,
+      });
+      const [sysEco, persEco, cst, fl, sp] = await Promise.all([sysEcoP, persEcoP, castP, flP, spP]);
       setEconomy(sysEco ? sysEco.data : null);
       setPersonalEconomy(persEco ? persEco.data : null);
       setCast(cst.data);
       setFaultLine(fl ? fl.data : null);
+      setStoryPlan(sp.data);
       setBusy(null);
       setStep("build");
     } catch (e) {
@@ -221,8 +235,10 @@ export default function Stage1Studio({
     }
   };
 
-  // ── Step 3 → lock everything and generate a playable campaign ───
-  const generate = async () => {
+  // ── Step 3 → lock everything (incl. the reviewed story plan) and generate ──
+  // `plan` is the teacher-confirmed narrative plan from the review step (its
+  // included beats become pinned events; its meaning becomes storyMeaning).
+  const generate = async (plan: NarrativePlan | null = storyPlan) => {
     if (!frame) return;
     const persp = perspectives[perspectiveIdx] ?? frame.recommendedPerspective;
     setStep("generating");
@@ -247,13 +263,16 @@ export default function Stage1Studio({
         personalEconomy: personalEconomy ?? undefined,
         // Character campaigns only: the compiled fault line core.ts splices in.
         faultLine: faultLine ?? undefined,
+        // The teacher-reviewed narrative spine — core.ts compiles its included
+        // beats into pinned events and sets storyMeaning.
+        storyPlan: plan ?? undefined,
       };
       const result = await generateCampaignJob(payload);
       if (timerRef.current) clearInterval(timerRef.current);
       onPlay(result.data as CampaignData);
     } catch (e) {
       if (timerRef.current) clearInterval(timerRef.current);
-      fail(generate, e);
+      fail(() => generate(plan), e);
     }
   };
 
@@ -606,8 +625,8 @@ export default function Stage1Studio({
           <button onClick={() => setStep("frame")} className="px-4 py-2.5 bg-stone-800 border border-stone-700 hover:border-stone-600 rounded text-sm text-stone-300 transition-colors">
             ← Back
           </button>
-          <button onClick={generate} className="flex-1 py-2.5 bg-amber-700 hover:bg-amber-600 rounded font-bold text-lg transition-colors">
-            Generate Playable Campaign →
+          <button onClick={() => setStep(storyPlan ? "plan" : "build")} disabled={!storyPlan} className="flex-1 py-2.5 bg-amber-700 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed rounded font-bold text-lg transition-colors">
+            Review the Story Arc →
           </button>
         </div>
 
@@ -615,6 +634,19 @@ export default function Stage1Studio({
           ← Back to Campaigns
         </button>
       </>,
+    );
+  }
+
+  // ── Step 3: review the narrative arc, then generate ──
+  // The plan-review checklist is full-screen (its own shell), so it renders
+  // directly rather than through `shell`.
+  if (step === "plan" && storyPlan) {
+    return (
+      <StoryPlanReview
+        plan={storyPlan}
+        onConfirm={(edited) => { setStoryPlan(edited); generate(edited); }}
+        onBack={() => setStep("build")}
+      />
     );
   }
 
