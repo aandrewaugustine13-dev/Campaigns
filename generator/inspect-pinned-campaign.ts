@@ -11,7 +11,7 @@ import { config as loadEnv } from "dotenv";
 import { writeFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
-import { generateStoryPlan } from "./storyPlan.js";
+import { generateStoryPlan } from "./storyPlanGen.js";
 import { generateCampaign, type GenerateInputs } from "./core.js";
 import { validateForDelivery } from "./core.js";
 

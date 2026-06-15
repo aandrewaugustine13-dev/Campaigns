@@ -44,7 +44,7 @@ import { generateFrame } from "./frame.js";
 import { generatePersonalEconomy } from "./personalEconomy.js";
 import { generateCast } from "./cast.js";
 import { generateFaultLine } from "./faultline.js";
-import { generateStoryPlan } from "./storyPlan.js";
+import { generateStoryPlan } from "./storyPlanGen.js";
 import {
   generateValidatedCampaign,
   type GenerateInputs,

@@ -11,7 +11,7 @@
 import { config as loadEnv } from "dotenv";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
-import { generateStoryPlan, type StoryPlanInputs } from "./storyPlan.js";
+import { generateStoryPlan, type StoryPlanInputs } from "./storyPlanGen.js";
 
 const __root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 loadEnv({ path: resolve(__root, ".env.local") });
