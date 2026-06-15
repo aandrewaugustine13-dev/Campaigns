@@ -166,4 +166,62 @@ describe("narrative spine — end-of-run flush in the real engine", () => {
       "verdict shows after acknowledging the story meaning",
     ).toBe(true);
   });
+
+  it("still shows the storyMeaning ending when the player LOSES (fail path)", () => {
+    // A normal-length campaign (goal far off) with an early event whose choice
+    // drives morale to 0 — a systems FAIL. The climax is correctly cut short on
+    // a loss (we do NOT flush pins on fail), but the history's MEANING is the
+    // educational payload and must still land for a kid who lost.
+    const data = {
+      id: "fail-test", title: "FAIL TEST", subtitle: "s", introBody: "i", trailFeedOpener: "o",
+      theme: "default", progressionMode: "project", totalDays: 100, daysPerTurn: 1,
+      totalDistance: 0, distanceUnit: "",
+      initialResources: { reputation: 60, morale: 5 }, resourceCaps: { reputation: 100, morale: 100 },
+      resourceLabels: { reputation: "Reputation", morale: "Morale" },
+      paces: [],
+      events: [
+        {
+          id: "ruin", phase_min: 0, phase_max: 0.4, weight: 5, title: "Ruin",
+          text: "A decision that can ruin you.", type: "standard",
+          choices: [{ text: "Drive the nation to ruin", result: "Morale collapses.", effects: { morale: -99 } }],
+        },
+      ],
+      sages: [], route: [{ id: "start", title: "S", description: "d", edges: [] }],
+      eventTrivia: [{ id: "q1", question: "q", choices: ["a", "b"], correctIndex: 0, fact: "f" }],
+      trailPath: [], trailStops: [], mapImage: "none",
+      outfitConfig: { budget: 0, baseCrew: 0, baseHorses: 0, baseSupplies: 0, costs: {}, wageCosts: {}, wageMorale: {}, herdOptions: [] },
+      primaryResourceKey: "reputation", primaryResourceStart: 60, revenuePerUnit: 0, historicalContext: "t",
+      pixelColors: {}, pixelFaces: {},
+      verdict: { good: "VG", bad: "VB", indifferent: "VI" },
+      reviewSummary: "recap",
+      storyMeaning: "STORY_MEANING_MARKER — the meaning that lands even in defeat.",
+    } as unknown as CampaignData;
+
+    const { container, getAllByRole } = render(<GeneratedCampaign data={data} onBack={() => {}} />);
+    const text = () => container.textContent ?? "";
+    const clickForward = () => {
+      const buttons = getAllByRole("button").filter((b) => {
+        const t = (b.textContent ?? "").trim();
+        return t && !/back to campaigns|campaign log|ask a sage/i.test(t);
+      });
+      if (buttons.length === 0) return false;
+      const fwd =
+        buttons.find((b) => /continue expedition|^go on\.?$|^continue$|onward|ruin|^▶/i.test((b.textContent ?? "").trim())) ??
+        buttons[0];
+      fireEvent.click(fwd);
+      return true;
+    };
+
+    fireEvent.click(getAllByRole("button").find((b) => /begin/i.test(b.textContent ?? ""))!);
+
+    let reachedMeaning = false;
+    for (let i = 0; i < 30; i++) {
+      if (text().includes("STORY_MEANING_MARKER")) { reachedMeaning = true; break; }
+      if (!clickForward()) break;
+    }
+    // The meaning lands on a loss too — the educational payload is separable from
+    // whether the player "earned" the climax.
+    expect(reachedMeaning, "storyMeaning panel shows even on a fail end").toBe(true);
+    expect(text()).toContain("What it all added up to");
+  });
 });
