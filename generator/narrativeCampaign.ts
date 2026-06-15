@@ -135,8 +135,11 @@ export function narrativePlanToCampaign(
     pixelColors: {},
     pixelFaces: {},
 
-    // Story-level ENDING (kept; becomes the constant coda of the assembled ending).
+    // Story-level ENDING (kept; also mirrored as the assembled ending's coda).
     storyMeaning,
+    // The constant frame for the responsive assembled ending: the per-choice
+    // fragments ride on the events' choices; only the constant coda lives here.
+    endingFrame: { coda: storyMeaning },
   } satisfies CampaignData;
 }
 

@@ -306,6 +306,22 @@ export interface FaceLevel {
 // Absent ⇒ "systems" (back-compat: every pre-existing campaign is byte-identical).
 export type ProductType = "systems" | "narrative";
 
+// PRODUCT 2 — the constant scaffold of the deterministically-assembled ending.
+// At the close, the engine assembles: opening (optional, constant) → the
+// player's CHOSEN ending-fragments recited in arc order → coda (constant). The
+// fragments come from the chosen choices (Choice.endingFragment); only the
+// constant bookends live here. `coda` IS the kept storyMeaning (the history's
+// fixed meaning — same for every kid). Pure assembly, NO run-time model call
+// (generator/endingAssemble.ts). Optional & additive: absent ⇒ no assembled
+// ending (the systems product never sets it).
+export interface EndingFrame {
+  /** Optional constant lead-in shown before the recited fragments. */
+  opening?: string;
+  /** The constant closing synthesis — significance + irony — identical for every
+   * player. Mirrors CampaignData.storyMeaning (the assembler prefers this). */
+  coda: string;
+}
+
 // ═════════════════════════════════════════════════════════════════
 // CampaignData — the full JSON-serializable output target
 // ═════════════════════════════════════════════════════════════════
@@ -392,4 +408,10 @@ export interface CampaignData {
   // country feel like it won." Authored by the narrative-plan stage and rendered
   // at the close as its own beat. Absent ⇒ no story-ending panel (byte-identical).
   storyMeaning?: string;
+
+  // PRODUCT 2 — the constant scaffold (opening + coda) for the responsive,
+  // deterministically-assembled ending. The per-choice fragments live on the
+  // chosen choices; this carries only the constant bookends. Set by the
+  // narrative orchestrator; absent ⇒ no assembled ending (systems byte-identical).
+  endingFrame?: EndingFrame;
 }
