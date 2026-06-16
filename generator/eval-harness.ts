@@ -45,6 +45,7 @@ import { generatePersonalEconomy } from "./personalEconomy.js";
 import { generateCast } from "./cast.js";
 import { generateFaultLine } from "./faultline.js";
 import { generateStoryPlan } from "./storyPlanGen.js";
+import { checkEndingRecitesChoices } from "./endingDimension.js";
 import {
   generateValidatedCampaign,
   type GenerateInputs,
@@ -508,6 +509,7 @@ const TIER1_DIMENSIONS = [
   "prose-length",
   "timeline-coherence",
   "narrative-coherence",
+  "ending-recites-choices",
 ] as const;
 
 // Tier 2 — model-graded (rubric order; v1 = safety/credibility critical)
@@ -598,6 +600,7 @@ function consolidateTier1(
   dims["prose-length"] = checkProseLength(d);
   dims["timeline-coherence"] = checkTimelineCoherence(d);
   dims["narrative-coherence"] = checkNarrativeCoherence(d);
+  dims["ending-recites-choices"] = checkEndingRecitesChoices(d);
 
   return { dimensions: dims, fk: rl.fk };
 }
