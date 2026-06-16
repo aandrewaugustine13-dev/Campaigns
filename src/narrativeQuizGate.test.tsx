@@ -16,6 +16,10 @@ import type { CampaignData } from "../generator/schema";
 
 const POPQUIZ = "POPQUIZ_MARKER_QUESTION";
 
+// The closing beat is shown via "Looking back" for the narrative product (the
+// assembled ending) or "What it all added up to" for the systems storyMeaning.
+const atClose = (t: string) => t.includes("Looking back") || t.includes("What it all added up to");
+
 // A pinned decision beat moving the single "standing" track.
 function pin(seq: number, min: number, max: number, reader = false) {
   return {
@@ -71,7 +75,7 @@ function driveToClose(getAllByRole: any, container: HTMLElement, onScan: () => v
   if (beginBtn) fireEvent.click(beginBtn);
   for (let i = 0; i < 80; i++) {
     onScan();
-    if (text().includes("What it all added up to")) return true; // storyMeaning close reached
+    if (atClose(text())) return true; // closing beat reached
     const buttons = getAllByRole("button").filter((b: HTMLElement) => {
       const txt = (b.textContent ?? "").trim();
       return txt && !/back to campaigns|campaign log|ask a sage/i.test(txt);
@@ -83,7 +87,7 @@ function driveToClose(getAllByRole: any, container: HTMLElement, onScan: () => v
     fireEvent.click(forward);
   }
   onScan();
-  return text().includes("What it all added up to");
+  return atClose(text());
 }
 
 describe("narrative quiz gate — mid-run suppression, final exam preserved", () => {
@@ -95,7 +99,7 @@ describe("narrative quiz gate — mid-run suppression, final exam preserved", ()
     const reachedClose = driveToClose(getAllByRole, container, () => {
       const t = container.textContent ?? "";
       // Before the close screen, the quiz marker must NEVER appear (a mid-run gate).
-      if (!t.includes("What it all added up to") && t.includes(POPQUIZ)) sawQuizMidRun = true;
+      if (!atClose(t) && t.includes(POPQUIZ)) sawQuizMidRun = true;
     });
 
     expect(sawQuizMidRun, "a mid-run pop quiz appeared during the narrative run").toBe(false);
@@ -118,7 +122,7 @@ describe("narrative quiz gate — mid-run suppression, final exam preserved", ()
     let sawQuizMidRun = false;
     driveToClose(getAllByRole, container, () => {
       const t = container.textContent ?? "";
-      if (!t.includes("What it all added up to") && t.includes(POPQUIZ)) sawQuizMidRun = true;
+      if (!atClose(t) && t.includes(POPQUIZ)) sawQuizMidRun = true;
     });
 
     expect(sawQuizMidRun, "systems mode should fire a mid-run knowledge-check gate").toBe(true);

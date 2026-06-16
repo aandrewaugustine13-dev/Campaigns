@@ -28,6 +28,7 @@
     "test:flush": "vitest run src/narrativeFlush.test.tsx",
     "test:quiz-gate": "vitest run src/narrativeQuizGate.test.tsx",
     "test:choice-memory-engine": "vitest run src/choiceMemory.engine.test.tsx",
+    "test:ending-dom": "vitest run src/narrativeEnding.dom.test.tsx",
     "test:review": "vitest run src/storyPlanReview.test.tsx",
     "test:repair": "vitest run src/storyPlanRepair.test.ts",
     "test:numeric-flag": "npx tsx generator/numericFlag.test.ts",

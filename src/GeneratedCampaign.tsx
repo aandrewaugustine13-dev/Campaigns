@@ -24,7 +24,7 @@ function ResourceIcon({ label, className }: { label: string; className?: string 
 }
 import type { CampaignData, FlagText, FlagValue, FlagWrites } from "../generator/schema";
 import { resolveFlagText } from "../generator/schema";
-import { pinnedChoiceEntry, type ChoiceMemoryEntry } from "../generator/endingAssemble";
+import { assembleEnding, pinnedChoiceEntry, type ChoiceMemoryEntry } from "../generator/endingAssemble";
 import { applyFlagWrites } from "./flagWrites";
 import type { Objective, RouteState } from "./gameModels";
 import { generateObjective, tickObjectives, findNode } from "./gameLogic";
@@ -1472,18 +1472,26 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   if (state.phase === "outfit") return <GenericOutfitScreen data={data} onDone={onOutfitDone} />;
 
   if (state.phase === "end") {
-    // ── Story meaning: the narrative-spine ENDING, shown FIRST at the close ──
-    // The historical "what it all added up to" (significance + irony) — DISTINCT
-    // from the verdict (which judges the player) and the review summary (a study
-    // recap). Gated on data.storyMeaning so campaigns without a spine skip
-    // straight to the verdict (byte-identical). Acknowledging falls through to
-    // the verdict gate below.
-    if (data.storyMeaning && !storyMeaningAck) {
+    // ── The closing beat, shown FIRST at the close ──
+    // PRODUCT 2 (narrative): the deterministically-ASSEMBLED ending — the player's
+    // own choices recited in arc order (from choiceMemory) flowing into the
+    // constant coda. No run-time model call: assembleEnding is pure (Step 3). This
+    // REPLACES the bare storyMeaning + verdict gates for narrative — the recited
+    // choices ARE the "what you did" the verdict used to gesture at, and the coda
+    // IS the storyMeaning. (Narrative campaigns author no verdict, so that gate
+    // below is naturally skipped.)
+    // SYSTEMS / other: the historical "what it all added up to" (storyMeaning),
+    // byte-identical to before — gated on data.storyMeaning, falls through to the
+    // verdict gate.
+    const narrativeEnding = isNarrative(data) ? assembleEnding(data, state.choiceMemory) : null;
+    const closingText = narrativeEnding ?? data.storyMeaning;
+    const closingLabel = narrativeEnding ? "Looking back" : "What it all added up to";
+    if (closingText && !storyMeaningAck) {
       return (
         <div data-theme={theme} className="h-screen theme-bg-page theme-text theme-body-font flex items-center justify-center p-6 overflow-y-auto">
           <div className="max-w-xl w-full space-y-8 py-8 text-center">
-            <p className={`text-xs uppercase tracking-widest theme-text-muted`}>What it all added up to</p>
-            <p className="theme-text text-lg leading-relaxed font-serif whitespace-pre-line">{data.storyMeaning}</p>
+            <p className={`text-xs uppercase tracking-widest theme-text-muted`}>{closingLabel}</p>
+            <p className="theme-text text-lg leading-relaxed font-serif whitespace-pre-line">{closingText}</p>
             <button
               onClick={() => setStoryMeaningAck(true)}
               className="px-8 py-3 theme-btn-action font-bold rounded transition-colors"

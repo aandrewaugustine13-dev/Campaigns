@@ -63,7 +63,8 @@ describe("choice-memory — recorded in the real engine during a narrative run",
     let reachedClose = false;
     for (let i = 0; i < 80; i++) {
       scan();
-      if (text().includes("What it all added up to")) { reachedClose = true; break; }
+      // The narrative close renders the assembled ending under "Looking back".
+      if (text().includes("Looking back")) { reachedClose = true; break; }
       const buttons = getAllByRole("button").filter((b) => {
         const t = (b.textContent ?? "").trim();
         return t && !/back to campaigns|campaign log|ask a sage/i.test(t);
