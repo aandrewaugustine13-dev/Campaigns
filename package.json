@@ -8,6 +8,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "generate": "npx tsx generator/generate.ts",
+    "generate:narrative": "npx tsx generator/generate-narrative.ts",
     "economy": "npx tsx generator/inspect-economy.ts",
     "cast": "npx tsx generator/inspect-cast.ts",
     "frame": "npx tsx generator/inspect-frame.ts",
