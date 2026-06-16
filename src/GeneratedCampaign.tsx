@@ -68,6 +68,15 @@ function isCharacterMode(data: CampaignData): boolean {
   return (data.flags?.length ?? 0) > 0;
 }
 
+// Narrative product (Product 2): the spine-only CYOA. Its eventTrivia bank is the
+// FINAL-EXAM bank ONLY — the mid-run knowledge-check gates are suppressed so the
+// story plays uninterrupted (no pop quiz halting the narrative). The close-screen
+// exam (examQuestions → FinalExam) is unaffected: it composes from eventTrivia on
+// a SEPARATE path, so the assessment still happens, just at the end.
+function isNarrative(data: CampaignData): boolean {
+  return data.productType === "narrative";
+}
+
 // Percent-complete used for sages, flavor text, parallax and the map.
 // Journey divides by distance (unchanged); project divides by elapsed days.
 function deriveProgress(data: CampaignData, day: number, distance: number): number {
@@ -1009,7 +1018,8 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       // Event
       const event = selectEvent(s.day, data.totalDays, data.events as GameEvent[], s.routeTag, s.eventCounts, s.eventLastTurn, s.turn, isCharacterMode(data) ? 1 : MAX_EVENT_REPEATS, isCharacterMode(data) && prev.lastEventWasReader);
       if (event) {
-        if (s.triviaCounter >= 2) {
+        // Narrative product: no mid-run pop quiz — the bank is for the final exam only.
+        if (s.triviaCounter >= 2 && !isNarrative(data)) {
           const trivia = pickTriviaQuestion(data, s.usedQuestionIds, s.lastQuestionId);
           if (trivia) {
             s.currentTrivia = trivia;
@@ -1025,7 +1035,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
         }
         s.eventCounts = { ...s.eventCounts, [event.id]: (s.eventCounts[event.id] ?? 0) + 1 };
         s.eventLastTurn = { ...s.eventLastTurn, [event.id]: s.turn };
-        s.currentEvent = { ...event, triviaGate: shouldGateTrivia(event.id, s.turn) };
+        s.currentEvent = { ...event, triviaGate: isNarrative(data) ? false : shouldGateTrivia(event.id, s.turn) };
         // Mark a single-choice "Go on." reader so the next turn avoids stacking
         // a second one (the no-consecutive-reader backstop).
         s.lastEventWasReader = (event.choices?.length ?? 0) === 1;

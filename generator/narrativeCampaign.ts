@@ -27,6 +27,7 @@
 
 import type { CampaignData, OutfitScreenConfig } from "./schema.js";
 import type { NarrativePlan } from "./storyPlan.js";
+import type { NarrativeQuizBundle } from "./narrativeQuiz.js";
 import { storyPlanToCampaignPieces } from "./storyPlanCompile.js";
 
 // The SINGLE character/moral track. Product 2 has one track only (not a
@@ -76,6 +77,12 @@ export interface NarrativeIdentity {
 export function narrativePlanToCampaign(
   plan: NarrativePlan,
   identity: NarrativeIdentity,
+  // The closing assessment (Option A — authored by the separate narrativeQuiz
+  // stage). Its questions become the FINAL-EXAM bank (eventTrivia; the mid-run
+  // gate is suppressed for narrative) and its reviewSummary the study aid.
+  // Optional so the pure spine tests can assemble a quiz-less campaign; absent ⇒
+  // empty bank (validate() gates the eventTrivia requirement off for narrative).
+  quiz?: NarrativeQuizBundle,
 ): CampaignData {
   const trackKey = NARRATIVE_TRACK_KEY;
   const trackStart = identity.trackStart ?? 50;
@@ -119,7 +126,9 @@ export function narrativePlanToCampaign(
     events: pinnedEvents,
     sages: [],
     route: [],
-    eventTrivia: [],
+    // FINAL-EXAM bank only (mid-run trivia gate is suppressed for narrative in
+    // the engine). Empty when no quiz was authored.
+    eventTrivia: quiz?.questions ?? [],
     trailPath: [],
     trailStops: [],
     mapImage: "",
@@ -134,6 +143,10 @@ export function narrativePlanToCampaign(
     // Cosmetic — objects required by the type/validator; empty is legal.
     pixelColors: {},
     pixelFaces: {},
+
+    // Study aid that embeds every exam answer (the proven anti-misinformation
+    // discipline). Authored by the quiz stage; absent ⇒ no recap.
+    ...(quiz?.reviewSummary ? { reviewSummary: quiz.reviewSummary } : {}),
 
     // Story-level ENDING (kept; also mirrored as the assembled ending's coda).
     storyMeaning,
@@ -152,13 +165,25 @@ export interface NarrativeInputs {
   standard: string;
   /** Whose eyes the player sees through (the first-person perspective). */
   perspective?: string;
+  /** Student grade — sets the quiz reading level. */
+  grade?: string;
+  /** Closing-exam bank size. Default 6. */
+  numQuestions?: number;
   /** Optional identity/copy overrides; sensible defaults are derived from the plan. */
   identity?: Partial<NarrativeIdentity>;
+  /** Run the fact gate over the assembled campaign. Default ON — a classroom
+   * quiz that mis-keys a fact is misinformation; the keyed-answer hard reject is
+   * non-negotiable. Set false only for a deliberately unchecked path. */
+  factGate?: boolean;
 }
 
 export interface GenerateNarrativeResult {
   data: CampaignData;
   plan: NarrativePlan;
+  /** The closing assessment bundle (questions + reviewSummary). */
+  quiz: NarrativeQuizBundle;
+  /** Fact-gate verdict over the assembled campaign (absent when factGate is off). */
+  factGate?: import("./factGate.js").FactGateResult;
 }
 
 // Derive a stable kebab id from the topic (e.g. "War of 1812" → "war-of-1812").
@@ -181,6 +206,15 @@ export async function generateNarrativeCampaign(
     requireEndingFragments: true,
   });
 
+  // Separate, beats-grounded quiz stage (Option A). Isolated from the plan call
+  // above, so a bad quiz never re-rolls the proven spine/ending.
+  const { generateNarrativeQuiz } = await import("./narrativeQuizGen.js");
+  const { data: quiz } = await generateNarrativeQuiz(inputs.standard, apiKey, plan, {
+    topic: inputs.topic,
+    grade: inputs.grade,
+    numQuestions: inputs.numQuestions,
+  });
+
   const o = inputs.identity ?? {};
   const identity: NarrativeIdentity = {
     id: o.id ?? slugify(inputs.topic),
@@ -194,5 +228,16 @@ export async function generateNarrativeCampaign(
     trackStart: o.trackStart,
   };
 
-  return { data: narrativePlanToCampaign(plan, identity), plan };
+  const data = narrativePlanToCampaign(plan, identity, quiz);
+
+  // FACT GATE over the assembled campaign — the anti-misinformation backbone.
+  // A keyed-answer fabrication is a hard reject (factGate.isQuizKeyed); other
+  // residuals are corrected/shipped-with-warnings. Default ON.
+  let factGate: import("./factGate.js").FactGateResult | undefined;
+  if (inputs.factGate !== false) {
+    const { runFactGate } = await import("./factGate.js");
+    factGate = await runFactGate(apiKey, data, inputs.standard ? `${inputs.topic} — standard: ${inputs.standard}` : inputs.topic);
+  }
+
+  return { data, plan, quiz, factGate };
 }
