@@ -29,6 +29,22 @@ export interface ChoiceMemoryEntry {
   choiceIndex: number;
 }
 
+// The RECORDING RULE (pure). Given the event a player just resolved and the
+// option index they took, return the choice-memory entry to record — or null
+// when this resolution should NOT be remembered. Only a pinned DECISION beat (a
+// pinned event with ≥2 choices and a numeric pinSeq) is remembered: the
+// witnessing resolution ("Go on.", one choice) and any ordinary pool event are
+// skipped. The engine pushes the non-null result into GameState.choiceMemory;
+// extracted here so the rule is unit-testable without the React turn loop.
+export function pinnedChoiceEntry(
+  event: { id: string; pinned?: boolean; pinSeq?: number; choices?: unknown[] } | null | undefined,
+  choiceIndex: number,
+): ChoiceMemoryEntry | null {
+  if (!event || event.pinned !== true || typeof event.pinSeq !== "number") return null;
+  if ((event.choices?.length ?? 0) < 2) return null;
+  return { beatId: event.id, pinSeq: event.pinSeq, choiceIndex };
+}
+
 // Assemble the ending. Reads each remembered choice's authored endingFragment
 // from the pinned beats and recites them in arc (pinSeq) order between the
 // constant opening and coda. A missing fragment (e.g. a witnessing beat that

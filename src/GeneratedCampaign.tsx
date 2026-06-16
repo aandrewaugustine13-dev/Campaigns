@@ -24,6 +24,7 @@ function ResourceIcon({ label, className }: { label: string; className?: string 
 }
 import type { CampaignData, FlagText, FlagValue, FlagWrites } from "../generator/schema";
 import { resolveFlagText } from "../generator/schema";
+import { pinnedChoiceEntry, type ChoiceMemoryEntry } from "../generator/endingAssemble";
 import { applyFlagWrites } from "./flagWrites";
 import type { Objective, RouteState } from "./gameModels";
 import { generateObjective, tickObjectives, findNode } from "./gameLogic";
@@ -607,6 +608,13 @@ interface GameState {
   phase: "intro" | "outfit" | "sailing" | "event" | "result" | "end" | "trivia" | "event_trivia" | "sage" | "timeskip";
   pace: string; distance: number; currentEvent: GameEvent | null;
   resultText: string; decisions: Decision[];
+  // PRODUCT 2 (narrative) — the CHOICE-MEMORY: which option (choiceIndex) the
+  // player took at which pinned DECISION beat (beatId / pinSeq), recorded in
+  // arc order. Richer than the moral tally below (which is a net +1/-1/0): it
+  // remembers the specific decision, which the deterministic ending assembler
+  // (endingAssemble.ts) reads to recite the player's own choices back. Additive
+  // — accumulated for any pinned decision beat; only the narrative close reads it.
+  choiceMemory: ChoiceMemoryEntry[];
   // Hidden moral accumulators for the generated-campaign verdict — a SEPARATE
   // axis from `flags`, so carrying moral weight never trips isCharacterMode.
   // moralTally is the net (+1/-1/0); the three counts drive verdict selection
@@ -777,7 +785,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     day: 1, turn: 0, resources: { ...data.initialResources },
     flags: Object.fromEntries((data.flags ?? []).map(f => [f.id, f.initial])),
     phase: "intro", pace: data.paces[1]?.id ?? data.paces[0]?.id ?? "",
-    distance: 0, currentEvent: null, resultText: "", decisions: [],
+    distance: 0, currentEvent: null, resultText: "", decisions: [], choiceMemory: [],
     moralTally: 0, moralPrincipled: 0, moralSelfServing: 0, moralObvious: 0,
     gameOver: false, survived: false, earlySale: false,
     outfit: { allocations: {}, budgetSpent: 0 },
@@ -1138,9 +1146,16 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   const finalizeChoice = useCallback((ci: number, insightBonus: number) => {
     setState(prev => {
       if (!prev.currentEvent?.choices) return prev;
-      const s: GameState = { ...prev, resources: { ...prev.resources }, decisions: [...prev.decisions] };
+      const s: GameState = { ...prev, resources: { ...prev.resources }, decisions: [...prev.decisions], choiceMemory: [...prev.choiceMemory] };
       const choice = s.currentEvent!.choices![ci];
       const outcome = resolveChoice(choice);
+      // CHOICE-MEMORY (Product 2): record WHICH option at WHICH pinned decision
+      // beat, in arc order. The rule (pinned decision beat only; resolution and
+      // pool events skipped) lives in the pure pinnedChoiceEntry helper so it is
+      // unit-testable. Additive: the narrative close reads this; everything else
+      // ignores it.
+      const memEntry = pinnedChoiceEntry(s.currentEvent, ci);
+      if (memEntry) s.choiceMemory.push(memEntry);
       {
         const ev = s.currentEvent!;
         const fact = Array.isArray(ev.trivia) && ev.trivia.length ? `Did you know? ${ev.trivia[0]}` : "";
