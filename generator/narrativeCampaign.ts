@@ -148,6 +148,12 @@ export function narrativePlanToCampaign(
     // discipline). Authored by the quiz stage; absent ⇒ no recap.
     ...(quiz?.reviewSummary ? { reviewSummary: quiz.reviewSummary } : {}),
 
+    // Imagery: the per-beat queries ride on the pinned events (imageSearchQuery,
+    // emitted by the compiler from each beat's imageQuery); the style keyword is
+    // the Commons ranking booster. generateNarrativeCampaign runs enrichment over
+    // these. Absent style ⇒ enrichment still works, just without the booster.
+    ...(plan.imageStyleKeyword && plan.imageStyleKeyword.trim() ? { imageStyleKeyword: plan.imageStyleKeyword.trim() } : {}),
+
     // Story-level ENDING (kept; also mirrored as the assembled ending's coda).
     storyMeaning,
     // The constant frame for the responsive assembled ending: the per-choice
@@ -229,6 +235,22 @@ export async function generateNarrativeCampaign(
   };
 
   const data = narrativePlanToCampaign(plan, identity, quiz);
+
+  // IMAGERY — give the spine beats real period images + a backdrop, reusing the
+  // proven systems machinery (cross-event dedupe + era guard). Narrative events
+  // are all pinned with an authored imageSearchQuery (b1), so one unrestricted
+  // pass images every beat and sets the backdrop. Failures here are non-fatal
+  // (an imageless beat just shows the backdrop) so the campaign still ships.
+  try {
+    const { enrichEventImages, inferEraMaxYear } = await import("./wikimedia.js");
+    await enrichEventImages(data, {
+      topic: inputs.topic,
+      title: data.title,
+      eraMaxYear: inferEraMaxYear(data, inputs.topic),
+    });
+  } catch (e) {
+    console.warn("[narrative] image enrichment failed (shipping imageless):", e);
+  }
 
   // FACT GATE over the assembled campaign — the anti-misinformation backbone.
   // A keyed-answer fabrication is a hard reject (factGate.isQuizKeyed); other

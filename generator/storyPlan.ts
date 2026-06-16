@@ -92,6 +92,13 @@ export interface PlanBeat {
    * OMITTED on a resolution beat, which is the aftermath/meaning-landing where
    * WITNESSING is dramatically correct (the compiler makes it a "Go on." beat). */
   choices?: PlanBeatChoice[];
+  /** A 2–4 word Wikimedia Commons file-search query for THIS beat's visual,
+   * grounded in its CONCRETE place + year (a named, depictable subject — a
+   * battle/place/person/event — never an abstraction or a verb). The compiler
+   * emits it as the pinned event's `imageSearchQuery` so the spine beats get
+   * period images instead of repeating the backdrop. Optional & additive: absent
+   * ⇒ the beat is imageless (the prior behavior). */
+  imageQuery?: string;
   /** Suggested 0–1 arc position; the compiler enforces actual ordering by
    * role + array order, but this is the author's intent and the teacher hint. */
   phaseHint: number;
@@ -106,6 +113,10 @@ export interface NarrativePlan {
   /** THE ENDING — the meaning-making synthesis (significance + irony), the
    * "what it all added up to" beat. Becomes CampaignData.storyMeaning. */
   meaning: string;
+  /** ONE word for the dominant visual medium of this topic's era (the Commons
+   * ranking booster, e.g. "lithograph", "engraving", "painting", "photograph").
+   * Becomes CampaignData.imageStyleKeyword for the narrative product. Optional. */
+  imageStyleKeyword?: string;
   /** The ordered major beats. */
   beats: PlanBeat[];
 }
@@ -225,6 +236,12 @@ export function validateStoryPlan(
         push("warn", `${prefix}.choices`, "a resolution beat should be a choiceless aftermath beat — choices here will be dropped (the compiler makes it a witnessing beat)");
       }
     }
+
+    // imageQuery: warn (not error) when an included beat omits it — the beat
+    // still compiles, but without a query it falls back to the backdrop (the
+    // repeating-image failure). Soft so existing plans/fixtures stay error-free.
+    if (bb.included === true && (typeof bb.imageQuery !== "string" || (bb.imageQuery as string).trim().length === 0))
+      push("warn", `${prefix}.imageQuery`, "no imageQuery — this pinned beat will be imageless and fall back to the campaign backdrop (repeating image)");
 
     // The arc-shape checks below only consider INCLUDED beats — an excluded
     // beat is never compiled, so it cannot break the arc.

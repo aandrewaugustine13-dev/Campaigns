@@ -113,6 +113,10 @@ function buildPinnedEvent(
     pinSeq: seq,
     type: "standard",
     choices: buildChoices(beat, primaryResourceKey),
+    // Spine beats carry their authored image query so enrichment can give them a
+    // period image instead of letting them fall back to the backdrop (the
+    // repeating-image failure). Omitted when the beat authored none.
+    ...(beat.imageQuery && beat.imageQuery.trim() ? { imageSearchQuery: beat.imageQuery.trim() } : {}),
   } satisfies GameEvent;
 }
 

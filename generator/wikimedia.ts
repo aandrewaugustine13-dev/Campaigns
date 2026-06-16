@@ -35,6 +35,62 @@ interface CommonsResponse {
 export interface CampaignContext {
   topic: string;
   title: string;
+  /** The campaign's latest authored year (null when none found). When it is
+   * before PHOTO_ERA, the era guard rejects modern-era Commons hits (a WWII
+   * battleship photo for an 1812 topic). See inferEraMaxYear / eraInappropriate. */
+  eraMaxYear?: number | null;
+}
+
+// ── Era guard (fix a) ──────────────────────────────────────────────
+// Practical photography begins ~1840 (daguerreotype). A campaign whose latest
+// year is before that CANNOT have a contemporaneous photo, so a Commons hit that
+// signals a modern era is the wrong image no matter how well its tokens overlap
+// (the USS New Jersey sailor for a War-of-1812 query). This is the SCORING-side
+// fix: the prompt rubric leaks, so we reject at selection time, not just ask.
+const PHOTO_ERA = 1840;
+// Title markers that betray a wrong (modern) era for a pre-photography topic.
+// Only 1900+ years are "modern" markers here; an 1800s year later than the
+// campaign era is caught separately by the year-margin check below (so an
+// 1815 title isn't mistaken for modern in an 1812 campaign).
+const MODERN_TITLE_RE =
+  /\b(19\d\d|20\d\d)\b|world war|wwi|wwii|ww1|ww2|battleship|dreadnought|aircraft|submarine|carrier|\btank\b|\bjet\b|helicopter|automobile|nuclear|reenact|replica|museum|memorial|monument|skyscraper|\bmodern\b|uss new jersey/i;
+
+// Largest 4-digit year (1000–2099) appearing in a string, or null.
+export function latestYearIn(s: string): number | null {
+  const years = (s.match(/\b(1[0-9]\d\d|20\d\d)\b/g) ?? []).map(Number).filter((y) => y >= 1000 && y <= 2099);
+  return years.length ? Math.max(...years) : null;
+}
+
+// The campaign's era anchor: the latest year authored across the topic, event
+// queries, titles, and scene text. Pure; used to arm the guard. null ⇒ guard off.
+export function inferEraMaxYear(data: any, topic: string): number | null {
+  const events = Array.isArray(data?.events) ? data.events : [];
+  const text = [
+    topic,
+    typeof data?.title === "string" ? data.title : "",
+    ...events.map((e: any) => `${e?.imageSearchQuery ?? ""} ${e?.title ?? ""} ${typeof e?.text === "string" ? e.text : ""}`),
+  ].join(" ");
+  return latestYearIn(text);
+}
+
+// True when a candidate's title/date is era-inappropriate for THIS campaign.
+// Active only for a pre-PHOTO_ERA campaign (maxYear < 1840). A small margin
+// tolerates a period work created a couple decades later; a 20th-century marker
+// or a wildly-later year/date is rejected.
+export function eraInappropriate(title: string, dateYear: number | null, maxYear: number | null | undefined): boolean {
+  if (maxYear == null || maxYear >= PHOTO_ERA) return false; // guard inactive
+  if (MODERN_TITLE_RE.test(title)) return true;
+  const ty = latestYearIn(title);
+  if (ty != null && ty > maxYear + 25) return true;
+  if (dateYear != null && dateYear > maxYear + 25) return true;
+  return false;
+}
+
+// Recover a human-ish title from a Commons file/page URL (for the lead path,
+// which carries a sourceUrl but no separate title).
+function titleFromUrl(url: string | undefined): string {
+  if (!url) return "";
+  try { return decodeURIComponent(url.split("/").pop() ?? "").replace(/_/g, " "); } catch { return ""; }
 }
 
 // LEVER 1 — portrait relevance gate. Verifies the matched Wikipedia article is
@@ -395,7 +451,7 @@ function scoreCandidate(title: string, mime: string, queryTokens: Set<string>): 
 // just the top hit) feeds enrichEventImages' cross-event dedupe: when an earlier
 // event already took the best hit, a later one falls to the next-best UNUSED
 // candidate here, breaking the article-funnel repeat.
-async function searchCommonsFileRanked(query: string): Promise<CommonsImageResult[]> {
+async function searchCommonsFileRanked(query: string, eraMaxYear?: number | null): Promise<CommonsImageResult[]> {
   if (!query.trim()) return [];
 
   const params = new URLSearchParams({
@@ -442,6 +498,13 @@ async function searchCommonsFileRanked(query: string): Promise<CommonsImageResul
       const index = (page as any).index ?? 999;
       const score = scoreCandidate(page.title, mime, queryTokens);
       if (score <= 0) continue;
+      // ERA GUARD (fix a): reject a hit whose title/creation-date signals a
+      // wrong, modern era for a pre-photography campaign — a strong token match
+      // to a 20th-century photo is still the wrong image.
+      const dateYear = latestYearIn(
+        info.extmetadata.DateTimeOriginal?.value ?? info.extmetadata.DateTime?.value ?? "",
+      );
+      if (eraInappropriate(page.title, dateYear, eraMaxYear)) continue;
       scored.push({
         result: {
           thumbUrl: info.thumburl,
@@ -542,49 +605,89 @@ async function searchViaArticlePageimage(query: string): Promise<CommonsImageRes
 // Tie-break when no unused candidate exists (or the query is genuinely thin):
 // keep the lead (or best Commons) duplicate — a relevant repeat beats an empty
 // frame. Systems and character campaigns share this path equally.
-export async function enrichEventImages(data: any, ctx: CampaignContext): Promise<void> {
+// IDEMPOTENT + RESTRICTABLE (fix b2): seeds the dedupe with images/backdrop
+// ALREADY assigned and skips events that already have an image, so it can run a
+// SECOND time to fill ONLY the pinned spine beats (spliced in after the first
+// pass) without disturbing existing assignments. `restrictTo` scopes which
+// events it may assign (default: all). Called once for systems' model events,
+// then again with restrictTo=pinned after applyStoryPlan; called once
+// (unrestricted) for the narrative product. When the era guard is inactive
+// (ctx.eraMaxYear ≥ 1840 or absent) and nothing is pre-assigned, the first call
+// is byte-identical to the prior behavior.
+// Which events a (re-)enrichment pass may assign: those matching restrictTo and
+// NOT already imaged. Pure & exported so the "pinned beats are reachable by
+// enrichment, not bypassed" + idempotency claims are testable without network.
+export function selectEnrichTargets(
+  events: any[],
+  restrictTo: (ev: any) => boolean = () => true,
+): { ev: any; i: number }[] {
+  return events.map((ev, i) => ({ ev, i })).filter(({ ev }) => restrictTo(ev) && !ev?.image);
+}
+
+export async function enrichEventImages(
+  data: any,
+  ctx: CampaignContext,
+  opts: { restrictTo?: (ev: any) => boolean } = {},
+): Promise<void> {
   const events = Array.isArray(data.events) ? data.events : [];
+  const restrict = opts.restrictTo ?? (() => true);
+  const eraMaxYear = ctx.eraMaxYear;
   const styleKw = typeof data.imageStyleKeyword === "string" ? data.imageStyleKeyword.trim() : "";
   const appendStyle = (q: string) => styleKw ? `${q} ${styleKw}` : q;
+  const queryOf = (ev: any): string | null =>
+    typeof ev.imageSearchQuery === "string" && ev.imageSearchQuery.trim() ? ev.imageSearchQuery.trim() : null;
+  const eraBad = (img: CommonsImageResult | null): boolean =>
+    !!img && eraInappropriate(titleFromUrl(img.sourceUrl), null, eraMaxYear);
 
-  const queries: (string | null)[] = events.map((ev: any) =>
-    typeof ev.imageSearchQuery === "string" && ev.imageSearchQuery.trim() ? ev.imageSearchQuery.trim() : null,
-  );
+  // Events we may assign now: matching restrictTo and NOT already imaged.
+  const targets = selectEnrichTargets(events, restrict);
 
-  // Pass 1 — parallel article-lead lookups (events + backdrop), ~1 call/event.
-  const leadTasks = queries.map((q) =>
-    q ? searchViaArticlePageimage(q) : Promise.resolve<CommonsImageResult | null>(null),
-  );
-  const settled = await Promise.allSettled([...leadTasks, searchViaArticlePageimage(ctx.topic)]);
-  const leadAt = (i: number): CommonsImageResult | null =>
-    settled[i]?.status === "fulfilled"
-      ? (settled[i] as PromiseFulfilledResult<CommonsImageResult | null>).value
-      : null;
-
-  // Pass 2 — sequential assign. Seed the used-set with the backdrop so events
-  // don't echo it (imageless events already fall back to the backdrop). The
-  // backdrop falls to its own Commons best only if it has no article lead.
+  // Seed dedupe with everything already chosen (existing images + backdrop).
   const used = new Set<string>();
-  let backdrop = leadAt(events.length);
-  if (!backdrop) backdrop = (await searchCommonsFileRanked(appendStyle(ctx.topic)))[0] ?? null;
-  if (backdrop) {
-    data.backdropImage = backdrop;
-    used.add(backdrop.thumbUrl);
+  if (data.backdropImage?.thumbUrl) used.add(data.backdropImage.thumbUrl);
+  for (const ev of events) if (ev.image?.thumbUrl) used.add(ev.image.thumbUrl);
+
+  // Pass 1 — parallel article-lead lookups for the target queries (+ backdrop
+  // only when one isn't already set).
+  const needBackdrop = !data.backdropImage;
+  const leadTasks = targets.map(({ ev }: any) => {
+    const q = queryOf(ev);
+    return q ? searchViaArticlePageimage(q) : Promise.resolve<CommonsImageResult | null>(null);
+  });
+  const settled = await Promise.allSettled([
+    ...leadTasks,
+    needBackdrop ? searchViaArticlePageimage(ctx.topic) : Promise.resolve<CommonsImageResult | null>(null),
+  ]);
+  const val = (i: number): CommonsImageResult | null =>
+    settled[i]?.status === "fulfilled" ? (settled[i] as PromiseFulfilledResult<CommonsImageResult | null>).value : null;
+
+  // Backdrop — only when not already set; era guard applies here too.
+  if (needBackdrop) {
+    let backdrop = val(targets.length);
+    if (eraBad(backdrop)) backdrop = null;
+    if (!backdrop) backdrop = (await searchCommonsFileRanked(appendStyle(ctx.topic), eraMaxYear))[0] ?? null;
+    if (backdrop) {
+      data.backdropImage = backdrop;
+      used.add(backdrop.thumbUrl);
+    }
   }
 
-  for (let i = 0; i < events.length; i++) {
-    const q = queries[i];
+  // Sequential assign over the targets, with cross-event dedupe.
+  for (let t = 0; t < targets.length; t++) {
+    const { i } = targets[t];
+    const q = queryOf(targets[t].ev);
     if (!q) continue;
-    const lead = leadAt(i);
-    // Fast path: a usable, unused article lead — no Commons call needed.
-    if (lead && !used.has(lead.thumbUrl)) {
-      events[i].image = lead;
-      used.add(lead.thumbUrl);
+    const rawLead = val(t);
+    // Fast path: a usable, unused, era-OK article lead — no Commons call.
+    if (rawLead && !used.has(rawLead.thumbUrl) && !eraBad(rawLead)) {
+      events[i].image = rawLead;
+      used.add(rawLead.thumbUrl);
       continue;
     }
-    // Collision or no lead → consult the Commons pool for THIS event only now.
-    const pool = await searchCommonsFileRanked(appendStyle(q));
-    const chosen = pool.find((c) => !used.has(c.thumbUrl)) ?? lead ?? pool[0] ?? null;
+    // Collision / no lead / era-rejected lead → consult the Commons pool now.
+    const pool = await searchCommonsFileRanked(appendStyle(q), eraMaxYear);
+    const eraOkLead = rawLead && !eraBad(rawLead) ? rawLead : null;
+    const chosen = pool.find((c) => !used.has(c.thumbUrl)) ?? eraOkLead ?? pool[0] ?? null;
     if (chosen) {
       events[i].image = chosen;
       used.add(chosen.thumbUrl);

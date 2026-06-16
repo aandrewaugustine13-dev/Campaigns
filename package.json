@@ -25,6 +25,7 @@
     "test:narrative-quiz": "npx tsx generator/narrativeQuiz.test.ts",
     "test:choice-memory": "npx tsx generator/choiceMemory.test.ts",
     "test:ending-dimension": "npx tsx generator/endingDimension.test.ts",
+    "test:image-fixes": "npx tsx generator/imageFixes.test.ts",
     "test:pinning": "npx tsx generator/eventPinning.test.ts",
     "test:flush": "vitest run src/narrativeFlush.test.tsx",
     "test:quiz-gate": "vitest run src/narrativeQuizGate.test.tsx",

@@ -4,7 +4,7 @@ import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { validate, type ValidationReport } from "./validate.js";
 import { parseModelJson } from "./json.js";
-import { enrichSagePortraits, enrichEventImages } from "./wikimedia.js";
+import { enrichSagePortraits, enrichEventImages, inferEraMaxYear } from "./wikimedia.js";
 import type { CastCharacter } from "./cast.js";
 import type { SystemsEconomy } from "./economy.js";
 import { type PersonalEconomy, validatePersonalEconomy } from "./personalEconomy.js";
@@ -604,6 +604,9 @@ export async function generateCampaign(
   const imageryCtx = {
     topic: inputs.topic,
     title: typeof data.title === "string" ? data.title : "",
+    // Era anchor for the image guard (fix a): the campaign's latest authored
+    // year. When pre-photography (< 1840), enrichment rejects modern-era hits.
+    eraMaxYear: inferEraMaxYear(data, inputs.topic),
   };
   await enrichSagePortraits(data);
   await enrichEventImages(data, imageryCtx);
@@ -626,10 +629,18 @@ export async function generateCampaign(
   if (inputs.faultLine) reserveClosingDilemma(data);
 
   // Narrative-spine path (systems OR character): splice the compiled PINNED arc
-  // beats in after imagery (they carry no imageSearchQuery by design) and before
-  // validation, and set data.storyMeaning. In character mode the windows are
-  // narrowed to dodge the fault line's reserved windows. No-op when no storyPlan.
+  // beats in after imagery and before validation, and set data.storyMeaning. In
+  // character mode the windows are narrowed to dodge the fault line's reserved
+  // windows. No-op when no storyPlan.
   applyStoryPlan(data, inputs.storyPlan, { characterMode: !!inputs.faultLine });
+
+  // Fix (b2): the pinned spine beats were just spliced in AFTER the first image
+  // pass, so they have no image yet — image them now with a SECOND, scoped pass
+  // (restrictTo pinned). enrichEventImages is idempotent: it seeds the dedupe
+  // with the images/backdrop already chosen and only fills the imageless pinned
+  // beats, leaving every existing assignment untouched. No-op when no storyPlan
+  // (no pinned beats to fill) ⇒ systems-without-spine byte-identical.
+  if (inputs.storyPlan) await enrichEventImages(data, imageryCtx, { restrictTo: (ev) => ev?.pinned === true });
 
   // NOTE: the fact gate deliberately does NOT run here. It runs in
   // generateValidatedCampaign on the ACCEPTED attempt only — running it

@@ -24,10 +24,12 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // WILDCARD topic — non-American, never used to tune anything, so this run also
 // tests whether the generator GENERALIZES rather than replaying a known case.
+// Override topic/standard/perspective from argv: npm run generate:narrative "Topic" "Standard" "Perspective"
+const [argTopic, argStandard, argPerspective] = process.argv.slice(2);
 const INPUTS: NarrativeInputs = {
-  topic: "The Meiji Restoration",
-  standard: "TEKS WH.10 — Japan's Meiji Restoration and rapid modernization (1868–1912): the fall of the shogunate, the abolition of the samurai class, and the costs and gains of becoming a modern industrial power",
-  perspective: "a young samurai caught between loyalty to the old order and the pull of the new Japan",
+  topic: argTopic || "The Meiji Restoration",
+  standard: argStandard || "TEKS WH.10 — Japan's Meiji Restoration and rapid modernization (1868–1912): the fall of the shogunate, the abolition of the samurai class, and the costs and gains of becoming a modern industrial power",
+  perspective: argPerspective || "a young samurai caught between loyalty to the old order and the pull of the new Japan",
   grade: "6th grade",
   numQuestions: 6,
 };
@@ -110,6 +112,19 @@ async function main() {
   console.log("  ── THE QUIZ ──");
   for (const q of quiz.questions)
     console.log(`    • ${q.question}\n        ✓ ${q.choices[q.correctIndex]}   [${q.choices.join(" | ")}]`);
+  console.log();
+
+  // ── IMAGE PIPELINE — the literal spine queries + what resolved (judge these) ──
+  const fileOf = (u?: string) => u ? decodeURIComponent(u.split("/").pop()!.split("?")[0]).slice(0, 70) : "(none)";
+  console.log("  ── IMAGE QUERIES (per spine beat) + RESOLVED FILE ──");
+  console.log(`    imageStyleKeyword: ${JSON.stringify(data.imageStyleKeyword ?? null)}`);
+  console.log(`    BACKDROP  query: ${JSON.stringify(data.backdropImage?.searchQuery ?? null)}  → ${fileOf(data.backdropImage?.thumbUrl)}`);
+  for (const e of data.events) {
+    console.log(`    [${e.pinned ? "PIN " + e.pinSeq : "pool"}] ${e.title}`);
+    console.log(`        query: ${JSON.stringify(e.imageSearchQuery ?? null)}  → ${fileOf(e.image?.thumbUrl)}`);
+  }
+  const imaged = data.events.filter((e) => e.image).length;
+  console.log(`\n    images resolved: ${imaged}/${data.events.length} events`);
   console.log();
 
   void plan;

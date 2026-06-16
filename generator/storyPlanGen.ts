@@ -26,6 +26,10 @@ EVERY BEAT CARRIES ITS STAKES:
 - "significance" is ONE sentence naming WHY THIS MOMENT MATTERS — the causal or character stakes, how it follows from what came before and feeds what comes next. This is the through-line made explicit; it is NOT the same as the scene's surface description.
 - "title" is a short scene title. "phaseHint" is your sense of where it falls in the run (0.0 start to 1.0 end), arc-ordered and increasing.
 - "id" is a short stable kebab-case id prefixed "beat_" (e.g. "beat_neworleans"), unique within the plan.
+
+EVERY BEAT GETS AN IMAGE QUERY (so the spine isn't imageless):
+- Give EVERY beat an "imageQuery": a 2-4 word Wikimedia Commons file-search query for THIS beat's visual. It MUST be a CONCRETE, DEPICTABLE subject a period artist or photographer actually stood in front of — a NAMED battle/place/person/ship/event, or a concrete scene of place + setting, anchored with the YEAR. PREFER the specific over the generic. Do NOT use abstractions, concepts, emotions, or verbs (NOT "press gang sailors", "impressment", "fighting", "suffering") — those return book scans or wrong-era photos, not the scene. GOOD: "Battle of New Orleans 1815", "Burning of Washington 1814", "USS Constitution Guerriere 1812", "Tecumseh portrait". BAD: "sailors fighting", "war at sea", "American pride".
+- Also give the WHOLE plan an "imageStyleKeyword": ONE word for the dominant visual medium of this topic's era — "engraving" or "lithograph" for early-19th-century, "painting" for portraitable eras, "photograph" only for late-19th-century onward, "woodcut"/"illumination" for older. This is a Commons ranking booster; keep it to ONE word and ERA-CORRECT (a pre-1840 topic is NOT a "photograph").
 - "included" is true for every beat you author (the teacher will later toggle beats off; you propose them all on).
 
 THE PLAYER ACTS AT THE PEAKS (this is the heart of the game):
@@ -45,8 +49,8 @@ HISTORICAL HONESTY: every beat and the meaning must be grounded in the REAL hist
 OUTPUT SHAPE (TypeScript for reference — output JSON only):
 type BeatRole = "cause" | "escalation" | "climax" | "resolution";
 interface PlanBeatChoice { text: string; result: string; stake: number; }
-interface PlanBeat { id: string; role: BeatRole; title: string; scene: string; significance: string; choices?: PlanBeatChoice[]; phaseHint: number; included: boolean; }
-interface NarrativePlan { throughline: string; meaning: string; beats: PlanBeat[]; }
+interface PlanBeat { id: string; role: BeatRole; title: string; scene: string; significance: string; choices?: PlanBeatChoice[]; imageQuery: string; phaseHint: number; included: boolean; }
+interface NarrativePlan { throughline: string; meaning: string; imageStyleKeyword: string; beats: PlanBeat[]; }
 
 RULES: 4-6 beats, in arc order, with exactly one cause, one climax, one resolution, and one to three escalations between. Each beat has all fields; included is true. Every cause/escalation/climax beat has "choices" (2-3 real decisions, each with text + result + a non-zero stake); the resolution beat OMITS choices. meaning makes significance, not a recap. Output ONLY the JSON object conforming to NarrativePlan.`;
 
