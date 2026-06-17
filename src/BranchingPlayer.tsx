@@ -25,22 +25,34 @@ interface BranchingPlayerProps {
   onEnd?: (result: PlayResult) => void;
   /** Fired once when the story is too broken to play (validation errors). */
   onUnplayable?: (validation: StoryValidation) => void;
+  /** Optional return-to-menu affordance (navigation only). */
+  onBack?: () => void;
+}
+
+function BackLink({ onBack }: { onBack?: () => void }) {
+  if (!onBack) return null;
+  return (
+    <button onClick={onBack} className="block w-full text-center text-xs text-stone-400 hover:text-stone-600 mt-6">
+      &larr; Back to Campaigns
+    </button>
+  );
 }
 
 // Graceful fallback for a story a model emitted broken — a clear message, never a
 // crash and never a kid stranded in a dead/looping passage.
-function Unplayable() {
+function Unplayable({ onBack }: { onBack?: () => void }) {
   return (
     <div className="min-h-screen bg-stone-100 text-stone-900 flex items-center justify-center p-6">
       <div className="max-w-md w-full text-center space-y-3">
         <p className="text-lg font-serif">This story isn&rsquo;t ready to play yet.</p>
         <p className="text-sm text-stone-500">Something went wrong putting it together. Please pick another story.</p>
+        <BackLink onBack={onBack} />
       </div>
     </div>
   );
 }
 
-export default function BranchingPlayer({ story, onEnd, onUnplayable }: BranchingPlayerProps) {
+export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: BranchingPlayerProps) {
   const byId = useMemo(() => passageMap(story), [story]);
   // Validate up front: the player only ever runs a story proven safe start-to-end,
   // so a malformed graph degrades gracefully instead of rendering into a wall.
@@ -73,7 +85,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable }: Branchin
   }, [validation, current, currentId, history, onEnd, onUnplayable]);
 
   // A broken story (or a missing current passage, the runtime safety net) → fallback.
-  if (!validation.playable || !current) return <Unplayable />;
+  if (!validation.playable || !current) return <Unplayable onBack={onBack} />;
 
   const ended = isEnding(current);
 
@@ -100,6 +112,8 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable }: Branchin
             ))}
           </div>
         )}
+
+        <BackLink onBack={onBack} />
       </div>
     </div>
   );
