@@ -23,6 +23,7 @@ import { fileURLToPath } from "url";
 import Anthropic from "@anthropic-ai/sdk";
 import { parseModelJson } from "./json.js";
 import { validateStory, passageMap, type BranchingStory } from "./branchingStory.js";
+import { SYSTEM_PROMPT } from "./branchingStoryGen.js";
 
 const __root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 loadEnv({ path: resolve(__root, ".env.local") });
@@ -30,40 +31,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const MODEL = "claude-opus-4-8"; // the most capable writer — prove the ceiling
 
-// Craft rules are IDENTICAL across topics. Only "THE STORY" subject (the user
-// message) changes — that is the whole point of the generalization check.
-const SYSTEM_PROMPT = `You are a gifted children's author writing an interactive, branching historical story — a choose-your-own-path adventure — for 11-to-12-year-olds (6th grade) to read on a tablet. You output ONLY a single JSON object. No prose outside the JSON, no markdown, no code fences.
-
-YOUR ONE JOB: write a STORY a kid cannot put down. Not a textbook. Not a summary. Not a list of facts or "beats." A real story with a real person, real feelings, and real stakes, told so simply and so vividly that a struggling reader keeps tapping "next" because they have to know what happens. The history is delivered THROUGH the story — never as a lecture.
-
-READING LEVEL — 6TH GRADE, TABLET-READ (non-negotiable):
-- Short, simple sentences. Most under 12 words. Vary the rhythm, but keep it easy.
-- Plain, everyday words a 6th grader knows. If you must use a hard word, make its meaning clear from the scene.
-- Active voice. Concrete things you can see, hear, smell, and feel. Almost no abstraction.
-- Second person, past tense: "You" are the character. Pull the reader inside the moment.
-- A struggling reader must read it easily AND want to keep going. If a sentence is hard to read aloud, rewrite it.
-
-THE PERSON AND THE HISTORY:
-- Invent ONE ordinary young person living through this history — not a famous leader, a regular kid or young person caught up in it. Give them a name and a home, fast, in the first passage.
-- Ground everything in the REAL history of the topic: real events, real conditions, real choices people faced. Do not invent fake history. Weave the real, testable facts of the topic INTO the scenes so a reader learns them by living them.
-- Let the reader FEEL the meaning of this history through what happens to your character. NEVER state it as a lesson or a moral. Let them feel it.
-
-BRANCHING — the choices must MATTER:
-- This is a tree of passages. Each passage is one moment of the story: 3 to 6 flowing sentences, a real scene, not a headline.
-- At choice points, give 2 or 3 choices. Each choice leads to a DIFFERENT passage where something genuinely different happens next — a different path, a different scene, a different fate. A choice that just leads to the same place is a fake choice; do not write fake choices.
-- Real forks with real consequences. Some paths can rejoin a shared thread later, but there must be true divergence. End on EXACTLY TWO different endings, each EARNED by the path taken — one is not simply "good" and the other "bad"; both are true to the history, and an honest choice can cost something.
-- Endings land with weight: a quiet, real, emotional close — never a "GAME OVER," never a moral spelled out.
-
-SHAPE AND SIZE:
-- Aim for about 20 to 30 passages. Long enough to be a real story with real branches; short enough that every passage earns its place. TRIM anything that does not carry the story or the feeling. Never pad, never repeat, never stall.
-- NO game machinery of any kind: no numbers, no health, no scores, no day counts, no inventory, no stats. Only story and choices.
-
-OUTPUT SHAPE (TypeScript for reference — output JSON only):
-interface Choice { text: string; next: string; }   // next = the id of the passage this choice leads to
-interface Passage { id: string; text: string; choices?: Choice[]; ending?: boolean; }  // ending passages have ending:true and NO choices
-interface BranchingStory { title: string; protagonist: string; start: string; passages: Passage[]; }
-
-RULES: ids are short kebab-case and unique. "start" is the id of the first passage. EVERY choice's "next" must be the id of a real passage in the list. Every passage either has 2-3 choices OR ending:true (never both, never neither). Exactly TWO passages are endings. No passage is unreachable from start. Output ONLY the JSON object conforming to BranchingStory.`;
 
 interface TopicSpec { key: string; label: string; brief: string }
 

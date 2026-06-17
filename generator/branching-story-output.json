@@ -1,0 +1,291 @@
+{
+  "title": "The Chalk Mark",
+  "protagonist": "Anna Kovac, age 12, from a village in Slovakia",
+  "start": "start",
+  "passages": [
+    {
+      "id": "start",
+      "text": "Your name is Anna Kovac. You are twelve. Your home is a small village in Slovakia, with chickens in the yard and snow on the hills. But there is no work here, and Papa went to America last year. Today a letter came. Inside were two ship tickets and one sentence in Papa's handwriting. \"Come to me, Anna and Mama. The new land waits.\"",
+      "choices": [
+        {
+          "text": "Pack the family photo and Grandma's shawl",
+          "next": "pack"
+        },
+        {
+          "text": "Run to say goodbye to your best friend Eva",
+          "next": "goodbye"
+        }
+      ]
+    },
+    {
+      "id": "pack",
+      "text": "You fold Grandma's wool shawl into a small bundle. You tuck the family photo deep inside, where it cannot bend. Mama watches with wet eyes. \"That shawl smells like home,\" she says. \"Keep it close.\" You press it to your face and breathe in. You will carry a piece of the village across the whole ocean.",
+      "choices": [
+        {
+          "text": "Begin the long trip to the ship",
+          "next": "port"
+        }
+      ]
+    },
+    {
+      "id": "goodbye",
+      "text": "You find Eva by the well. You hug her so hard it hurts. \"Write to me,\" she whispers. \"Tell me what America smells like.\" You promise you will. Then Mama calls, and you must go. You look back once. Eva grows smaller and smaller, until the hill swallows her.",
+      "choices": [
+        {
+          "text": "Begin the long trip to the ship",
+          "next": "port"
+        }
+      ]
+    },
+    {
+      "id": "port",
+      "text": "After days of trains and dusty roads, you reach the port city of Hamburg. The ship is huge, taller than the church at home. Other families crowd the dock, all clutching bundles and babies. A man in a uniform points you down a steep stairway. \"Steerage,\" he barks. \"Bottom deck. Cheap tickets, bottom of the boat.\"",
+      "choices": [
+        {
+          "text": "Hurry down to find a bunk",
+          "next": "steerage"
+        },
+        {
+          "text": "Stay on deck a moment to watch land disappear",
+          "next": "deck"
+        }
+      ]
+    },
+    {
+      "id": "deck",
+      "text": "You squeeze to the rail. The ship's horn blasts, deep enough to shake your chest. Slowly the dock pulls away. Europe shrinks into a gray line, then into nothing. Around you, grown men cry. A woman sings a sad song in a language you don't know. You hold the shawl tight and watch your whole old life sink under the sea.",
+      "choices": [
+        {
+          "text": "Go down to the bunks now",
+          "next": "steerage"
+        }
+      ]
+    },
+    {
+      "id": "steerage",
+      "text": "The bottom deck is dark and crowded. Hundreds of people share long rows of metal bunks. The air smells of oil, salt, and sick stomachs. Your bunk is a thin mattress with a hard pillow. A girl your age in the next bunk smiles shyly. \"I'm Rosa,\" she says in Italian. \"Ten days to America, my Papa says.\"",
+      "choices": [
+        {
+          "text": "Make friends with Rosa",
+          "next": "rosa"
+        },
+        {
+          "text": "Stay quiet and watch the rough sea through a porthole",
+          "next": "storm"
+        }
+      ]
+    },
+    {
+      "id": "rosa",
+      "text": "You and Rosa cannot speak the same words. So you point and laugh and trade them. You teach her \"shawl.\" She teaches you \"pane,\" which means bread. By the third day you are sharing your bread. The ship rocks hard, but you don't feel so alone now. A friend makes the dark deck warmer.",
+      "choices": [
+        {
+          "text": "A storm hits on the fifth night",
+          "next": "storm"
+        }
+      ]
+    },
+    {
+      "id": "storm",
+      "text": "On the fifth night the sea turns angry. The ship climbs and drops like a falling barn. People moan and clutch their bunks. Mama holds you against her. \"Pray,\" she whispers. You squeeze your eyes shut and grip the shawl. By morning the storm passes. You are pale and shaking, but the ship still floats toward America.",
+      "choices": [
+        {
+          "text": "Crawl up to see the new land",
+          "next": "liberty"
+        }
+      ]
+    },
+    {
+      "id": "liberty",
+      "text": "On the tenth morning, a shout goes up. \"America! America!\" Everyone rushes up the stairs. There, rising out of the harbor mist, stands a giant green woman holding a torch high. The Statue of Liberty. People weep and clap and lift their babies to see. Your heart pounds. You made it across the whole world.",
+      "choices": [
+        {
+          "text": "Look closer — the ship is stopping at a small island",
+          "next": "ferry"
+        }
+      ]
+    },
+    {
+      "id": "ferry",
+      "text": "But the big ship does not dock in the city. It stops near a small island of red brick buildings. \"Ellis Island,\" a man says grimly. \"They check everyone there. The sick get sent back.\" Sent back? Across that whole terrible ocean? Your stomach turns cold. A smaller boat ferries the steerage passengers toward the brick buildings.",
+      "choices": [
+        {
+          "text": "Step off onto the island",
+          "next": "stairs"
+        }
+      ]
+    },
+    {
+      "id": "stairs",
+      "text": "Inside is a huge hall full of voices in a hundred languages. You climb a steep staircase, carrying your bundle. You don't notice it yet, but doctors are watching from the top. They study how each person climbs. They look for limps, for gasping, for sickness. Your shoe is loose. Climb carefully, or they may pull you aside.",
+      "choices": [
+        {
+          "text": "Climb slow and steady, hiding your tiredness",
+          "next": "inspect-pass"
+        },
+        {
+          "text": "Hurry up to stay close to Mama",
+          "next": "inspect-watch"
+        }
+      ]
+    },
+    {
+      "id": "inspect-watch",
+      "text": "You rush, and your loose shoe slips. You stumble on a step and grab the rail, breathing hard. A doctor at the top frowns and watches you longer than the others. Your face burns. Mama grabs your hand and pulls you up the last steps. The doctor scribbles something on a paper but does not stop you. Not yet.",
+      "choices": [
+        {
+          "text": "Reach the inspection line",
+          "next": "inspect-pass"
+        }
+      ]
+    },
+    {
+      "id": "inspect-pass",
+      "text": "At the top, doctors line you up. One holds a buttonhook, the little metal tool for buttons. He flips up your eyelid with it to check for sickness. It pinches and you gasp, but you stay still. He moves on. The line shuffles forward. Then you see something that makes your blood freeze.",
+      "choices": [
+        {
+          "text": "Watch the doctor with the chalk",
+          "next": "chalk"
+        }
+      ]
+    },
+    {
+      "id": "chalk",
+      "text": "A doctor walks the line with a piece of white chalk. On some people's coats he draws a letter. \"E\" for eyes. \"H\" for heart. \"L\" for limp. A chalk mark means you might be sent back. He pauses at the old man ahead of you and marks a big white \"H\" on his coat. The old man's wife begins to cry.",
+      "choices": [
+        {
+          "text": "The doctor lifts his chalk toward Mama's coat",
+          "next": "mama-mark"
+        }
+      ]
+    },
+    {
+      "id": "mama-mark",
+      "text": "The doctor stares at Mama. She has been coughing since the storm. He raises the chalk. Your whole body goes tight. If he marks her, they could send her back across the ocean — without you. You have one breath to act.",
+      "choices": [
+        {
+          "text": "Speak up — tell him she's only tired from the rough crossing",
+          "next": "speak-up"
+        },
+        {
+          "text": "Stay silent and hope the cough passes",
+          "next": "silent"
+        }
+      ]
+    },
+    {
+      "id": "speak-up",
+      "text": "\"Please, sir,\" you say in your few English words. \"Not sick. Just tired. The sea was bad.\" The doctor blinks, surprised a child spoke English. Mama, hearing you, swallows hard and stands tall. She does not cough. The doctor lowers the chalk slowly. \"Move along,\" he says. No mark. You pull Mama forward before he can change his mind.",
+      "choices": [
+        {
+          "text": "Go to the last questions",
+          "next": "questions"
+        }
+      ]
+    },
+    {
+      "id": "silent",
+      "text": "You say nothing. Mama tries to hold her cough, but it bursts out, loud and rattling. The doctor's chalk comes down. A white \"H\" appears on her coat, for heart and lungs. \"This one needs the hospital,\" he says. A nurse leads Mama toward a side room for more tests. \"Wait here, Anna,\" Mama calls, frightened. You are alone in the great loud hall.",
+      "choices": [
+        {
+          "text": "Wait, terrified, for the doctors' decision",
+          "next": "hospital"
+        }
+      ]
+    },
+    {
+      "id": "hospital",
+      "text": "You wait on a hard bench for hours. The shawl is your only comfort. At last a nurse returns with Mama, who looks weak but is smiling. \"Just a chest cold from the storm,\" the nurse says. \"Not serious. She can stay.\" They wash the chalk off Mama's coat. You grab her so hard you almost knock her over. You will not be split apart.",
+      "choices": [
+        {
+          "text": "Go to the last questions",
+          "next": "questions"
+        }
+      ]
+    },
+    {
+      "id": "questions",
+      "text": "At a tall desk an officer asks questions through a translator. Your name? Where from? Who waits for you? \"My Papa,\" you answer. \"He has work in New York City.\" The officer checks his big book. He stamps your papers with a heavy thump. \"Welcome to the United States,\" the translator says. You can hardly believe it. You are in.",
+      "choices": [
+        {
+          "text": "Find Papa across the harbor",
+          "next": "papa"
+        }
+      ]
+    },
+    {
+      "id": "papa",
+      "text": "A ferry carries you to the city. The buildings are so tall they hide the sky. And there, in the crowd, a man waves both arms. Papa! He is thinner than you remember, but his smile is the same. He lifts you off your feet. \"My Anna,\" he says, his voice breaking. \"You're really here.\" The family is whole again, in a brand new world.",
+      "choices": [
+        {
+          "text": "Walk to your new home on the Lower East Side",
+          "next": "tenement"
+        }
+      ]
+    },
+    {
+      "id": "tenement",
+      "text": "Home is one small room up five dark flights of stairs. The whole family will sleep here. Outside, the streets roar with pushcarts, horses, and shouting in a dozen languages. Papa works long hours sewing coats in a factory. Money is tight. \"You must help us, Anna,\" Papa says gently. \"This land is hard. But it can be good, if we work.\"",
+      "choices": [
+        {
+          "text": "Beg to go to school to learn English",
+          "next": "school-path"
+        },
+        {
+          "text": "Offer to take a job to help with the rent",
+          "next": "work-path"
+        }
+      ]
+    },
+    {
+      "id": "school-path",
+      "text": "You start at the crowded neighborhood school. The teacher speaks only English, fast and strange. The other kids laugh when you mix up the words. At night you are tired and ashamed. But you remember the doctor's chalk — how knowing a few English words saved Mama. So you study by candlelight until your eyes ache.",
+      "choices": [
+        {
+          "text": "Keep struggling, no matter how hard it gets",
+          "next": "english-win"
+        }
+      ]
+    },
+    {
+      "id": "english-win",
+      "text": "Week by week, the strange sounds turn into words. Then sentences. One day you read a whole street sign out loud, and Papa stops walking just to listen. Soon you read his factory letters for him. You write to Eva back home: \"America smells like coal smoke and fresh bread and a hundred languages all at once.\" You are becoming American — without losing who you are.",
+      "choices": [
+        {
+          "text": "Years later, look back on it all",
+          "next": "ending-school"
+        }
+      ]
+    },
+    {
+      "id": "work-path",
+      "text": "You take a job in the same factory as Papa, sewing buttons onto coats. The room is hot and the hours are long. Your fingers grow rough and sore. But each Friday you bring home coins, and the family eats a little better. Sometimes, sewing buttons, you remember the buttonhook the doctor used on your eye. You laugh quietly. Buttons brought you here and buttons feed you now.",
+      "choices": [
+        {
+          "text": "Try to learn English in the few hours you have",
+          "next": "work-english"
+        }
+      ]
+    },
+    {
+      "id": "work-english",
+      "text": "You are too tired for school. But an older Italian woman at the next table teaches you English words as you sew. \"Needle,\" she says. \"Thread. Money. Friend.\" You teach her Slovak words back. It is slow, learning a few words a day over the rattle of the machines. But you are learning, and you are helping your family live.",
+      "choices": [
+        {
+          "text": "Years later, look back on it all",
+          "next": "ending-work"
+        }
+      ]
+    },
+    {
+      "id": "ending-school",
+      "text": "Years pass. You speak English now without thinking. You stand at the front of a classroom yourself, teaching new children who just stepped off the boats. They look up at you, scared and far from home, the way you once were. You smile and hold up a piece of chalk — not to mark anyone, but to write their first English word. \"Welcome,\" you say. And you mean it with all your heart.",
+      "ending": true
+    },
+    {
+      "id": "ending-work",
+      "text": "Years pass. Your fingers are quick and strong from a thousand coats. You never finished school, and some English words still feel like stones in your mouth. But the rent is always paid, and Mama no longer coughs. On Sundays the family walks the loud, bright streets together, and Papa says you saved them. You wrap Grandma's old shawl around your shoulders. It still, faintly, smells like home.",
+      "ending": true
+    }
+  ]
+}
