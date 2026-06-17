@@ -24,6 +24,13 @@ export interface BranchingPassage {
   choices?: BranchingChoice[];
   /** True for a terminal passage (no choices). */
   ending?: boolean;
+  /** Teacher-curated image for this passage (added in review step). */
+  image?: {
+    thumbUrl: string;
+    artist?: string;
+    license?: string;
+    sourceUrl?: string;
+  };
 }
 
 export interface BranchingStory {

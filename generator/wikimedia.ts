@@ -467,7 +467,7 @@ function scoreCandidate(title: string, mime: string, queryTokens: Set<string>): 
 // just the top hit) feeds enrichEventImages' cross-event dedupe: when an earlier
 // event already took the best hit, a later one falls to the next-best UNUSED
 // candidate here, breaking the article-funnel repeat.
-async function searchCommonsFileRanked(query: string, eraMaxYear?: number | null): Promise<CommonsImageResult[]> {
+export async function searchCommonsFileRanked(query: string, eraMaxYear?: number | null): Promise<CommonsImageResult[]> {
   if (!query.trim()) return [];
 
   const params = new URLSearchParams({
@@ -594,7 +594,7 @@ async function lookupCommonsFileForEvent(
 // article for the query and use its lead image (pageimage), which is almost
 // always the canonical on-topic photo/painting. Null if there's no article,
 // no pageimage, the file isn't license-acceptable, or on any network error.
-async function searchViaArticlePageimage(query: string): Promise<CommonsImageResult | null> {
+export async function searchViaArticlePageimage(query: string): Promise<CommonsImageResult | null> {
   if (!query.trim()) return null;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
