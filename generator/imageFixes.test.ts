@@ -15,7 +15,7 @@
 
 import type { NarrativePlan } from "./storyPlan.js";
 import { storyPlanToCampaignPieces } from "./storyPlanCompile.js";
-import { selectEnrichTargets, eraInappropriate, inferEraMaxYear, latestYearIn } from "./wikimedia.js";
+import { selectEnrichTargets, eraInappropriate, inferEraMaxYear, latestYearIn, leadImageEraInappropriate } from "./wikimedia.js";
 
 let passed = 0;
 let failed = 0;
@@ -98,6 +98,20 @@ function main() {
   console.log("  guard inactive for post-photography / unknown era:");
   check("a 1943 hit is FINE for a 1944 (WWII) campaign", eraInappropriate("World War II 1943", 1943, 1944) === false);
   check("guard OFF when era is unknown (null)", eraInappropriate("USS New Jersey", null, null) === false);
+  console.log("");
+
+  // (a-lead) the fast-path date gap: a modern photo with an INNOCENT title (no
+  // year, no modern keyword) that slipped because the lead path passed dateYear:null.
+  console.log("(a) lead-path date gap closed:");
+  const innocentModern = { sourceUrl: "https://commons.wikimedia.org/wiki/File:Maple_Street_ferry_landing.jpg", dateYear: 2009 };
+  check("OLD behavior (title only) would have ACCEPTED the modern-town photo (the gap)",
+    eraInappropriate("Maple Street ferry landing", null, 1815) === false);
+  check("NEW lead check uses the carried DATE → REJECTS it for an 1812 campaign",
+    leadImageEraInappropriate(innocentModern, 1815) === true);
+  check("a period lead (innocent title, no date) is still accepted",
+    leadImageEraInappropriate({ sourceUrl: "https://commons.wikimedia.org/wiki/File:River_ferry_engraving.jpg", dateYear: null }, 1815) === false);
+  check("a period lead with a period date is accepted",
+    leadImageEraInappropriate({ sourceUrl: "https://commons.wikimedia.org/wiki/File:Ferry_crossing.jpg", dateYear: 1820 }, 1815) === false);
   console.log("");
 
   // inferEraMaxYear / latestYearIn sanity.

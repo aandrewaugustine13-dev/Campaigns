@@ -93,6 +93,18 @@ function titleFromUrl(url: string | undefined): string {
   try { return decodeURIComponent(url.split("/").pop() ?? "").replace(/_/g, " "); } catch { return ""; }
 }
 
+// Era check for an already-resolved image (the article-LEAD fast path). It now
+// applies the FULL title+DATE check, using the date carried on the result —
+// closing the gap where the lead path only title-checked (dateYear: null) and a
+// modern photo with an innocent title slipped past. Pure & exported for testing.
+export function leadImageEraInappropriate(
+  img: { sourceUrl?: string; dateYear?: number | null } | null | undefined,
+  maxYear: number | null | undefined,
+): boolean {
+  if (!img) return false;
+  return eraInappropriate(titleFromUrl(img.sourceUrl), img.dateYear ?? null, maxYear);
+}
+
 // LEVER 1 — portrait relevance gate. Verifies the matched Wikipedia article is
 // actually THIS person before we accept its lead image. Bidirectional token
 // overlap (not "all name tokens present") so honorifics in the sage name
@@ -410,6 +422,10 @@ interface CommonsImageResult {
   license: string;
   sourceUrl: string;
   searchQuery: string;
+  /** The file's creation/origin year from extmetadata (DateTimeOriginal/DateTime),
+   * null when absent. Carried so the article-LEAD fast path can apply the same
+   * DATE-based era check the Commons-pool path does, instead of title-only. */
+  dateYear?: number | null;
 }
 
 // Titles that are almost never the "historical art" we want for an event or
@@ -512,6 +528,7 @@ async function searchCommonsFileRanked(query: string, eraMaxYear?: number | null
           license: info.extmetadata.LicenseShortName?.value ?? "Unknown",
           sourceUrl: commonsPageUrl(page.title),
           searchQuery: query,
+          dateYear,
         },
         score,
         index,
@@ -569,6 +586,7 @@ async function lookupCommonsFileForEvent(
     license: info.extmetadata.LicenseShortName?.value ?? "Unknown",
     sourceUrl: commonsPageUrl(`File:${filename}`),
     searchQuery,
+    dateYear: latestYearIn(info.extmetadata.DateTimeOriginal?.value ?? info.extmetadata.DateTime?.value ?? ""),
   };
 }
 
@@ -637,7 +655,7 @@ export async function enrichEventImages(
   const queryOf = (ev: any): string | null =>
     typeof ev.imageSearchQuery === "string" && ev.imageSearchQuery.trim() ? ev.imageSearchQuery.trim() : null;
   const eraBad = (img: CommonsImageResult | null): boolean =>
-    !!img && eraInappropriate(titleFromUrl(img.sourceUrl), null, eraMaxYear);
+    leadImageEraInappropriate(img, eraMaxYear);
 
   // Events we may assign now: matching restrictTo and NOT already imaged.
   const targets = selectEnrichTargets(events, restrict);
