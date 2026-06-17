@@ -22,6 +22,7 @@ import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import Anthropic from "@anthropic-ai/sdk";
 import { parseModelJson } from "./json.js";
+import { validateStory, passageMap, type BranchingStory } from "./branchingStory.js";
 
 const __root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 loadEnv({ path: resolve(__root, ".env.local") });
@@ -90,33 +91,6 @@ Let the reader feel the hard truth: the vote was not given but WON — by ordina
   },
 };
 
-// ── tiny structural sanity check (NOT an engine — just proves the branches connect) ──
-interface Choice { text: string; next: string }
-interface Passage { id: string; text: string; choices?: Choice[]; ending?: boolean }
-interface BranchingStory { title: string; protagonist: string; start: string; passages: Passage[] }
-
-function sanity(story: BranchingStory): string[] {
-  const problems: string[] = [];
-  const byId = new Map(story.passages.map((p) => [p.id, p]));
-  if (!byId.has(story.start)) problems.push(`start "${story.start}" is not a passage`);
-  for (const p of story.passages) {
-    const hasChoices = Array.isArray(p.choices) && p.choices.length > 0;
-    if (hasChoices && p.ending) problems.push(`${p.id}: has BOTH choices and ending`);
-    if (!hasChoices && !p.ending) problems.push(`${p.id}: dead end (no choices, not an ending)`);
-    for (const c of p.choices ?? []) if (!byId.has(c.next)) problems.push(`${p.id}: choice → "${c.next}" (no such passage)`);
-  }
-  const seen = new Set<string>();
-  const stack = [story.start];
-  while (stack.length) {
-    const id = stack.pop()!;
-    if (seen.has(id) || !byId.has(id)) continue;
-    seen.add(id);
-    for (const c of byId.get(id)!.choices ?? []) stack.push(c.next);
-  }
-  for (const p of story.passages) if (!seen.has(p.id)) problems.push(`${p.id}: unreachable from start`);
-  return problems;
-}
-
 function fkGrade(text: string): number {
   const sentences = (text.match(/[.!?]+/g) ?? []).length || 1;
   const words = text.split(/\s+/).filter(Boolean);
@@ -163,8 +137,8 @@ async function main() {
   const outPath = resolve(__dirname, `branching-narrative-${topic.key}.json`);
   writeFileSync(outPath, JSON.stringify(story, null, 2), "utf-8");
 
-  const problems = sanity(story);
-  const byId = new Map(story.passages.map((p) => [p.id, p]));
+  const { findings, playable } = validateStory(story);
+  const byId = passageMap(story);
   const endings = story.passages.filter((p) => p.ending);
   const allText = story.passages.map((p) => p.text).join(" ");
 
@@ -173,8 +147,8 @@ async function main() {
   console.log(`  protagonist: ${story.protagonist}`);
   console.log(`  passages: ${story.passages.length} | endings: ${endings.length} | start: ${story.start}`);
   console.log(`  est. reading grade (Flesch-Kincaid): ${fkGrade(allText).toFixed(1)}`);
-  console.log(`  structure: ${problems.length === 0 ? "✓ all branches connect, all reachable" : problems.length + " problem(s)"}`);
-  for (const p of problems) console.log(`     ✗ ${p}`);
+  console.log(`  structure: ${playable ? "✓ playable — all branches connect, every path reaches an ending" : "NOT PLAYABLE"}`);
+  for (const f of findings) console.log(`     ${f.level === "error" ? "✗" : "⚠"} [${f.code}] ${f.message}`);
   console.log(`  saved: ${outPath}`);
   console.log("═".repeat(74));
   console.log();

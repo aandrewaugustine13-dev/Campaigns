@@ -1,0 +1,303 @@
+{
+  "title": "The First Free Year",
+  "protagonist": "Tessa",
+  "start": "freedom-day",
+  "passages": [
+    {
+      "id": "freedom-day",
+      "text": "Your name is Tessa. You are twelve. You were born on the Greer place in South Carolina, in a one-room cabin with a dirt floor. One hot June morning, a Union soldier on a tired horse rode up the lane. He read words off a paper. The war was over. You were free. The whole quarter went still, like the world had stopped breathing.",
+      "choices": [
+        {
+          "text": "Run to find Old Hannah, who raised you.",
+          "next": "hannah"
+        },
+        {
+          "text": "Stand and stare at the big house, your heart pounding.",
+          "next": "big-house"
+        }
+      ]
+    },
+    {
+      "id": "hannah",
+      "text": "You found Old Hannah by the well, her hands shaking on the rope. \"Free,\" she whispered, over and over. Tears ran down her wrinkled face. She grabbed your shoulders. \"Your mama was sold off to Georgia when you was four,\" she said. \"Years back. You remember?\" You barely did. Just a song and the smell of woodsmoke. \"You free now,\" Hannah said. \"You could go look.\"",
+      "choices": [
+        {
+          "text": "Decide you must find your mother.",
+          "next": "decide-go"
+        },
+        {
+          "text": "Stay close to Hannah, the only family you know.",
+          "next": "stay-place"
+        }
+      ]
+    },
+    {
+      "id": "big-house",
+      "text": "Master Greer came out onto the porch. His face was gray and old now. \"You can stay and work,\" he said, \"or you can starve out there on the road.\" His voice was not kind, but it was not the same as before. He could not whip you now. That truth sat strange in your chest, heavy and light at once.",
+      "choices": [
+        {
+          "text": "Stay and ask about a fair contract.",
+          "next": "stay-place"
+        },
+        {
+          "text": "Walk away down the lane while you can.",
+          "next": "decide-go"
+        }
+      ]
+    },
+    {
+      "id": "decide-go",
+      "text": "You knew almost nothing. Just that your mother was called Della, and she was sold south to a man named Pruitt. You had no shoes that fit and no map in your head. But your feet would not stay still. Hannah pressed a cold biscuit into your hand and held you long.",
+      "choices": [
+        {
+          "text": "Go to town first, to the Freedmen's Bureau.",
+          "next": "bureau"
+        },
+        {
+          "text": "Just start walking the road toward Georgia.",
+          "next": "long-road"
+        }
+      ]
+    },
+    {
+      "id": "stay-place",
+      "text": "You stayed on the Greer place. It looked the same as ever, but it wasn't. You could leave the gate now, and nobody could stop you. That fall, Greer offered the workers a contract for shares of the crop. A Bureau man came to read it out loud, since none of you could read a word.",
+      "choices": [
+        {
+          "text": "Sign the contract and stay through the year.",
+          "next": "sharecrop"
+        },
+        {
+          "text": "Ask the Bureau man about finding your mother instead.",
+          "next": "bureau"
+        }
+      ]
+    },
+    {
+      "id": "bureau",
+      "text": "The Freedmen's Bureau filled a hot little office in town. A line of freed people snaked out the door. They came to find lost kin, to argue over pay, to ask for food. A tired man with ink-stained fingers waved you forward. \"What do you need, child?\" he asked.",
+      "choices": [
+        {
+          "text": "Ask him to put a notice in the paper for your mother.",
+          "next": "notice"
+        },
+        {
+          "text": "Ask him where the new school is.",
+          "next": "school-first"
+        }
+      ]
+    },
+    {
+      "id": "notice",
+      "text": "The man dipped his pen. \"Information Wanted,\" he wrote slowly. \"By Tessa, of the Greer place, seeking her mother Della, sold to a Pruitt in Georgia about 1857.\" Churches all over the South read these notices aloud, he told you. People were finding each other this way. He blew on the ink. \"It can take months. Sometimes years. Sometimes never.\"",
+      "choices": [
+        {
+          "text": "Decide to wait near town and learn to read.",
+          "next": "school-first"
+        },
+        {
+          "text": "Decide you can't wait. Walk toward Georgia.",
+          "next": "long-road"
+        }
+      ]
+    },
+    {
+      "id": "school-first",
+      "text": "The school was a shed behind a Black church. A young teacher from up North, Miss Adley, taught children and gray-haired grandmothers in the same room. Under slavery, reading was forbidden. A slave caught with a book could be beaten. Now you held a worn primer in your own hands. The letters looked like little fences and hooks.",
+      "choices": [
+        {
+          "text": "Stay every day and learn your letters.",
+          "next": "learn-read"
+        },
+        {
+          "text": "Go once, then leave to keep searching for your mother.",
+          "next": "long-road"
+        }
+      ]
+    },
+    {
+      "id": "learn-read",
+      "text": "Day after day you came. A is for ax. B is for boy. The marks turned into sounds, and the sounds turned into words. One evening you read a whole sentence out loud: \"The sun is up.\" Miss Adley smiled so wide. You felt something open in your chest, a door you didn't know was locked. Now you could read the notices yourself.",
+      "choices": [
+        {
+          "text": "Read the church notices each Sunday, hunting for your mother's name.",
+          "next": "sunday-notices"
+        },
+        {
+          "text": "Stay to teach the little ones their letters.",
+          "next": "teach-ending"
+        }
+      ]
+    },
+    {
+      "id": "sunday-notices",
+      "text": "Every Sunday you waited while the preacher read the Information Wanted list. Names of the lost filled the air. A husband seeking a wife. A mother seeking a son sold off thirty years gone. You listened so hard your ears hummed. Then one Sunday a notice came back, an answer to yours. A church in Georgia had a Della asking after a daughter named Tessa.",
+      "choices": [
+        {
+          "text": "Set out for Georgia at once to find her.",
+          "next": "reunion-road"
+        },
+        {
+          "text": "Wait and write a letter first, now that you can.",
+          "next": "letter"
+        }
+      ]
+    },
+    {
+      "id": "letter",
+      "text": "You sat by the window with paper and a borrowed pen. Your hand shook. \"Dear Mama,\" you wrote, and the word Mama looked so big and strange on the page. You told her you remembered a song and woodsmoke. You sent it with the Bureau. Weeks crawled past. Then a wagon man brought word: your mother was coming north to find you.",
+      "choices": [
+        {
+          "text": "Wait at the church crossroads each day.",
+          "next": "reunion-road"
+        }
+      ]
+    },
+    {
+      "id": "long-road",
+      "text": "You walked. The road was hot and the dust caked your feet. You passed burned barns and empty fields. Other freed people walked too, whole families with bundles on their heads, all searching. Some had walked a hundred miles. At a crossroads, a white man on a horse stopped and squinted down at you. \"Where's your pass, girl?\" he said.",
+      "choices": [
+        {
+          "text": "Tell him the truth: you're free, and you have none.",
+          "next": "black-codes"
+        },
+        {
+          "text": "Step back into the trees and slip away.",
+          "next": "hide-woods"
+        }
+      ]
+    },
+    {
+      "id": "black-codes",
+      "text": "\"Free or not, the law says you got to be working a contract,\" he said. He called it the Black Codes. New laws, made to bind freedom back down. A freed person caught wandering could be fined, or hired out against their will. He marched you to a farm and made you sign a paper you couldn't read. You were not in chains. But you were not free to go, either.",
+      "choices": [
+        {
+          "text": "Work the farm and watch for a chance to run.",
+          "next": "cheated"
+        },
+        {
+          "text": "Slip off in the night and reach the Bureau.",
+          "next": "bureau-rescue"
+        }
+      ]
+    },
+    {
+      "id": "hide-woods",
+      "text": "You crouched in the brush, heart slamming, until his horse clopped away. The woods were thick and dark, full of berries and biting bugs. You followed a creek south, the way the wagon ruts pointed. By dusk you smelled woodsmoke and saw lamplight. A camp of freed people sat around a fire, sharing cornbread. \"Come in from the dark, child,\" an old man called.",
+      "choices": [
+        {
+          "text": "Join them and travel with them toward Georgia.",
+          "next": "reunion-road"
+        },
+        {
+          "text": "Rest one night, then head back for the Bureau's help.",
+          "next": "bureau-rescue"
+        }
+      ]
+    },
+    {
+      "id": "bureau-rescue",
+      "text": "You found the Bureau office and told a soldier your story. He frowned at the forced contract. \"That paper isn't worth a thing,\" he said. He gave you a written pass and a name in Georgia from the notice lists. You held the paper like it was made of gold, though you couldn't yet read a word of it.",
+      "choices": [
+        {
+          "text": "Travel south with the pass to find your mother.",
+          "next": "reunion-road"
+        },
+        {
+          "text": "Stay near town to learn to read first.",
+          "next": "school-first"
+        }
+      ]
+    },
+    {
+      "id": "sharecrop",
+      "text": "You made your mark on the contract, an X, since you could not write your name. You worked the cotton from sunup to dark for a share of the crop. The work was hard, but the rows were your own rows now. When harvest came, Greer sat at his table and figured the money. He read the numbers off fast, and they did not add up.",
+      "choices": [
+        {
+          "text": "Argue that the count is wrong.",
+          "next": "cheated"
+        },
+        {
+          "text": "Stay quiet, but swear to learn to read those numbers yourself.",
+          "next": "learn-numbers"
+        }
+      ]
+    },
+    {
+      "id": "cheated",
+      "text": "\"You owe ME,\" Greer said, tapping the page. He claimed the seed and the food and the cabin cost more than your share. You had worked a whole year and ended up owing him. You couldn't read the figures to fight back. Your hands curled into fists at your sides. The Bureau man said this happened all over, and he could not always make it right.",
+      "choices": [
+        {
+          "text": "Leave the place for good and head south to find your mother.",
+          "next": "long-road"
+        },
+        {
+          "text": "Stay one more year, but go to the school at night.",
+          "next": "learn-numbers"
+        }
+      ]
+    },
+    {
+      "id": "learn-numbers",
+      "text": "At night, after the fields, you walked to the church school by lamplight. Miss Adley taught you letters and numbers both. You learned to count the rows, to figure the weight of cotton, to read a contract line by line. The next harvest, you stood at Greer's table and read his own numbers back to him. His face went red. He paid you fair.",
+      "choices": [
+        {
+          "text": "Save your pay and keep searching the notices for your mother.",
+          "next": "sunday-notices"
+        },
+        {
+          "text": "Hear the talk of night riders and decide what to do.",
+          "next": "night-riders"
+        }
+      ]
+    },
+    {
+      "id": "night-riders",
+      "text": "Word spread through the quarter in low voices. Men in white were riding at night. They hated the schools, hated freed people who voted or owned land or read books. One night you woke to hoofbeats and torchlight on the road. They burned a neighbor's fence and shouted his name. By morning the school sat dark and empty. People were afraid to be seen learning.",
+      "choices": [
+        {
+          "text": "Help reopen the school in secret, in someone's cabin.",
+          "next": "secret-school"
+        },
+        {
+          "text": "Decide it's too dangerous and leave to find your mother.",
+          "next": "reunion-road"
+        }
+      ]
+    },
+    {
+      "id": "secret-school",
+      "text": "You and Miss Adley moved the lessons into a back cabin, windows covered with old quilts. Children came in the dark, one or two at a time. You taught the small ones their letters now, the way she taught you. It was risky. It was tiring. But each child who learned to read was a thing no rider could ever burn back out of them.",
+      "choices": [
+        {
+          "text": "Stay and teach, building something here.",
+          "next": "teach-ending"
+        },
+        {
+          "text": "A notice comes back about your mother. Go to her.",
+          "next": "reunion-road"
+        }
+      ]
+    },
+    {
+      "id": "reunion-road",
+      "text": "You traveled south, the answer to your notice folded in your pocket. The roads were full of others doing the same, all searching, all hoping. You came to a Georgia church where freed people gathered at noon. An old woman in a gray headwrap stood by the steps, her hands twisting her apron. She turned. She had your eyes.",
+      "choices": [
+        {
+          "text": "Walk to her and say the word you've waited for.",
+          "next": "reunion-ending"
+        }
+      ]
+    },
+    {
+      "id": "reunion-ending",
+      "text": "\"Mama,\" you said. The word came out broken. She pulled you into her arms and held on like the years could not take you again. She smelled of woodsmoke. She hummed the song you half remembered, and now you knew it was hers. You were poor. You had no land, no money, no certain place to sleep tonight. But you had this. You had each other, and you were free, and no one could sell either of you ever again. The road ahead was long and unsure. You faced it together.",
+      "ending": true
+    },
+    {
+      "id": "teach-ending",
+      "text": "You never did find your mother. The notices went out year after year, and no answer ever came. That grief lived in you, quiet, like a stone in a pocket. But each morning children filled your little school, and you watched their faces light when the marks turned into words. Reading had been forbidden once. Now you handed it to them like bread. You were poor and the danger never fully left. Yet you were planting something. One of these children might vote one day. Might own land. Might be safe. You could not see that far ahead. You only knew you were free, and you were building toward it, and that was enough to keep going.",
+      "ending": true
+    }
+  ]
+}

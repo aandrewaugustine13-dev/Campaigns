@@ -12,22 +12,42 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
   passageMap,
   isEnding,
+  validateStory,
   type BranchingStory,
   type ChoiceStep,
   type PlayResult,
+  type StoryValidation,
 } from "../generator/branchingStory";
 
 interface BranchingPlayerProps {
   story: BranchingStory;
   /** Fired once when an ending passage is reached, with the recorded path. */
   onEnd?: (result: PlayResult) => void;
+  /** Fired once when the story is too broken to play (validation errors). */
+  onUnplayable?: (validation: StoryValidation) => void;
 }
 
-export default function BranchingPlayer({ story, onEnd }: BranchingPlayerProps) {
+// Graceful fallback for a story a model emitted broken — a clear message, never a
+// crash and never a kid stranded in a dead/looping passage.
+function Unplayable() {
+  return (
+    <div className="min-h-screen bg-stone-100 text-stone-900 flex items-center justify-center p-6">
+      <div className="max-w-md w-full text-center space-y-3">
+        <p className="text-lg font-serif">This story isn&rsquo;t ready to play yet.</p>
+        <p className="text-sm text-stone-500">Something went wrong putting it together. Please pick another story.</p>
+      </div>
+    </div>
+  );
+}
+
+export default function BranchingPlayer({ story, onEnd, onUnplayable }: BranchingPlayerProps) {
   const byId = useMemo(() => passageMap(story), [story]);
+  // Validate up front: the player only ever runs a story proven safe start-to-end,
+  // so a malformed graph degrades gracefully instead of rendering into a wall.
+  const validation = useMemo(() => validateStory(story), [story]);
   const [currentId, setCurrentId] = useState(story.start);
   const [history, setHistory] = useState<ChoiceStep[]>([]);
-  // onEnd fires exactly once per playthrough (a ref survives re-renders).
+  // onEnd / onUnplayable fire exactly once per playthrough (a ref survives re-renders).
   const firedRef = useRef(false);
 
   const current = byId.get(currentId);
@@ -35,21 +55,25 @@ export default function BranchingPlayer({ story, onEnd }: BranchingPlayerProps) 
   const choose = useCallback((choiceIndex: number) => {
     const p = byId.get(currentId);
     const c = p?.choices?.[choiceIndex];
-    if (!c) return;
+    if (!c || !byId.has(c.next)) return; // defensive: never follow a dangling link
     setHistory((h) => [...h, { passageId: currentId, choiceIndex, choiceText: c.text, next: c.next }]);
     setCurrentId(c.next);
   }, [byId, currentId]);
 
   useEffect(() => {
-    if (isEnding(current) && !firedRef.current) {
+    if (!validation.playable && !firedRef.current) {
+      firedRef.current = true;
+      onUnplayable?.(validation);
+      return;
+    }
+    if (validation.playable && isEnding(current) && !firedRef.current) {
       firedRef.current = true;
       onEnd?.({ endingId: currentId, history });
     }
-  }, [current, currentId, history, onEnd]);
+  }, [validation, current, currentId, history, onEnd, onUnplayable]);
 
-  if (!current) {
-    return <div className="p-6 text-red-700">Story error: missing passage &ldquo;{currentId}&rdquo;.</div>;
-  }
+  // A broken story (or a missing current passage, the runtime safety net) → fallback.
+  if (!validation.playable || !current) return <Unplayable />;
 
   const ended = isEnding(current);
 

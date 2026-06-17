@@ -1,0 +1,269 @@
+{
+  "title": "The Long Road to Baltimore",
+  "protagonist": "Caleb Wren",
+  "start": "start",
+  "passages": [
+    {
+      "id": "start",
+      "text": "Your name is Caleb Wren. You are fifteen, and you live on a corn farm in Maryland. One hot June day, a man rides into town shouting the news. War. The United States has gone to war with Britain again. Old men cheer. Young men run to sign their names. Your heart pounds like a drum.",
+      "choices": [
+        {
+          "text": "Run and sign your name with the militia",
+          "next": "enlist"
+        },
+        {
+          "text": "Go home first and tell your mother",
+          "next": "mother"
+        }
+      ]
+    },
+    {
+      "id": "mother",
+      "text": "You find your mother by the well. You tell her the news, the words spilling out fast. She wipes her hands on her apron and looks at you a long time. \"You're still a boy,\" she says softly. But she sees your face. She knows that look. \"Go on, then,\" she whispers. \"Come home to me.\"",
+      "choices": [
+        {
+          "text": "Hug her and go sign your name",
+          "next": "enlist"
+        }
+      ]
+    },
+    {
+      "id": "enlist",
+      "text": "A tired soldier writes your name in a book. He hands you a worn musket and a hat too big for your head. \"You're in the militia now,\" he says. You are not a real soldier yet. You are a farm boy with a gun. But you stand tall anyway. The march to camp begins the next morning.",
+      "choices": [
+        {
+          "text": "March north toward Canada",
+          "next": "camp"
+        }
+      ]
+    },
+    {
+      "id": "camp",
+      "text": "Camp is mud and smoke and a thousand bored men. Nobody really knows how to fight. You drill all day, turning left when you should turn right. At night, fever spreads through the tents. Men cough and shake. More soldiers die from sickness here than from any battle. You are so tired of waiting.",
+      "choices": [
+        {
+          "text": "Volunteer to march into Canada",
+          "next": "canada-march"
+        },
+        {
+          "text": "Stay back to help nurse the sick men",
+          "next": "nurse"
+        }
+      ]
+    },
+    {
+      "id": "nurse",
+      "text": "You carry water and wipe hot faces. One boy, younger than you, grips your hand. His name is Samuel. By morning his fever breaks, and he smiles up at you. \"You stayed,\" he says. You did. When the army marches for Canada, you and Samuel march together, side by side.",
+      "choices": [
+        {
+          "text": "March into Canada with Samuel",
+          "next": "canada-march"
+        }
+      ]
+    },
+    {
+      "id": "canada-march",
+      "text": "The invasion is a mess. Roads turn to swamp. Wagons sink. Generals shout orders that make no sense. Across the river is Canada, and the British wait there with their cannons. The officers cannot even agree to cross. You stand on the muddy bank, soaked and hungry, wondering what you came all this way for.",
+      "choices": [
+        {
+          "text": "Cross the river with the brave few",
+          "next": "river-cross"
+        },
+        {
+          "text": "Refuse, like most of the militia do",
+          "next": "refuse-cross"
+        }
+      ]
+    },
+    {
+      "id": "refuse-cross",
+      "text": "Hundreds of militia men fold their arms. \"We signed up to defend our homes,\" they shout, \"not to invade another land.\" The law says they don't have to leave the country. So they stay. You stay too, your boots stuck in the mud. Across the water, the few who crossed are swallowed by smoke and gunfire. The whole invasion falls apart. You feel ashamed and safe all at once.",
+      "choices": [
+        {
+          "text": "March the long road home in disgrace",
+          "next": "winter-home"
+        }
+      ]
+    },
+    {
+      "id": "river-cross",
+      "text": "You pile into a flat boat with a handful of others. The river is cold and fast. Bullets whip the water white around you. On the far bank, redcoats rise from the grass like a wall. Your hands shake on your musket. This is real now. This is the war you dreamed of, and it is nothing like the dream.",
+      "choices": [
+        {
+          "text": "Fire and stand your ground",
+          "next": "stand-ground"
+        },
+        {
+          "text": "Help drag a wounded man back to the boat",
+          "next": "save-wounded"
+        }
+      ]
+    },
+    {
+      "id": "save-wounded",
+      "text": "A man falls beside you, clutching his leg. You grab his collar and haul him toward the boat. He's heavy, and the mud sucks at your feet. A musket ball tears your sleeve but misses your skin. You shove him into the boat and tumble in after. The few survivors row back across, leaving Canada behind. You saved a life today. You did not win anything.",
+      "choices": [
+        {
+          "text": "March the long road home",
+          "next": "winter-home"
+        }
+      ]
+    },
+    {
+      "id": "stand-ground",
+      "text": "You fire. The smoke stings your eyes. Beside you, men fall, but you keep loading and firing, your ears ringing. The redcoats are too many. An officer screams, \"Back to the boats!\" You run, slipping in the mud, your heart slamming. You make it. The invasion is over before it began. You feel small and cold all the way home.",
+      "choices": [
+        {
+          "text": "March the long road home",
+          "next": "winter-home"
+        }
+      ]
+    },
+    {
+      "id": "winter-home",
+      "text": "Winter comes. The army falls apart. You go home to the corn farm, thin and quiet. Your mother feeds you and asks no questions. The war drags on for two more years, far away. You begin to think it has forgotten you. Then, in the summer of 1814, a rider comes again. The British have landed. They are marching on Washington.",
+      "choices": [
+        {
+          "text": "Grab your musket and run to defend the capital",
+          "next": "bladensburg"
+        },
+        {
+          "text": "This time, stay and guard the farm",
+          "next": "farm-guard"
+        }
+      ]
+    },
+    {
+      "id": "farm-guard",
+      "text": "You can't leave your mother alone again. You stay, musket by the door, watching the road. For days the sky to the south glows strange and orange. A neighbor rides past, white-faced. \"They burned it,\" he says. \"They burned Washington to the ground.\" You stand in your field and watch the smoke rise over your country. You wonder if you should have gone.",
+      "choices": [
+        {
+          "text": "You can't sit still. Ride for Baltimore",
+          "next": "baltimore-road"
+        }
+      ]
+    },
+    {
+      "id": "bladensburg",
+      "text": "You join a ragged army outside Washington, near a town called Bladensburg. The British come on in neat red lines, calm as if marching to church. They fire screaming rockets that light the sky. The militia around you panic. Men throw down their guns and run. The whole line breaks like a wave.",
+      "choices": [
+        {
+          "text": "Run with the others",
+          "next": "washington-burns"
+        },
+        {
+          "text": "Hold your spot a moment longer",
+          "next": "hold-bladensburg"
+        }
+      ]
+    },
+    {
+      "id": "hold-bladensburg",
+      "text": "You crouch behind a fence and fire once, twice. A few brave men stay with you. But it's hopeless. A rocket bursts overhead, and dirt rains down. An old soldier grabs your arm. \"Live to fight another day, boy,\" he says. He's right. You run with him, the redcoats close behind, your lungs burning.",
+      "choices": [
+        {
+          "text": "Escape toward the burning capital",
+          "next": "washington-burns"
+        }
+      ]
+    },
+    {
+      "id": "washington-burns",
+      "text": "That night you watch from a hill as Washington burns. Flames climb the President's House. The whole sky is the color of fire. People stream out of the city carrying babies and clocks and whatever they could grab. Your country's capital is a torch in the dark. You have never felt so beaten. But somewhere inside, anger begins to burn hotter than the fire.",
+      "choices": [
+        {
+          "text": "Turn north. Baltimore is next. Go defend it",
+          "next": "baltimore-road"
+        }
+      ]
+    },
+    {
+      "id": "baltimore-road",
+      "text": "The road to Baltimore is full of people. But this time, something is different. Farmers and shopkeepers and sailors are all marching TOWARD the danger, not away. They dig trenches with their bare hands. They drag cannons up the hills. \"They won't take Baltimore,\" an old woman says, handing you bread. \"Not our city.\" You believe her.",
+      "choices": [
+        {
+          "text": "Join the men digging trenches on the land",
+          "next": "north-point"
+        },
+        {
+          "text": "Help carry powder to Fort McHenry",
+          "next": "fort-mchenry"
+        }
+      ]
+    },
+    {
+      "id": "north-point",
+      "text": "You stand with the militia at North Point, between the British and the city. This time nobody runs. When the redcoats come, you fire steady, the way you wish you had at Bladensburg. The British general himself is shot dead. The redcoats stop. They actually stop. You hold the line, sweating and shaking, and you hold it.",
+      "choices": [
+        {
+          "text": "Wait through the long night as the fort is shelled",
+          "next": "the-bombardment"
+        }
+      ]
+    },
+    {
+      "id": "fort-mchenry",
+      "text": "Inside Fort McHenry, the air smells of gunpowder and salt. A huge American flag flies over the walls, big enough to see for miles. You carry heavy bags of powder to the gun crews. Out in the harbor, dark British ships gather like storm clouds. The men say the ships can throw bombs farther than our cannons can shoot back. All you can do is wait.",
+      "choices": [
+        {
+          "text": "Wait through the long night as the bombs fall",
+          "next": "the-bombardment"
+        }
+      ]
+    },
+    {
+      "id": "the-bombardment",
+      "text": "All night the British ships rain fire on the fort. Bombs scream up and burst in showers of sparks. Rockets streak red across the black sky. The ground shakes under you. Each flash lights up that great flag, still flying. You count the hours, soaked and deaf, waiting for the walls to fall. They do not fall. The flag stays up.",
+      "choices": [
+        {
+          "text": "Wait for dawn",
+          "next": "dawn"
+        }
+      ]
+    },
+    {
+      "id": "dawn",
+      "text": "Near morning, the guns go quiet. The silence is almost worse than the noise. Did the fort fall? Did we surrender? You stare into the gray mist, holding your breath. Then the sun creeps up, and the wind catches the harbor. The smoke clears, just enough to see the flagpole.",
+      "choices": [
+        {
+          "text": "Look up at the flag",
+          "next": "the-flag"
+        }
+      ]
+    },
+    {
+      "id": "the-flag",
+      "text": "It's still there. The flag is still there. Torn and singed, but flying high in the dawn light. A cheer rolls through the fort, ragged and hoarse and full of tears. The British ships are turning away. They could not break Baltimore. You laugh and cry at the same time. On a boat in the harbor, a lawyer named Francis Scott Key is scribbling a poem about that very flag.",
+      "choices": [
+        {
+          "text": "Stay with the army as the British leave",
+          "next": "war-ends"
+        },
+        {
+          "text": "Finally, turn for home",
+          "next": "home-ending"
+        }
+      ]
+    },
+    {
+      "id": "war-ends",
+      "text": "Weeks later, strange news arrives. The war is over. Peace was signed across the ocean, in a city called Ghent, before some of the last battles were even fought. Nobody really won. The map didn't change. The reasons for the war just sort of faded away. You sit by the fire, puzzled. All that marching, all that dying, and the lines on the map are the same.",
+      "choices": [
+        {
+          "text": "Think about what really changed",
+          "next": "nation-ending"
+        }
+      ]
+    },
+    {
+      "id": "nation-ending",
+      "text": "But something has changed. You feel it in the men around you, in the way they stand. They beat back the greatest army on earth at Baltimore. They saved their city. The little, shaky country you marched off to serve feels different now. It feels like a real nation. You think of Samuel, of the old soldier, of the flag in the dawn. You walk home as a different boy. Behind you, the morning is bright, and the flag is still flying.",
+      "ending": true
+    },
+    {
+      "id": "home-ending",
+      "text": "You walk the long road back to the corn farm. Your boots are worn through. Your hat is gone. Your mother sees you coming up the lane and drops her basket and runs. She holds you so tight you can't breathe. \"You came home,\" she says into your shoulder. \"You came home.\" The corn is tall and green in the summer sun. You are home, and you are not the same boy who left.",
+      "ending": true
+    }
+  ]
+}
