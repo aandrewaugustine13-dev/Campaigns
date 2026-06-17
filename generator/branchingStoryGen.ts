@@ -15,6 +15,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { parseModelJson } from "./json.js";
 import { validateStory, type BranchingStory, type StoryValidation } from "./branchingStory.js";
+import { runFactGate, type FactGateResult } from "./factGate.js";
 
 const MODEL = "claude-opus-4-8"; // the writer that produced the proven stories
 
@@ -74,9 +75,13 @@ export interface BranchingGenResult {
   attempts: number;
   /** The last raw model output (for inspection on failure). */
   raw: string;
+  /** The history fact-check result for the returned story (absent if the fact
+   * gate was disabled or no story was produced). status "clean" means it shipped
+   * with no uncorrected fabrications. */
+  factGate?: FactGateResult;
 }
 
-function buildUserMessage(inputs: BranchingInputs, priorErrors?: string[]): string {
+function buildUserMessage(inputs: BranchingInputs, priorErrors?: string[], priorFactErrors?: string[]): string {
   const mustCover = inputs.mustCover && inputs.mustCover.trim()
     ? `\nMUST COVER (the teacher's required content — weave these naturally into the story, never as a list): ${inputs.mustCover.trim()}`
     : "";
@@ -88,21 +93,28 @@ STANDARD (the curriculum standard it must teach, delivered AS story, never lectu
 
 Begin at "start" with the character's name and home and the moment the history reaches them. Simple words, short sentences, real feeling, real choices that change what happens next, exactly two earned endings. Output ONLY the JSON object conforming to BranchingStory.`;
 
-  if (!priorErrors || priorErrors.length === 0) return base;
-  // Sighted re-generation: the prior output was an UNPLAYABLE graph. Name the
-  // exact failures and the invariants so the next attempt fixes them.
-  return `${base}
-
-YOUR PREVIOUS ATTEMPT PRODUCED AN UNPLAYABLE STORY GRAPH — these problems would crash the player or strand a reader. Write the whole story again and make ABSOLUTELY SURE: the "start" id is a real passage; EVERY choice's "next" is the id of a real passage; from EVERY passage a reader can always reach an ending (no loops with no exit); there are exactly two ending passages. Problems found:
-${priorErrors.map((e) => `- ${e}`).join("\n")}`;
+  const blocks: string[] = [];
+  // Sighted re-generation (graph): the prior output was an UNPLAYABLE graph.
+  if (priorErrors && priorErrors.length > 0) {
+    blocks.push(`YOUR PREVIOUS ATTEMPT PRODUCED AN UNPLAYABLE STORY GRAPH — these problems would crash the player or strand a reader. Write the whole story again and make ABSOLUTELY SURE: the "start" id is a real passage; EVERY choice's "next" is the id of a real passage; from EVERY passage a reader can always reach an ending (no loops with no exit); there are exactly two ending passages. Problems found:
+${priorErrors.map((e) => `- ${e}`).join("\n")}`);
+  }
+  // Sighted re-generation (history): the prior output stated false/invented facts.
+  if (priorFactErrors && priorFactErrors.length > 0) {
+    blocks.push(`YOUR PREVIOUS ATTEMPT CONTAINED HISTORICAL ERRORS — false or invented facts. A kids' history tool must never teach a wrong fact. Write the whole story again and keep EVERY historical detail (dates, numbers, named real people, places, events, causes) accurate; weave the corrected facts in naturally. Errors found:
+${priorFactErrors.map((e) => `- ${e}`).join("\n")}`);
+  }
+  if (blocks.length === 0) return base;
+  return `${base}\n\n${blocks.join("\n\n")}`;
 }
 
 export async function generateBranchingStory(
   inputs: BranchingInputs,
   apiKey: string,
-  opts: { maxAttempts?: number } = {},
+  opts: { maxAttempts?: number; factGate?: boolean } = {},
 ): Promise<BranchingGenResult> {
   const maxAttempts = Math.max(1, opts.maxAttempts ?? 3);
+  const useFactGate = opts.factGate !== false; // default ON
   const client = new Anthropic({ apiKey, timeout: 10 * 60_000, maxRetries: 1 });
 
   let last: BranchingGenResult = {
@@ -112,13 +124,14 @@ export async function generateBranchingStory(
     raw: "",
   };
   let priorErrors: string[] = [];
+  let priorFactErrors: string[] = [];
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const stream = client.messages.stream({
       model: MODEL,
       max_tokens: 16000,
       system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: buildUserMessage(inputs, attempt > 1 ? priorErrors : undefined) }],
+      messages: [{ role: "user", content: buildUserMessage(inputs, attempt > 1 ? priorErrors : undefined, attempt > 1 ? priorFactErrors : undefined) }],
     });
     let raw = "";
     stream.on("text", (t) => { raw += t; });
@@ -141,16 +154,68 @@ export async function generateBranchingStory(
 
     const validation = validateStory(parsed);
     if (validation.playable) {
-      return { ok: true, story: parsed as BranchingStory, validation, attempts: attempt, raw };
+      const story = parsed as BranchingStory;
+
+      // The graph is playable — now the HISTORY must hold up. A kids' history
+      // tool must never teach a fabricated date, number, person, or event, so we
+      // fact-check the prose with the project's factGate (detect → correct in
+      // place → re-verify). Only a CLEAN result ships; uncorrected fabrications
+      // trigger a re-generation, exactly like a broken graph does.
+      if (!useFactGate) {
+        return { ok: true, story, validation, attempts: attempt, raw };
+      }
+      const gate = await runStoryFactGate(story, inputs.topic, apiKey);
+      if (gate.status === "clean") {
+        return { ok: true, story, validation, attempts: attempt, raw, factGate: gate };
+      }
+      if (gate.status === "gate-error") {
+        // The CHECK itself failed (API/parse), NOT a detected fabrication — don't
+        // loop on infrastructure. Ship, but never silently: attach a warning.
+        const warned: StoryValidation = {
+          ...validation,
+          findings: [...validation.findings, { level: "warn", code: "fact-gate", message: "history could not be fact-checked (gate error) — shipping unverified" }],
+        };
+        return { ok: true, story, validation: warned, attempts: attempt, raw, factGate: gate };
+      }
+      // Residual fabrications the gate could not fully correct: a failed attempt.
+      // Feed the exact historical errors back and re-generate.
+      last = { ok: false, validation, attempts: attempt, raw, factGate: gate };
+      priorErrors = [];
+      priorFactErrors = gate.residual.map((c) => `"${c.quote}" — ${c.why} (correct: ${c.correct})`);
+      console.warn(`[branching] attempt ${attempt}/${maxAttempts}: ${gate.residual.length} uncorrected historical error(s) — re-generating`);
+      continue;
     }
 
     // Unplayable: record, feed the exact errors back, try again.
     last = { ok: false, validation, attempts: attempt, raw };
     priorErrors = validation.findings.filter((f) => f.level === "error").map((f) => `[${f.code}] ${f.message}`);
+    priorFactErrors = [];
     console.warn(`[branching] attempt ${attempt}/${maxAttempts}: ${priorErrors.length} validation error(s) — re-generating:`);
     for (const e of priorErrors) console.warn(`[branching]    ✗ ${e}`);
   }
 
   // Exhausted: return the failure (ok:false). NEVER a broken story.
   return last;
+}
+
+// Fact-check a story's PROSE by reusing the project's factGate (generator/
+// factGate.ts) — no second fact-checking engine. factGate reads a CampaignData-
+// shaped dossier (title + events[].text + choice text); we hand it the passages
+// AS the events array by REFERENCE, so the gate's in-place string corrections
+// land directly on the real passages' .text (and choice text). The post-
+// correction structural re-check is the branching graph validator, not the
+// CampaignData one (string surgery can't move ids, but we verify regardless).
+async function runStoryFactGate(story: BranchingStory, topic: string, apiKey: string): Promise<FactGateResult> {
+  const dossier: { title: string; subtitle: string; events: BranchingStory["passages"] } = {
+    title: story.title,
+    subtitle: story.protagonist ?? "",
+    events: story.passages, // shared references — corrections mutate the real passages
+  };
+  const gate = await runFactGate(apiKey, dossier, topic, {
+    validateStructure: () => ({ failed: validateStory(story).playable ? 0 : 1 }),
+  });
+  // Passages were mutated in place; copy back the by-value top-level strings.
+  story.title = dossier.title;
+  if (dossier.subtitle) story.protagonist = dossier.subtitle;
+  return gate;
 }

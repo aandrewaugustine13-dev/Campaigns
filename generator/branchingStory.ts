@@ -81,7 +81,8 @@ export function isEnding(p: BranchingPassage | undefined): boolean {
 export interface StoryFinding {
   level: "error" | "warn";
   code: "root" | "passages" | "start" | "no-start" | "dup-id" | "dead-end"
-      | "dangling-next" | "unreachable" | "trap-no-ending" | "no-ending" | "shape";
+      | "dangling-next" | "unreachable" | "trap-no-ending" | "no-ending" | "shape"
+      | "fact-gate";
   message: string;
 }
 
