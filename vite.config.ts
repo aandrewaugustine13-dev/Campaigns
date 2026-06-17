@@ -232,6 +232,177 @@ function generatorApiPlugin(): Plugin {
         });
         return { data, findings };
       });
+
+      // BRANCHING-STORY preview: the teacher's cheap CONFIDENCE GATE. Takes
+      // { topic, standard, mustCover? } and returns { data, findings } — a short
+      // summary + a TEKS coverage checklist on a cheap/fast model, WITHOUT writing
+      // the (expensive) story. The teacher iterates on inputs here before paying
+      // for a full generateBranchingStory.
+      jsonPost(server, '/api/story-preview', async (apiKey, inputs) => {
+        const { generateStoryPreview } = await import('./generator/storyPreviewGen.ts');
+        const { data, findings } = await generateStoryPreview({
+          topic: String(inputs.topic ?? ''),
+          standard: String(inputs.standard ?? ''),
+          mustCover: inputs.mustCover ? String(inputs.mustCover) : undefined,
+        }, apiKey);
+        return { data, findings };
+      });
+
+      // Full branching story generation (the real Product 2 story engine).
+      // Returns the BranchingGenResult shape: { ok, story?, validation, attempts, raw }.
+      // Uses the same robust generate + validate + repair loop as the CLI.
+      jsonPost(server, '/api/branching', async (apiKey, inputs) => {
+        const { generateBranchingStory } = await import('./generator/branchingStoryGen.ts');
+        const result = await generateBranchingStory({
+          topic: String(inputs.topic ?? ''),
+          standard: String(inputs.standard ?? inputs.grade ?? ''),
+          mustCover: inputs.mustCover ? String(inputs.mustCover) : undefined,
+        }, apiKey);
+        return result;
+      });
+
+      // Image search for the branching review/curate screen.
+      // Reuses the project's real searchCommonsFileRanked (token scoring,
+      // license filter, relevance) so results are high-quality historical images
+      // (lithographs, paintings, engravings, location photos) rather than stock.
+      // The topic (story context) is always the primary signal.
+      // Returns { images: [...] } — top relevant matches.
+      server.middlewares.use('/api/branching-images', async (req, res) => {
+        const send = (status, payload) => {
+          res.statusCode = status;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify(payload));
+        };
+        if (req.method !== 'POST') return send(405, { error: 'Method not allowed' });
+
+        let body = '';
+        for await (const chunk of req) body += chunk;
+        let inputs = {};
+        try {
+          inputs = body ? JSON.parse(body) : {};
+        } catch {
+          return send(400, { error: 'Invalid JSON' });
+        }
+
+        try {
+          const { searchCommonsFileRanked, searchViaArticlePageimage } = await import('./generator/wikimedia.ts');
+
+          const title = String(inputs.title || inputs.topic || '').trim();
+          const protagonist = String(inputs.protagonist || '').trim();
+          const text = String(inputs.text || inputs.passage || inputs.passageText || '').trim();
+          const fullContext = String(inputs.context || inputs.storyContext || '').trim();
+
+          const mainContext = [title, fullContext].filter(Boolean).join(' ').slice(0, 300);
+          if (!mainContext && !text) return send(200, { images: [] });
+
+          // Use the *entire* story context (title + protagonist + other passages), not just the current personal sentence.
+          // This way image search knows the whole campaign, not just one "you" moment.
+          // Personal narrative makes keyword matching hard for historical images; full context helps a lot.
+          const base = [mainContext, protagonist].filter(Boolean).join(' ').trim();
+
+          // Build better queries that stay historically focused
+          const queries = [];
+
+          // Core story context (highest priority)
+          if (base) {
+            queries.push(base);
+            queries.push(`${base} historical`);
+            queries.push(`${base} lithograph`);
+            queries.push(`${base} engraving`);
+            queries.push(`${base} painting`);
+            queries.push(`${base} fort OR battle OR harbor`);
+          }
+
+          if (text) {
+            // Extract factual/historical keywords from *this* passage, strip personal "you" narrative
+            const keyTerms = text
+              .replace(/[^a-zA-Z0-9\s]/g, ' ')
+              .split(/\s+/)
+              .filter(w => {
+                const lw = w.toLowerCase();
+                return w.length > 3 &&
+                  !['you', 'your', 'were', 'the', 'and', 'for', 'with', 'from', 'that', 'this', 'they', 'their', 'him', 'her', 'his', 'she', 'had', 'been', 'could', 'would'].includes(lw);
+              })
+              .slice(0, 7)
+              .join(' ');
+
+            if (keyTerms) {
+              queries.push(`${base} ${keyTerms}`);
+            }
+
+            // Location / event extraction (forts etc) — combine with full story context
+            const locMatch = text.match(/\b(Fort|Battle of|Siege of|Port of|Harbor)\s+([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,2})/i);
+            if (locMatch) {
+              const place = locMatch[2].trim();
+              queries.push(place);
+              queries.push(`${place} ${base}`);
+              queries.push(`${place} historical`);
+            }
+          }
+
+          // Pure style + topic fallbacks (very effective for historical art)
+          if (base) {
+            queries.push(`${base} fort`);
+            queries.push(`${base} 1812`); // example for era-specific
+          }
+
+          const seen = new Set();
+          let images = [];
+
+          for (const q of queries) {
+            if (!q || q.length < 3) continue;
+
+            // Wikipedia article lead first — best chance for the "right" historical painting/lithograph of the event or location
+            try {
+              const lead = await searchViaArticlePageimage(q);
+              if (lead && !seen.has(lead.thumbUrl)) {
+                seen.add(lead.thumbUrl);
+                images.push({
+                  ...lead,
+                  label: q.length > 55 ? q.slice(0, 52) + '...' : q,
+                });
+              }
+            } catch {}
+
+            // Full ranked Commons search
+            const pool = await searchCommonsFileRanked(q, null);
+            for (const img of pool) {
+              if (!seen.has(img.thumbUrl)) {
+                seen.add(img.thumbUrl);
+                images.push({
+                  ...img,
+                  label: q.length > 55 ? q.slice(0, 52) + '...' : q,
+                });
+              }
+            }
+
+            if (images.length >= 5) break;
+          }
+
+          if (images.length === 0 && base) {
+            // Absolute last resort — just the campaign title/context
+            try {
+              const lead = await searchViaArticlePageimage(base);
+              if (lead && !seen.has(lead.thumbUrl)) {
+                seen.add(lead.thumbUrl);
+                images.push({ ...lead, label: base });
+              }
+            } catch {}
+            const pool = await searchCommonsFileRanked(base, null);
+            for (const img of pool) {
+              if (!seen.has(img.thumbUrl)) {
+                seen.add(img.thumbUrl);
+                images.push({ ...img, label: base });
+              }
+            }
+          }
+
+          send(200, { images: images.slice(0, 5) });
+        } catch (e) {
+          console.error('[branching-images] error', e);
+          send(200, { images: [] }); // never break the UI
+        }
+      });
     },
   };
 }
