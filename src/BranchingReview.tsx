@@ -40,11 +40,14 @@ async function searchHistoricalImages(params: {
 
 interface BranchingReviewProps {
   story: BranchingStory;
+  /** Teacher-visible warnings carried from generation (e.g. the history could
+   * not be fact-checked). Shown as a banner the teacher sees before publishing. */
+  notices?: string[];
   onConfirm: (edited: BranchingStory) => void;
   onBack?: () => void;
 }
 
-export default function BranchingReview({ story, onConfirm, onBack }: BranchingReviewProps) {
+export default function BranchingReview({ story, notices = [], onConfirm, onBack }: BranchingReviewProps) {
   // Work on a deep copy so we never mutate the generated original
   const [edited, setEdited] = useState<BranchingStory>(() =>
     JSON.parse(JSON.stringify(story))
@@ -133,6 +136,19 @@ export default function BranchingReview({ story, onConfirm, onBack }: BranchingR
 
   return (
     <div className="h-screen bg-stone-900 text-stone-100 flex flex-col" style={{ fontFamily: "'Georgia', serif" }}>
+      {/* Generation warnings (e.g. the fact-gate could not verify the history) —
+          the teacher MUST see this before publishing an unverified story. */}
+      {notices.length > 0 && (
+        <div className="flex-shrink-0 bg-amber-950/80 border-b border-amber-700 px-4 py-2">
+          <div className="max-w-6xl mx-auto">
+            {notices.map((n, i) => (
+              <p key={i} className="text-xs text-amber-200">
+                ⚠️ {n} — review the history yourself before publishing.
+              </p>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="flex-shrink-0 border-b border-stone-700 bg-stone-950 px-4 py-3">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div>

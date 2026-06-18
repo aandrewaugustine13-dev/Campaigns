@@ -23,6 +23,9 @@ export default function CreateBranching({ onBack }: Props) {
   const [phase, setPhase] = useState<Phase>("preview");
   const [approval, setApproval] = useState<PreviewApproval | null>(null);
   const [story, setStory] = useState<BranchingStory | null>(null);
+  // Teacher-visible warnings carried from generation (e.g. the fact-gate could
+  // not verify the history) — surfaced in the review screen before publish.
+  const [notices, setNotices] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [attempts, setAttempts] = useState(0);
   const [elapsed, setElapsed] = useState(0);
@@ -64,6 +67,13 @@ export default function CreateBranching({ onBack }: Props) {
         throw new Error(msg);
       }
 
+      // Surface any warn-level findings (the fact-gate "could not verify the
+      // history" warning must reach the teacher BEFORE they publish — never
+      // ship an unverified story silently into a kid's hands).
+      const warns: string[] = Array.isArray(data.validation?.findings)
+        ? data.validation.findings.filter((f: any) => f.level === "warn").map((f: any) => f.message)
+        : [];
+      setNotices(warns);
       setStory(data.story as BranchingStory);
       setAttempts(data.attempts ?? 1);
       setPhase("review");
@@ -77,6 +87,7 @@ export default function CreateBranching({ onBack }: Props) {
   const backToPreview = () => {
     setStory(null);
     setApproval(null);
+    setNotices([]);
     setPhase("preview");
     setError("");
     setAttempts(0);
@@ -93,6 +104,7 @@ export default function CreateBranching({ onBack }: Props) {
     return (
       <BranchingReview
         story={story}
+        notices={notices}
         onConfirm={confirmReviewed}
         onBack={backToPreview}
       />

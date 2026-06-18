@@ -912,7 +912,7 @@ export default function App(){
     { id: "crusades", title: "✝ Third Crusade — 1190", subtitle: "Warwick to Jerusalem", config: CrusadesCampaign, color: "bg-red-900 hover:bg-red-800", subColor: "text-red-300" },
     { id: "lewisclark", title: "🧭 Lewis & Clark — 1804", subtitle: "St. Louis to the Pacific", config: { isPublished: true }, color: "bg-emerald-900 hover:bg-emerald-800", subColor: "text-emerald-300" },
     { id: "joseph", title: "📖 Joseph — Reconstruction", subtitle: "A freedman's first free year (flag test)", config: josephReconstruction, color: "bg-stone-700 hover:bg-stone-600", subColor: "text-stone-300" },
-    { id: "narrative-meiji", title: "🗾 Meiji Restoration — 1868", subtitle: "A young samurai, the old world ending (narrative product)", config: narrativeDemo, color: "bg-rose-900 hover:bg-rose-800", subColor: "text-rose-300" },
+    { id: "narrative-meiji", title: "🗾 Meiji Restoration — 1868", subtitle: "Legacy beat-assembly demo — superseded by First-Person Narrative", config: narrativeDemo, color: "bg-rose-900 hover:bg-rose-800", subColor: "text-rose-300" },
     { id: "branch-1812", title: "📜 Branching: War of 1812", subtitle: "Caleb Wren — new story engine", config: branching1812, color: "bg-sky-900 hover:bg-sky-800", subColor: "text-sky-300" },
     { id: "branch-reconstruction", title: "📜 Branching: Reconstruction", subtitle: "Tessa — new story engine", config: branchingReconstruction, color: "bg-sky-900 hover:bg-sky-800", subColor: "text-sky-300" },
     { id: "branch-suffrage", title: "📜 Branching: Women's Suffrage", subtitle: "Lottie Mercer — new story engine", config: branchingSuffrage, color: "bg-sky-900 hover:bg-sky-800", subColor: "text-sky-300" },
@@ -958,8 +958,8 @@ export default function App(){
           <button onClick={()=>setCampaignId("generator")} className="w-full py-3 bg-stone-800 border border-amber-700 hover:bg-stone-700 rounded font-bold text-amber-400 transition-colors">
             + Create a Campaign
           </button>
-          <button onClick={()=>setCampaignId("create-branching")} className="w-full py-2.5 bg-sky-900 hover:bg-sky-800 rounded font-bold text-sky-300 transition-colors text-sm">
-            📜 Create Branching Story
+          <button onClick={()=>setCampaignId("create-branching")} className="w-full py-2.5 bg-sky-900 hover:bg-sky-800 rounded font-bold text-sky-300 transition-colors text-sm text-left px-4">
+            📖 First-Person Narrative<br/><span className="text-[10px] font-normal text-sky-400/70">A choose-your-path history story (branching engine)</span>
           </button>
         </div>
       </div>
