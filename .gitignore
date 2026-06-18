@@ -14,4 +14,5 @@ __pycache__/
 
 # Generator scratch outputs (per-run artifacts, not source)
 generator/output*.json
+generator/pinned-campaign-output.json
 /erie.json
