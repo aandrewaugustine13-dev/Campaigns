@@ -906,21 +906,27 @@ export default function App(){
   console.log(`[RENDER] Phase: ${state.phase} | TriviaCounter: ${state.triviaCounter} | HasTrivia: ${!!state.currentTrivia}`);
   const partyMembers = getPartyMembers(r);
 
+  // section: "narrative" = the product (First-Person Narrative — branching engine
+  // output); "legacy" = parked-but-mounted systems-mode campaigns + pre-built
+  // games. Nothing is deleted; this only groups the menu so it reads as ONE
+  // product plus a clearly-separated legacy/demos shelf.
   const campaigns = [
-    { id: "chisholm", title: "🐂 Chisholm Trail — 1867", subtitle: "San Antonio to Abilene", config: ChisholmCampaign, color: "bg-amber-800 hover:bg-amber-700", subColor: "text-amber-300" },
-    { id: "silkroad", title: "🐫 Silk Road — 130 BCE", subtitle: "Chang'an to Constantinople", config: { isPublished: true }, color: "bg-indigo-900 hover:bg-indigo-800", subColor: "text-indigo-300" },
-    { id: "crusades", title: "✝ Third Crusade — 1190", subtitle: "Warwick to Jerusalem", config: CrusadesCampaign, color: "bg-red-900 hover:bg-red-800", subColor: "text-red-300" },
-    { id: "lewisclark", title: "🧭 Lewis & Clark — 1804", subtitle: "St. Louis to the Pacific", config: { isPublished: true }, color: "bg-emerald-900 hover:bg-emerald-800", subColor: "text-emerald-300" },
-    { id: "joseph", title: "📖 Joseph — Reconstruction", subtitle: "A freedman's first free year (flag test)", config: josephReconstruction, color: "bg-stone-700 hover:bg-stone-600", subColor: "text-stone-300" },
-    { id: "narrative-meiji", title: "🗾 Meiji Restoration — 1868", subtitle: "Legacy beat-assembly demo — superseded by First-Person Narrative", config: narrativeDemo, color: "bg-rose-900 hover:bg-rose-800", subColor: "text-rose-300" },
-    { id: "branch-1812", title: "📜 Branching: War of 1812", subtitle: "Caleb Wren — new story engine", config: branching1812, color: "bg-sky-900 hover:bg-sky-800", subColor: "text-sky-300" },
-    { id: "branch-reconstruction", title: "📜 Branching: Reconstruction", subtitle: "Tessa — new story engine", config: branchingReconstruction, color: "bg-sky-900 hover:bg-sky-800", subColor: "text-sky-300" },
-    { id: "branch-suffrage", title: "📜 Branching: Women's Suffrage", subtitle: "Lottie Mercer — new story engine", config: branchingSuffrage, color: "bg-sky-900 hover:bg-sky-800", subColor: "text-sky-300" },
+    { id: "chisholm", section: "legacy", title: "🐂 Chisholm Trail — 1867", subtitle: "San Antonio to Abilene", config: ChisholmCampaign, color: "bg-amber-800 hover:bg-amber-700", subColor: "text-amber-300" },
+    { id: "silkroad", section: "legacy", title: "🐫 Silk Road — 130 BCE", subtitle: "Chang'an to Constantinople", config: { isPublished: true }, color: "bg-indigo-900 hover:bg-indigo-800", subColor: "text-indigo-300" },
+    { id: "crusades", section: "legacy", title: "✝ Third Crusade — 1190", subtitle: "Warwick to Jerusalem", config: CrusadesCampaign, color: "bg-red-900 hover:bg-red-800", subColor: "text-red-300" },
+    { id: "lewisclark", section: "legacy", title: "🧭 Lewis & Clark — 1804", subtitle: "St. Louis to the Pacific", config: { isPublished: true }, color: "bg-emerald-900 hover:bg-emerald-800", subColor: "text-emerald-300" },
+    { id: "joseph", section: "legacy", title: "📖 Joseph — Reconstruction", subtitle: "A freedman's first free year (flag test)", config: josephReconstruction, color: "bg-stone-700 hover:bg-stone-600", subColor: "text-stone-300" },
+    { id: "narrative-meiji", section: "legacy", title: "🗾 Meiji Restoration — 1868", subtitle: "Legacy beat-assembly demo — superseded by First-Person Narrative", config: narrativeDemo, color: "bg-rose-900 hover:bg-rose-800", subColor: "text-rose-300" },
+    { id: "branch-1812", section: "narrative", title: "📖 War of 1812", subtitle: "Caleb Wren — example story", config: branching1812, color: "bg-sky-900 hover:bg-sky-800", subColor: "text-sky-300" },
+    { id: "branch-reconstruction", section: "narrative", title: "📖 Reconstruction", subtitle: "Tessa — example story", config: branchingReconstruction, color: "bg-sky-900 hover:bg-sky-800", subColor: "text-sky-300" },
+    { id: "branch-suffrage", section: "narrative", title: "📖 Women's Suffrage", subtitle: "Lottie Mercer — example story", config: branchingSuffrage, color: "bg-sky-900 hover:bg-sky-800", subColor: "text-sky-300" },
   ];
 
-  const visibleCampaigns = isTeacherMode 
-    ? campaigns 
+  const visibleCampaigns = isTeacherMode
+    ? campaigns
     : campaigns.filter(c => (c.config as any).isPublished);
+  const narrativeStories = visibleCampaigns.filter(c => c.section === "narrative");
+  const legacyCampaigns = visibleCampaigns.filter(c => c.section === "legacy");
 
   if(campaignId==="silkroad")return <SilkRoad onBack={backToMenu}/>;
   if(campaignId==="crusades")return <Crusades onBack={backToMenu}/>;
@@ -946,22 +952,30 @@ export default function App(){
 
       <h1 className="text-3xl font-bold text-amber-400 mb-2">CAMPAIGNS</h1>
       <p className="text-stone-400 text-sm mb-8">Choose your trail.</p>
-      <div className="space-y-3 w-64">
-        {visibleCampaigns.map(c => (
+      <div className="space-y-2 w-64">
+        {/* THE PRODUCT — First-Person Narrative (the branching engine) */}
+        <div className="text-[10px] uppercase tracking-widest text-sky-400/80 px-1">First-Person Narrative</div>
+        <button onClick={()=>setCampaignId("create-branching")} className="w-full py-2.5 bg-sky-700 hover:bg-sky-600 rounded font-bold text-sky-50 transition-colors text-sm text-left px-4">
+          📖 Create a First-Person Story<br/><span className="text-[10px] font-normal text-sky-200/80">Generate a choose-your-path history story</span>
+        </button>
+        {narrativeStories.map(c => (
           <button key={c.id} onClick={()=>setCampaignId(c.id)} className={`w-full py-3 ${c.color} rounded font-bold transition-colors text-left px-4 relative`}>
             {isTeacherMode && !(c.config as any).isPublished && <span className="absolute top-1 right-2 text-[8px] bg-amber-900 text-amber-300 px-1 rounded uppercase font-bold">Draft</span>}
             {c.title}<br/><span className={`text-xs font-normal ${c.subColor}`}>{c.subtitle}</span>
           </button>
         ))}
-        
-        <div className="border-t border-stone-700 pt-3 mt-1 space-y-2">
-          <button onClick={()=>setCampaignId("generator")} className="w-full py-3 bg-stone-800 border border-amber-700 hover:bg-stone-700 rounded font-bold text-amber-400 transition-colors">
-            + Create a Campaign
+
+        {/* LEGACY & DEMOS — mounted, not deleted: systems-mode campaigns + pre-built games */}
+        <div className="border-t border-stone-700 pt-3 mt-3 text-[10px] uppercase tracking-widest text-stone-500 px-1">Legacy &amp; Demos</div>
+        <button onClick={()=>setCampaignId("generator")} className="w-full py-2.5 bg-stone-800 border border-amber-700/50 hover:bg-stone-700 rounded font-bold text-amber-400/90 transition-colors text-sm text-left px-4">
+          + Create a Campaign<br/><span className="text-[10px] font-normal text-amber-500/60">Systems-mode generator (legacy)</span>
+        </button>
+        {legacyCampaigns.map(c => (
+          <button key={c.id} onClick={()=>setCampaignId(c.id)} className={`w-full py-3 ${c.color} rounded font-bold transition-colors text-left px-4 relative`}>
+            {isTeacherMode && !(c.config as any).isPublished && <span className="absolute top-1 right-2 text-[8px] bg-amber-900 text-amber-300 px-1 rounded uppercase font-bold">Draft</span>}
+            {c.title}<br/><span className={`text-xs font-normal ${c.subColor}`}>{c.subtitle}</span>
           </button>
-          <button onClick={()=>setCampaignId("create-branching")} className="w-full py-2.5 bg-sky-900 hover:bg-sky-800 rounded font-bold text-sky-300 transition-colors text-sm text-left px-4">
-            📖 First-Person Narrative<br/><span className="text-[10px] font-normal text-sky-400/70">A choose-your-path history story (branching engine)</span>
-          </button>
-        </div>
+        ))}
       </div>
     </div>
   );
