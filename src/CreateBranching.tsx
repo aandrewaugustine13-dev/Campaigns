@@ -56,7 +56,13 @@ export default function CreateBranching({ onBack }: Props) {
       const res = await fetch("/api/branching", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic: appr.topic, standard: appr.standard, mustCover: appr.mustCover }),
+        body: JSON.stringify({
+          topic: appr.topic,
+          standard: appr.standard,
+          mustCover: appr.mustCover,
+          contentMaturity: appr.contentMaturity,
+          proseRegister: appr.proseRegister,
+        }),
       });
       const data = await res.json();
 

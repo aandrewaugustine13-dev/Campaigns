@@ -257,6 +257,8 @@ function generatorApiPlugin(): Plugin {
           topic: String(inputs.topic ?? ''),
           standard: String(inputs.standard ?? inputs.grade ?? ''),
           mustCover: inputs.mustCover ? String(inputs.mustCover) : undefined,
+          contentMaturity: inputs.contentMaturity ? String(inputs.contentMaturity) : undefined,
+          proseRegister: inputs.proseRegister ? String(inputs.proseRegister) : undefined,
         }, apiKey);
         return result;
       });

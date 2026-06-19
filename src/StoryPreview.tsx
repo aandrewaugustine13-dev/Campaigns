@@ -18,6 +18,11 @@ export interface PreviewApproval {
   topic: string;
   standard: string;
   mustCover?: string;
+  /** Two INDEPENDENT audience dials, threaded to generation like topic/standard.
+   * contentMaturity = how honestly to depict the history; proseRegister = how
+   * plain the language is. They do not collapse into one. */
+  contentMaturity: string;
+  proseRegister: string;
   preview: StoryPreview;
 }
 
@@ -43,6 +48,8 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
   const [topic, setTopic] = useState("");
   const [standard, setStandard] = useState("");
   const [mustCover, setMustCover] = useState("");
+  const [contentMaturity, setContentMaturity] = useState("mature");
+  const [proseRegister, setProseRegister] = useState("direct");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [preview, setPreview] = useState<StoryPreview | null>(null);
   const [error, setError] = useState("");
@@ -65,8 +72,15 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
   const approve = useCallback(() => {
     if (!preview) return;
     setApproved(true);
-    onApprove?.({ topic: topic.trim(), standard: standard.trim(), mustCover: mustCover.trim() || undefined, preview });
-  }, [preview, topic, standard, mustCover, onApprove]);
+    onApprove?.({
+      topic: topic.trim(),
+      standard: standard.trim(),
+      mustCover: mustCover.trim() || undefined,
+      contentMaturity: contentMaturity.trim() || "mature",
+      proseRegister: proseRegister.trim() || "direct",
+      preview,
+    });
+  }, [preview, topic, standard, mustCover, contentMaturity, proseRegister, onApprove]);
 
   // Editing any input invalidates a shown preview (revise → re-preview).
   const onEdit = <T,>(set: (v: T) => void) => (v: T) => { set(v); if (status === "done") { setStatus("idle"); setApproved(false); } };
@@ -96,6 +110,20 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
               placeholder="e.g. show why families left their farms, and the trip to California"
               className="mt-1 w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-stone-100" />
           </label>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block">
+              <span className="text-xs uppercase tracking-wider text-stone-500">Content maturity</span>
+              <input value={contentMaturity} onChange={(e) => onEdit(setContentMaturity)(e.target.value)} placeholder="e.g. mature"
+                className="mt-1 w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-stone-100" />
+              <span className="text-[10px] text-stone-500">How honestly to show fear, violence, death — not sanitized.</span>
+            </label>
+            <label className="block">
+              <span className="text-xs uppercase tracking-wider text-stone-500">Prose register</span>
+              <input value={proseRegister} onChange={(e) => onEdit(setProseRegister)(e.target.value)} placeholder="e.g. direct"
+                className="mt-1 w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-stone-100" />
+              <span className="text-[10px] text-stone-500">Plain, short, concrete sentences (reading-support / bilingual). Independent of maturity.</span>
+            </label>
+          </div>
           <button onClick={runPreview} disabled={!canPreview}
             className="px-5 py-2 bg-amber-700 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed rounded font-bold transition-colors">
             {status === "loading" ? "Previewing…" : preview ? "Re-preview" : "Preview"}

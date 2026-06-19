@@ -28,6 +28,10 @@ const INPUTS: BranchingInputs = {
   topic: argTopic || "Ellis Island and the immigrant experience around 1900",
   standard: argStandard || "TEKS US.7 — immigration to the United States around 1900: the steamship voyage, processing and inspection at Ellis Island, and the immigrant experience adjusting to life in a new land",
   mustCover: argMustCover || "Show the Ellis Island medical inspection (the chalk marks on coats, the fear of being sent back across the ocean) and the struggle to learn English and find work in the new country.",
+  // AUDIENCE dials (independent). In the app these thread from the gate; here they
+  // default to the product posture: mature subject matter, plain/direct prose.
+  contentMaturity: process.argv[5] || "mature",
+  proseRegister: process.argv[6] || "direct",
 };
 
 function fkGrade(text: string): number {

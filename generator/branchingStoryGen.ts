@@ -22,16 +22,14 @@ const MODEL = "claude-opus-4-8"; // the writer that produced the proven stories
 // The EXACT craft prompt from the proof — reading level, person+history, real
 // branching, exactly two earned endings, no game machinery. DO NOT redesign.
 // Exported so the (throwaway) proof CLI shares this single source.
-export const SYSTEM_PROMPT = `You are a gifted children's author writing an interactive, branching historical story — a choose-your-own-path adventure — for 11-to-12-year-olds (6th grade) to read on a tablet. You output ONLY a single JSON object. No prose outside the JSON, no markdown, no code fences.
+export const SYSTEM_PROMPT = `You are a gifted author writing an interactive, branching historical story — a choose-your-own-path adventure — to read on a tablet. The story's CONTENT MATURITY and PROSE REGISTER are specified per-story in the instructions below; obey them exactly. You output ONLY a single JSON object. No prose outside the JSON, no markdown, no code fences.
 
 YOUR ONE JOB: write a STORY a kid cannot put down. Not a textbook. Not a summary. Not a list of facts or "beats." A real story with a real person, real feelings, and real stakes, told so simply and so vividly that a struggling reader keeps tapping "next" because they have to know what happens. The history is delivered THROUGH the story — never as a lecture.
 
-READING LEVEL — 6TH GRADE, TABLET-READ (non-negotiable):
-- Short, simple sentences. Most under 12 words. Vary the rhythm, but keep it easy.
-- Plain, everyday words a 6th grader knows. If you must use a hard word, make its meaning clear from the scene.
-- Active voice. Concrete things you can see, hear, smell, and feel. Almost no abstraction.
+VOICE (the AUDIENCE block in the instructions sets sentence style and how mature the content is — obey it):
 - Second person, past tense: "You" are the character. Pull the reader inside the moment.
-- A struggling reader must read it easily AND want to keep going. If a sentence is hard to read aloud, rewrite it.
+- Active voice. Concrete things you can see, hear, smell, and feel. Show what happens; do not summarize or lecture.
+- CONTENT MATURITY and PROSE REGISTER are SEPARATE and INDEPENDENT. The subject matter can be fully mature while the language stays plain and direct. Never soften the history to match plain language, and never ornament the language to match mature content.
 
 THE PERSON AND THE HISTORY:
 - Invent ONE ordinary young person who is a PARTICIPANT in this history — not a famous leader, but someone with a ROLE that positions them where the real, documented events are proximate and visible: a militiaman, a powder boy, a message runner, a mill worker, a marcher, a nurse's helper. NOT a bystander hearing about events secondhand. Their role must put real, nameable events, places, and things directly into the scenes they live. Give them a name, a home, and that role, fast, in the first passage.
@@ -63,6 +61,15 @@ export interface BranchingInputs {
   /** Optional teacher free-text: plain-language content the story MUST cover.
    * Accepted now even though the authoring UI comes later. */
   mustCover?: string;
+  /** AUDIENCE — two INDEPENDENT dials, threaded from the gate (like topic/standard).
+   * Do not collapse them. */
+  /** How honestly to depict fear, violence, death, moral complexity (e.g. "mature").
+   * Defaults to "mature" — honest, not sanitized. */
+  contentMaturity?: string;
+  /** A HARD prose constraint (e.g. "direct"): short declarative sentences, concrete
+   * words, no flourish — accessibility through concreteness, NOT lowered maturity.
+   * Defaults to "direct". */
+  proseRegister?: string;
 }
 
 export interface BranchingGenResult {
@@ -86,10 +93,19 @@ function buildUserMessage(inputs: BranchingInputs, priorErrors?: string[], prior
     ? `\nMUST COVER (the teacher's required content — weave these naturally into the story, never as a list): ${inputs.mustCover.trim()}`
     : "";
 
+  // AUDIENCE — two INDEPENDENT dials, threaded like topic/standard. The semantics
+  // are fixed (what "mature"/"direct" demand); only the dial VALUES come from the gate.
+  const maturity = (inputs.contentMaturity && inputs.contentMaturity.trim()) || "mature";
+  const register = (inputs.proseRegister && inputs.proseRegister.trim()) || "direct";
+  const audience = `
+CONTENT MATURITY (${maturity}): depict the historical fear, violence, death, and moral complexity of this topic HONESTLY — do NOT sanitize it. The reader can handle hard truth told plainly. Death and horror happen AROUND the protagonist — to others, near them, threatening them — and you must not look away from it or soften it into comfort. But the protagonist THEMSELVES survives to the aftermath; their death is never an ending. Do not add gratuitous gore.
+PROSE REGISTER (${register}) — a HARD constraint, not a tone: short, declarative sentences; common, concrete words; sensory and specific, never abstract; minimal idiom; no metaphor-stacking; no flowery or literary flourish. Spare and visceral, not ornate. This register serves a reading-support and emergent-bilingual audience — accessibility comes from CONCRETENESS, never from softened or simplified subject matter. Maturity stays high; only the language is plain.`;
+
   const base = `Write the complete branching story now for THIS topic.
 
 TOPIC (what the story is about): ${inputs.topic}
 STANDARD (the curriculum standard it must teach, delivered AS story, never lectured): ${inputs.standard}${mustCover}
+${audience}
 
 Begin at "start" with the character's name and home and the moment the history reaches them. Simple words, short sentences, real feeling, real choices that change what happens next, exactly two earned endings. Output ONLY the JSON object conforming to BranchingStory.`;
 
