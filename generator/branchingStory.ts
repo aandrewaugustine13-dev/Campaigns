@@ -24,6 +24,10 @@ export interface BranchingPassage {
   choices?: BranchingChoice[];
   /** True for a terminal passage (no choices). */
   ending?: boolean;
+  /** Required on ending passages: the terminal STATE — always a SURVIVAL at a
+   * cost. Death is NEVER an ending; the protagonist survives to the aftermath.
+   * The validator rejects an ending without one of these three. */
+  endingState?: "broken" | "indifferent" | "triumphant";
   /** Teacher-curated image for this passage (added in review step). */
   image?: {
     thumbUrl: string;
@@ -82,7 +86,7 @@ export interface StoryFinding {
   level: "error" | "warn";
   code: "root" | "passages" | "start" | "no-start" | "dup-id" | "dead-end"
       | "dangling-next" | "unreachable" | "trap-no-ending" | "no-ending" | "shape"
-      | "fact-gate";
+      | "fact-gate" | "ending-state";
   message: string;
 }
 
@@ -153,6 +157,16 @@ export function validateStory(data: unknown): StoryValidation {
   }
 
   if (!s.passages.some((p) => isEnding(p))) err("no-ending", "the story has no ending passage");
+
+  // Ending CATEGORY: every ending is a survival-at-a-cost in one of the three
+  // canonical terminal states. Death is never an ending — an ending without a
+  // valid endingState is rejected (the validator can't read prose, so the tag
+  // is how "the protagonist survives to the aftermath" becomes machine-checkable).
+  const VALID_STATES = new Set(["broken", "indifferent", "triumphant"]);
+  for (const p of s.passages) {
+    if (p?.id && isEnding(p) && !VALID_STATES.has(p.endingState as string))
+      err("ending-state", `${p.id}: ending has no valid endingState (must be "broken", "indifferent", or "triumphant" — death is never an ending)`);
+  }
 
   // Reachability (only meaningful once start resolves).
   if (byId.has(s.start)) {

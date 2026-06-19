@@ -39,8 +39,12 @@ THE PERSON AND THE HISTORY:
 BRANCHING — the choices must MATTER:
 - This is a tree of passages. Each passage is one moment of the story: 3 to 6 flowing sentences, a real scene, not a headline.
 - At choice points, give 2 or 3 choices. Each choice leads to a DIFFERENT passage where something genuinely different happens next — a different path, a different scene, a different fate. A choice that just leads to the same place is a fake choice; do not write fake choices.
-- Real forks with real consequences. Some paths can rejoin a shared thread later, but there must be true divergence. End on EXACTLY TWO different endings, each EARNED by the path taken — one is not simply "good" and the other "bad"; both are true to the history, and an honest choice can cost something.
-- Endings land with weight: a quiet, real, emotional close — never a "GAME OVER," never a moral spelled out.
+- Real forks with real consequences. Some paths can rejoin a shared thread later, but there must be true divergence.
+- THE PROTAGONIST ALWAYS SURVIVES TO THE AFTERMATH. Death, peril, and horror happen AROUND them — to others nearby, threatening them — but your character lives to reach an ending and carry what happened. DEATH IS NEVER AN ENDING. A choice may cost them dearly; it must not kill them.
+- Every ending is ONE of exactly THREE terminal states — each a SURVIVAL AT A COST, each EARNED by the path taken, true to the history, a quiet emotional close (never a "GAME OVER," never a moral spelled out). Make all three reachable across the branches, and TAG each ending passage with its state ("endingState"):
+  - "triumphant": they come through changed but whole — the cost was real, but they hold onto something worth holding.
+  - "indifferent": they survive by keeping their head down and coasting — they pass through without it costing them, or teaching them, much.
+  - "broken": they survive, but pay a heavy price — something in them or their world is lost for good.
 
 SHAPE AND SIZE:
 - Aim for about 20 to 30 passages. Long enough to be a real story with real branches; short enough that every passage earns its place. TRIM anything that does not carry the story or the feeling. Never pad, never repeat, never stall.
@@ -48,10 +52,10 @@ SHAPE AND SIZE:
 
 OUTPUT SHAPE (TypeScript for reference — output JSON only):
 interface Choice { text: string; next: string; }   // next = the id of the passage this choice leads to
-interface Passage { id: string; text: string; choices?: Choice[]; ending?: boolean; }  // ending passages have ending:true and NO choices
+interface Passage { id: string; text: string; choices?: Choice[]; ending?: boolean; endingState?: "broken" | "indifferent" | "triumphant"; }  // ending passages have ending:true, NO choices, and endingState set
 interface BranchingStory { title: string; protagonist: string; start: string; passages: Passage[]; }
 
-RULES: ids are short kebab-case and unique. "start" is the id of the first passage. EVERY choice's "next" must be the id of a real passage in the list. Every passage either has 2-3 choices OR ending:true (never both, never neither). Exactly TWO passages are endings. No passage is unreachable from start. Output ONLY the JSON object conforming to BranchingStory.`;
+RULES: ids are short kebab-case and unique. "start" is the id of the first passage. EVERY choice's "next" must be the id of a real passage in the list. Every passage either has 2-3 choices OR ending:true (never both, never neither). EVERY ending passage has an "endingState" of "broken", "indifferent", or "triumphant" — never death; the protagonist always survives to the aftermath. All three states are reachable from start. No passage is unreachable from start. Output ONLY the JSON object conforming to BranchingStory.`;
 
 export interface BranchingInputs {
   /** What the story is about (authoritative). */
@@ -107,12 +111,12 @@ TOPIC (what the story is about): ${inputs.topic}
 STANDARD (the curriculum standard it must teach, delivered AS story, never lectured): ${inputs.standard}${mustCover}
 ${audience}
 
-Begin at "start" with the character's name and home and the moment the history reaches them. Simple words, short sentences, real feeling, real choices that change what happens next, exactly two earned endings. Output ONLY the JSON object conforming to BranchingStory.`;
+Begin at "start" by placing the character fast — their name, home, and their ROLE in these events — then the moment the history reaches them. Real feeling, real choices that change what happens next. The protagonist SURVIVES to the aftermath — death happens around them, never to them; every ending is a survival at a cost tagged "broken", "indifferent", or "triumphant", and all three are reachable across the branches. Obey the CONTENT MATURITY and PROSE REGISTER above. Output ONLY the JSON object conforming to BranchingStory.`;
 
   const blocks: string[] = [];
   // Sighted re-generation (graph): the prior output was an UNPLAYABLE graph.
   if (priorErrors && priorErrors.length > 0) {
-    blocks.push(`YOUR PREVIOUS ATTEMPT PRODUCED AN UNPLAYABLE STORY GRAPH — these problems would crash the player or strand a reader. Write the whole story again and make ABSOLUTELY SURE: the "start" id is a real passage; EVERY choice's "next" is the id of a real passage; from EVERY passage a reader can always reach an ending (no loops with no exit); there are exactly two ending passages. Problems found:
+    blocks.push(`YOUR PREVIOUS ATTEMPT PRODUCED AN UNPLAYABLE STORY GRAPH — these problems would crash the player or strand a reader. Write the whole story again and make ABSOLUTELY SURE: the "start" id is a real passage; EVERY choice's "next" is the id of a real passage; from EVERY passage a reader can always reach an ending (no loops with no exit); every ending passage is tagged "broken", "indifferent", or "triumphant", and all three are reachable. Problems found:
 ${priorErrors.map((e) => `- ${e}`).join("\n")}`);
   }
   // Sighted re-generation (history): the prior output stated false/invented facts.
