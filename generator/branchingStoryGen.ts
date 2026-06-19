@@ -34,12 +34,14 @@ VOICE (the AUDIENCE block in the instructions sets sentence style and how mature
 THE PERSON AND THE HISTORY:
 - Invent ONE ordinary young person who is a PARTICIPANT in this history — not a famous leader, but someone with a ROLE that positions them where the real, documented events are proximate and visible: a militiaman, a powder boy, a message runner, a mill worker, a marcher, a nurse's helper. NOT a bystander hearing about events secondhand. Their role must put real, nameable events, places, and things directly into the scenes they live. Give them a name, a home, and that role, fast, in the first passage.
 - Ground everything in the REAL history of the topic: real events, real conditions, real choices people faced. Do not invent fake history. Weave the real, testable facts of the topic INTO the scenes so a reader learns them by living them.
+- NOUN-DENSE: in EVERY passage, name real, findable history — real places, events, dates, objects, and figures, the way a museum label would. This keeps the world concrete AND gives the image search something true to find. Avoid vague interiority with no nameable anchor.
 - Let the reader FEEL the meaning of this history through what happens to your character. NEVER state it as a lesson or a moral. Let them feel it.
 
-BRANCHING — the choices must MATTER:
-- This is a tree of passages. Each passage is one moment of the story: 3 to 6 flowing sentences, a real scene, not a headline.
-- At choice points, give 2 or 3 choices. Each choice leads to a DIFFERENT passage where something genuinely different happens next — a different path, a different scene, a different fate. A choice that just leads to the same place is a fake choice; do not write fake choices.
-- Real forks with real consequences. Some paths can rejoin a shared thread later, but there must be true divergence.
+BRANCHING — STANCE, not route:
+- This is a tree of passages. Each passage is one real, noun-dense moment — 3 to 6 flowing sentences, a scene, not a headline.
+- The historical ROUTE is largely FIXED: the event happened in an order, and you honor that order — the spine of the story is mostly linear, one real phase after the next. What BRANCHES is the character's STANCE (what they do, refuse, risk, or feel at a hard moment) and the COST it carries — NOT the history itself. Never write counterfactuals; the war/fire/march still happens either way.
+- A FEW LOAD-BEARING choices (about three) fall at the hardest moments. Each offers stances that lean toward different terminal states (broken / indifferent / triumphant). These choices MAY CONVERGE back to the same next scene — that is NOT a fake choice, because what diverges is who the character is becoming. The prose right after a load-bearing choice must honor the lean just taken and carry it forward.
+- The FINAL load-bearing choice, at the climax, forks to the THREE different endings. Smaller "texture" choices elsewhere are allowed but must converge back to the spine. Never write a choice that changes NEITHER the scene NOR the character's stance.
 - THE PROTAGONIST ALWAYS SURVIVES TO THE AFTERMATH. Death, peril, and horror happen AROUND them — to others nearby, threatening them — but your character lives to reach an ending and carry what happened. DEATH IS NEVER AN ENDING. A choice may cost them dearly; it must not kill them.
 - Every ending is ONE of exactly THREE terminal states — each a SURVIVAL AT A COST, each EARNED by the path taken, true to the history, a quiet emotional close (never a "GAME OVER," never a moral spelled out). Make all three reachable across the branches, and TAG each ending passage with its state ("endingState"):
   - "triumphant": they come through changed but whole — the cost was real, but they hold onto something worth holding.
@@ -47,7 +49,7 @@ BRANCHING — the choices must MATTER:
   - "broken": they survive, but pay a heavy price — something in them or their world is lost for good.
 
 SHAPE AND SIZE:
-- Aim for about 20 to 30 passages. Long enough to be a real story with real branches; short enough that every passage earns its place. TRIM anything that does not carry the story or the feeling. Never pad, never repeat, never stall.
+- The story's SCOPE is set in the instructions below ("span" or "depth") — it governs the length and the shape; follow it. Either way, every passage must earn its place: TRIM anything that does not carry the story or the feeling. Never pad, never repeat, never stall.
 - NO game machinery of any kind: no numbers, no health, no scores, no day counts, no inventory, no stats. Only story and choices.
 
 OUTPUT SHAPE (TypeScript for reference — output JSON only):
@@ -74,6 +76,12 @@ export interface BranchingInputs {
    * words, no flourish — accessibility through concreteness, NOT lowered maturity.
    * Defaults to "direct". */
   proseRegister?: string;
+  /** SCOPE dial (the "Gump toggle"), threaded from the gate like maturity/register.
+   * "span"  = participant carried across the WHOLE arc — multiple phases, places,
+   *           elapsed time (events with a journey: wars, movements, migrations).
+   * "depth" = branching density within ONE compressed moment (a fire, a single day).
+   * The teacher picks per topic. Defaults to "span". */
+  scope?: "span" | "depth";
 }
 
 export interface BranchingGenResult {
@@ -105,11 +113,20 @@ function buildUserMessage(inputs: BranchingInputs, priorErrors?: string[], prior
 CONTENT MATURITY (${maturity}): depict the historical fear, violence, death, and moral complexity of this topic HONESTLY — do NOT sanitize it. The reader can handle hard truth told plainly. Death and horror happen AROUND the protagonist — to others, near them, threatening them — and you must not look away from it or soften it into comfort. But the protagonist THEMSELVES survives to the aftermath; their death is never an ending. Do not add gratuitous gore.
 PROSE REGISTER (${register}) — a HARD constraint, not a tone: short, declarative sentences; common, concrete words; sensory and specific, never abstract; minimal idiom; no metaphor-stacking; no flowery or literary flourish. Spare and visceral, not ornate. This register serves a reading-support and emergent-bilingual audience — accessibility comes from CONCRETENESS, never from softened or simplified subject matter. Maturity stays high; only the language is plain.`;
 
+  // SCOPE — the "Gump toggle", threaded like the audience dials. Default span.
+  const scope = inputs.scope === "depth" ? "depth" : "span";
+  const scopeBlock = scope === "span"
+    ? `
+SCOPE — SPAN (carry the participant across the WHOLE arc): follow the event through its real phases, places, and the passage of time — from the start through to the aftermath, NOT one day or one battle. Build a mostly-linear, noun-dense SPINE of those real phases in order. Place about THREE LOAD-BEARING stance choices at the hardest moments: the early ones converge back to the spine (the lean is carried in the prose), and the FINAL one forks to the three tagged endings. The three endings differ by what the character CARRIED HOME, not by whether they lived. Aim for roughly 18 to 26 passages so the arc has room to breathe.`
+    : `
+SCOPE — DEPTH (compress to ONE intense moment): a single place and a short span of time (a fire, a day, an hour). Branch DENSELY within that window — many real forks of stance and fate inside the same compressed moment — converging to the three tagged endings. Aim for a tighter, deeper tree (roughly 15 to 25 passages) where the branching, not elapsed time, carries the story.`;
+
   const base = `Write the complete branching story now for THIS topic.
 
 TOPIC (what the story is about): ${inputs.topic}
 STANDARD (the curriculum standard it must teach, delivered AS story, never lectured): ${inputs.standard}${mustCover}
 ${audience}
+${scopeBlock}
 
 Begin at "start" by placing the character fast — their name, home, and their ROLE in these events — then the moment the history reaches them. Real feeling, real choices that change what happens next. The protagonist SURVIVES to the aftermath — death happens around them, never to them; every ending is a survival at a cost tagged "broken", "indifferent", or "triumphant", and all three are reachable across the branches. Obey the CONTENT MATURITY and PROSE REGISTER above. Output ONLY the JSON object conforming to BranchingStory.`;
 

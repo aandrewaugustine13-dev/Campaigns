@@ -62,6 +62,7 @@ export default function CreateBranching({ onBack }: Props) {
           mustCover: appr.mustCover,
           contentMaturity: appr.contentMaturity,
           proseRegister: appr.proseRegister,
+          scope: appr.scope,
         }),
       });
       const data = await res.json();

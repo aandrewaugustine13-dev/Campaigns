@@ -32,6 +32,7 @@ const INPUTS: BranchingInputs = {
   // default to the product posture: mature subject matter, plain/direct prose.
   contentMaturity: process.argv[5] || "mature",
   proseRegister: process.argv[6] || "direct",
+  scope: process.argv[7] === "depth" ? "depth" : "span",
 };
 
 function fkGrade(text: string): number {

@@ -23,6 +23,10 @@ export interface PreviewApproval {
    * plain the language is. They do not collapse into one. */
   contentMaturity: string;
   proseRegister: string;
+  /** SCOPE dial (the "Gump toggle"): "span" = carried across the whole arc
+   * (wars/journeys/movements); "depth" = branch densely within one moment
+   * (a fire, a day). Threaded to generation like the audience dials. */
+  scope: "span" | "depth";
   preview: StoryPreview;
 }
 
@@ -48,8 +52,11 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
   const [topic, setTopic] = useState("");
   const [standard, setStandard] = useState("");
   const [mustCover, setMustCover] = useState("");
+  // Two independent audience dials (defaults = the product posture). Plain-text
+  // so a teacher can phrase them; not collapsed into one control.
   const [contentMaturity, setContentMaturity] = useState("mature");
   const [proseRegister, setProseRegister] = useState("direct");
+  const [scope, setScope] = useState<"span" | "depth">("span");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [preview, setPreview] = useState<StoryPreview | null>(null);
   const [error, setError] = useState("");
@@ -78,9 +85,10 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
       mustCover: mustCover.trim() || undefined,
       contentMaturity: contentMaturity.trim() || "mature",
       proseRegister: proseRegister.trim() || "direct",
+      scope,
       preview,
     });
-  }, [preview, topic, standard, mustCover, contentMaturity, proseRegister, onApprove]);
+  }, [preview, topic, standard, mustCover, contentMaturity, proseRegister, scope, onApprove]);
 
   // Editing any input invalidates a shown preview (revise → re-preview).
   const onEdit = <T,>(set: (v: T) => void) => (v: T) => { set(v); if (status === "done") { setStatus("idle"); setApproved(false); } };
@@ -109,6 +117,14 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
             <textarea value={mustCover} onChange={(e) => onEdit(setMustCover)(e.target.value)} rows={2}
               placeholder="e.g. show why families left their farms, and the trip to California"
               className="mt-1 w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-stone-100" />
+          </label>
+          <label className="block">
+            <span className="text-xs uppercase tracking-wider text-stone-500">Scope</span>
+            <select value={scope} onChange={(e) => onEdit(setScope)(e.target.value as "span" | "depth")}
+              className="mt-1 w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-stone-100">
+              <option value="span">Span — carried across the whole arc (wars, journeys, movements)</option>
+              <option value="depth">Depth — branch densely within one moment (a fire, a single day)</option>
+            </select>
           </label>
           <div className="grid grid-cols-2 gap-3">
             <label className="block">

@@ -259,6 +259,7 @@ function generatorApiPlugin(): Plugin {
           mustCover: inputs.mustCover ? String(inputs.mustCover) : undefined,
           contentMaturity: inputs.contentMaturity ? String(inputs.contentMaturity) : undefined,
           proseRegister: inputs.proseRegister ? String(inputs.proseRegister) : undefined,
+          scope: inputs.scope === "depth" ? "depth" : inputs.scope === "span" ? "span" : undefined,
         }, apiKey);
         return result;
       });
