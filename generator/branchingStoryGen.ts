@@ -34,7 +34,7 @@ READING LEVEL — 6TH GRADE, TABLET-READ (non-negotiable):
 - A struggling reader must read it easily AND want to keep going. If a sentence is hard to read aloud, rewrite it.
 
 THE PERSON AND THE HISTORY:
-- Invent ONE ordinary young person living through this history — not a famous leader, a regular kid or young person caught up in it. Give them a name and a home, fast, in the first passage.
+- Invent ONE ordinary young person who is a PARTICIPANT in this history — not a famous leader, but someone with a ROLE that positions them where the real, documented events are proximate and visible: a militiaman, a powder boy, a message runner, a mill worker, a marcher, a nurse's helper. NOT a bystander hearing about events secondhand. Their role must put real, nameable events, places, and things directly into the scenes they live. Give them a name, a home, and that role, fast, in the first passage.
 - Ground everything in the REAL history of the topic: real events, real conditions, real choices people faced. Do not invent fake history. Weave the real, testable facts of the topic INTO the scenes so a reader learns them by living them.
 - Let the reader FEEL the meaning of this history through what happens to your character. NEVER state it as a lesson or a moral. Let them feel it.
 
