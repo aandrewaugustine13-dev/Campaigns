@@ -260,6 +260,7 @@ function generatorApiPlugin(): Plugin {
           contentMaturity: inputs.contentMaturity ? String(inputs.contentMaturity) : undefined,
           proseRegister: inputs.proseRegister ? String(inputs.proseRegister) : undefined,
           scope: inputs.scope === "depth" ? "depth" : inputs.scope === "span" ? "span" : undefined,
+          gumpIntensity: inputs.gumpIntensity === "high" ? "high" : inputs.gumpIntensity === "off" ? "off" : undefined,
         }, apiKey);
         return result;
       });
