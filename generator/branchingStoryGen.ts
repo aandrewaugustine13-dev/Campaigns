@@ -82,6 +82,14 @@ export interface BranchingInputs {
    * "depth" = branching density within ONE compressed moment (a fire, a single day).
    * The teacher picks per topic. Defaults to "span". */
   scope?: "span" | "depth";
+  /** GUMP INTENSITY dial — engineer improbable encounters with the topic's REAL
+   * marquee figures and turning points (the "Forrest Gump" device), threaded from
+   * the gate like the other dials. "high" = engineer collisions; "off" = no forced
+   * encounters. NOT hardcoded on — the topic decides: a celebrity-rich war or
+   * movement wants "high"; a cast-poor/compressed event (a single factory fire)
+   * wants "off", or the device manufactures forced, fabrication-prone encounters.
+   * Defaults to "off". */
+  gumpIntensity?: "high" | "off";
 }
 
 export interface BranchingGenResult {
@@ -121,12 +129,21 @@ SCOPE — SPAN (carry the participant across the WHOLE arc): follow the event th
     : `
 SCOPE — DEPTH (compress to ONE intense moment): a single place and a short span of time (a fire, a day, an hour). Branch DENSELY within that window — many real forks of stance and fate inside the same compressed moment — converging to the three tagged endings. Aim for a tighter, deeper tree (roughly 15 to 25 passages) where the branching, not elapsed time, carries the story.`;
 
+  // GUMP INTENSITY — the improbable-encounter device, threaded like the other
+  // dials. Default OFF (no forced encounters) — the topic decides at the gate.
+  const gump = inputs.gumpIntensity === "high" ? "high" : "off";
+  const gumpBlock = gump === "high"
+    ? `
+GUMP INTENSITY — HIGH (engineer improbable encounters): the protagonist CROSSES PATHS with this topic's REAL marquee figures and is PRESENT at its turning-point moments — even when one person realistically could not be at all of them. The implausibility is INTENTIONAL: the device adds scope and context, and a student noticing "one person couldn't be everywhere" is a feature, not a flaw. Place these collisions at the real turning points along the spine.
+HARD CONSTRAINT — real figures keep their DOCUMENTED words and actions. The ONLY invented thing is that the fictional protagonist was close enough to witness or assist. The protagonist may witness a real figure's real words and deeds up close, and a real figure may act toward the protagonist ONLY in ways that do NOT contradict or invent the historical record (a real order barked at the line the kid is standing in; the kid being the hands that carry the frame Dolley Madison really saved). NEVER invent dialogue, quotes, or actions for a real historical person. The kid's presence is fiction; the figure's history stays fact.`
+    : "";
+
   const base = `Write the complete branching story now for THIS topic.
 
 TOPIC (what the story is about): ${inputs.topic}
 STANDARD (the curriculum standard it must teach, delivered AS story, never lectured): ${inputs.standard}${mustCover}
 ${audience}
-${scopeBlock}
+${scopeBlock}${gumpBlock}
 
 Begin at "start" by placing the character fast — their name, home, and their ROLE in these events — then the moment the history reaches them. Real feeling, real choices that change what happens next. The protagonist SURVIVES to the aftermath — death happens around them, never to them; every ending is a survival at a cost tagged "broken", "indifferent", or "triumphant", and all three are reachable across the branches. Obey the CONTENT MATURITY and PROSE REGISTER above. Output ONLY the JSON object conforming to BranchingStory.`;
 
