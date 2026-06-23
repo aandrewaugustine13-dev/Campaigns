@@ -59,6 +59,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
   const [topic, setTopic] = useState("");
   const [teksSearch, setTeksSearch] = useState("");
   const [selectedTEKS, setSelectedTEKS] = useState<TEKSStandard[]>([]);
+  const [selectedGrades, setSelectedGrades] = useState<string[]>(["All"]);
   const [mustCover, setMustCover] = useState("");
   // Two independent audience dials (defaults = the product posture). Plain-text
   // so a teacher can phrase them; not collapsed into one control.
@@ -71,7 +72,13 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
   const [error, setError] = useState("");
   const [approved, setApproved] = useState(false);
 
-  const teksMatches = useMemo(() => searchTEKS(teksSearch).slice(0, 6), [teksSearch]);
+  const teksMatches = useMemo(() => {
+    let results = searchTEKS(teksSearch);
+    if (!selectedGrades.includes("All")) {
+      results = results.filter((s) => selectedGrades.includes(s.gradeLevel));
+    }
+    return results.slice(0, 6);
+  }, [teksSearch, selectedGrades]);
 
   const clearPreviewOnChange = () => {
     if (status === "done") {
@@ -91,6 +98,25 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
   const removeTEKS = (code: string) => {
     setSelectedTEKS((prev) => prev.filter((s) => s.code !== code));
     clearPreviewOnChange();
+  };
+
+  const toggleGrade = (grade: string) => {
+    let newGrades: string[];
+    if (grade === "All") {
+      newGrades = ["All"];
+    } else {
+      newGrades = selectedGrades.filter((g) => g !== "All");
+      if (newGrades.includes(grade)) {
+        newGrades = newGrades.filter((g) => g !== grade);
+      } else {
+        newGrades = [...newGrades, grade];
+      }
+      if (newGrades.length === 0) newGrades = ["All"];
+    }
+    setSelectedGrades(newGrades);
+    if (teksSearch.trim()) {
+      clearPreviewOnChange();
+    }
   };
 
   const canPreview = topic.trim().length > 0 && selectedTEKS.length > 0 && status !== "loading";
@@ -152,6 +178,29 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
         {/* TEKS Search & Multi-Select */}
         <div className="block">
           <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">TEKS Standards</span>
+
+          {/* Grade Level Filter */}
+          <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+            <span className="text-[#8a7f6a] text-[10px] mr-1">Grade:</span>
+            {["All", "6", "7", "8", "High School"].map((grade) => {
+              const isActive = selectedGrades.includes(grade);
+              const label = grade === "All" ? "All Grades" : grade + (grade !== "High School" ? "th" : "");
+              return (
+                <button
+                  key={grade}
+                  onClick={() => toggleGrade(grade)}
+                  className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${
+                    isActive
+                      ? "bg-[#c9a36b] text-[#18140f] border-[#c9a36b]"
+                      : "bg-[#24211d] border-[#3a3630] text-[#a69a80] hover:border-[#c9a36b]"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+
           <input
             value={teksSearch}
             onChange={(e) => setTeksSearch(e.target.value)}
