@@ -210,7 +210,7 @@ export default function VisualNovelEngine({
               <button
                 onClick={onSpendInsightForHints}
                 disabled={showRiskHints || insight <= 0}
-                className={`text-xs font-bold px-2 py-1 rounded border-2 ${showRiskHints || insight <= 0 ? "border-stone-500 bg-stone-300 text-stone-600" : "theme-dialogue-accent"}`}
+                className={`text-xs font-bold px-2 py-1 rounded border ${showRiskHints || insight <= 0 ? "border-[#3a3630] bg-[#1c1915] text-[#6a6358]" : "bg-[#c9a36b]/10 border-[#c9a36b] text-[#c9a36b] hover:bg-[#c9a36b]/20"}`}
               >
                 {showRiskHints ? "Sage Risk Hints Shown" : `Ask a Sage (Spend 1 Insight)`}
               </button>
@@ -222,11 +222,11 @@ export default function VisualNovelEngine({
               <button
                 key={i}
                 onClick={() => handleChoice(i)}
-                className="w-full text-left p-1.5 theme-dialogue-accent border-2 font-bold text-sm leading-snug shadow-inner"
+                className="w-full text-left p-2.5 bg-[#211e1a] hover:bg-[#2a2723] border border-[#3a3630] hover:border-[#c9a36b] rounded font-bold text-sm leading-snug text-[#c5b8a0] transition-colors"
               >
                 <span>▶ {c.text}</span>
                 {showRiskHints && riskHints[i] && (
-                  <span className="ml-2 text-[10px] font-bold opacity-80">[{riskHints[i]}]</span>
+                  <span className="ml-2 text-[10px] font-bold text-[#c9a36b] opacity-80">[{riskHints[i]}]</span>
                 )}
               </button>
             ))}

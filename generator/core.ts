@@ -4,12 +4,14 @@ import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { validate, type ValidationReport } from "./validate.js";
 import { parseModelJson } from "./json.js";
-import { enrichSagePortraits, enrichEventImages } from "./wikimedia.js";
+import { enrichSagePortraits, enrichEventImages, inferEraMaxYear } from "./wikimedia.js";
 import type { CastCharacter } from "./cast.js";
 import type { SystemsEconomy } from "./economy.js";
 import { type PersonalEconomy, validatePersonalEconomy } from "./personalEconomy.js";
 import { type FaultLineSpec, validateFaultLine } from "./faultline.js";
 import { faultLineToCampaignPieces, reserveClosingDilemma, validateEndgameRhythm } from "./faultlineCompile.js";
+import type { NarrativePlan } from "./storyPlan.js";
+import { storyPlanToCampaignPieces } from "./storyPlanCompile.js";
 import { applyRelationshipTracks, validateRelationshipTracks } from "./relationshipTracks.js";
 import type { FlagDecl } from "./schema.js";
 import { runFactGate, type FactGateResult } from "./factGate.js";
@@ -48,6 +50,16 @@ export interface GenerateInputs {
   // those fixed beats. Gated entirely on its own presence: when absent,
   // generation is byte-for-byte identical to the systems path.
   faultLine?: FaultLineSpec;
+  // Optional NARRATIVE PLAN spine. When present, its INCLUDED beats are
+  // COMPILED (generator/storyPlanCompile.ts) into PINNED, guaranteed events
+  // spliced into the campaign in arc order, and a read-only summary is added to
+  // the prompt so the model authors the surrounding pool AROUND (never
+  // duplicating) those fixed beats. Its `meaning` becomes CampaignData.
+  // storyMeaning (the story-level ending). Works for systems AND character
+  // campaigns; in character mode the pinned windows are narrowed to avoid the
+  // fault line's reserved setter/closing-dilemma windows. Gated entirely on its
+  // own presence: absent ⇒ generation is byte-for-byte identical to today.
+  storyPlan?: NarrativePlan;
   referenceFacts?: string[];
 }
 
@@ -365,6 +377,52 @@ function buildRelationshipLaw(): string {
   return lines.join("\n");
 }
 
+// Read-only NARRATIVE-SPINE context. Emitted ONLY when a storyPlan is supplied.
+// It does NOT ask the model to generate the arc beats — those are compiled in
+// code (storyPlanCompile.ts) and spliced in afterward as PINNED events. Its sole
+// job is to tell the model the fixed arc + ending already exist so the
+// surrounding POOL it DOES generate stays consistent with the through-line,
+// never duplicates a pinned beat, and reads as part of the same story. Mirrors
+// buildFaultLineContext.
+function buildStoryPlanContext(plan: NarrativePlan): string {
+  const included = plan.beats.filter((b) => b.included);
+  const lines: string[] = [];
+  lines.push("");
+  lines.push("");
+  lines.push("=== NARRATIVE SPINE (an already-authored arc — READ-ONLY context, do NOT generate these beats) ===");
+  lines.push("");
+  lines.push(
+    "This campaign's STORY ARC has already been authored, validated, and compiled into fixed PINNED events that will be ADDED TO YOUR OUTPUT AUTOMATICALLY after you respond, in this exact order. You must NOT generate these beats yourself. They are described here only so the surrounding events you DO generate stay consistent with the arc.",
+  );
+  lines.push("");
+  lines.push(`THE THROUGH-LINE (the spine the arc traces): ${plan.throughline}`);
+  lines.push("");
+  lines.push("THE ARC — fixed beats already written, in order (role — title — why it matters):");
+  for (const b of included) lines.push(`- [${b.role}] ${b.title} — ${b.significance}`);
+  lines.push("");
+  lines.push(
+    `THE ENDING (already authored — shown at the very close as the story's meaning): ${plan.meaning}`,
+  );
+  lines.push("");
+  lines.push("RULES FOR THE SURROUNDING EVENTS YOU GENERATE:");
+  lines.push(
+    "- Do NOT re-tell, duplicate, or pre-empt any pinned beat above — the fixed events already cover those moments. Generate the POOL of events BETWEEN and AROUND them: texture, hardship, smaller moments, and the history that connects the fixed beats.",
+  );
+  lines.push(
+    "- Stay consistent with the through-line and the arc order: your events should feel like they belong to THIS story as it builds from cause to climax, not like disconnected topic vignettes.",
+  );
+  lines.push(
+    "- MATCH THE REGISTER of the arc beats above so the whole campaign reads as one story — the pinned beats and your pool events should be indistinguishable in voice and richness.",
+  );
+  lines.push(
+    "- Do NOT author your own ending/meaning field and do NOT write a closing summary event — the ending above is already provided and placed for you.",
+  );
+  lines.push("");
+  lines.push("=== END NARRATIVE SPINE ===");
+  lines.push("");
+  return lines.join("\n");
+}
+
 // Reading-level calibration, derived from the requested grade. The bare grade
 // LABEL alone never moved the needle: generated prose clustered around FK 7.8
 // regardless of grade, so a 5th-grade request read like an 8th-grade one. This
@@ -418,6 +476,9 @@ export function buildUserMessage(inputs: GenerateInputs, priorErrors?: string[])
   // systems prompt is byte-for-byte unchanged.
   const faultLineContext = inputs.faultLine ? buildFaultLineContext(inputs.faultLine) : "";
   const relationshipLaw = inputs.faultLine ? buildRelationshipLaw() : "";
+  // Gated solely on storyPlan presence (independent of faultLine — a systems
+  // campaign carries a plan but no fault line). Empty ⇒ byte-for-byte unchanged.
+  const storyPlanContext = inputs.storyPlan ? buildStoryPlanContext(inputs.storyPlan) : "";
   // The eventTrivia bank is DRAWN repeatedly (a knowledge-check every few
   // turns), so its size must track the campaign's turn count — not a flat
   // number. The model authors totalDays/daysPerTurn, so it alone knows the
@@ -447,7 +508,7 @@ export function buildUserMessage(inputs: GenerateInputs, priorErrors?: string[])
 \`\`\`typescript
 ${schemaSource}
 \`\`\`
-${locked}${faultLineContext}${relationshipLaw}${referenceFactsBlock}
+${locked}${faultLineContext}${relationshipLaw}${storyPlanContext}${referenceFactsBlock}
 ${exampleIntro}
 
 ${loadExample()}
@@ -478,6 +539,35 @@ export function applyFaultLine(data: Record<string, unknown>, faultLine?: FaultL
   data.flags = [pieces.flagDecl, ...existingFlags.filter((f) => f && f.id !== pieces.flagDecl.id)];
   const existingEvents = Array.isArray(data.events) ? (data.events as unknown[]) : [];
   data.events = [pieces.setterEvent, ...existingEvents, ...pieces.readerEvents];
+}
+
+// Splice the compiled narrative-spine pieces into a parsed campaign. STRICT
+// NO-OP when storyPlan is absent, so every existing path is untouched. The
+// PINNED events are prepended (defensively de-duplicating any model event that
+// collided with a pinned id), and plan.meaning becomes data.storyMeaning (the
+// story-level ending). Array order is immaterial to the engine — pins fire by
+// pinSeq via the priority lane (see src/eventSelection.ts). In character mode
+// the windows are narrowed to avoid the fault line's reserved setter window
+// [0,0.3] and closing-dilemma tail [0.85,1.0].
+export function applyStoryPlan(
+  data: Record<string, unknown>,
+  storyPlan?: NarrativePlan,
+  opts: { characterMode?: boolean } = {},
+): void {
+  if (!storyPlan) return;
+  // The main call has already authored the economy, so the real primary (score)
+  // resource key is known here — pass it so decision beats' choices carry their
+  // stake as an effect on the actual resource.
+  const primaryResourceKey = typeof data.primaryResourceKey === "string" ? data.primaryResourceKey : undefined;
+  const pieces = storyPlanToCampaignPieces(storyPlan, {
+    primaryResourceKey,
+    ...(opts.characterMode ? { band: { min: 0.35, max: 0.82 } } : {}),
+  });
+  const pinnedIds = new Set(pieces.pinnedEvents.map((e) => e.id));
+  const existingEvents = Array.isArray(data.events) ? (data.events as Record<string, unknown>[]) : [];
+  const survivors = existingEvents.filter((e) => !(e && pinnedIds.has(e.id as string)));
+  data.events = [...pieces.pinnedEvents, ...survivors];
+  data.storyMeaning = pieces.storyMeaning;
 }
 
 export async function generateCampaign(
@@ -514,6 +604,9 @@ export async function generateCampaign(
   const imageryCtx = {
     topic: inputs.topic,
     title: typeof data.title === "string" ? data.title : "",
+    // Era anchor for the image guard (fix a): the campaign's latest authored
+    // year. When pre-photography (< 1840), enrichment rejects modern-era hits.
+    eraMaxYear: inferEraMaxYear(data, inputs.topic),
   };
   await enrichSagePortraits(data);
   await enrichEventImages(data, imageryCtx);
@@ -534,6 +627,20 @@ export async function generateCampaign(
   // authored climax (the prompt nudges for one); degrades to re-windowing the
   // latest dilemma. Gated on faultLine — strict no-op for systems campaigns.
   if (inputs.faultLine) reserveClosingDilemma(data);
+
+  // Narrative-spine path (systems OR character): splice the compiled PINNED arc
+  // beats in after imagery and before validation, and set data.storyMeaning. In
+  // character mode the windows are narrowed to dodge the fault line's reserved
+  // windows. No-op when no storyPlan.
+  applyStoryPlan(data, inputs.storyPlan, { characterMode: !!inputs.faultLine });
+
+  // Fix (b2): the pinned spine beats were just spliced in AFTER the first image
+  // pass, so they have no image yet — image them now with a SECOND, scoped pass
+  // (restrictTo pinned). enrichEventImages is idempotent: it seeds the dedupe
+  // with the images/backdrop already chosen and only fills the imageless pinned
+  // beats, leaving every existing assignment untouched. No-op when no storyPlan
+  // (no pinned beats to fill) ⇒ systems-without-spine byte-identical.
+  if (inputs.storyPlan) await enrichEventImages(data, imageryCtx, { restrictTo: (ev) => ev?.pinned === true });
 
   // NOTE: the fact gate deliberately does NOT run here. It runs in
   // generateValidatedCampaign on the ACCEPTED attempt only — running it

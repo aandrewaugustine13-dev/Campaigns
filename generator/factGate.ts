@@ -145,7 +145,7 @@ The above is a historical educational game about: ${topic}
 List any historical claims that are factually false or invented. Quote each, or answer NONE.
 
 Rules for judging:
-- A fictional player-perspective character and fictional minor cast members are an expected genre device — do NOT flag them. Flag HISTORICAL claims (events, dates, named real people, place-names, numbers, causation) that are false or invented and presented as fact. Grade-level simplification is acceptable; falsification is not.
+- A fictional player-perspective character and fictional minor cast members are an expected genre device — do NOT flag them. The fictional protagonist may also be improbably PRESENT at real events and beside real figures (the genre device) — do NOT flag the implausibility of their presence (one person could not realistically be everywhere; that is intentional). DO still flag any invented words, quotes, or actions attributed to a REAL figure, or any altered or fabricated real event. (Implausible presence = allowed; fabricated history = flagged.) Flag HISTORICAL claims (events, dates, named real people, place-names, numbers, causation) that are false or invented and presented as fact. Grade-level simplification is acceptable; falsification is not.
 - Quiz distractor choices are SUPPOSED to be false — never flag a distractor. DO check every choice marked (KEYED CORRECT): a keyed answer that is historically wrong must be flagged.
 - ALSO cross-check the content against ITSELF: where the narrative, trivia facts, and summary state inconsistent versions of the same fact, flag it with kind "internal" and quote BOTH sides in the quote field. Use kind "external" for claims that contradict the historical record.
 - For each claim, state the correct fact in one line in the "correct" field.
@@ -405,8 +405,18 @@ async function reVerify(client: Anthropic, claims: FactClaim[], appliedOps: Corr
 // The gate. MUTATES `data` in place (corrections), mirroring how
 // applyFaultLine/enrichment already work in this pipeline.
 // ════════════════════════════════════════════════════════════════
-export async function runFactGate(apiKey: string, data: any, topic: string): Promise<FactGateResult> {
+export async function runFactGate(
+  apiKey: string,
+  data: any,
+  topic: string,
+  opts: { validateStructure?: (d: any) => { failed: number } } = {},
+): Promise<FactGateResult> {
   const client = new Anthropic({ apiKey, timeout: 10 * 60_000, maxRetries: 1 });
+  // Post-correction structural re-check. Defaults to the CampaignData validator;
+  // callers with a different content shape (e.g. the branching passage graph)
+  // inject their own, so a clean string-surgery pass is never mis-flagged as a
+  // structural break against the wrong schema.
+  const checkStructure: (d: any) => { failed: number } = opts.validateStructure ?? validate;
   const log: string[] = [];
   const say = (line: string) => { log.push(line); console.log(`[generate] fact-gate: ${line}`); };
 
@@ -447,7 +457,7 @@ export async function runFactGate(apiKey: string, data: any, topic: string): Pro
 
     // Surgical string ops can't break structure, but verify anyway —
     // a structural break here must never ship.
-    const report = validate(data);
+    const report = checkStructure(data);
     if (report.failed > 0) {
       say(`REJECT — corrections introduced ${report.failed} structural error(s)`);
       return { status: "rejected-structural", flagged, cycles, opsApplied: totalApplied, opsDropped: totalDropped, residual: claims, log };

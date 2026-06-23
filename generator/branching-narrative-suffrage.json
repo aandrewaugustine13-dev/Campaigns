@@ -1,0 +1,389 @@
+{
+  "title": "The Vote Was Won",
+  "protagonist": "Lottie Mercer",
+  "start": "start",
+  "passages": [
+    {
+      "id": "start",
+      "text": "Your name is Lottie Mercer. You are fifteen, and you live above your father's print shop in Washington. The room smells of ink and warm paper. One March morning, a woman in a white dress comes in carrying a stack of folded cloth. She wants a banner printed for a parade. \"We're marching for the vote,\" she says. \"Tomorrow. Will you watch?\"",
+      "choices": [
+        {
+          "text": "Ask her what the vote has to do with you",
+          "next": "ask-vote"
+        },
+        {
+          "text": "Take the cloth and help her fold banners",
+          "next": "fold-banners"
+        }
+      ]
+    },
+    {
+      "id": "ask-vote",
+      "text": "\"I'm just a girl,\" you say. \"Why should I care about voting?\" The woman smiles, but her eyes are tired. \"Because men decide everything,\" she says. \"What you earn. Who you marry. Whether you go to school. And you get no say at all.\" You think of your mother, who works harder than anyone and is never asked her opinion. Something tightens in your chest.",
+      "choices": [
+        {
+          "text": "Offer to help fold the banners",
+          "next": "fold-banners"
+        },
+        {
+          "text": "Say you'll come watch the parade",
+          "next": "parade-day"
+        }
+      ]
+    },
+    {
+      "id": "fold-banners",
+      "text": "You sit on the floor and fold cloth with her. Her name is Alice. The banners say VOTES FOR WOMEN in tall gold letters. Your hands turn purple from the dye. \"Five thousand women are coming tomorrow,\" Alice says. \"From all over the country. We'll march right down Pennsylvania Avenue.\" You have never heard of women doing such a thing. By the time the sun sets, you have decided. You will march too.",
+      "choices": [
+        {
+          "text": "March at the front with the banner",
+          "next": "parade-front"
+        },
+        {
+          "text": "Watch from the curb first, then decide",
+          "next": "parade-day"
+        }
+      ]
+    },
+    {
+      "id": "parade-day",
+      "text": "March 3rd, 1913. The streets are packed. Tomorrow a new president will take office, so the whole city is full. You stand on the curb and watch the women come. They wear white. They carry your gold banners. A band plays. For one shining minute, it is beautiful. Then the crowd of men begins to push.",
+      "choices": [
+        {
+          "text": "Step into the street and join the march",
+          "next": "parade-front"
+        },
+        {
+          "text": "Stay on the curb and keep watching",
+          "next": "curb-watch"
+        }
+      ]
+    },
+    {
+      "id": "parade-front",
+      "text": "You slip into the line of marchers. A woman hands you a banner and you lift it high. Then the trouble starts. Men spill off the sidewalks into the street. They grab at signs. They spit. They yell, \"Go home!\" The police just stand there, doing nothing. A man knocks the woman beside you to the ground.",
+      "choices": [
+        {
+          "text": "Help her up and keep marching",
+          "next": "keep-marching"
+        },
+        {
+          "text": "Push back at the man who shoved her",
+          "next": "push-back"
+        }
+      ]
+    },
+    {
+      "id": "curb-watch",
+      "text": "You stay on the curb, your heart pounding. The men close in around the marchers like water around a boat. They shove. They laugh. They knock banners from women's hands. The women do not run. They link arms and keep walking, slow and straight, faces forward. One older woman is bleeding above her eye, and still she sings. You feel ashamed to be standing still.",
+      "choices": [
+        {
+          "text": "Run into the street to help them",
+          "next": "keep-marching"
+        },
+        {
+          "text": "Go home, shaken, and think it over",
+          "next": "home-think"
+        }
+      ]
+    },
+    {
+      "id": "push-back",
+      "text": "You shove the man hard. He turns and shoves you back, and you fall onto the cold pavement. Hands pull you up — Alice's hands. \"Don't fight them,\" she whispers fast. \"That's what they want. We win by not breaking.\" Your knees sting. Around you the women lock arms and lean into the crowd like a wall that will not fall. You understand now. You take Alice's arm.",
+      "choices": [
+        {
+          "text": "Lock arms and march to the end",
+          "next": "keep-marching"
+        }
+      ]
+    },
+    {
+      "id": "keep-marching",
+      "text": "You link arms and walk. The shouting never stops. Boys throw lit cigars. Someone tears your banner, so you hold the ragged half higher. It takes an hour to go one block. By the time soldiers finally clear the road, more than a hundred women have been hurt. But you finished. You walked the whole way. You are filthy and bruised and somehow lit up inside, like you swallowed a lamp.",
+      "choices": [
+        {
+          "text": "Ask Alice how you can do more",
+          "next": "home-think"
+        }
+      ]
+    },
+    {
+      "id": "home-think",
+      "text": "That night you cannot sleep. The whole country read about the parade in the papers. The men who attacked the women made everyone look — and feel ashamed for them. Your father is quiet at breakfast. \"You shouldn't get mixed up in this,\" he finally says. \"It's dangerous.\" Your mother says nothing. But she looks at you, and there is something new in her eyes.",
+      "choices": [
+        {
+          "text": "Promise Father you'll stay out of it",
+          "next": "promise-father"
+        },
+        {
+          "text": "Tell him you're going to keep helping",
+          "next": "keep-helping"
+        }
+      ]
+    },
+    {
+      "id": "promise-father",
+      "text": "\"I'll stay out of it,\" you tell him. He nods, relieved. For weeks you keep your word. You set type and sweep floors and say nothing. But every time a woman comes into the shop with a leaflet, your hands itch. One evening your mother finds you reading a suffrage paper by candlelight. She does not scold you. She sits down beside you and reads it too.",
+      "choices": [
+        {
+          "text": "Ask Mother what she really thinks",
+          "next": "mother-talk"
+        },
+        {
+          "text": "Keep your promise and put the paper down",
+          "next": "quiet-years"
+        }
+      ]
+    },
+    {
+      "id": "mother-talk",
+      "text": "\"I was your age once,\" your mother says softly. \"I had dreams. Then I married and they put me in a kitchen.\" She touches the paper. \"You go,\" she says. \"You go and do what I never could.\" Your throat is tight. The next morning you find Alice and ask her for work. She puts you to making banners and learning to speak on street corners.",
+      "choices": [
+        {
+          "text": "Learn to speak in public",
+          "next": "street-corner"
+        }
+      ]
+    },
+    {
+      "id": "keep-helping",
+      "text": "\"I'm going to keep helping,\" you say. Your voice shakes but it does not break. Your father slams his cup down. \"You'll shame this family.\" Your mother steps between you. \"Let her go, Tom,\" she says quietly. He stares at her like he has never seen her before. The shop goes silent. Then he picks up his hat and leaves for work without another word.",
+      "choices": [
+        {
+          "text": "Go find Alice and ask for real work",
+          "next": "street-corner"
+        }
+      ]
+    },
+    {
+      "id": "quiet-years",
+      "text": "You keep your promise. The years pass. You set type and grow up and watch the movement from the window. Other women march, get jeered, get jailed. You read every word in the papers. Part of you is safe. Part of you is sorry. When the day finally comes that women can vote, you will cast your ballot with the rest. But you will always wonder what it cost the ones who fought, and what it might have cost you.",
+      "choices": [
+        {
+          "text": "Years later, walk to the polling place",
+          "next": "ending-watcher"
+        }
+      ]
+    },
+    {
+      "id": "street-corner",
+      "text": "Alice puts you on a wooden box at the corner of 7th Street. \"Talk,\" she says. \"Tell them why it's wrong.\" Your mouth goes dry. People stare. A man laughs. But you make yourself speak. You talk about your mother. You talk about fairness. A few people stop to listen. By the end your hands have stopped shaking. You have found your voice, and it is louder than you knew.",
+      "choices": [
+        {
+          "text": "Spend the next years lobbying calmly",
+          "next": "split"
+        },
+        {
+          "text": "Push for something bolder",
+          "next": "split"
+        }
+      ]
+    },
+    {
+      "id": "split",
+      "text": "Years go by. You grow from a girl into a young woman, and the movement splits in two. Some women want to keep asking politely — writing letters, meeting with congressmen, waiting for them to change their minds. Others, led by Alice, want to be bolder. \"We've asked for fifty years,\" Alice says. \"It's time to make them uncomfortable.\" Now it is 1917, and you must choose your path.",
+      "choices": [
+        {
+          "text": "Stay with the patient letter-writers",
+          "next": "lobby-path"
+        },
+        {
+          "text": "Join Alice and the bold ones",
+          "next": "sentinel-choice"
+        }
+      ]
+    },
+    {
+      "id": "lobby-path",
+      "text": "You choose the patient way. You write hundreds of letters. You ride to the Capitol and wait in cold hallways to speak with men who barely look at you. It is slow. It is dull. Some days you think nothing you do matters at all. Then word comes: Alice and the bold ones are standing at the White House gates, day after day, holding banners in total silence. The newspapers call them the Silent Sentinels.",
+      "choices": [
+        {
+          "text": "Go see the Silent Sentinels for yourself",
+          "next": "sentinel-choice"
+        },
+        {
+          "text": "Stay with the quiet, safer work",
+          "next": "lobby-end-thread"
+        }
+      ]
+    },
+    {
+      "id": "sentinel-choice",
+      "text": "You go to the White House gates. There the women stand, still as statues, holding banners in the cold. One banner asks the president how he can fight for freedom across the ocean while women have no freedom at home. The country is at war now. Crowds gather and snarl. \"Traitors!\" they shout. \"Help the soldiers, not yourselves!\" Alice hands you a banner pole. \"Will you stand with us?\"",
+      "choices": [
+        {
+          "text": "Take the pole and stand",
+          "next": "stand-sentinel"
+        },
+        {
+          "text": "Hesitate — it feels wrong during the war",
+          "next": "war-doubt"
+        }
+      ]
+    },
+    {
+      "id": "war-doubt",
+      "text": "You hold back. \"People say it's unpatriotic,\" you whisper. \"With our boys dying overseas.\" Alice looks at you steadily. \"They told us to wait through every other crisis too,\" she says. \"There is never a good time for a woman to ask for justice. So we ask now.\" You watch a soldier's mother spit at the women. You watch the women never flinch. The shame you feel is not for them.",
+      "choices": [
+        {
+          "text": "Take the banner pole and stand",
+          "next": "stand-sentinel"
+        },
+        {
+          "text": "Step back to the safer work",
+          "next": "lobby-end-thread"
+        }
+      ]
+    },
+    {
+      "id": "stand-sentinel",
+      "text": "You take the pole. You stand at the gate, silent, hour after hour. The cold creeps up through your shoes. Men grab at your banner and tear it; you raise the next one. Days pass. Then the police come. \"You're blocking the sidewalk,\" an officer says — a thin excuse, and everyone knows it. \"Move along, or you're under arrest.\"",
+      "choices": [
+        {
+          "text": "Stand your ground and let them arrest you",
+          "next": "arrest"
+        },
+        {
+          "text": "Step away this once and come back tomorrow",
+          "next": "step-away"
+        }
+      ]
+    },
+    {
+      "id": "step-away",
+      "text": "You step back into the crowd. Your heart hammers. The police haul Alice and three others into a wagon. Alice catches your eye through the bars — no blame in her face, only a steady calm. You come back the next morning, and the morning after that. But you cannot forget her looking at you from inside that wagon. You know what you have to do.",
+      "choices": [
+        {
+          "text": "Next time, stand and be arrested too",
+          "next": "arrest"
+        }
+      ]
+    },
+    {
+      "id": "arrest",
+      "text": "You stand still as the officer grips your arm. \"You're under arrest,\" he says. You do not fight. You do not even speak. They take you and the others to court, where a judge gives you sixty days. Sixty days for standing on a sidewalk holding cloth. They drive you out past the city to a place called the Occoquan Workhouse. The gate clangs shut behind the wagon.",
+      "choices": [
+        {
+          "text": "Pay the fine quietly to go home",
+          "next": "pay-fine"
+        },
+        {
+          "text": "Refuse to pay — go to the workhouse",
+          "next": "workhouse"
+        }
+      ]
+    },
+    {
+      "id": "pay-fine",
+      "text": "A guard tells you that if you pay the fine, you can walk free. Your whole body aches to say yes. You think of your warm bed, your mother's bread. But paying the fine means saying you did wrong. And you did not do wrong. Still — sixty days. The other women are watching you. Alice is watching you.",
+      "choices": [
+        {
+          "text": "Pay it and go home to your family",
+          "next": "ending-watcher"
+        },
+        {
+          "text": "Refuse, and stay with the others",
+          "next": "workhouse"
+        }
+      ]
+    },
+    {
+      "id": "workhouse",
+      "text": "You refuse to pay. The workhouse is cold and damp. The food is wormy. The water is foul. You sleep on a hard cot among the other suffragists. They are bruised but not broken. Then comes the night of November 14th. Guards burst in. They drag the women down the halls. They beat them. They chain one woman's hands above her head all night. They call it teaching you a lesson.",
+      "choices": [
+        {
+          "text": "Join the hunger strike",
+          "next": "hunger-strike"
+        },
+        {
+          "text": "Survive quietly and serve your time",
+          "next": "serve-time"
+        }
+      ]
+    },
+    {
+      "id": "hunger-strike",
+      "text": "The women decide to refuse food until they are treated as the political prisoners they are. You join them. Hunger is a slow fire. Days pass and you grow weak and dizzy. The guards bring trays of warm food and set them by your cot to torment you. You turn your face away. \"We will not eat,\" you whisper, \"until the world knows what they do here.\"",
+      "choices": [
+        {
+          "text": "Hold the strike no matter what",
+          "next": "force-feed"
+        },
+        {
+          "text": "Worry you've gone too far",
+          "next": "force-feed"
+        }
+      ]
+    },
+    {
+      "id": "force-feed",
+      "text": "They will not let you starve, because a dead suffragist would shame them. So they do something worse. Three guards hold you down. A doctor pushes a rubber tube down your throat and pours liquid into your stomach. It is agony. You gag and choke and weep. They do it to Alice in the next room; you hear her cry out. But word of this cruelty leaks out to the newspapers. The whole country reads it. The whole country recoils.",
+      "choices": [
+        {
+          "text": "Hold on, because the tide is turning",
+          "next": "released"
+        }
+      ]
+    },
+    {
+      "id": "serve-time",
+      "text": "You do not join the strike. You keep your head down and count the days. You are not beaten as badly as the others, but you hear them suffer through the walls, and that is its own kind of wound. When the public outcry over the Night of Terror grows too loud, the government lets everyone go. You walk out the gate thin and pale, ashamed and proud all at once. You did not break. You simply endured.",
+      "choices": [
+        {
+          "text": "Walk back into the world, changed",
+          "next": "released"
+        }
+      ]
+    },
+    {
+      "id": "released",
+      "text": "The stories of Occoquan shake the nation. People who never cared before are suddenly furious. Even the president begins to bend. The fight moves to Congress, vote by vote, state by state. It takes years more — long, grinding years. You are no longer the girl from the print shop. You are a woman now, and you have given a piece of yourself to this. Then, in the summer of 1920, the word comes.",
+      "choices": [
+        {
+          "text": "Hear the news that changes everything",
+          "next": "amendment"
+        }
+      ]
+    },
+    {
+      "id": "lobby-end-thread",
+      "text": "You stay with the quieter work. You write the letters, you wait in the halls, you do the steady, invisible things that also matter. You never go to jail. You never feel the tube or the chains. But you read of those who did, and you light a candle for them each night. When the news finally comes in 1920, you weep — for the victory, and for the price others paid that you were spared.",
+      "choices": [
+        {
+          "text": "Hear the news that changes everything",
+          "next": "amendment"
+        }
+      ]
+    },
+    {
+      "id": "amendment",
+      "text": "Tennessee. It comes down to one vote in Tennessee, and one young lawmaker whose mother sent him a letter telling him to do the right thing. He votes yes. The 19th Amendment is ratified. It is law. Women — millions of them — can vote at last. In the print shop, your mother grabs your hands and they are both shaking. Forty-two years of marching and asking and bleeding, and now it is real.",
+      "choices": [
+        {
+          "text": "Wait for the first election",
+          "next": "first-ballot"
+        }
+      ]
+    },
+    {
+      "id": "first-ballot",
+      "text": "Election day comes. You and your mother walk to the polling place together in your good coats. The line of women stretches around the block. Some are old enough to have marched in 1913; some are young enough to have only read about it. You step inside. A man hands you a ballot, and his hands are not quite steady either. You hold the paper. It is so light, this thing that cost so much.",
+      "choices": [
+        {
+          "text": "Mark your ballot and remember them all",
+          "next": "ending-voter"
+        }
+      ]
+    },
+    {
+      "id": "ending-voter",
+      "text": "You mark your ballot. Your hand is sure. You think of the cold gate at Occoquan, of the tube and the chains, of Alice's calm eyes through the bars of the wagon. You fold the paper and slide it into the box, and it makes the smallest sound. No one cheers. Outside, your mother is waiting in the autumn sun. She votes for the first time at sixty years old, then takes your arm. \"We did it,\" she says. And you did. You did not wait for it. You won it.",
+      "ending": true
+    },
+    {
+      "id": "ending-watcher",
+      "text": "You went home, all those years ago, and you let the others carry it. You were safe. Now you stand in the polling line beside the women who marched and starved and bled, and you mark your ballot with the rest. The right is yours too; the law does not ask who fought for it. But as you slide the paper in, you feel the weight of all you watched from the window. The vote in your hand is real — and so is the knowing that braver hands than yours made it possible. You will spend your life grateful to them, and you will tell their story to every girl you meet.",
+      "ending": true
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import {
   ChevronRight, ChevronDown, Package
 } from "lucide-react";
 import { truncateCredit } from "./lib/attribution";
+import { selectEvent, weightedPick, flushPendingPin, MAX_EVENT_REPEATS } from "./eventSelection";
 
 function ResourceIcon({ label, className }: { label: string; className?: string }) {
   const l = label.toLowerCase();
@@ -23,6 +24,7 @@ function ResourceIcon({ label, className }: { label: string; className?: string 
 }
 import type { CampaignData, FlagText, FlagValue, FlagWrites } from "../generator/schema";
 import { resolveFlagText } from "../generator/schema";
+import { assembleEnding, pinnedChoiceEntry, type ChoiceMemoryEntry } from "../generator/endingAssemble";
 import { applyFlagWrites } from "./flagWrites";
 import type { Objective, RouteState } from "./gameModels";
 import { generateObjective, tickObjectives, findNode } from "./gameLogic";
@@ -65,6 +67,15 @@ function isProjectMode(data: CampaignData): boolean {
 // progressionMode, which a systems project campaign also carries.
 function isCharacterMode(data: CampaignData): boolean {
   return (data.flags?.length ?? 0) > 0;
+}
+
+// Narrative product (Product 2): the spine-only CYOA. Its eventTrivia bank is the
+// FINAL-EXAM bank ONLY — the mid-run knowledge-check gates are suppressed so the
+// story plays uninterrupted (no pop quiz halting the narrative). The close-screen
+// exam (examQuestions → FinalExam) is unaffected: it composes from eventTrivia on
+// a SEPARATE path, so the assessment still happens, just at the end.
+function isNarrative(data: CampaignData): boolean {
+  return data.productType === "narrative";
 }
 
 // Percent-complete used for sages, flavor text, parallax and the map.
@@ -574,6 +585,10 @@ function selectVerdict(principled: number, selfServing: number, obvious: number)
 interface GameEvent {
   id: string; phase_min: number; phase_max: number; weight: number;
   title: string; text: FlagText;
+  // Narrative-spine fields (optional & additive). A pinned beat is guaranteed
+  // to fire in pinSeq order via the pin lane in eventSelection.ts; significance
+  // is author/harness metadata (not rendered in v1).
+  pinned?: boolean; pinSeq?: number; significance?: string;
   type?: "standard" | "push_luck";
   choices?: Choice[];
   attempts?: { id: string; buttonText: string; successText: string; failureText: string; riskChance: number; rewards: Resources; penalties: Resources }[];
@@ -593,6 +608,13 @@ interface GameState {
   phase: "intro" | "outfit" | "sailing" | "event" | "result" | "end" | "trivia" | "event_trivia" | "sage" | "timeskip";
   pace: string; distance: number; currentEvent: GameEvent | null;
   resultText: string; decisions: Decision[];
+  // PRODUCT 2 (narrative) — the CHOICE-MEMORY: which option (choiceIndex) the
+  // player took at which pinned DECISION beat (beatId / pinSeq), recorded in
+  // arc order. Richer than the moral tally below (which is a net +1/-1/0): it
+  // remembers the specific decision, which the deterministic ending assembler
+  // (endingAssemble.ts) reads to recite the player's own choices back. Additive
+  // — accumulated for any pinned decision beat; only the narrative close reads it.
+  choiceMemory: ChoiceMemoryEntry[];
   // Hidden moral accumulators for the generated-campaign verdict — a SEPARATE
   // axis from `flags`, so carrying moral weight never trips isCharacterMode.
   // moralTally is the net (+1/-1/0); the three counts drive verdict selection
@@ -653,72 +675,36 @@ interface GameState {
 // ENGINE HELPERS
 // ═════════════════════════════════════════════════════════════════
 
-function weightedPick<T extends { weight?: number }>(items: T[]): T {
-  const total = items.reduce((s, i) => s + (i.weight || 1), 0);
-  let r = Math.random() * total;
-  for (const item of items) { r -= item.weight || 1; if (r <= 0) return item; }
-  return items[0];
-}
+// weightedPick, selectEvent, and the cooldown/repeat constants now live in
+// ./eventSelection (extracted so the pin guarantee is unit-testable without
+// React). Imported at the top of this file; behavior for pin-free campaigns is
+// byte-identical to the previous in-component versions.
 
-// How the engine paces event repetition. Generated campaigns often ship with
-// a small event bank (5–8) packed into overlapping phase windows, so without
-// these guards the same event ("workers strike", "clear the stumps") fires
-// turn after turn once the unseen pool empties.
-const EVENT_COOLDOWN_TURNS = 4; // an event can't recur within this many turns
-const MAX_EVENT_REPEATS = 2;    // ...and can fire at most this many times total
-
-// Choose the next event for this turn. Brand-new events always win; a
-// previously seen event is only eligible again once it has cooled down AND is
-// still under its repeat cap. When nothing qualifies we return null so the
-// expedition simply travels this turn rather than replaying old content.
-function selectEvent(
-  day: number,
-  totalDays: number,
-  events: GameEvent[],
-  routeTag: string,
-  counts: Record<string, number>,
-  lastTurn: Record<string, number>,
-  turn: number,
-  maxRepeats: number,
-  avoidReader = false,
-): GameEvent | null {
-  const p = totalDays > 0 ? day / totalDays : 0;
-  const inPhase = events.filter(e => p >= e.phase_min && p <= e.phase_max);
-  if (inPhase.length === 0) return null;
-
-  const tilt = (e: GameEvent) => {
-    let w = e.weight || 1;
-    if (routeTag === "SAFE") w = Math.max(1, w - 1);
-    if (routeTag === "FAST") w += 1;
-    return Math.max(1, w);
+// THE END-OF-RUN FLUSH (the hard-pin guarantee). The run may not end while any
+// pinned (narrative-spine) beat is still unfired: at EVERY goal-reached
+// transition the engine drains the next pending pin as an event instead of
+// ending, one per turn, in pinSeq order — so a checked beat ALWAYS appears, even
+// on a run too short for its window to come up normally. Only when no pins
+// remain does the run actually close (survived). A pin-free campaign hits
+// flushPendingPin → null → the normal end immediately, so existing campaigns are
+// byte-identical. Used at all three goal→end sites (simulateTurn, continueGame,
+// finalizeChoice) because the turn is split across them and any one can reach
+// the goal first — the bug a real-engine playthrough caught.
+function flushOrEnd(data: CampaignData, s: GameState): GameState {
+  const flush = flushPendingPin(data.events as GameEvent[], s.eventCounts);
+  if (!flush) return { ...s, phase: "end" as const, gameOver: true, survived: true };
+  return {
+    ...s,
+    eventCounts: { ...s.eventCounts, [flush.id]: (s.eventCounts[flush.id] ?? 0) + 1 },
+    eventLastTurn: { ...s.eventLastTurn, [flush.id]: s.turn },
+    currentEvent: { ...flush, triviaGate: false },
+    resultText: "",
+    phase: "event" as const,
+    lastEventWasReader: (flush.choices?.length ?? 0) === 1,
+    riskHintsOn: false,
+    pendingChoiceIndex: null,
+    pendingEventQuestion: null,
   };
-
-  const fresh = inPhase.filter(e => !counts[e.id]);
-  // Character moral dilemmas must fire EXACTLY ONCE (maxRepeats=1): a repeated
-  // dilemma reads as a bug, not content. With maxRepeats=1 this filter is always
-  // empty (any fired event has count ≥ 1), so each event plays once and the turn
-  // simply advances when the fresh pool is spent. Systems campaigns keep the 2×
-  // refire (resource events recurring is fine), so their behavior is unchanged.
-  const reusable = inPhase.filter(e =>
-    (counts[e.id] ?? 0) > 0 &&
-    (counts[e.id] ?? 0) < maxRepeats &&
-    turn - (lastTurn[e.id] ?? -Infinity) >= EVENT_COOLDOWN_TURNS,
-  );
-  let pool = fresh.length > 0 ? fresh : reusable;
-  if (pool.length === 0) return null;
-  // Endgame-rhythm backstop (character mode only; avoidReader is false for
-  // systems, so their selection is byte-identical). Never fire two no-choice
-  // "Go on." reader beats in a row: if the last event was a reader, prefer a
-  // real choice. If ONLY readers remain eligible, defer to travel (return null)
-  // rather than stacking a second reader — the deferred reader stays FRESH
-  // (uncounted) and fires next turn once a travel beat has separated them, so
-  // it's deferred, never DROPPED.
-  if (avoidReader) {
-    const withChoice = pool.filter(e => (e.choices?.length ?? 0) > 1);
-    if (withChoice.length > 0) pool = withChoice;
-    else return null;
-  }
-  return weightedPick(pool.map(e => ({ ...e, weight: tilt(e) })));
 }
 
 // Choose an event-trivia gate question, preferring unseen ones and recycling
@@ -799,7 +785,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     day: 1, turn: 0, resources: { ...data.initialResources },
     flags: Object.fromEntries((data.flags ?? []).map(f => [f.id, f.initial])),
     phase: "intro", pace: data.paces[1]?.id ?? data.paces[0]?.id ?? "",
-    distance: 0, currentEvent: null, resultText: "", decisions: [],
+    distance: 0, currentEvent: null, resultText: "", decisions: [], choiceMemory: [],
     moralTally: 0, moralPrincipled: 0, moralSelfServing: 0, moralObvious: 0,
     gameOver: false, survived: false, earlySale: false,
     outfit: { allocations: {}, budgetSpent: 0 },
@@ -832,6 +818,11 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   // Verdict gate: the moral verdict is shown BEFORE the exam; acknowledging it
   // falls through to the quiz. Reset wherever the exam state resets.
   const [verdictAck, setVerdictAck] = useState(false);
+  // Story-meaning gate: the narrative-spine ENDING (storyMeaning) is shown FIRST
+  // at the close — the historical "what it all added up to" — before the verdict
+  // (which judges the player) and the review summary (the study recap). Reset
+  // wherever the exam/verdict state resets. Absent storyMeaning ⇒ gate skipped.
+  const [storyMeaningAck, setStoryMeaningAck] = useState(false);
 
   // One handler for both the first attempt and the single retake. First attempt:
   // record the raw score. Retake: cap at 80, keep the better — adopt the retake
@@ -878,7 +869,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     const firstPhase = !isCharacterMode(data) && !isProjectMode(data) ? "outfit" : "sailing";
     setState({ ...makeInit(), phase: firstPhase });
     setExamTaken(false); setExamCorrect(0); setExamTotal(0); setExamPct(0);
-    setRetakeUsed(false); setRetaking(false); setVerdictAck(false); setLeftTownId(null);
+    setRetakeUsed(false); setRetaking(false); setVerdictAck(false); setStoryMeaningAck(false); setLeftTownId(null);
   }, [makeInit, data]);
   const backToMenu = useCallback(() => { onBack(); }, [onBack]);
 
@@ -985,7 +976,8 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
         }
       }
       if (hasReachedGoal(data, s.day, s.distance)) {
-        return { ...s, phase: "end" as const, gameOver: true, survived: true };
+        // Flush any unfired pinned beats before the run can close (no-op without pins).
+        return flushOrEnd(data, s);
       }
 
       // Objectives — "quests" are journey framing (timed sub-goals incl. a
@@ -1034,7 +1026,8 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       // Event
       const event = selectEvent(s.day, data.totalDays, data.events as GameEvent[], s.routeTag, s.eventCounts, s.eventLastTurn, s.turn, isCharacterMode(data) ? 1 : MAX_EVENT_REPEATS, isCharacterMode(data) && prev.lastEventWasReader);
       if (event) {
-        if (s.triviaCounter >= 2) {
+        // Narrative product: no mid-run pop quiz — the bank is for the final exam only.
+        if (s.triviaCounter >= 2 && !isNarrative(data)) {
           const trivia = pickTriviaQuestion(data, s.usedQuestionIds, s.lastQuestionId);
           if (trivia) {
             s.currentTrivia = trivia;
@@ -1050,7 +1043,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
         }
         s.eventCounts = { ...s.eventCounts, [event.id]: (s.eventCounts[event.id] ?? 0) + 1 };
         s.eventLastTurn = { ...s.eventLastTurn, [event.id]: s.turn };
-        s.currentEvent = { ...event, triviaGate: shouldGateTrivia(event.id, s.turn) };
+        s.currentEvent = { ...event, triviaGate: isNarrative(data) ? false : shouldGateTrivia(event.id, s.turn) };
         // Mark a single-choice "Go on." reader so the next turn avoids stacking
         // a second one (the no-consecutive-reader backstop).
         s.lastEventWasReader = (event.choices?.length ?? 0) === 1;
@@ -1153,9 +1146,16 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   const finalizeChoice = useCallback((ci: number, insightBonus: number) => {
     setState(prev => {
       if (!prev.currentEvent?.choices) return prev;
-      const s: GameState = { ...prev, resources: { ...prev.resources }, decisions: [...prev.decisions] };
+      const s: GameState = { ...prev, resources: { ...prev.resources }, decisions: [...prev.decisions], choiceMemory: [...prev.choiceMemory] };
       const choice = s.currentEvent!.choices![ci];
       const outcome = resolveChoice(choice);
+      // CHOICE-MEMORY (Product 2): record WHICH option at WHICH pinned decision
+      // beat, in arc order. The rule (pinned decision beat only; resolution and
+      // pool events skipped) lives in the pure pinnedChoiceEntry helper so it is
+      // unit-testable. Additive: the narrative close reads this; everything else
+      // ignores it.
+      const memEntry = pinnedChoiceEntry(s.currentEvent, ci);
+      if (memEntry) s.choiceMemory.push(memEntry);
       {
         const ev = s.currentEvent!;
         const fact = Array.isArray(ev.trivia) && ev.trivia.length ? `Did you know? ${ev.trivia[0]}` : "";
@@ -1201,9 +1201,9 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       // byte-identically to before.
       if (isCharacterMode(data) && s.resultText.trim() === "") {
         s.currentEvent = null;
-        if (hasReachedGoal(data, s.day, s.distance) || s.earlySale) {
-          return { ...s, phase: "end" as const, gameOver: true, survived: true };
-        }
+        if (s.earlySale) return { ...s, phase: "end" as const, gameOver: true, survived: true };
+        // Goal reached on a no-result reader: flush remaining pinned beats first.
+        if (hasReachedGoal(data, s.day, s.distance)) return flushOrEnd(data, s);
         s.phase = "sailing";
         return s;
       }
@@ -1280,9 +1280,11 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
           return { ...s, phase: "end" as const, gameOver: true, survived: false };
         }
       }
-      if (hasReachedGoal(data, s.day, s.distance) || s.earlySale) {
-        return { ...s, phase: "end" as const, gameOver: true, survived: true };
-      }
+      if (s.earlySale) return { ...s, phase: "end" as const, gameOver: true, survived: true };
+      // Goal reached: flush any remaining pinned beats before closing (the run
+      // is split across simulateTurn/continueGame/finalizeChoice, and this is the
+      // path a post-event "Continue" takes — it must flush too, not just end).
+      if (hasReachedGoal(data, s.day, s.distance)) return flushOrEnd(data, s);
       s.phase = "sailing";
       return s;
     });
@@ -1470,6 +1472,37 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
   if (state.phase === "outfit") return <GenericOutfitScreen data={data} onDone={onOutfitDone} />;
 
   if (state.phase === "end") {
+    // ── The closing beat, shown FIRST at the close ──
+    // PRODUCT 2 (narrative): the deterministically-ASSEMBLED ending — the player's
+    // own choices recited in arc order (from choiceMemory) flowing into the
+    // constant coda. No run-time model call: assembleEnding is pure (Step 3). This
+    // REPLACES the bare storyMeaning + verdict gates for narrative — the recited
+    // choices ARE the "what you did" the verdict used to gesture at, and the coda
+    // IS the storyMeaning. (Narrative campaigns author no verdict, so that gate
+    // below is naturally skipped.)
+    // SYSTEMS / other: the historical "what it all added up to" (storyMeaning),
+    // byte-identical to before — gated on data.storyMeaning, falls through to the
+    // verdict gate.
+    const narrativeEnding = isNarrative(data) ? assembleEnding(data, state.choiceMemory) : null;
+    const closingText = narrativeEnding ?? data.storyMeaning;
+    const closingLabel = narrativeEnding ? "Looking back" : "What it all added up to";
+    if (closingText && !storyMeaningAck) {
+      return (
+        <div data-theme={theme} className="h-screen theme-bg-page theme-text theme-body-font flex items-center justify-center p-6 overflow-y-auto">
+          <div className="max-w-xl w-full space-y-8 py-8 text-center">
+            <p className={`text-xs uppercase tracking-widest theme-text-muted`}>{closingLabel}</p>
+            <p className="theme-text text-lg leading-relaxed font-serif whitespace-pre-line">{closingText}</p>
+            <button
+              onClick={() => setStoryMeaningAck(true)}
+              className="px-8 py-3 theme-btn-action font-bold rounded transition-colors"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     // ── Moral verdict: the campaign's closing judgment, BEFORE the quiz ──
     // One of the three authored passages, selected by the hidden moral counts
     // (engaged-vs-coasted). Shows ONLY the prose — no score, no tally, no
@@ -1663,7 +1696,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
           )}
 
           <div className="text-center pb-4 space-y-2">
-            <button onClick={() => { setState(makeInit()); setExamTaken(false); setExamCorrect(0); setExamTotal(0); setExamPct(0); setRetakeUsed(false); setRetaking(false); setVerdictAck(false); setLeftTownId(null); }} className="px-5 py-2 theme-btn-action font-bold rounded transition-colors">Run It Again</button>
+            <button onClick={() => { setState(makeInit()); setExamTaken(false); setExamCorrect(0); setExamTotal(0); setExamPct(0); setRetakeUsed(false); setRetaking(false); setVerdictAck(false); setStoryMeaningAck(false); setLeftTownId(null); }} className="px-5 py-2 theme-btn-action font-bold rounded transition-colors">Run It Again</button>
             <br /><button onClick={backToMenu} className="text-xs theme-text-muted opacity-90 hover:opacity-100 transition-opacity">&larr; Back to Campaigns</button>
           </div>
         </div>

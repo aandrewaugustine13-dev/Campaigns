@@ -121,6 +121,12 @@ export interface Choice {
   // absent ⇒ untagged ⇒ byte-identical. (Stage 1 foundation: the tally is
   // accumulated but not yet read; the verdict that consumes it ships later.)
   moralTag?: "principled" | "self-serving" | "obvious";
+  // PRODUCT 2 (narrative) — the ENDING FRAGMENT the deterministically-assembled
+  // ending recites back if this option was chosen (a retrospective, past-tense
+  // sentence, distinct from `result`). Compiled from PlanBeatChoice.endingFragment
+  // by storyPlanCompile. Optional & additive: absent ⇒ byte-identical (systems
+  // choices never carry it, and the assembler simply skips a missing fragment).
+  endingFragment?: string;
 }
 
 export interface PushAttempt {
@@ -146,6 +152,19 @@ export interface GameEvent {
   weight: number;
   title: string;
   text: FlagText;               // plain string, or flag-keyed variants (Stage B)
+  // NARRATIVE SPINE (optional & additive — absent ⇒ a normal pool event,
+  // byte-identical). A `pinned` event is GUARANTEED to fire: the engine drains
+  // pinned events deterministically, in `pinSeq` order, ahead of the weighted
+  // pool, and flushes any still-unfired pins before the run can end. `pinSeq` is
+  // the arc-order index (0 = first beat) used both to order firing and to detect
+  // out-of-order arcs. The weighted pool fills the turns AROUND the pins.
+  pinned?: boolean;
+  pinSeq?: number;
+  // Per-event SIGNIFICANCE: why this MOMENT matters — the causal / character
+  // stakes — as distinct from `text` (which sets the scene and the logistical
+  // stakes). Feeds the narrative-coherence harness and steers authoring; v1 does
+  // NOT render it. Optional & additive ⇒ absent changes nothing.
+  significance?: string;
   type?: "standard" | "push_luck";
   choices?: Choice[];
   attempts?: PushAttempt[];
@@ -275,6 +294,34 @@ export interface FaceLevel {
   label: string;
 }
 
+// PRODUCT discriminator. The generator core serves TWO products that share the
+// pure modules but NOT the feature set:
+//   "systems"   — the Oregon-Trail-style game (sage, push-your-luck, multi-
+//                 resource economy, expedition/outfit, route/trail). The default.
+//   "narrative" — the first-person choose-your-own-adventure: a fixed historical
+//                 SPINE (all-pinned beats) + choice-memory + a deterministically
+//                 assembled ending. SHEDS every systems feature (it never authors
+//                 them). Built by its own thin orchestrator (narrativeCampaign.ts);
+//                 the systems path is untouched.
+// Absent ⇒ "systems" (back-compat: every pre-existing campaign is byte-identical).
+export type ProductType = "systems" | "narrative";
+
+// PRODUCT 2 — the constant scaffold of the deterministically-assembled ending.
+// At the close, the engine assembles: opening (optional, constant) → the
+// player's CHOSEN ending-fragments recited in arc order → coda (constant). The
+// fragments come from the chosen choices (Choice.endingFragment); only the
+// constant bookends live here. `coda` IS the kept storyMeaning (the history's
+// fixed meaning — same for every kid). Pure assembly, NO run-time model call
+// (generator/endingAssemble.ts). Optional & additive: absent ⇒ no assembled
+// ending (the systems product never sets it).
+export interface EndingFrame {
+  /** Optional constant lead-in shown before the recited fragments. */
+  opening?: string;
+  /** The constant closing synthesis — significance + irony — identical for every
+   * player. Mirrors CampaignData.storyMeaning (the assembler prefers this). */
+  coda: string;
+}
+
 // ═════════════════════════════════════════════════════════════════
 // CampaignData — the full JSON-serializable output target
 // ═════════════════════════════════════════════════════════════════
@@ -293,6 +340,11 @@ export interface CampaignData {
    * "project": time-based phases (totalDays / daysPerTurn required, travel
    * fields left empty). Validator gates journey-only checks on this value. */
   progressionMode?: "journey" | "project";
+  /** Which PRODUCT this campaign belongs to. Absent ⇒ "systems" (back-compat).
+   * "narrative" tells the validator/engine this is the spine-only CYOA — it
+   * SHEDS the systems machinery (sage, route, outfit, multi-resource economy)
+   * rather than leaving it half-populated. See ProductType above. */
+  productType?: ProductType;
 
   // Journey parameters
   totalDays: number;
@@ -346,4 +398,20 @@ export interface CampaignData {
   // signposted). Always shown at the end as closure/study aid; on a failed exam
   // the screen also offers a retake. Absent ⇒ byte-identical.
   reviewSummary?: string;
+
+  // Story-level ENDING (narrative meaning-making; optional & additive). The
+  // "what it all added up to" synthesis — significance and irony — DISTINCT from
+  // both the `verdict` (which judges the PLAYER's character) and `reviewSummary`
+  // (which is a study-aid recap that embeds exam answers). Spec voice/content:
+  // "the Battle of New Orleans was militarily pointless since the treaty was
+  // already signed, but it made Jackson a national icon and let a bruised
+  // country feel like it won." Authored by the narrative-plan stage and rendered
+  // at the close as its own beat. Absent ⇒ no story-ending panel (byte-identical).
+  storyMeaning?: string;
+
+  // PRODUCT 2 — the constant scaffold (opening + coda) for the responsive,
+  // deterministically-assembled ending. The per-choice fragments live on the
+  // chosen choices; this carries only the constant bookends. Set by the
+  // narrative orchestrator; absent ⇒ no assembled ending (systems byte-identical).
+  endingFrame?: EndingFrame;
 }

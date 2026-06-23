@@ -1,0 +1,468 @@
+[
+  {
+    "code": "6.1(A)",
+    "gradeLevel": "6",
+    "description": "trace characteristics of various contemporary societies in regions that resulted from historical events or factors such as colonization, immigration, and trade; and",
+    "keywords": ["contemporary societies", "colonization", "immigration", "trade", "historical events", "world cultures", "migration"],
+    "category": "History"
+  },
+  {
+    "code": "6.1(B)",
+    "gradeLevel": "6",
+    "description": "analyze the historical background of various contemporary societies to evaluate relationships between past conflicts and current conditions.",
+    "keywords": ["historical background", "contemporary societies", "past conflicts", "current conditions", "world regions", "global history"],
+    "category": "History"
+  },
+  {
+    "code": "6.2(A)",
+    "gradeLevel": "6",
+    "description": "identify and describe the historical influence of individuals or groups on various contemporary societies; and",
+    "keywords": ["historical influence", "individuals", "groups", "contemporary societies", "world leaders", "historical figures"],
+    "category": "History"
+  },
+  {
+    "code": "6.2(B)",
+    "gradeLevel": "6",
+    "description": "describe the social, political, economic, and cultural contributions of individuals and groups from various societies, past and present.",
+    "keywords": ["social contributions", "political contributions", "economic contributions", "cultural contributions", "world history", "diversity"],
+    "category": "History"
+  },
+  {
+    "code": "7.1(A)",
+    "gradeLevel": "7",
+    "description": "identify the major eras in Texas history, describe their defining characteristics, and explain the purpose of dividing the past into eras, including Natural Texas and its People; Age of Contact; Spanish Colonial; Mexican National; Revolution and Republic; Early Statehood; Texas in the Civil War and Reconstruction; Cotton, Cattle, and Railroads; Age of Oil; Texas in the Great Depression and World War II; Civil Rights; and Contemporary Texas; and",
+    "keywords": ["texas history", "eras", "natural texas", "spanish colonial", "mexican national", "texas revolution", "republic", "civil war", "reconstruction", "cotton", "cattle", "railroads", "age of oil", "great depression", "world war ii", "civil rights", "contemporary texas"],
+    "category": "Texas History Eras"
+  },
+  {
+    "code": "7.1(B)",
+    "gradeLevel": "7",
+    "description": "explain the significance of the following dates: 1519, mapping of the Texas coast and first mainland Spanish settlement; 1718, founding of San Antonio; 1821, independence from Spain; 1836, Texas independence; 1845, annexation; 1861, Civil War begins; 1876, adoption of current state constitution; and 1901, discovery of oil at Spindletop.",
+    "keywords": ["texas dates", "1519", "1718", "san antonio", "1821", "1836", "texas independence", "1845", "annexation", "1861", "civil war", "1876", "1901", "spindletop", "oil"],
+    "category": "Texas History"
+  },
+  {
+    "code": "7.2(A)",
+    "gradeLevel": "7",
+    "description": "compare the cultures of American Indians in Texas prior to European colonization such as Gulf, Plains, Puebloan, and Southeastern;",
+    "keywords": ["american indians", "native americans", "texas tribes", "gulf indians", "plains indians", "puebloan", "southeastern", "pre-columbian", "indigenous cultures"],
+    "category": "Texas History - Indigenous"
+  },
+  {
+    "code": "7.2(B)",
+    "gradeLevel": "7",
+    "description": "identify important individuals, events, and issues related to European exploration of Texas such as Alonso Álvarez de Pineda, Álvar Núñez Cabeza de Vaca, the search for gold, and the conflicting territorial claims between France and Spain;",
+    "keywords": ["european exploration", "alonso alvarez de pineda", "cabeza de vaca", "search for gold", "france", "spain", "texas exploration", "conquistadors"],
+    "category": "Texas History - Exploration"
+  },
+  {
+    "code": "7.3(A)",
+    "gradeLevel": "7",
+    "description": "explain the roles played by significant individuals during the Texas Revolution, including George Childress, Lorenzo de Zavala, James Fannin, Sam Houston, Antonio López de Santa Anna, Juan N. Seguín, and William B. Travis;",
+    "keywords": ["texas revolution", "george childress", "lorenzo de zavala", "james fannin", "sam houston", "santa anna", "juan seguin", "william travis", "alamo", "san jacinto", "texas independence"],
+    "category": "Texas Revolution"
+  },
+  {
+    "code": "7.4(A)",
+    "gradeLevel": "7",
+    "description": "identify the causes of the Texas Revolution, including the failure of the Mexican government to uphold the Constitution of 1824, the desire for greater political and economic freedom, and the desire to retain slavery in Texas;",
+    "keywords": ["texas revolution causes", "constitution of 1824", "political freedom", "economic freedom", "slavery in texas", "mexican government", "anglo settlers"],
+    "category": "Texas Revolution"
+  },
+  {
+    "code": "8.1(A)",
+    "gradeLevel": "8",
+    "description": "identify the major eras in U.S. history through 1877, including colonization, revolution, creation and ratification of the Constitution, early republic, the Age of Jackson, westward expansion, reform movements, sectionalism, Civil War, and Reconstruction, and describe their causes and effects; and",
+    "keywords": [
+      "us history", "major eras", "colonization", "american revolution", "constitution", "early republic", "age of jackson", "westward expansion", "reform movements", "sectionalism", "civil war", "reconstruction", "historical periods"
+    ],
+    "category": "U.S. History Overview"
+  },
+  {
+    "code": "8.1(B)",
+    "gradeLevel": "8",
+    "description": "explain the significance of the following dates: 1607, founding of Jamestown; 1620, arrival of the Pilgrims and signing of the Mayflower Compact; 1776, adoption of the Declaration of Independence; 1787, writing of the U.S. Constitution; 1803, Louisiana Purchase; and 1861-1865, Civil War.",
+    "keywords": [
+      "us history dates", "1607", "jamestown", "1620", "mayflower compact", "pilgrims", "1776", "declaration of independence", "1787", "us constitution", "1803", "louisiana purchase", "1861", "civil war"
+    ],
+    "category": "U.S. History Overview"
+  },
+  {
+    "code": "8.2(A)",
+    "gradeLevel": "8",
+    "description": "identify reasons for English, Spanish, and French exploration and colonization of North America; and",
+    "keywords": [
+      "exploration", "colonization", "english", "spanish", "french", "north america", "jamestown", "plymouth", "new spain", "new france", "motivations for colonization"
+    ],
+    "category": "Exploration and Colonization"
+  },
+  {
+    "code": "8.2(B)",
+    "gradeLevel": "8",
+    "description": "compare political, economic, religious, and social reasons for the establishment of the 13 English colonies.",
+    "keywords": [
+      "13 colonies", "english colonies", "political reasons", "economic reasons", "religious reasons", "social reasons", "puritans", "quakers", "southern colonies", "new england", "middle colonies"
+    ],
+    "category": "Exploration and Colonization"
+  },
+  {
+    "code": "8.3(A)",
+    "gradeLevel": "8",
+    "description": "explain the reasons for the growth of representative government and institutions during the colonial period;",
+    "keywords": [
+      "representative government", "colonial period", "mayflower compact", "house of burgesses", "self-government", "magna carta influence", "colonial assemblies"
+    ],
+    "category": "Colonial Government"
+  },
+  {
+    "code": "8.3(B)",
+    "gradeLevel": "8",
+    "description": "analyze the importance of the Mayflower Compact, the Fundamental Orders of Connecticut, and the Virginia House of Burgesses to the growth of representative government;",
+    "keywords": [
+      "mayflower compact", "fundamental orders of connecticut", "virginia house of burgesses", "representative government", "colonial democracy", "pilgrims", "connecticut", "virginia"
+    ],
+    "category": "Colonial Government"
+  },
+  {
+    "code": "8.4(A)",
+    "gradeLevel": "8",
+    "description": "analyze the causes of the American Revolution, including the Proclamation of 1763, the Intolerable Acts, the Stamp Act, mercantilism, lack of representation in Parliament, and British economic policies following the French and Indian War;",
+    "keywords": [
+      "american revolution causes", "proclamation of 1763", "intolerable acts", "stamp act", "mercantilism", "no taxation without representation", "parliament", "french and indian war", "british policies"
+    ],
+    "category": "Revolutionary Era"
+  },
+  {
+    "code": "8.4(B)",
+    "gradeLevel": "8",
+    "description": "explain the roles played by significant individuals during the American Revolution, including Abigail Adams, John Adams, Wentworth Cheswell, Samuel Adams, Mercy Otis Warren, James Armistead, Benjamin Franklin, Crispus Attucks, King George III, Patrick Henry, Thomas Jefferson, the Marquis de Lafayette, Thomas Paine, and George Washington;",
+    "keywords": [
+      "american revolution", "george washington", "thomas jefferson", "benjamin franklin", "john adams", "samuel adams", "patrick henry", "thomas paine", "abigail adams", "crispus attucks", "lafayette", "james armistead", "king george iii", "founding fathers"
+    ],
+    "category": "Revolutionary Era"
+  },
+  {
+    "code": "8.4(C)",
+    "gradeLevel": "8",
+    "description": "explain the issues surrounding important events of the American Revolution, including declaring independence; writing the Articles of Confederation; fighting the battles of Lexington, Concord, Saratoga, and Yorktown; enduring the winter at Valley Forge; and signing the Treaty of Paris of 1783; and",
+    "keywords": [
+      "american revolution events", "declaration of independence", "articles of confederation", "lexington and concord", "saratoga", "yorktown", "valley forge", "treaty of paris 1783"
+    ],
+    "category": "Revolutionary Era"
+  },
+  {
+    "code": "8.5(A)",
+    "gradeLevel": "8",
+    "description": "identify the weaknesses of the Articles of Confederation and explain the need for a new constitution;",
+    "keywords": [
+      "articles of confederation", "weaknesses", "shays rebellion", "new constitution", "constitutional convention"
+    ],
+    "category": "Constitution"
+  },
+  {
+    "code": "8.5(B)",
+    "gradeLevel": "8",
+    "description": "identify the major issues and compromises that were debated at the Constitutional Convention and their outcomes, including the Great Compromise and the Three-Fifths Compromise;",
+    "keywords": [
+      "constitutional convention", "great compromise", "three-fifths compromise", "bicameral legislature", "slavery compromises", "connecticut plan", "virginia plan"
+    ],
+    "category": "Constitution"
+  },
+  {
+    "code": "8.5(C)",
+    "gradeLevel": "8",
+    "description": "understand the purposes of the Constitution as stated in the Preamble and the arguments presented by the Federalists and Anti-Federalists during the ratification debates;",
+    "keywords": [
+      "us constitution preamble", "federalists", "anti-federalists", "ratification", "bill of rights", "federalist papers"
+    ],
+    "category": "Constitution"
+  },
+  {
+    "code": "8.5(D)",
+    "gradeLevel": "8",
+    "description": "explain the role of significant individuals such as Thomas Jefferson and James Madison in the creation and ratification of the Constitution; and",
+    "keywords": [
+      "thomas jefferson", "james madison", "constitution", "federalist papers", "bill of rights"
+    ],
+    "category": "Constitution"
+  },
+  {
+    "code": "8.6(A)",
+    "gradeLevel": "8",
+    "description": "explain the roles played by significant individuals such as George Washington, John Adams, Alexander Hamilton, and James Madison during the early years of the republic;",
+    "keywords": [
+      "george washington", "john adams", "alexander hamilton", "james madison", "early republic", "first president", "federalist party"
+    ],
+    "category": "Early Republic"
+  },
+  {
+    "code": "8.6(B)",
+    "gradeLevel": "8",
+    "description": "explain the reasons for the growth of political parties in the early republic;",
+    "keywords": [
+      "political parties", "federalists", "democratic-republicans", "hamilton", "jefferson", "early republic politics"
+    ],
+    "category": "Early Republic"
+  },
+  {
+    "code": "8.7(A)",
+    "gradeLevel": "8",
+    "description": "describe the causes and effects of the War of 1812;",
+    "keywords": [
+      "war of 1812", "impressment", "war hawks", "andrew jackson", "battle of new orleans", "nationalism"
+    ],
+    "category": "Early Republic"
+  },
+  {
+    "code": "8.7(B)",
+    "gradeLevel": "8",
+    "description": "identify the major events and issues of the presidency of Andrew Jackson, including the spoils system, Indian Removal, and the Bank War;",
+    "keywords": [
+      "andrew jackson", "spoils system", "indian removal", "trail of tears", "bank war", "jacksonian democracy", "age of the common man"
+    ],
+    "category": "Age of Jackson"
+  },
+  {
+    "code": "8.8(A)",
+    "gradeLevel": "8",
+    "description": "explain the reasons for the growth of sectionalism in the United States;",
+    "keywords": [
+      "sectionalism", "north vs south", "slavery", "tariffs", "states rights", "missouri compromise"
+    ],
+    "category": "Sectionalism and Civil War"
+  },
+  {
+    "code": "8.8(B)",
+    "gradeLevel": "8",
+    "description": "explain the causes and effects of the Mexican-American War;",
+    "keywords": [
+      "mexican american war", "manifest destiny", "annexation of texas", "treaty of guadalupe hidalgo", "james k polk"
+    ],
+    "category": "Westward Expansion"
+  },
+  {
+    "code": "8.9(A)",
+    "gradeLevel": "8",
+    "description": "identify the causes of the Civil War, including sectionalism, states' rights, and slavery, and explain the roles played by significant individuals during the Civil War, including Abraham Lincoln, Ulysses S. Grant, Robert E. Lee, and Jefferson Davis;",
+    "keywords": [
+      "causes of civil war", "sectionalism", "states rights", "slavery", "abraham lincoln", "ulysses s grant", "robert e lee", "jefferson davis", "union", "confederacy"
+    ],
+    "category": "Civil War"
+  },
+  {
+    "code": "8.10(A)",
+    "gradeLevel": "8",
+    "description": "explain the causes and effects of the Civil War, including the role of significant individuals and events;",
+    "keywords": [
+      "civil war causes and effects", "gettysburg", "antietam", "emancipation proclamation", "gettysburg address", "surrender at appomattox"
+    ],
+    "category": "Civil War"
+  },
+  {
+    "code": "8.11(A)",
+    "gradeLevel": "8",
+    "description": "explain the causes and effects of Reconstruction, including the 13th, 14th, and 15th amendments to the U.S. Constitution;",
+    "keywords": [
+      "reconstruction", "13th amendment", "14th amendment", "15th amendment", "radical reconstruction", "freedmen's bureau", "jim crow laws", "andrew johnson"
+    ],
+    "category": "Reconstruction"
+  },
+  {
+    "code": "113.41(c)(1)(A)",
+    "gradeLevel": "High School",
+    "description": "analyze and evaluate the text, intent, meaning, and importance of the Declaration of Independence and the U.S. Constitution, including the Bill of Rights, in their historical contexts. The study of the Declaration of Independence must include the study of the relationship of the ideas expressed in that document to subsequent American history, including the relationship of its ideas to the rich diversity of our people as a nation of immigrants, the American Revolution, the formulation of the U.S. Constitution, and the abolitionist movement, which led to the Emancipation Proclamation and the women's suffrage movement.",
+    "keywords": [
+      "declaration of independence", "us constitution", "bill of rights", "american history", "immigrants", "american revolution", "abolitionist movement", "emancipation proclamation", "women's suffrage"
+    ],
+    "category": "Foundations"
+  },
+  {
+    "code": "113.41(c)(2)(A)",
+    "gradeLevel": "High School",
+    "description": "identify the major eras in U.S. history from 1877 to the present and describe their defining characteristics;",
+    "keywords": [
+      "us history eras", "1877 to present", "gilded age", "progressive era", "world war i", "1920s", "great depression", "world war ii", "cold war", "civil rights movement", "modern america"
+    ],
+    "category": "U.S. History Since 1877"
+  },
+  {
+    "code": "113.41(c)(3)(A)",
+    "gradeLevel": "High School",
+    "description": "analyze political issues such as Indian policies, the growth of political machines, and civil service reform;",
+    "keywords": [
+      "gilded age politics", "indian policies", "political machines", "boss tweed", "civil service reform", "pendleton act", "corruption"
+    ],
+    "category": "Gilded Age"
+  },
+  {
+    "code": "113.41(c)(3)(B)",
+    "gradeLevel": "High School",
+    "description": "analyze economic issues such as industrialization, the growth of railroads, the growth of labor unions, farm issues, the cattle industry boom, the growth of entrepreneurship, and the pros and cons of big business; and",
+    "keywords": [
+      "industrialization", "railroads", "labor unions", "farm issues", "cattle industry", "big business", "robber barons", "entrepreneurship", "gilded age economy"
+    ],
+    "category": "Gilded Age"
+  },
+  {
+    "code": "113.41(c)(4)(A)",
+    "gradeLevel": "High School",
+    "description": "explain why significant events, policies, and individuals, including the Spanish-American War, U.S. expansionism, Alfred Thayer Mahan, Theodore Roosevelt, and Sanford B. Dole moved the United States into the position of a world power;",
+    "keywords": [
+      "spanish american war", "imperialism", "alfred thayer mahan", "theodore roosevelt", "sanford b dole", "hawaii", "philippines", "guam", "puerto rico", "world power"
+    ],
+    "category": "Imperialism"
+  },
+  {
+    "code": "113.41(c)(5)(A)",
+    "gradeLevel": "High School",
+    "description": "analyze the impact of Progressive Era reforms, including initiative, referendum, recall, and the passage of the 16th, 17th, 18th, and 19th amendments;",
+    "keywords": [
+      "progressive era", "initiative", "referendum", "recall", "16th amendment", "17th amendment", "18th amendment", "19th amendment", "women's suffrage", "prohibition", "muckrakers"
+    ],
+    "category": "Progressive Era"
+  },
+  {
+    "code": "113.41(c)(6)(A)",
+    "gradeLevel": "High School",
+    "description": "analyze causes and effects of events and social issues such as immigration, Social Darwinism, the Scopes Trial, eugenics, race relations, nativism, the Red Scare, Prohibition, and the changing role of women; and",
+    "keywords": [
+      "1920s", "immigration", "social darwinism", "scopes trial", "eugenics", "race relations", "nativism", "red scare", "prohibition", "flappers", "changing role of women"
+    ],
+    "category": "1920s"
+  },
+  {
+    "code": "113.41(c)(7)(A)",
+    "gradeLevel": "High School",
+    "description": "identify reasons for U.S. involvement in World War II, including the aggression of Italian, German, and Japanese dictatorships, especially the attack on Pearl Harbor;",
+    "keywords": [
+      "world war ii", "pearl harbor", "hitler", "mussolini", "japanese imperialism", "axis powers", "holocaust", "d-day", "pacific theater"
+    ],
+    "category": "World War II"
+  },
+  {
+    "code": "113.41(c)(8)(A)",
+    "gradeLevel": "High School",
+    "description": "describe U.S. responses to Soviet aggression after World War II, including the Truman Doctrine, the Marshall Plan, the Berlin Airlift, the North Atlantic Treaty Organization, and John F. Kennedy's role in the Cuban Missile Crisis;",
+    "keywords": [
+      "cold war", "truman doctrine", "marshall plan", "berlin airlift", "nato", "cuban missile crisis", "containment", "soviet union", "jfk"
+    ],
+    "category": "Cold War"
+  },
+  {
+    "code": "113.41(c)(9)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the causes and effects of the Korean War and its relationship to the containment policy;",
+    "keywords": [
+      "korean war", "containment policy", "38th parallel", "kim il sung", "douglas macarthur", "cold war asia"
+    ],
+    "category": "Cold War"
+  },
+  {
+    "code": "113.41(c)(10)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the causes and effects of the Vietnam War and its relationship to the containment policy;",
+    "keywords": [
+      "vietnam war", "containment", "domino theory", "gulf of tonkin", "tet offensive", "antiwar movement", "vietnamization"
+    ],
+    "category": "Cold War / Vietnam"
+  },
+  {
+    "code": "113.41(c)(11)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the causes and effects of the Civil Rights Movement, including the roles of significant individuals such as Martin Luther King Jr., Rosa Parks, and Malcolm X;",
+    "keywords": [
+      "civil rights movement", "martin luther king jr", "rosa parks", "malcolm x", "montgomery bus boycott", "march on washington", "civil rights act", "voting rights act", "segregation"
+    ],
+    "category": "Civil Rights"
+  },
+  {
+    "code": "113.42(c)(1)(A)",
+    "gradeLevel": "High School",
+    "description": "identify major causes and describe the major effects of the following events from 8000 BC to 500 BC: the development of agriculture and the development of the river valley civilizations;",
+    "keywords": [
+      "ancient history", "agriculture", "river valley civilizations", "mesopotamia", "egypt", "indus river", "yellow river", "neolithic revolution", "sumer", "babylon"
+    ],
+    "category": "World History - Ancient"
+  },
+  {
+    "code": "113.42(c)(2)(A)",
+    "gradeLevel": "High School",
+    "description": "identify major causes and describe the major effects of the following events from 500 BC to AD 600: the development of the classical civilizations of Greece, Rome, Persia, India (Maurya and Gupta), and China (Qin and Han);",
+    "keywords": [
+      "classical civilizations", "ancient greece", "ancient rome", "persian empire", "maurya empire", "gupta empire", "qin dynasty", "han dynasty", "democracy", "republic", "philosophy"
+    ],
+    "category": "World History - Classical"
+  },
+  {
+    "code": "113.42(c)(3)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the development of Christianity as a unifying social and political factor in medieval Europe and the Byzantine Empire;",
+    "keywords": [
+      "christianity", "medieval europe", "byzantine empire", "constantine", "roman catholic church", "eastern orthodox", "crusades", "feudalism"
+    ],
+    "category": "World History - Medieval"
+  },
+  {
+    "code": "113.42(c)(4)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the development of Islamic civilization and its impact on world history;",
+    "keywords": [
+      "islamic civilization", "islam", "muhammad", "caliphate", "golden age of islam", "spread of islam", "ottoman empire", "scientific contributions"
+    ],
+    "category": "World History - Medieval / Islamic"
+  },
+  {
+    "code": "113.42(c)(5)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the development and impact of the Renaissance and the Reformation on European society;",
+    "keywords": [
+      "renaissance", "reformation", "martin luther", "protestant", "humanism", "leonardo da vinci", "michelangelo", "printing press", "gutenberg"
+    ],
+    "category": "World History - Renaissance and Reformation"
+  },
+  {
+    "code": "113.42(c)(6)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the causes and effects of the Scientific Revolution and the Enlightenment;",
+    "keywords": [
+      "scientific revolution", "enlightenment", "copernicus", "galileo", "newton", "locke", "rousseau", "voltaire", "montesquieu", "reason", "natural rights"
+    ],
+    "category": "World History - Scientific Revolution and Enlightenment"
+  },
+  {
+    "code": "113.42(c)(7)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the causes and effects of the Industrial Revolution;",
+    "keywords": [
+      "industrial revolution", "steam engine", "factory system", "urbanization", "capitalism", "karl marx", "adam smith", "child labor", "railroads"
+    ],
+    "category": "World History - Industrial Revolution"
+  },
+  {
+    "code": "113.42(c)(8)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the causes and effects of World War I, including the rise of nationalism, militarism, and imperialism;",
+    "keywords": [
+      "world war i", "wwi", "nationalism", "militarism", "imperialism", "assassination of archduke ferdinand", "trench warfare", "treaty of versailles"
+    ],
+    "category": "World History - World War I"
+  },
+  {
+    "code": "113.42(c)(9)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the causes and effects of World War II, including the rise of totalitarian regimes and the Holocaust;",
+    "keywords": [
+      "world war ii", "wwii", "hitler", "nazi germany", "holocaust", "pearl harbor", "d-day", "atomic bomb", "totalitarianism", "fascism", "communism"
+    ],
+    "category": "World History - World War II"
+  },
+  {
+    "code": "113.42(c)(10)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the causes and effects of the Cold War and the collapse of the Soviet Union;",
+    "keywords": [
+      "cold war", "soviet union", "berlin wall", "cuban missile crisis", "vietnam war", "korean war", "gorbachev", "reagan", "fall of communism"
+    ],
+    "category": "World History - Cold War"
+  }
+]

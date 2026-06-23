@@ -1202,7 +1202,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
     const panel = OPENING_PANELS[panelIndex];
     const isLast = panelIndex === OPENING_PANELS.length - 1;
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-6 space-y-4">
           <button
             type="button"
@@ -1229,7 +1229,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   // ── The Banner (panel 5; two-button choice, NOT tap-to-advance) ─
   if (phase === "banner") {
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-6 space-y-4">
           <h1 className="text-2xl font-bold text-amber-400">The Banner</h1>
           <OpeningPanel src="/assets/Tapestries/02_banner.png" alt="The Banner" />
@@ -1268,7 +1268,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
     const panel = panels[panelIndex];
     const isLast = panelIndex === panels.length - 1;
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-6 space-y-4">
           <button
             type="button"
@@ -1629,7 +1629,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
     const panel = SICILY_PANELS[panelIndex];
     const isLast = panelIndex === SICILY_PANELS.length - 1;
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-6 space-y-4">
           <p className="text-xs text-amber-400 uppercase tracking-wider">The Sicily Crossing</p>
           <button
@@ -1658,7 +1658,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   if (phase === "sageEncounter" && activeSage) {
     const sageInFlight = activeSage; // local capture for closure-narrowed type
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-4 space-y-3">
           <p className="text-xs text-amber-400 uppercase tracking-wider">
             Sage Encounter · threshold {Math.round(sageInFlight.threshold * 100)}%
@@ -1736,7 +1736,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   // ── Barbarossa's warning (fires only on a clean encounter) ─
   if (phase === "barbarossaWarning") {
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-4 space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-xs text-amber-400 uppercase tracking-wider">Frederick Barbarossa · A Final Word</p>
@@ -1826,7 +1826,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   // ── Richard's envoy assignment (fires after his sage; always) ─
   if (phase === "richardEnvoy") {
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-4 space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-xs text-amber-400 uppercase tracking-wider">Richard I · The Envoy</p>
@@ -1853,7 +1853,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   // ── Imad closing monologue (post-encounter; final sage before TBD) ─
   if (phase === "imadClosing") {
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-4 space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-xs text-amber-400 uppercase tracking-wider">Imad ad-Din · The Shape of the War</p>
@@ -1887,7 +1887,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
     const panel = JAFFA_SETUP_PANELS[panelIndex];
     const isLast = panelIndex === JAFFA_SETUP_PANELS.length - 1;
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-6 space-y-4">
           <p className="text-xs text-amber-400 uppercase tracking-wider">The Road to Jaffa</p>
           <button
@@ -2027,7 +2027,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   // ── Hopeful March (bridge: Jaffa → turning-away) ────────────
   if (phase === "hopefulMarch") {
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-4 space-y-3">
           <p className="text-xs text-amber-400 uppercase tracking-wider">The Road Inland · Toward Jerusalem</p>
           <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
@@ -2130,7 +2130,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   if (phase === "bridgeHome") {
     const standing = honor > 5 ? "high" : honor < 2 ? "low" : "mid" as const;
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-4 space-y-3">
           <p className="text-xs text-amber-400 uppercase tracking-wider">The Long Road Home</p>
           <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20 space-y-3">
@@ -2161,7 +2161,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   // ── Bridge 1: Goodbye → Quota ─────────────────────────────
   if (phase === "bridgeRoad") {
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-4 space-y-3">
           <p className="text-xs text-amber-400 uppercase tracking-wider">France · On the Road</p>
           <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
@@ -2183,7 +2183,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   // ── Bridge 2: Quota → Letter ──────────────────────────────
   if (phase === "bridgeMarch") {
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-4 space-y-3">
           <p className="text-xs text-amber-400 uppercase tracking-wider">France · The March</p>
           <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
@@ -2206,7 +2206,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   if (phase === "bridgeEleanor") {
     const text = helpedTheBoy ? BRIDGE_ELEANOR_TEXT.helped : BRIDGE_ELEANOR_TEXT.pushed;
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-4 space-y-3">
           <p className="text-xs text-amber-400 uppercase tracking-wider">France · The Queen's Summons</p>
           <OpeningPanel src="/assets/Tapestries/05_eleanor_gate.png" alt="Eleanor's gate" />
@@ -2229,7 +2229,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   // ── Bridge 4: Eleanor → Sicily ────────────────────────────
   if (phase === "bridgeShips") {
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-4 space-y-3">
           <p className="text-xs text-amber-400 uppercase tracking-wider">The Coast · Boarding the Ships</p>
           <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
@@ -2252,7 +2252,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   if (phase === "bridgeDream") {
     const text = messinaResult === "plundered" ? BRIDGE_DREAM_TEXT.plundered : BRIDGE_DREAM_TEXT.spared;
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-4 space-y-3">
           <p className="text-xs text-amber-400 uppercase tracking-wider">Sicily · That Night</p>
           <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
@@ -2275,7 +2275,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   if (phase === "bridgeAcre") {
     const text = barbarossaWarningHeard ? BRIDGE_ACRE_TEXT.warned : BRIDGE_ACRE_TEXT.unwarned;
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-4 space-y-3">
           <p className="text-xs text-amber-400 uppercase tracking-wider">The Eastern Mediterranean · Toward Acre</p>
           <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
@@ -2297,7 +2297,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   // ── Bridge 7: Acre → Richard ──────────────────────────────
   if (phase === "bridgeRichard") {
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-4 space-y-3">
           <p className="text-xs text-amber-400 uppercase tracking-wider">The Coast Road · Marching South</p>
           <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
@@ -2319,7 +2319,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   // ── Bridge 8: Richard → Saladin ───────────────────────────
   if (phase === "bridgeSaladin") {
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-4 space-y-3">
           <p className="text-xs text-amber-400 uppercase tracking-wider">No-Man's-Land · Under the White Flag</p>
           <div className="border border-amber-800/40 rounded-lg p-3 bg-amber-950/20">
@@ -2341,7 +2341,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   // ── Beat 2: Barbarossa's Final Visit ────────────────────────
   if (phase === "barbarossaFinal") {
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-4 space-y-3">
           <p className="text-xs text-amber-400 uppercase tracking-wider">Frederick Barbarossa · The Last Night</p>
 
@@ -2434,7 +2434,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
   if (phase === "homecoming") {
     const tier = computeHomecomingTier(honor, competence, honoredSaladin, jaffaOutcomeId);
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+      <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-2xl mx-auto p-6 space-y-4">
           <p className="text-xs text-amber-400 uppercase tracking-wider">Home</p>
           <div className="border border-amber-800/40 rounded-lg p-4 bg-amber-950/20 space-y-3">
@@ -2634,7 +2634,7 @@ export default function Crusades({ onBack }: CrusadesProps) {
 
   // ── Interlude (post-sage placeholder; next event lands here) ─
   return (
-    <div className="h-screen bg-stone-900 text-stone-100 overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
+    <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] overflow-y-auto" style={{ fontFamily: "'Georgia', serif" }}>
       <div className="max-w-2xl mx-auto p-6 space-y-4">
         <div className="flex items-center justify-between">
           <p className="text-xs text-amber-400 uppercase tracking-wider">The Road Continues</p>

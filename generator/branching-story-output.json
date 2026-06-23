@@ -1,0 +1,616 @@
+{
+  "title": "The Long Walk Home",
+  "protagonist": "Ruth Mae Carter, a teenage maid in Montgomery, Alabama",
+  "start": "montgomery-1955",
+  "passages": [
+    {
+      "id": "montgomery-1955",
+      "text": "Your name is Ruth Mae Carter. You are fifteen. You live in Montgomery, Alabama, in 1955, on a dirt street near Cleveland Avenue. Every morning you ride the city bus to clean houses on the white side of town. The sign over the middle of the bus says COLORED in faded paint. You pay your dime at the front, then step back off and walk to the rear door to get on again. That is the law here. You have done it a thousand times. Today your knees ache and your hands smell of bleach.",
+      "choices": [
+        {
+          "text": "Take your usual seat in the colored section in back",
+          "next": "the-bus-ride"
+        },
+        {
+          "text": "Stand near the line, watching the white riders",
+          "next": "the-bus-ride"
+        }
+      ]
+    },
+    {
+      "id": "the-bus-ride",
+      "text": "The bus fills up. A white man stands in the aisle with no seat. The driver, James Blake, twists around. \"Move back, you all,\" he says to the row of Black riders just behind the white section. A woman beside you sits very still. She is small and tired, with glasses and neat gloves. Her name is Rosa Parks. She works as a seamstress at the Montgomery Fair department store. She does not move.",
+      "choices": [
+        {
+          "text": "Watch what Rosa Parks does",
+          "next": "rosa-parks"
+        },
+        {
+          "text": "Stand to give up your own seat, afraid",
+          "next": "driver-yells"
+        }
+      ]
+    },
+    {
+      "id": "rosa-parks",
+      "text": "Rosa Parks looks straight ahead. \"I'm not going to move,\" she says, quiet and plain. The driver stops the bus. He calls the police. Two officers climb on. They take her by the arm and walk her off. The whole bus is silent. You have never seen anyone refuse like that. Your heart pounds. You did not know a person was allowed to just say no.",
+      "choices": [
+        {
+          "text": "Ask the woman next to you what will happen now",
+          "next": "word-spreads"
+        },
+        {
+          "text": "Get off at your stop and tell your mother everything",
+          "next": "word-spreads"
+        }
+      ]
+    },
+    {
+      "id": "driver-yells",
+      "text": "You jump up before the driver can yell at you. You hand your seat to a white rider and press to the back, breathing hard. But you watch Rosa Parks, who does not rise. The police come and take her away in front of everyone. You stand there with shame burning in your chest. You moved. She did not. You will remember the difference for the rest of your life.",
+      "choices": [
+        {
+          "text": "Get off and tell your mother what you saw",
+          "next": "word-spreads"
+        },
+        {
+          "text": "Promise yourself you will not move next time",
+          "next": "word-spreads"
+        }
+      ]
+    },
+    {
+      "id": "word-spreads",
+      "text": "By night the whole Black side of Montgomery knows. A woman named Jo Ann Robinson and her women's group print thousands of leaflets on a school mimeograph machine. The papers say: Don't ride the bus on Monday. Your mother reads one at the kitchen table by lamplight. \"They want us all to stay off,\" she says. \"Every soul.\" You think about the long walk to work. Miles of it.",
+      "choices": [
+        {
+          "text": "Tell your mother you will walk",
+          "next": "kitchen-table"
+        },
+        {
+          "text": "Worry out loud about losing your job",
+          "next": "kitchen-table"
+        }
+      ]
+    },
+    {
+      "id": "kitchen-table",
+      "text": "Monday comes. The buses roll by your street empty. Not one Black rider. You walk to work in the cold dark, and the road is full of people walking with you, some in church shoes, some with sore feet. That evening five thousand people pack the Holt Street Baptist Church. You squeeze into the back. A young preacher you have never heard of steps up. He is twenty-six. His name is Martin Luther King Jr.",
+      "choices": [
+        {
+          "text": "Push closer to hear the young preacher",
+          "next": "mlk-holt-street"
+        }
+      ]
+    },
+    {
+      "id": "mlk-holt-street",
+      "text": "Dr. King grips the pulpit. \"There comes a time when people get tired,\" he says, and the church roars. He tells you they will protest, but with love, not hate. \"We will not resort to violence,\" he says. He calls it nonviolent resistance. You have never heard anyone speak like this. His voice fills you up. He looks young and scared and brave all at once, and somehow you feel braver too.",
+      "choices": [
+        {
+          "text": "Answer the preacher's question to the crowd",
+          "next": "q-mlk"
+        }
+      ]
+    },
+    {
+      "id": "q-mlk",
+      "text": "After the speech a deacon helps register walkers for the carpool. He asks you a question to be sure you understand what Dr. King is asking of everyone, so no one slips into anger and ruins it.",
+      "question": {
+        "question": "What method did Martin Luther King Jr. tell the people of Montgomery to use in their protest?",
+        "choices": [
+          "Nonviolent resistance — protest without using violence",
+          "Armed self-defense against the police",
+          "Quietly waiting for the courts to fix the law on their own",
+          "Burning the city buses in protest"
+        ],
+        "correctIndex": 0,
+        "explanation": "Dr. King urged nonviolent resistance, asking people to protest without hate or violence."
+      },
+      "choices": [
+        {
+          "text": "Sign up to walk every day",
+          "next": "the-boycott-grinds"
+        }
+      ]
+    },
+    {
+      "id": "the-boycott-grinds",
+      "text": "The Montgomery Bus Boycott goes on for days, then weeks, then months. You walk in rain. Your shoes wear through and your mother stitches cardboard inside them. Black-owned taxis carry riders for a dime. Volunteers drive carpools in their own cars. White officials arrest the carpool drivers for made-up traffic crimes. Someone throws a bomb at Dr. King's house with his wife and baby inside. They live, but the porch is wrecked.",
+      "choices": [
+        {
+          "text": "Join the angry crowd that gathers at King's bombed house",
+          "next": "kings-porch"
+        },
+        {
+          "text": "Keep walking and stay out of it",
+          "next": "stay-quiet-boycott"
+        }
+      ]
+    },
+    {
+      "id": "kings-porch",
+      "text": "You run to his street. A crowd has gathered, some men with guns and broken bottles, ready to fight back. Dr. King comes out onto the smashed porch and raises his hands. \"We cannot solve this problem through retaliatory violence,\" he says. \"We must love our white brothers.\" His voice shakes but holds. Slowly the men lower their hands. You see how hard it is to choose peace when your home has been bombed.",
+      "choices": [
+        {
+          "text": "Stay and keep the peace with the others",
+          "next": "browder-victory"
+        }
+      ]
+    },
+    {
+      "id": "stay-quiet-boycott",
+      "text": "You keep your head down and your feet moving. You do not go to the marches when you can help it. You just walk to work and walk home. But every empty bus that rolls past tells you the boycott is working without you needing to risk much. The white families you clean for grumble and stare. You say nothing. Months pass this way.",
+      "choices": [
+        {
+          "text": "Keep walking until something changes",
+          "next": "browder-victory"
+        }
+      ]
+    },
+    {
+      "id": "browder-victory",
+      "text": "It lasts 381 days. Then word comes from Washington: the Supreme Court has ruled in a case called Browder v. Gayle that segregation on Montgomery buses is unconstitutional. On a December morning Dr. King and others board a city bus and sit in the front. You climb on too. You sit by a window in a seat that was forbidden yesterday. Your hands are shaking. You won. The whole country saw Montgomery do it.",
+      "choices": [
+        {
+          "text": "Decide this is only the beginning for you",
+          "next": "years-pass"
+        },
+        {
+          "text": "Be grateful and hope it is over now",
+          "next": "years-pass"
+        }
+      ]
+    },
+    {
+      "id": "years-pass",
+      "text": "Years pass. You grow up. The movement spreads far beyond Montgomery. You hear of students sitting at lunch counters in Greensboro, North Carolina, refusing to leave when they are denied service. You hear of Freedom Riders beaten on buses through the South. In 1963 you travel to Birmingham, Alabama, where Dr. King is jailed. The city's police use fire hoses and dogs on children marching in the streets.",
+      "choices": [
+        {
+          "text": "Go to Birmingham to help the marchers",
+          "next": "birmingham"
+        }
+      ]
+    },
+    {
+      "id": "birmingham",
+      "text": "In Birmingham you stand on a sidewalk as Police Commissioner Bull Connor turns the fire hoses on. The water hits children and knocks them down the street like rag dolls. A German shepherd lunges and tears a boy's shirt. You pull a small girl out of the gutter and run with her behind a church. From the jail, Dr. King sends out a letter written in the margins of a newspaper.",
+      "choices": [
+        {
+          "text": "Read the letter passed hand to hand",
+          "next": "q-letter"
+        }
+      ]
+    },
+    {
+      "id": "q-letter",
+      "text": "A volunteer reads the smuggled pages aloud in the church basement. It is Dr. King's answer to white ministers who told him to wait and be patient. He explains why Black people cannot keep waiting for their rights. The volunteer turns to you and asks what this famous letter is called.",
+      "question": {
+        "question": "What is the name of the famous letter Martin Luther King Jr. wrote while jailed in 1963?",
+        "choices": [
+          "Letter from Birmingham Jail",
+          "The Montgomery Manifesto",
+          "Letter to the Selma Marchers",
+          "The Washington Address"
+        ],
+        "correctIndex": 0,
+        "explanation": "King wrote his 'Letter from Birmingham Jail' to explain why the fight for justice could not wait."
+      },
+      "choices": [
+        {
+          "text": "Decide the country needs to see all of this",
+          "next": "harlem-trip"
+        }
+      ]
+    },
+    {
+      "id": "harlem-trip",
+      "text": "Word spreads of a great march planned in Washington for that summer. On your way north you stop in Harlem, New York. On a busy corner a sharp-dressed man with glasses speaks to a crowd. His voice is hard and clear. He says the time for turning the other cheek is over. People call him Malcolm X. He preaches Black pride and self-defense, and he does not trust the dream of marching peacefully with white people.",
+      "choices": [
+        {
+          "text": "Stay and listen to Malcolm X argue his side",
+          "next": "malcolm-x"
+        }
+      ]
+    },
+    {
+      "id": "malcolm-x",
+      "text": "Malcolm X meets your eyes from the platform. \"We want freedom by any means necessary,\" he says. He tells the crowd that Black people have the right to defend themselves when attacked, that nonviolence asks too much of people who are beaten and killed. His words burn through you differently than King's. You think of the fire hoses in Birmingham. You see he is not wrong about the anger. You see he and King want the same freedom but reach for it with different hands.",
+      "choices": [
+        {
+          "text": "Answer the question Malcolm puts to the crowd",
+          "next": "q-malcolm"
+        }
+      ]
+    },
+    {
+      "id": "q-malcolm",
+      "text": "A young man beside you argues that Malcolm and Dr. King are enemies. Malcolm X, hearing the talk, leans down and asks you to say plainly how his way differs from King's, so you understand the real choice.",
+      "question": {
+        "question": "How did Malcolm X's approach differ from Martin Luther King Jr.'s during this time?",
+        "choices": [
+          "Malcolm X argued for Black self-defense and Black pride 'by any means necessary,' rather than only nonviolence",
+          "Malcolm X wanted Black people to stop protesting altogether",
+          "Malcolm X led the Montgomery Bus Boycott himself",
+          "Malcolm X and King agreed on every method and strategy"
+        ],
+        "correctIndex": 0,
+        "explanation": "Malcolm X emphasized Black pride and the right to self-defense by any means necessary, while King stressed nonviolence."
+      },
+      "choices": [
+        {
+          "text": "Carry both men's words with you to Washington",
+          "next": "to-washington"
+        }
+      ]
+    },
+    {
+      "id": "to-washington",
+      "text": "On August 28, 1963, you reach Washington, D.C. The buses and trains pour in all morning. More than 250,000 people fill the National Mall, Black and white together, all the way from the Washington Monument to the Lincoln Memorial. You have never seen so many people in your life. Signs ask for jobs and freedom. You stand in the heat with your feet aching, the way they ached on the long walk in Montgomery years ago.",
+      "choices": [
+        {
+          "text": "Push toward the front near the Lincoln Memorial",
+          "next": "march-front"
+        },
+        {
+          "text": "Stay back in the crowd and just take it in",
+          "next": "march-front"
+        }
+      ]
+    },
+    {
+      "id": "march-front",
+      "text": "The day is full of singers and speakers. A young leader named John Lewis speaks for the students. Then Dr. King comes to the microphone. He begins reading his prepared speech about freedom. The crowd is hushed. Behind him the gospel singer Mahalia Jackson calls out, \"Tell them about the dream, Martin!\" He pushes his pages aside.",
+      "choices": [
+        {
+          "text": "Listen as Dr. King leaves his script behind",
+          "next": "i-have-a-dream"
+        }
+      ]
+    },
+    {
+      "id": "i-have-a-dream",
+      "text": "\"I have a dream,\" Dr. King says, and the whole Mall seems to lean in. He dreams his four children will be judged not by the color of their skin but by the content of their character. His voice rolls over the crowd like thunder. Tears run down faces all around you. You think of Rosa Parks staying in her seat, of the bombed porch, of Malcolm X on his Harlem corner. All of it brought you here.",
+      "choices": [
+        {
+          "text": "Answer the question a stranger asks you in the crowd",
+          "next": "q-dream"
+        }
+      ]
+    },
+    {
+      "id": "q-dream",
+      "text": "An old man beside you wipes his eyes. He says he wants to remember this forever. He asks you to name where Dr. King is standing and what this gathering is called, so he can tell his grandchildren exactly.",
+      "question": {
+        "question": "At what event and place did Martin Luther King Jr. deliver his 'I Have a Dream' speech in 1963?",
+        "choices": [
+          "The March on Washington, at the Lincoln Memorial",
+          "The Montgomery Bus Boycott, at Holt Street Church",
+          "The Birmingham marches, at the city jail",
+          "A rally in Harlem, on a street corner"
+        ],
+        "correctIndex": 0,
+        "explanation": "King gave his 'I Have a Dream' speech at the Lincoln Memorial during the 1963 March on Washington."
+      },
+      "choices": [
+        {
+          "text": "Vow to keep working after this day ends",
+          "next": "after-march"
+        }
+      ]
+    },
+    {
+      "id": "after-march",
+      "text": "The march ends. The crowds drift away into the warm evening. But the struggle is not over. That September a bomb tears through the 16th Street Baptist Church in Birmingham and kills four little girls in their Sunday dresses. The next year Congress passes the Civil Rights Act of 1964, outlawing segregation in public places. The year after, the Voting Rights Act of 1965 protects the right to vote. Then in 1965 Malcolm X is shot dead in a Harlem ballroom.",
+      "choices": [
+        {
+          "text": "Keep marching despite the violence and loss",
+          "next": "selma"
+        },
+        {
+          "text": "Feel yourself wanting to step away from danger",
+          "next": "selma"
+        }
+      ]
+    },
+    {
+      "id": "selma",
+      "text": "In March 1965 you join the march from Selma to Montgomery for voting rights. On the Edmund Pettus Bridge, state troopers in gas masks charge the marchers with clubs and tear gas. They call it Bloody Sunday. You taste the gas. A trooper's club catches a woman beside you across the head, and she falls. You drag her up by the collar. You are choking and crying and your feet carry you back the way you came, over the bridge, alive.",
+      "choices": [
+        {
+          "text": "Stay in the movement no matter the cost",
+          "next": "memphis-1968"
+        },
+        {
+          "text": "Think hard about how much more you can give",
+          "next": "memphis-1968"
+        }
+      ]
+    },
+    {
+      "id": "memphis-1968",
+      "text": "Three years later, April 1968, you are in Memphis, Tennessee. Dr. King has come to support Black sanitation workers on strike, men who carry signs that say I AM A MAN. The night of April 3 you hear him speak. \"I've been to the mountaintop,\" he says. \"I've seen the Promised Land. I may not get there with you.\" His voice is heavy, like he knows something. The next evening, on the balcony of the Lorraine Motel, a single shot rings out.",
+      "choices": [
+        {
+          "text": "Run toward the motel",
+          "next": "lorraine"
+        }
+      ]
+    },
+    {
+      "id": "lorraine",
+      "text": "You reach the Lorraine Motel in the chaos. Dr. King lies on the balcony. People point across the street at a rooming house. Men are weeping in the parking lot. Word comes within the hour that he is gone, murdered at thirty-nine. The man whose voice filled you up in that Montgomery church when you were fifteen is dead. Across the country cities burn with grief and rage that night.",
+      "choices": [
+        {
+          "text": "Answer the question an old organizer asks you",
+          "next": "q-memphis"
+        }
+      ]
+    },
+    {
+      "id": "q-memphis",
+      "text": "An old organizer who walked Montgomery with you grips your shoulder in the parking lot. He needs you to remember why King came to Memphis at all, so the reason does not die with the man.",
+      "question": {
+        "question": "Why was Martin Luther King Jr. in Memphis in April 1968 when he was assassinated?",
+        "choices": [
+          "To support striking Black sanitation workers demanding fair treatment",
+          "To launch the Montgomery Bus Boycott",
+          "To give the 'I Have a Dream' speech",
+          "To register voters in Selma"
+        ],
+        "correctIndex": 0,
+        "explanation": "King went to Memphis to support Black sanitation workers who were on strike for dignity and fair pay."
+      },
+      "choices": [
+        {
+          "text": "Sit with everything you have lived through",
+          "next": "looking-back"
+        }
+      ]
+    },
+    {
+      "id": "looking-back",
+      "text": "Later, alone, you think back across the years. The empty buses of Montgomery. Rosa Parks staying in her seat. Dr. King at the bombed porch and on the Mall and on that balcony. Malcolm X on his Harlem corner. The fire hoses, the bridge, the four girls in the church. You were there for all of it. The laws have changed. The country has not finished changing. You carry the whole weight of it now.",
+      "choices": [
+        {
+          "text": "Carry it forward and keep the work alive",
+          "next": "end-triumphant"
+        },
+        {
+          "text": "Let the grief close you off for good",
+          "next": "end-broken"
+        },
+        {
+          "text": "Quietly fold it away and just live your life",
+          "next": "end-indifferent"
+        }
+      ]
+    },
+    {
+      "id": "end-triumphant",
+      "text": "You go home to Montgomery and you do not stop. You register voters under the new Voting Rights Act. You tell young people about Rosa Parks and Dr. King and the long walk and the bridge. Your feet still ache in the cold. But when a child asks if one person can really matter, you remember a small woman in neat gloves who would not move, and you say yes. You saw it. You were there. You carry it whole.",
+      "ending": true,
+      "endingState": "triumphant"
+    },
+    {
+      "id": "end-broken",
+      "text": "You go home, but something in you stays on that balcony in Memphis. You stop going to the meetings. The names of the dead crowd your sleep — the four girls, Malcolm, Dr. King. You did everything they asked. You walked, you marched, you bled on the bridge. When people speak of the movement now you turn away. You survived all of it. But part of you was buried with the men who led you, and it does not come back.",
+      "ending": true,
+      "endingState": "broken"
+    },
+    {
+      "id": "end-indifferent",
+      "text": "You go home and you fold the years away like an old coat. You ride the front of the bus now without thinking about it. You take a steady job and you do not talk much about Montgomery or Washington or Memphis. When a neighbor asks if you were really there for all of it, you just shrug. It was a long time ago. You lived through it. You let it go. The world moved on, and so did you.",
+      "ending": true,
+      "endingState": "indifferent"
+    }
+  ],
+  "coreSageQuestions": [
+    {
+      "passageId": "q-mlk",
+      "figure": "Martin Luther King Jr.",
+      "moment": "Holt Street Baptist Church speech launching the Montgomery Bus Boycott",
+      "question": {
+        "question": "What method did Martin Luther King Jr. tell the people of Montgomery to use in their protest?",
+        "choices": [
+          "Nonviolent resistance — protest without using violence",
+          "Armed self-defense against the police",
+          "Quietly waiting for the courts to fix the law on their own",
+          "Burning the city buses in protest"
+        ],
+        "correctIndex": 0,
+        "explanation": "Dr. King urged nonviolent resistance, asking people to protest without hate or violence."
+      }
+    },
+    {
+      "passageId": "q-letter",
+      "figure": "Martin Luther King Jr.",
+      "moment": "Jailed during the 1963 Birmingham campaign",
+      "question": {
+        "question": "What is the name of the famous letter Martin Luther King Jr. wrote while jailed in 1963?",
+        "choices": [
+          "Letter from Birmingham Jail",
+          "The Montgomery Manifesto",
+          "Letter to the Selma Marchers",
+          "The Washington Address"
+        ],
+        "correctIndex": 0,
+        "explanation": "King wrote his 'Letter from Birmingham Jail' to explain why the fight for justice could not wait."
+      }
+    },
+    {
+      "passageId": "q-malcolm",
+      "figure": "Malcolm X",
+      "moment": "Speaking on a Harlem street corner",
+      "question": {
+        "question": "How did Malcolm X's approach differ from Martin Luther King Jr.'s during this time?",
+        "choices": [
+          "Malcolm X argued for Black self-defense and Black pride 'by any means necessary,' rather than only nonviolence",
+          "Malcolm X wanted Black people to stop protesting altogether",
+          "Malcolm X led the Montgomery Bus Boycott himself",
+          "Malcolm X and King agreed on every method and strategy"
+        ],
+        "correctIndex": 0,
+        "explanation": "Malcolm X emphasized Black pride and the right to self-defense by any means necessary, while King stressed nonviolence."
+      }
+    },
+    {
+      "passageId": "q-dream",
+      "figure": "Martin Luther King Jr.",
+      "moment": "The 1963 March on Washington",
+      "question": {
+        "question": "At what event and place did Martin Luther King Jr. deliver his 'I Have a Dream' speech in 1963?",
+        "choices": [
+          "The March on Washington, at the Lincoln Memorial",
+          "The Montgomery Bus Boycott, at Holt Street Church",
+          "The Birmingham marches, at the city jail",
+          "A rally in Harlem, on a street corner"
+        ],
+        "correctIndex": 0,
+        "explanation": "King gave his 'I Have a Dream' speech at the Lincoln Memorial during the 1963 March on Washington."
+      }
+    },
+    {
+      "passageId": "q-memphis",
+      "figure": "Martin Luther King Jr.",
+      "moment": "Assassination in Memphis, 1968",
+      "question": {
+        "question": "Why was Martin Luther King Jr. in Memphis in April 1968 when he was assassinated?",
+        "choices": [
+          "To support striking Black sanitation workers demanding fair treatment",
+          "To launch the Montgomery Bus Boycott",
+          "To give the 'I Have a Dream' speech",
+          "To register voters in Selma"
+        ],
+        "correctIndex": 0,
+        "explanation": "King went to Memphis to support Black sanitation workers who were on strike for dignity and fair pay."
+      }
+    }
+  ],
+  "finalQuiz": {
+    "title": "Final Check for Understanding",
+    "instructions": "You have traveled the historical arc of the Civil Rights Movement and met its key figures. Review the questions from your encounters and the ideas this story was meant to teach. Then answer these questions.",
+    "questions": [
+      {
+        "question": "What did Rosa Parks do on the Montgomery bus in 1955 that helped start the movement?",
+        "choices": [
+          "She refused to give up her seat to a white rider and was arrested",
+          "She drove a carpool car for protesters",
+          "She gave a speech at the Lincoln Memorial",
+          "She organized the March on Washington"
+        ],
+        "correctIndex": 0,
+        "explanation": "Rosa Parks refused to give up her bus seat, and her arrest sparked the Montgomery Bus Boycott.",
+        "context": "From the opening bus ride in Montgomery."
+      },
+      {
+        "question": "How long did the Montgomery Bus Boycott last, and what ended it?",
+        "choices": [
+          "381 days, ended when the Supreme Court ruled bus segregation unconstitutional in Browder v. Gayle",
+          "One week, ended when the city lowered bus fares",
+          "Ten years, ended by the Civil Rights Act",
+          "One day, ended after a single protest march"
+        ],
+        "correctIndex": 0,
+        "explanation": "The boycott lasted 381 days and ended when the Supreme Court declared Montgomery's bus segregation unconstitutional.",
+        "context": "From the long months of walking in Montgomery."
+      },
+      {
+        "question": "What method did Martin Luther King Jr. tell the people of Montgomery to use in their protest?",
+        "choices": [
+          "Nonviolent resistance — protest without using violence",
+          "Armed self-defense against the police",
+          "Quietly waiting for the courts to act alone",
+          "Burning the city buses"
+        ],
+        "correctIndex": 0,
+        "explanation": "Dr. King urged nonviolent resistance.",
+        "context": "From the Holt Street Baptist Church meeting."
+      },
+      {
+        "question": "What is the name of the famous letter Martin Luther King Jr. wrote while jailed in 1963?",
+        "choices": [
+          "Letter from Birmingham Jail",
+          "The Montgomery Manifesto",
+          "Letter to the Selma Marchers",
+          "The Washington Address"
+        ],
+        "correctIndex": 0,
+        "explanation": "King wrote his 'Letter from Birmingham Jail' defending the urgency of justice.",
+        "context": "From the Birmingham campaign."
+      },
+      {
+        "question": "How did Malcolm X's approach to civil rights differ from Dr. King's?",
+        "choices": [
+          "Malcolm X stressed Black pride and self-defense 'by any means necessary,' not only nonviolence",
+          "Malcolm X opposed all protest",
+          "Malcolm X led the Selma march",
+          "They agreed on every strategy"
+        ],
+        "correctIndex": 0,
+        "explanation": "Malcolm X emphasized Black pride and the right to self-defense, differing from King's strict nonviolence.",
+        "context": "From the Harlem street corner."
+      },
+      {
+        "question": "At what event and place did Dr. King deliver his 'I Have a Dream' speech?",
+        "choices": [
+          "The March on Washington, at the Lincoln Memorial",
+          "The Montgomery Bus Boycott, at a church",
+          "The Birmingham jail",
+          "A Harlem rally"
+        ],
+        "correctIndex": 0,
+        "explanation": "He gave it at the Lincoln Memorial during the 1963 March on Washington.",
+        "context": "From the March on Washington."
+      },
+      {
+        "question": "What two major laws were passed in the years after the March on Washington to protect rights?",
+        "choices": [
+          "The Civil Rights Act of 1964 and the Voting Rights Act of 1965",
+          "The Montgomery Act and the Selma Act",
+          "The Birmingham Law and the Harlem Law",
+          "The Bus Law and the Lunch Counter Law"
+        ],
+        "correctIndex": 0,
+        "explanation": "The Civil Rights Act of 1964 outlawed segregation in public places, and the Voting Rights Act of 1965 protected the right to vote.",
+        "context": "From the aftermath of the march."
+      },
+      {
+        "question": "What happened on 'Bloody Sunday' during the 1965 Selma to Montgomery march?",
+        "choices": [
+          "State troopers attacked marchers with clubs and tear gas on the Edmund Pettus Bridge",
+          "The marchers were welcomed peacefully into the capital",
+          "The buses were boycotted again",
+          "Dr. King was shot on the bridge"
+        ],
+        "correctIndex": 0,
+        "explanation": "On Bloody Sunday, state troopers attacked peaceful voting-rights marchers on the Edmund Pettus Bridge.",
+        "context": "From the Selma march."
+      },
+      {
+        "question": "Why was Dr. King in Memphis in April 1968 when he was assassinated?",
+        "choices": [
+          "To support striking Black sanitation workers demanding fair treatment",
+          "To start the bus boycott",
+          "To deliver the 'I Have a Dream' speech",
+          "To register voters in Selma"
+        ],
+        "correctIndex": 0,
+        "explanation": "King went to Memphis to support striking sanitation workers carrying 'I AM A MAN' signs.",
+        "context": "From the events at the Lorraine Motel."
+      },
+      {
+        "question": "Which statement best describes the overall causes and goal of the Civil Rights Movement?",
+        "choices": [
+          "Black Americans organized to end legal segregation and gain equal rights and the vote",
+          "It was a movement to lower the cost of bus tickets only",
+          "It aimed to keep the laws of segregation in place",
+          "It was a single protest that ended in one day"
+        ],
+        "correctIndex": 0,
+        "explanation": "The movement worked to end segregation and secure equal rights and voting access for Black Americans.",
+        "context": "From the full arc of the story."
+      }
+    ]
+  }
+}

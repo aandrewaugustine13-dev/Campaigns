@@ -1,0 +1,295 @@
+{
+  "id": "the-meiji-restoration",
+  "title": "The Meiji Restoration",
+  "subtitle": "A young samurai watches the world that made him become illegal, and must choose whether to fight the future, serve it, or find a third path — only to discover the new Japan needs his sacrifice but not his kind.",
+  "introBody": "A young samurai watches the world that made him become illegal, and must choose whether to fight the future, serve it, or find a third path — only to discover the new Japan needs his sacrifice but not his kind.",
+  "trailFeedOpener": "It is April 1868. Edo Castle surrenders without a battle, and the Emperor's forces march in. Your lord has laid down his sword. Around you, samurai whisper — some with relief, some with rage. You have trained your whole life for a war that just ended before you could fight it.",
+  "isPublished": false,
+  "progressionMode": "project",
+  "productType": "narrative",
+  "totalDays": 5,
+  "daysPerTurn": 1,
+  "totalDistance": 0,
+  "distanceUnit": "",
+  "initialResources": {
+    "standing": 50
+  },
+  "resourceCaps": {
+    "standing": 100
+  },
+  "resourceLabels": {
+    "standing": "Standing"
+  },
+  "paces": [],
+  "events": [
+    {
+      "id": "beat_edofall",
+      "phase_min": 0,
+      "phase_max": 0.2,
+      "weight": 5,
+      "title": "The Castle Gates Open",
+      "text": "It is April 1868. Edo Castle surrenders without a battle, and the Emperor's forces march in. Your lord has laid down his sword. Around you, samurai whisper — some with relief, some with rage. You have trained your whole life for a war that just ended before you could fight it.",
+      "significance": "The bloodless fall of Edo removes the old order's last institutional anchor and forces every samurai to decide, individually, what loyalty now means — setting the personal stakes that will drive every choice that follows.",
+      "pinned": true,
+      "pinSeq": 0,
+      "type": "standard",
+      "choices": [
+        {
+          "text": "Swear allegiance to the new imperial government immediately.",
+          "result": "You are among the first to kneel. Officers note your name favorably, but former comrades call you a traitor before the week is out.",
+          "effects": {
+            "standing": 6
+          },
+          "endingFragment": "You bent the knee at Edo before the dust had settled, winning the new government's notice and losing men you had called brothers."
+        },
+        {
+          "text": "Slip north to join the Tokugawa loyalists still fighting in Tohoku.",
+          "result": "You march with the remnant armies, buying weeks of defiance — but the imperial forces are better supplied and the end is only delayed.",
+          "effects": {
+            "standing": -4
+          },
+          "endingFragment": "You marched north with the loyalists, buying a few weeks of defiance against an outcome that was already written."
+        },
+        {
+          "text": "Return home and wait — watch before choosing a side.",
+          "result": "You withdraw to your domain and observe. The pause costs you political connections but gives you time to understand what the new order actually wants.",
+          "effects": {
+            "standing": 1
+          },
+          "endingFragment": "You went home and waited, neither traitor nor rebel, watching the shape of the new Japan before committing yourself to it."
+        }
+      ]
+    },
+    {
+      "id": "beat_stipendcut",
+      "phase_min": 0.2,
+      "phase_max": 0.4,
+      "weight": 5,
+      "title": "The Rice Stipend Ends",
+      "text": "1876. A government decree arrives: hereditary samurai stipends are to be mandatorily commuted — converted into lump-sum bonds and then simply stopped. The government had offered voluntary commutation since 1873, but now the choice is gone. Your family's income, promised for generations, is being cancelled by a stroke of a bureaucrat's pen. Without the stipend, the sword is the only thing you own that still marks you as samurai.",
+      "significance": "Stripping the stipend cuts the economic ground from under the samurai class and transforms an abstract political change into a daily material crisis, raising the personal stakes from identity to survival.",
+      "pinned": true,
+      "pinSeq": 1,
+      "type": "standard",
+      "choices": [
+        {
+          "text": "Use the bond payment to open a small business or farming operation.",
+          "result": "The bond is worth far less than the stipend over time. You struggle, but you build something that is genuinely yours — and learn how the new economy works from the inside.",
+          "effects": {
+            "standing": 2
+          },
+          "endingFragment": "You traded your stipend bond for a merchant's apron, losing status but learning what the new Japan was actually built from."
+        },
+        {
+          "text": "Petition local officials to restore warrior privileges and resist the commutation.",
+          "result": "Your petition is acknowledged and filed away. The government does not reverse course; your protest earns you a reputation as a troublemaker on official lists.",
+          "effects": {
+            "standing": -5
+          },
+          "endingFragment": "You petitioned and protested the commutation, and the government heard you out and changed nothing, marking your name in the process."
+        },
+        {
+          "text": "Apply for a commission in the new conscript army, putting your skills in the state's service.",
+          "result": "You are accepted as a low-ranking officer — your sword training valued just enough to be useful, but conscript farmers outrank you in the new structure's logic.",
+          "effects": {
+            "standing": 4
+          },
+          "endingFragment": "You enlisted in the conscript army, turning a warrior's training into a bureaucratic rank, useful to the state on the state's terms."
+        }
+      ]
+    },
+    {
+      "id": "beat_swordedict",
+      "phase_min": 0.4,
+      "phase_max": 0.6,
+      "weight": 5,
+      "title": "The Haitōrei Decree",
+      "text": "1876. The Haitōrei — the sword-abolition edict — is posted in every town. It is now illegal to wear a sword in public. You stand in the street holding yours, the lacquered scabbard warm in your hand. A police officer — a commoner, in a Western-cut uniform — watches to see what you do.",
+      "significance": "The sword ban converts the samurai's visible identity into a criminal act, making the confrontation between old and new Japan not philosophical but immediate and physical, forcing a choice with legal consequences.",
+      "pinned": true,
+      "pinSeq": 2,
+      "type": "standard",
+      "choices": [
+        {
+          "text": "Sheath the sword, bow to the officer, and walk home to lock it away.",
+          "result": "You comply. The officer nods. That night you wrap the blade in silk and place it in a chest — still yours, but invisible, which is almost the same as gone.",
+          "effects": {
+            "standing": 3
+          },
+          "endingFragment": "You wrapped your sword in silk and locked it in a chest the day the edict was posted, choosing survival over the last visible mark of who you had been."
+        },
+        {
+          "text": "Refuse publicly and dare the officer to enforce the law.",
+          "result": "You are arrested. The charge is minor but the record follows you. In the holding cell you meet a dozen other samurai who made the same choice — and a government agent who is quietly cataloguing all of you.",
+          "effects": {
+            "standing": -7
+          },
+          "endingFragment": "You refused to sheathe your sword in public and were arrested for it, discovering that defiance had become a bureaucratic category as much as a moral one."
+        },
+        {
+          "text": "Surrender the sword formally as a gift to the local shrine, framing it as an act of honor.",
+          "result": "The gesture draws admiration from elders and a news-sheet reporter. You have found a way to obey the edict and still claim dignity — but the sword is gone all the same.",
+          "effects": {
+            "standing": 5
+          },
+          "endingFragment": "You gave your sword to the shrine with a ceremony, turning an act of surrender into a story about honor — and the sword was gone either way."
+        }
+      ]
+    },
+    {
+      "id": "beat_satsuma",
+      "phase_min": 0.6,
+      "phase_max": 0.8,
+      "weight": 5,
+      "title": "Satsuma's Last Stand",
+      "text": "February 1877. Saigō Takamori has raised his army in Satsuma, and the rebellion is real. Messengers reach you with an offer: join the last samurai uprising against the Meiji state. In Kumamoto, conscript soldiers in Western-drilled formations are already dug in. This is not a skirmish — it is the question of what Japan will be, and it is asking you directly.",
+      "significance": "The Satsuma Rebellion is the historical hinge on which the samurai era actually closes — a real war fought by real people over the exact conflict this story has been building toward, and the player's choice here determines not just their fate but which version of Japan they helped make.",
+      "pinned": true,
+      "pinSeq": 3,
+      "type": "standard",
+      "choices": [
+        {
+          "text": "Join Saigō's army — fight for the old Japan even knowing you will likely lose.",
+          "result": "You march under the Satsuma banner. The conscript army's rifles are devastating. You survive Kumamoto but the cause does not; Saigō dies at Shiroyama and takes the rebellion's meaning with him.",
+          "effects": {
+            "standing": -8
+          },
+          "endingFragment": "You marched with Saigō and fought at Kumamoto, and when he died at Shiroyama you were among the last samurai to lay down arms in a Japan that no longer had a place for what you were."
+        },
+        {
+          "text": "Fight for the Meiji government — take the field against your own class to prove your loyalty.",
+          "result": "You are assigned to a conscript unit as an officer. You defeat samurai you once trained beside. The government wins decisively, and you are decorated — but the honor feels hollow in a way you cannot explain to anyone.",
+          "effects": {
+            "standing": 7
+          },
+          "endingFragment": "You put on the Meiji uniform and fought against Satsuma, winning a commendation and a hollow feeling that no medal's citation ever named."
+        },
+        {
+          "text": "Refuse both sides — carry dispatches for a civilian relief effort instead.",
+          "result": "You are not a soldier and not a rebel. You are something the new Japan hasn't named yet. Both sides distrust you; survivors on both sides remember your help. The battle decides the country's future without you.",
+          "effects": {
+            "standing": -2
+          },
+          "endingFragment": "You refused both armies and carried water and messages for the wounded instead, and the battle that decided Japan's future happened entirely without your sword."
+        }
+      ]
+    },
+    {
+      "id": "beat_aftermath",
+      "phase_min": 0.8,
+      "phase_max": 1,
+      "weight": 5,
+      "title": "The New Japan, Without You",
+      "text": "1890. The Imperial Diet meets for the first time. Steam trains run from Tokyo to Kobe. Factories hum. Boys your age — born the year you locked your sword away — are being drafted into an army that beat China and will soon challenge Russia. Japan has become what the Meiji oligarchs promised. You are forty years old and the world you trained for does not exist anywhere anymore.",
+      "significance": "The resolution shows the completed transformation — a modern industrial Japan that succeeded on its own terms — and makes visible the cost buried inside that success: the class of people who were consumed to build it.",
+      "pinned": true,
+      "pinSeq": 4,
+      "type": "standard",
+      "choices": [
+        {
+          "text": "Go on."
+        }
+      ]
+    }
+  ],
+  "sages": [],
+  "route": [],
+  "eventTrivia": [
+    {
+      "id": "edo-castle-fall",
+      "question": "In April 1868, what happened when the Emperor's forces reached Edo Castle?",
+      "choices": [
+        "It was destroyed in a long siege",
+        "It surrendered without a battle",
+        "The shogun escaped by sea",
+        "Foreign troops captured it"
+      ],
+      "correctIndex": 1,
+      "fact": "Edo Castle surrendered without a battle in April 1868, removing the shogunate's last stronghold and marking a peaceful end to the old order's control of Japan."
+    },
+    {
+      "id": "stipend-commutation",
+      "question": "What did the 1876 Chitsuroku Shobun do to samurai stipends?",
+      "choices": [
+        "It doubled the payments to ease the transition",
+        "It mandatorily converted them into lump-sum bonds and then stopped them",
+        "It replaced them with free land grants",
+        "It kept them only for samurai who joined the new army"
+      ],
+      "correctIndex": 1,
+      "fact": "The 1876 Chitsuroku Shobun mandatorily commuted hereditary samurai stipends — converting them into lump-sum bonds and then ending the payments entirely — cutting off the economic foundation the samurai class had relied on for generations. A voluntary commutation program had existed since 1873, but the 1876 decree made it compulsory."
+    },
+    {
+      "id": "haitorei-decree",
+      "question": "What did the Haitōrei decree of 1876 make illegal?",
+      "choices": [
+        "Wearing a sword in public",
+        "Owning farmland as a samurai",
+        "Teaching traditional sword-fighting schools",
+        "Using a samurai family name"
+      ],
+      "correctIndex": 0,
+      "fact": "The Haitōrei decree, posted in 1876, made it illegal to wear a sword in public, stripping samurai of their most visible symbol of identity and status."
+    },
+    {
+      "id": "satsuma-rebellion-leader",
+      "question": "Who led the Satsuma Rebellion against the Meiji government in 1877?",
+      "choices": [
+        "Emperor Meiji",
+        "Okubo Toshimichi",
+        "Saigō Takamori",
+        "Tokugawa Yoshinobu"
+      ],
+      "correctIndex": 2,
+      "fact": "Saigō Takamori raised his army in Satsuma and led the 1877 rebellion, which became the last major samurai uprising against the Meiji state."
+    },
+    {
+      "id": "satsuma-army-type",
+      "question": "What kind of soldiers defended the Meiji government at Kumamoto during the Satsuma Rebellion?",
+      "choices": [
+        "Hired foreign mercenaries",
+        "Loyalist samurai from Edo",
+        "Western-drilled conscript soldiers",
+        "A volunteer militia of merchants"
+      ],
+      "correctIndex": 2,
+      "fact": "The Meiji government's forces at Kumamoto were conscript soldiers trained in Western-drilled formations — ordinary citizens, not hereditary warriors — and their victory proved the new army could defeat the old samurai class."
+    },
+    {
+      "id": "meiji-modern-achievements",
+      "question": "By 1890, which of the following best shows how much Japan had changed under the Meiji government?",
+      "choices": [
+        "The Emperor had restored the shogunate under a new name",
+        "The Imperial Diet met, steam trains ran from Tokyo to Kobe, and factories were operating",
+        "Japan had closed its ports again to protect traditional culture",
+        "Samurai were given new government roles to honor their service"
+      ],
+      "correctIndex": 1,
+      "fact": "By 1890, Japan's transformation was complete: the Imperial Diet met for the first time, steam trains ran from Tokyo to Kobe, and factories were humming — signs of a modern industrial nation built in just over two decades."
+    }
+  ],
+  "trailPath": [],
+  "trailStops": [],
+  "mapImage": "",
+  "outfitConfig": {
+    "budget": 0,
+    "baseCrew": 0,
+    "baseHorses": 0,
+    "baseSupplies": 0,
+    "costs": {},
+    "wageCosts": {},
+    "wageMorale": {},
+    "herdOptions": []
+  },
+  "primaryResourceKey": "standing",
+  "primaryResourceStart": 50,
+  "revenuePerUnit": 0,
+  "historicalContext": "The Meiji Restoration delivered exactly what it promised — a Japan that could stand equal to Western empires — but it did so by erasing the people who built it. The samurai class was not destroyed by foreign conquest; it was abolished by a Japanese government staffed, in many cases, by samurai themselves. The irony is not that tradition lost to modernity, but that tradition was the instrument of its own undoing, wielded by men who genuinely believed they were honoring the old Japan by killing it. What emerged was a nation armored in borrowed Western forms and ancient imperial myth at once, powerful enough to win wars abroad and fragile enough to be undone by the contradictions it never resolved.",
+  "pixelColors": {},
+  "pixelFaces": {},
+  "reviewSummary": "In April 1868, the Meiji Restoration began with a dramatic but peaceful moment: Edo Castle surrendered without a battle, and the Emperor's forces marched in. This ended the Tokugawa shogunate — the military government that had ruled Japan for over 250 years — and placed power back in the hands of Emperor Meiji and his advisors, known as the Meiji oligarchs. For samurai across Japan, it was the first sign that the world they had trained for was disappearing.\n\nThe new government moved quickly to dismantle the old order. In 1876, the Chitsuroku Shobun mandatorily commuted hereditary samurai stipends — converting them into lump-sum bonds and then stopping the payments entirely. A voluntary commutation option had existed since 1873, but the 1876 measure made it compulsory. Families who had depended on that income for generations were suddenly left without support. Then in 1876, the Haitōrei decree made it illegal to wear a sword in public, stripping samurai of their most visible symbol of identity and status. A commoner police officer in a Western-cut uniform now had the authority to enforce that law.\n\nNot everyone accepted these changes quietly. In February 1877, Saigō Takamori raised his army in Satsuma and launched the Satsuma Rebellion — the last major samurai uprising against the Meiji state. At Kumamoto, his forces met Western-drilled conscript soldiers fighting for the new government. The conscripts won. The rebellion's defeat made clear that the age of the samurai was truly over.\n\nBy 1890, Japan had transformed itself into a modern industrial power. The Imperial Diet met for the first time, steam trains ran from Tokyo to Kobe, and factories were humming with production. Young men were being drafted into a professional army that would soon defeat China and challenge Russia. Japan had gained industry, military strength, and a constitutional government — but the samurai class that once defined Japanese society had been consumed to build it.",
+  "storyMeaning": "The Meiji Restoration delivered exactly what it promised — a Japan that could stand equal to Western empires — but it did so by erasing the people who built it. The samurai class was not destroyed by foreign conquest; it was abolished by a Japanese government staffed, in many cases, by samurai themselves. The irony is not that tradition lost to modernity, but that tradition was the instrument of its own undoing, wielded by men who genuinely believed they were honoring the old Japan by killing it. What emerged was a nation armored in borrowed Western forms and ancient imperial myth at once, powerful enough to win wars abroad and fragile enough to be undone by the contradictions it never resolved.",
+  "endingFrame": {
+    "coda": "The Meiji Restoration delivered exactly what it promised — a Japan that could stand equal to Western empires — but it did so by erasing the people who built it. The samurai class was not destroyed by foreign conquest; it was abolished by a Japanese government staffed, in many cases, by samurai themselves. The irony is not that tradition lost to modernity, but that tradition was the instrument of its own undoing, wielded by men who genuinely believed they were honoring the old Japan by killing it. What emerged was a nation armored in borrowed Western forms and ancient imperial myth at once, powerful enough to win wars abroad and fragile enough to be undone by the contradictions it never resolved."
+  }
+}

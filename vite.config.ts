@@ -215,6 +215,254 @@ function generatorApiPlugin(): Plugin {
         );
         return { data, findings };
       });
+
+      // The narrative-spine plan: an ordered arc of beats + the meaning the
+      // story lands on. Takes { standard, topic, campaignType, progressionMode,
+      // perspective } and returns { data, findings }. The teacher reviews/edits
+      // the beats (include/exclude) before the confirmed plan is locked into the
+      // generate payload as `storyPlan`; core.ts compiles its included beats
+      // into pinned events and sets storyMeaning.
+      jsonPost(server, '/api/storyplan', async (apiKey, inputs) => {
+        const { generateStoryPlan } = await import('./generator/storyPlanGen.ts');
+        const { data, findings } = await generateStoryPlan(String(inputs.standard ?? ''), apiKey, {
+          topic: inputs.topic ? String(inputs.topic) : undefined,
+          perspective: inputs.perspective ? String(inputs.perspective) : undefined,
+          campaignType: inputs.campaignType === 'character' || inputs.campaignType === 'systems' ? inputs.campaignType : undefined,
+          progressionMode: inputs.progressionMode === 'journey' || inputs.progressionMode === 'project' ? inputs.progressionMode : undefined,
+        });
+        return { data, findings };
+      });
+
+      // BRANCHING-STORY preview: the teacher's cheap CONFIDENCE GATE. Takes
+      // { topic, standard, mustCover? } and returns { data, findings } — a short
+      // summary + a TEKS coverage checklist on a cheap/fast model, WITHOUT writing
+      // the (expensive) story. The teacher iterates on inputs here before paying
+      // for a full generateBranchingStory.
+      jsonPost(server, '/api/story-preview', async (apiKey, inputs) => {
+        const { generateStoryPreview } = await import('./generator/storyPreviewGen.ts');
+        const { data, findings } = await generateStoryPreview({
+          topic: String(inputs.topic ?? ''),
+          standard: String(inputs.standard ?? ''),
+          mustCover: inputs.mustCover ? String(inputs.mustCover) : undefined,
+        }, apiKey);
+        return { data, findings };
+      });
+
+      // Full branching story generation (the real Product 2 story engine).
+      // Returns the BranchingGenResult shape: { ok, story?, validation, attempts, raw }.
+      // Uses the same robust generate + validate + repair loop as the CLI.
+      jsonPost(server, '/api/branching', async (apiKey, inputs) => {
+        const { generateBranchingStory } = await import('./generator/branchingStoryGen.ts');
+        const result = await generateBranchingStory({
+          topic: String(inputs.topic ?? ''),
+          standard: String(inputs.standard ?? inputs.grade ?? ''),
+          mustCover: inputs.mustCover ? String(inputs.mustCover) : undefined,
+          contentMaturity: inputs.contentMaturity ? String(inputs.contentMaturity) : undefined,
+          proseRegister: inputs.proseRegister ? String(inputs.proseRegister) : undefined,
+          scope: inputs.scope === "depth" ? "depth" : inputs.scope === "span" ? "span" : undefined,
+          gumpIntensity: inputs.gumpIntensity === "high" ? "high" : inputs.gumpIntensity === "off" ? "off" : undefined,
+          teks: Array.isArray(inputs.teks) ? inputs.teks.map(String) : undefined,
+        }, apiKey);
+        return result;
+      });
+
+      // Image search for the branching review/curate screen.
+      // Reuses the project's real searchCommonsFileRanked (token scoring,
+      // license filter, relevance) so results are high-quality historical images
+      // (lithographs, paintings, engravings, location photos) rather than stock.
+      // The topic (story context) is always the primary signal.
+      // Returns { images: [...] } — top relevant matches.
+      server.middlewares.use('/api/branching-images', async (req, res) => {
+        const send = (status, payload) => {
+          res.statusCode = status;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify(payload));
+        };
+        if (req.method !== 'POST') return send(405, { error: 'Method not allowed' });
+
+        let body = '';
+        for await (const chunk of req) body += chunk;
+        let inputs = {};
+        try {
+          inputs = body ? JSON.parse(body) : {};
+        } catch {
+          return send(400, { error: 'Invalid JSON' });
+        }
+
+        try {
+          const { searchCommonsFileRanked, searchViaArticlePageimage } = await import('./generator/wikimedia.ts');
+
+          // The REAL historical subject — the teacher's topic/standard from the
+          // gate — is the query source. The story's own title/protagonist are
+          // FICTION: a first-person prose blob returns ZERO Commons hits (no
+          // searchable nouns). `text` is the current passage, used ONLY to pull
+          // real place/event nouns, never as the base.
+          const topic = String(inputs.topic || inputs.title || '').trim();
+          const standard = String(inputs.standard || '').trim();
+          const text = String(inputs.text || inputs.passage || inputs.passageText || '').trim();
+
+          // Strip a leading "TEKS … —" code prefix so the standard contributes
+          // real nouns, not catalog cruft. NOTE: do NOT strip bare numbers — a
+          // 4-digit YEAR (1812, 1868, 1935) is the most important anchor; only the
+          // code prefix is removed.
+          const standardNouns = standard
+            .replace(/\bTEKS\b[^—:-]*[—:-]?/i, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+          const base = topic;
+          if (!base && !standardNouns && !text) return send(200, { images: [] });
+
+          // Query list. PRIMARY = per-passage real-noun queries from Claude, so
+          // each beat gets DIFFERENT subject nouns (the constant topic base
+          // returned the SAME images every beat). Topic/standard are kept ONLY as
+          // a constant fallback at the end, so results are never empty.
+          const queries: string[] = [];
+
+          // (1) PER-PASSAGE (Claude): 2–4 real-noun queries about what THIS beat
+          // depicts. Best-effort — missing key / error falls through to (3).
+          const anthropicKey = process.env.ANTHROPIC_API_KEY;
+          if (anthropicKey && text && (topic || standardNouns)) {
+            try {
+              const { generatePassageQueries } = await import('./generator/eraBrief.ts');
+              const pq = await generatePassageQueries(topic, standard, text, anthropicKey);
+              for (const q of pq) if (q && q.trim()) queries.push(q.trim());
+            } catch {
+              console.warn('[branching-images] passage-query generation failed; using topic fallback');
+            }
+          }
+
+          // (2) Deterministic per-passage signal: a real place/event named in the
+          // prose (e.g. "Fort McHenry"), anchored to the real subject.
+          const anchor = base || standardNouns;
+          if (text && anchor) {
+            const locMatch = text.match(/\b(Fort|Battle of|Siege of|Port of|Harbor)\s+([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,2})/);
+            if (locMatch) {
+              const place = `${locMatch[1]} ${locMatch[2]}`.trim();
+              queries.push(place);
+              queries.push(`${place} ${anchor}`);
+            }
+          }
+
+          // (3) CONSTANT fallback (topic + standard) — LAST, so it only fills in
+          // when the per-passage queries are thin. These repeat across passages.
+          if (base) {
+            queries.push(base);
+            queries.push(`${base} historical`);
+            queries.push(`${base} painting`);
+          }
+          if (standardNouns && standardNouns.toLowerCase() !== base.toLowerCase()) {
+            queries.push(standardNouns);
+          }
+
+          const seen = new Set();
+          let images = [];
+
+          for (const q of queries) {
+            if (!q || q.length < 3) continue;
+
+            // Wikipedia article lead first — best chance for the "right" historical painting/lithograph of the event or location
+            try {
+              const lead = await searchViaArticlePageimage(q);
+              if (lead && !seen.has(lead.thumbUrl)) {
+                seen.add(lead.thumbUrl);
+                images.push({
+                  ...lead,
+                  label: q.length > 55 ? q.slice(0, 52) + '...' : q,
+                });
+              }
+            } catch {}
+
+            // Full ranked Commons search
+            const pool = await searchCommonsFileRanked(q, null);
+            for (const img of pool) {
+              if (!seen.has(img.thumbUrl)) {
+                seen.add(img.thumbUrl);
+                images.push({
+                  ...img,
+                  label: q.length > 55 ? q.slice(0, 52) + '...' : q,
+                });
+              }
+            }
+
+            if (images.length >= 5) break;
+          }
+
+          if (images.length === 0 && base) {
+            // Absolute last resort — just the campaign title/context
+            try {
+              const lead = await searchViaArticlePageimage(base);
+              if (lead && !seen.has(lead.thumbUrl)) {
+                seen.add(lead.thumbUrl);
+                images.push({ ...lead, label: base });
+              }
+            } catch {}
+            const pool = await searchCommonsFileRanked(base, null);
+            for (const img of pool) {
+              if (!seen.has(img.thumbUrl)) {
+                seen.add(img.thumbUrl);
+                images.push({ ...img, label: base });
+              }
+            }
+          }
+
+          send(200, { images: images.slice(0, 5) });
+        } catch (e) {
+          console.error('[branching-images] error', e);
+          send(200, { images: [] }); // never break the UI
+        }
+      });
+
+      // GEMINI ILLUSTRATION GENERATION — the AI image lane (SEPARATE provider,
+      // SEPARATE key). Takes { topic, scene, era? } and returns { image } (a
+      // candidate for the same review picker) or { image: null }. A failure
+      // (missing GEMINI_API_KEY, provider down, refusal) NEVER throws — it falls
+      // back to null so the teacher keeps text-only. Claude/factGate are untouched.
+      // AI-LABELING baked in: artist + license mark it as a synthesized picture,
+      // never a historical source, so it reaches a kid honestly labeled.
+      server.middlewares.use('/api/branching-image-gen', async (req, res) => {
+        const send = (status: number, payload: unknown) => {
+          res.statusCode = status;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify(payload));
+        };
+        if (req.method !== 'POST') return send(405, { error: 'Method not allowed' });
+
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) return send(200, { image: null, error: 'GEMINI_API_KEY not configured in .env.local' });
+
+        let body = '';
+        for await (const chunk of req) body += chunk;
+        let inputs: any = {};
+        try { inputs = body ? JSON.parse(body) : {}; } catch { return send(400, { error: 'Invalid JSON' }); }
+
+        try {
+          const { generateIllustration } = await import('./generator/imageGen.ts');
+          const result = await generateIllustration({
+            topic: String(inputs.topic ?? ''),
+            scene: String(inputs.scene ?? inputs.text ?? inputs.passageText ?? ''),
+            era: inputs.era ? String(inputs.era) : undefined,
+          }, apiKey);
+          if (!result) return send(200, { image: null, error: 'generation failed (see server log) — text-only fallback' });
+          console.log(`[image-gen] ok: ${result.model} ${result.ms}ms ~${result.bytes} bytes`);
+          send(200, {
+            image: {
+              thumbUrl: result.dataUrl,
+              label: '✨ AI-generated illustration',
+              artist: 'AI-generated (Gemini 2.5 Flash Image)',
+              license: 'AI-generated illustration — not a historical source',
+              aiGenerated: true,
+              prompt: result.prompt,
+              model: result.model,
+              ms: result.ms,
+              bytes: result.bytes,
+            },
+          });
+        } catch (e) {
+          console.error('[image-gen] error', e);
+          send(200, { image: null, error: 'text-only fallback' }); // never break the UI
+        }
+      });
     },
   };
 }
