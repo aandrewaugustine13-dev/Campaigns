@@ -17,8 +17,19 @@ function jsonPost(
     const send = (status: number, payload: unknown) => {
       res.statusCode = status;
       res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Access-Control-Allow-Origin', '*');
       res.end(JSON.stringify(payload));
     };
+
+    // Handle CORS preflight so POST works from browser (both dev and Cloudflare Pages)
+    if (req.method === 'OPTIONS') {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      res.statusCode = 204;
+      res.end();
+      return;
+    }
 
     if (req.method !== 'POST') return send(405, { error: 'Method not allowed' });
 
