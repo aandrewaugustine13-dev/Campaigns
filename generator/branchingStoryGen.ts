@@ -49,22 +49,34 @@ BRANCHING — STANCE, not route:
   - "broken": they survive, but pay a heavy price — something in them or their world is lost for good.
 
 SHAPE AND SIZE:
-- The story's SCOPE is set in the instructions below ("span" or "depth") — it governs the length and the shape; follow it. Either way, every passage must earn its place: TRIM anything that does not carry the story or the feeling. Never pad, never repeat, never stall.
+- The story's SCOPE is set in the instructions below ("span" or "depth") — it governs the length and the shape; follow it.
+- When SCOPE is "span" (the default, and especially when gumpIntensity="high"), the story MUST span the FULL historical arc of the topic: begin with the conditions or early events that set the story in motion, follow the protagonist through multiple distinct phases, locations, and periods of time, through all major developments, to the resolution and the aftermath. Do NOT collapse the story into a single location, a single day, or a short timeframe. The protagonist's personal journey must traverse the breadth of the history.
+- Aim for substantial, rich narratives: for a "span" story (especially with gump high), target roughly 30-50 passages to give the full arc, multiple encounters, and emotional depth room to breathe. Each passage 3-6 flowing sentences. Do not make short, quick, or compressed stories — the playthrough should feel like a meaningful journey.
+- For "depth": compress to one intense moment but still allow enough branching and encounters for substance (15-30 passages).
+- Every passage must earn its place; do not pad or repeat, but do not trim the scope or length below what is needed for a full, immersive arc and significant Gump encounters.
 - NO game machinery of any kind: no numbers, no health, no scores, no day counts, no inventory, no stats. Only story and choices.
 
 GUMP INTENSITY AND FIGURE ENCOUNTERS + SAGE-STYLE QUESTIONS (HIGHEST PRIORITY WHEN HIGH — READ THIS FIRST AND PLAN AROUND IT):
 
 This is the most important rule for GUMP=HIGH. Follow exactly. Do NOT treat questions as optional add-ons.
 
-PRE-PLANNING STEP (do this in your mind before writing the story):
-- Identify 5–7 MOST IMPORTANT historical figures and turning-point moments for the topic (the ones a student MUST understand).
-- These will be your "sage moments".
-- Structure the story's MAIN SPINE (the mostly-linear path the protagonist follows across the arc) so that these key sage moments are ENCOUNTERED ON THE SPINE, with branches for stance/choice that CONVERGE BACK to the spine before or after each key moment. This guarantees reliable content coverage — no matter which choices the player makes at load-bearing points, they will hit the core historical material via the sage questions.
-- Do not hide key content only on obscure branches.
+WHEN GUMP INTENSITY IS "HIGH":
+- The protagonist MUST have MULTIPLE (at least 5-7) meaningful, historically improbable but narratively significant encounters with major historical figures AND turning-point events.
+- These encounters must be spaced across the FULL historical arc — early, middle, and late phases — so the protagonist personally witnesses or interacts with key people and moments as the history unfolds over time and places.
+- Each encounter should feel EDUCATIONAL and WEIGHTY: the protagonist's presence allows them to observe or participate in a way that illuminates the figure's role, the event's significance, the human stakes, or the historical context. Make them memorable teaching moments without lecturing.
+- Do not cluster all encounters in one place or time; the Gump device should help the protagonist "travel" the breadth of the story.
 
-FOR EACH SAGE MOMENT (when GUMP=HIGH):
-- Create a distinct "sage question moment" passage for the major figure or turning point.
-- The passage text should feel like a special encounter: the protagonist comes face-to-face with the real figure or is present at the exact turning point. Write it in a way that gives the moment weight — the figure "speaks to the moment" or the event "poses the question to history". Make it feel like the original sage encounters: educational, coming from the historical context/figure, not just a random trivia.
+PRE-PLANNING STEP (MANDATORY — do this in your mind before writing the story):
+- First, mentally map the COMPLETE historical ARC of the topic: the sequence of major phases, locations, time periods, and key developments from the inciting conditions through the main events to the resolution and aftermath.
+- Then identify 6–8 MOST IMPORTANT historical figures and turning-point moments for the topic (the ones a student MUST understand to grasp the history).
+- These will be your "sage moments" / Gump encounters.
+- Structure the story's MAIN SPINE (the mostly-linear path the protagonist follows across the FULL arc) so that these key sage moments are ENCOUNTERED ON THE SPINE at appropriate points in the chronology and geography, with branches for stance/choice that CONVERGE BACK to the spine before or after each key moment. This guarantees reliable content coverage across paths and ensures the story spans the arc.
+- Do not hide key content only on obscure branches. The spine itself must carry the protagonist through the breadth of the history.
+
+FOR EACH SAGE MOMENT / GUMP ENCOUNTER (when GUMP=HIGH):
+- Create a distinct "sage question moment" passage for each of the major figures or turning points.
+- The passage text should feel like a special, memorable encounter: the protagonist (improbably but fittingly) comes face-to-face with the real historical figure or is present at the exact turning-point event. Write it with weight and educational value — the figure's presence or the event "speaks" to the protagonist and the reader about its significance in the larger history. Make these feel like the original sage encounters: meaningful, character-driven, and illuminating.
+- These encounters must be integrated into the protagonist's journey ACROSS the full arc — do not put them all at the beginning or end.
 - EVERY such sage passage MUST contain EXACTLY ONE high-quality MCQ question.
 - The question tests REAL, meaningful historical understanding of THAT specific figure or moment (not generic).
 - Question format EXACT:
@@ -77,24 +89,29 @@ FOR EACH SAGE MOMENT (when GUMP=HIGH):
 - 4 choices, one clearly correct, three good but wrong distractors.
 - Sage question moments are distinct: the question is presented as part of a reflective/sage-like moment with the figure/event.
 - Regular story passages NEVER get a question. Only these planned sage encounters do. Exactly one per major encounter.
+- Each encounter should advance both the personal story and the historical understanding.
 
 COVERAGE RULE:
-- The key sage questions must cover the most important material for the topic/standard.
+- The key sage questions (and the story spine) must cover the most important material for the topic/standard.
+- The spine MUST carry the protagonist through the full arc so that the encounters are experienced as part of the unfolding history.
 - Because of spine + convergence, players on different paths will still encounter most or all core sage questions.
 
 FINAL QUIZ / EXAM:
-- At the end of the story (before or leading into the three endings), include logic for a final assessment.
+- At the end of the story (before or leading into the three endings), include a final comprehension check / quiz for understanding. Aim for 8–10 questions total.
+- The final quiz MUST pull questions from two sources:
+  1. The questions that were asked by historical figures during the story (the sage-style questions on the passages).
+  2. Additional questions based on the selected TEKS standards (if provided in inputs.teks). Create questions that test understanding of those standards, grounded in what the story covered.
 - In the JSON, also output at the top level:
-  "coreSageQuestions": [ array of the 5-7 planned ones, each with passageId, figure, moment, and the full question object ]
+  "coreSageQuestions": [ array of the planned sage questions, each with passageId, figure, moment, and the full question object ]
   "finalQuiz": {
-    "title": "Final Exam: What You Learned on the Journey",
-    "instructions": "Review the key moments and questions from the historical figures you encountered. Then answer these questions to check your understanding.",
-    "questions": [ the list of core questions, optionally with "context" summary of the moment ]
+    "title": "Final Check for Understanding",
+    "instructions": "You have traveled the historical arc and met key figures. Review the questions from your encounters and the standards this story was meant to teach. Then answer these questions.",
+    "questions": [ 8-10 questions total, mixing the in-story sage questions (with context) and new ones tied to the TEKS standards. Each with question, choices, correctIndex, explanation. ]
   }
-- The final quiz pulls directly from the sage-style questions the player would have encountered.
-- Make sure the story gives a sense of review opportunity before the assessment (e.g. a passage that reflects on the journey and the figures met).
+- Make sure the story includes a passage near the end that reflects on the journey and the figures met, giving a natural review opportunity before the final quiz.
+- The questions must be meaningful multiple-choice, tied to real history and the story events. No trivial facts.
 
-This replicates the original sage + final exam: distinct educational moments with figures, reliable coverage of core history via questions, and a culminating quiz for understanding.
+This brings back the legacy "sage questions asked by figures during the story + final comprehension check at the end" experience, now adapted to the branching engine and pulling from both encounters and the teacher's selected TEKS.
 
 OUTPUT SHAPE (TypeScript for reference — output JSON only):
 interface Choice { text: string; next: string; }   // next = the id of the passage this choice leads to
@@ -143,6 +160,10 @@ export interface BranchingInputs {
    * wants "off", or the device manufactures forced, fabrication-prone encounters.
    * Defaults to "off". */
   gumpIntensity?: "high" | "off";
+  /** Selected TEKS codes from the teacher (e.g. ["8.4(A)", "113.41(c)(11)(A)"]).
+   * The final quiz should test understanding of these standards in addition to
+   * the figure questions encountered in the story. */
+  teks?: string[];
 }
 
 export interface BranchingGenResult {
@@ -194,12 +215,14 @@ ${maturityBlock}
 ${registerBlock}`;
 
   // SCOPE — the "Gump toggle", threaded like the audience dials. Default span.
-  const scope = inputs.scope === "depth" ? "depth" : "span";
+  // When gumpIntensity is high, always treat as full span to support multiple encounters across the arc.
+  const forceSpan = inputs.gumpIntensity === "high";
+  const scope = forceSpan ? "span" : (inputs.scope === "depth" ? "depth" : "span");
   const scopeBlock = scope === "span"
     ? `
-SCOPE — SPAN (carry the participant across the WHOLE arc): follow the event through its real phases, places, and the passage of time — from the start through to the aftermath, NOT one day or one battle. Build a mostly-linear, noun-dense SPINE of those real phases in order. Place about THREE LOAD-BEARING stance choices at the hardest moments: the early ones converge back to the spine (the lean is carried in the prose), and the FINAL one forks to the three tagged endings. The three endings differ by what the character CARRIED HOME, not by whether they lived. Aim for roughly 18 to 26 passages so the arc has room to breathe.`
+SCOPE — SPAN (carry the participant across the FULL historical arc): The story MUST begin with the conditions or early events that launch the topic, follow the protagonist through multiple distinct phases, locations, and periods of time as the real history unfolds, and continue through the major developments to the resolution and the aftermath. Do NOT compress everything into one location or a short timeframe. Build a mostly-linear, noun-dense SPINE of those real phases in chronological and geographic order. Place the GUMP encounters (when high) at key points along this spine. Place about THREE LOAD-BEARING stance choices at the hardest moments: the early ones converge back to the spine (the lean is carried in the prose), and the FINAL one forks to the three tagged endings. The three endings differ by what the character CARRIED HOME, not by whether they lived. Aim for roughly 30 to 50 passages (or more if needed for the full arc and 5+ encounters) so the story feels like a substantial journey with depth and breadth.`
     : `
-SCOPE — DEPTH (compress to ONE intense moment): a single place and a short span of time (a fire, a day, an hour). Branch DENSELY within that window — many real forks of stance and fate inside the same compressed moment — converging to the three tagged endings. Aim for a tighter, deeper tree (roughly 15 to 25 passages) where the branching, not elapsed time, carries the story.`;
+SCOPE — DEPTH (compress to ONE intense moment): a single place and a short span of time (a fire, a day, an hour). Branch DENSELY within that window — many real forks of stance and fate inside the same compressed moment — converging to the three tagged endings. Aim for a tighter, deeper tree (roughly 20 to 30 passages) where the branching, not elapsed time, carries the story. (Note: when gumpIntensity=high this mode is overridden to full span.)`;
 
   // GUMP INTENSITY — the improbable-encounter device, threaded like the other
   // dials. Default OFF (no forced encounters) — the topic decides at the gate.
@@ -208,25 +231,33 @@ SCOPE — DEPTH (compress to ONE intense moment): a single place and a short spa
     ? `
 GUMP INTENSITY — HIGH (MANDATORY — PLAN FIRST, EXECUTE FULLY):
 
-You must follow the GUMP HIGH rules from the system prompt exactly:
-- Pre-plan the 5-7 key figures/turning points that will receive sage-style questions.
-- Put them on the main story spine with converging branches so coverage is reliable across paths.
-- For each, create a distinct sage-style question moment passage (feels like meeting the figure or the moment posing the question, educational weight like a sage encounter).
-- Attach EXACTLY ONE question per such passage in the exact format.
-- At the end of the JSON include "coreSageQuestions" and "finalQuiz" as specified in the system prompt (use the planned questions).
+You must follow the GUMP HIGH rules from the system prompt exactly — this is the highest priority:
+- The story MUST use the full historical arc (as detailed in the SCOPE block) as the stage for Gump encounters.
+- Pre-plan 6-8 key figures and turning-point moments. Distribute them across the different phases of the arc (early conditions, rising action, key battles/crises, resolution, aftermath).
+- Place each as a distinct, significant "sage question moment" passage on the main spine. The protagonist's journey must take them to these moments in sequence as part of traversing the full history.
+- Each encounter must feel MEANINGFUL and EDUCATIONAL: the protagonist's (improbable) presence lets them witness or briefly interact in a way that reveals the figure's character, the event's stakes, or the historical turning point. Make these feel like pivotal personal experiences that teach the real history.
+- For each such passage, attach EXACTLY ONE question in the exact format.
+- At the end of the JSON include "coreSageQuestions" and "finalQuiz" as specified.
 - Never put questions on non-sage passages.
-- Make the questions substantive, tied to real history of that specific encounter.`
+- Make the questions substantive, tied to the real documented history of that specific encounter or moment.
+- The encounters should be spaced out — the protagonist "bumps into" history multiple times as their journey unfolds over time and distance.`
 
     : "";
+
+  const teksList = inputs.teks && inputs.teks.length > 0 
+    ? `\nSELECTED TEKS STANDARDS (the final quiz must test understanding of these curriculum standards as well as the story events): ${inputs.teks.join(', ')}`
+    : '';
 
   const base = `Write the complete branching story now for THIS topic.
 
 TOPIC (what the story is about): ${inputs.topic}
-STANDARD (the curriculum standard it must teach, delivered AS story, never lectured): ${inputs.standard}${mustCover}
+STANDARD (the curriculum standard it must teach, delivered AS story, never lectured): ${inputs.standard}${mustCover}${teksList}
 ${audience}
 ${scopeBlock}${gumpBlock}
 
-Begin at "start" by placing the character fast — their name, home, and their ROLE in these events — then the moment the history reaches them. Real feeling, real choices that change what happens next. The protagonist SURVIVES to the aftermath — death happens around them, never to them; every ending is a survival at a cost tagged "broken", "indifferent", or "triumphant", and all three are reachable across the branches. Obey the CONTENT MATURITY and PROSE REGISTER above. Output ONLY the JSON object conforming to BranchingStory.`;
+The story MUST follow the full historical arc of the topic. Begin at "start" by placing the character fast — their name, home, and their ROLE in these events — at the beginning of the arc. Then carry them through the sequence of real phases, places, and time as the documented history unfolds. Real feeling, real choices that change what happens next (the protagonist's stance and costs, not the history itself). When gumpIntensity is high, weave in multiple significant encounters with major figures and turning points across the arc as detailed above.
+
+The protagonist SURVIVES to the aftermath — death happens around them, never to them; every ending is a survival at a cost tagged "broken", "indifferent", or "triumphant", and all three are reachable across the branches. Obey the CONTENT MATURITY and PROSE REGISTER above. Output ONLY the JSON object conforming to BranchingStory.`;
 
   const blocks: string[] = [];
   // Sighted re-generation (graph): the prior output was an UNPLAYABLE graph.

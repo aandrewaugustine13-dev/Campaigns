@@ -261,6 +261,7 @@ function generatorApiPlugin(): Plugin {
           proseRegister: inputs.proseRegister ? String(inputs.proseRegister) : undefined,
           scope: inputs.scope === "depth" ? "depth" : inputs.scope === "span" ? "span" : undefined,
           gumpIntensity: inputs.gumpIntensity === "high" ? "high" : inputs.gumpIntensity === "off" ? "off" : undefined,
+          teks: Array.isArray(inputs.teks) ? inputs.teks.map(String) : undefined,
         }, apiKey);
         return result;
       });
