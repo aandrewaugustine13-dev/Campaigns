@@ -29,7 +29,7 @@ YOUR ONE JOB: write a STORY a kid cannot put down. Not a textbook. Not a summary
 VOICE (the AUDIENCE block in the instructions sets sentence style and how mature the content is — obey it):
 - Second person, past tense: "You" are the character. Pull the reader inside the moment.
 - Active voice. Concrete things you can see, hear, smell, and feel. Show what happens; do not summarize or lecture.
-- CONTENT MATURITY and PROSE REGISTER are SEPARATE and INDEPENDENT. The subject matter can be fully mature while the language stays plain and direct. Never soften the history to match plain language, and never ornament the language to match mature content.
+- CONTENT MATURITY and PROSE REGISTER are SEPARATE and INDEPENDENT. CONTENT MATURITY controls honesty about fear/violence/death/moral complexity (mature=fully honest; moderate=balanced with some softening; gentle=softer portrayal). PROSE REGISTER controls language style independently (direct=short concrete sentences; balanced=mix of lengths and description; literary=richer vocab and varied sentences). Never soften the history to match plain language, and never ornament the language to match mature content. Obey the exact values passed in the AUDIENCE block.
 
 THE PERSON AND THE HISTORY:
 - Invent ONE ordinary young person who is a PARTICIPANT in this history — not a famous leader, but someone with a ROLE that positions them where the real, documented events are proximate and visible: a militiaman, a powder boy, a message runner, a mill worker, a marcher, a nurse's helper. NOT a bystander hearing about events secondhand. Their role must put real, nameable events, places, and things directly into the scenes they live. Give them a name, a home, and that role, fast, in the first passage.
@@ -121,11 +121,12 @@ export interface BranchingInputs {
   mustCover?: string;
   /** AUDIENCE — two INDEPENDENT dials, threaded from the gate (like topic/standard).
    * Do not collapse them. */
-  /** How honestly to depict fear, violence, death, moral complexity (e.g. "mature").
-   * Defaults to "mature" — honest, not sanitized. */
+  /** How honestly to depict fear, violence, death, moral complexity.
+   * "mature" = fully honest/unsanitized; "moderate" = balanced with some softening; "gentle" = softer portrayal.
+   * Defaults to "mature". */
   contentMaturity?: string;
-  /** A HARD prose constraint (e.g. "direct"): short declarative sentences, concrete
-   * words, no flourish — accessibility through concreteness, NOT lowered maturity.
+  /** Prose style constraint (independent of maturity).
+   * "direct" = short declarative, concrete words; "balanced" = mix of lengths/variety; "literary" = richer vocab, descriptive flow.
    * Defaults to "direct". */
   proseRegister?: string;
   /** SCOPE dial (the "Gump toggle"), threaded from the gate like maturity/register.
@@ -169,9 +170,28 @@ function buildUserMessage(inputs: BranchingInputs, priorErrors?: string[], prior
   // are fixed (what "mature"/"direct" demand); only the dial VALUES come from the gate.
   const maturity = (inputs.contentMaturity && inputs.contentMaturity.trim()) || "mature";
   const register = (inputs.proseRegister && inputs.proseRegister.trim()) || "direct";
+
+  let maturityBlock = "";
+  if (maturity === "gentle") {
+    maturityBlock = `CONTENT MATURITY (gentle): depict the historical fear, violence, death, and moral complexity with sensitivity and some softening. Focus on emotional impact and consequences rather than graphic details. The protagonist and young readers should not be overwhelmed; imply hardship and danger without explicit gore or horror. The protagonist survives to reflect on the aftermath.`;
+  } else if (maturity === "moderate") {
+    maturityBlock = `CONTENT MATURITY (moderate): depict the historical fear, violence, death, and moral complexity honestly but with balance. Show the realities of the time without gratuitous detail — include the emotional weight and consequences for those around the protagonist. Avoid excessive graphic descriptions while not sanitizing the truth. The protagonist survives.`;
+  } else {
+    maturityBlock = `CONTENT MATURITY (mature): depict the historical fear, violence, death, and moral complexity of this topic HONESTLY — do NOT sanitize it. The reader can handle hard truth told plainly. Death and horror happen AROUND the protagonist — to others, near them, threatening them — and you must not look away from it or soften it into comfort. But the protagonist THEMSELVES survives to the aftermath; their death is never an ending. Do not add gratuitous gore.`;
+  }
+
+  let registerBlock = "";
+  if (register === "literary") {
+    registerBlock = `PROSE REGISTER (literary) — a HARD constraint: richer vocabulary, more varied and flowing sentence structures, descriptive language that evokes atmosphere and emotion. Longer, more complex sentences are allowed for depth and immersion. Still grounded in the historical era, but with a more polished, narrative literary quality while remaining accessible.`;
+  } else if (register === "balanced") {
+    registerBlock = `PROSE REGISTER (balanced) — a HARD constraint: mix of sentence lengths for natural flow — some short and direct, others with more description and variety. Clear, concrete vocabulary with some evocative words. Avoid both overly simplistic and overly ornate styles.`;
+  } else {
+    registerBlock = `PROSE REGISTER (direct) — a HARD constraint, not a tone: short, declarative sentences; common, concrete words; sensory and specific, never abstract; minimal idiom; no metaphor-stacking; no flowery or literary flourish. Spare and visceral, not ornate. This register serves a reading-support and emergent-bilingual audience — accessibility comes from CONCRETENESS, never from softened or simplified subject matter. Maturity stays high; only the language is plain.`;
+  }
+
   const audience = `
-CONTENT MATURITY (${maturity}): depict the historical fear, violence, death, and moral complexity of this topic HONESTLY — do NOT sanitize it. The reader can handle hard truth told plainly. Death and horror happen AROUND the protagonist — to others, near them, threatening them — and you must not look away from it or soften it into comfort. But the protagonist THEMSELVES survives to the aftermath; their death is never an ending. Do not add gratuitous gore.
-PROSE REGISTER (${register}) — a HARD constraint, not a tone: short, declarative sentences; common, concrete words; sensory and specific, never abstract; minimal idiom; no metaphor-stacking; no flowery or literary flourish. Spare and visceral, not ornate. This register serves a reading-support and emergent-bilingual audience — accessibility comes from CONCRETENESS, never from softened or simplified subject matter. Maturity stays high; only the language is plain.`;
+${maturityBlock}
+${registerBlock}`;
 
   // SCOPE — the "Gump toggle", threaded like the audience dials. Default span.
   const scope = inputs.scope === "depth" ? "depth" : "span";

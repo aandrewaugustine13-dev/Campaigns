@@ -143,8 +143,8 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
       standard: teksStr,
       teks: selectedTEKS.map(t => t.code),
       mustCover: mustCover.trim() || undefined,
-      contentMaturity: contentMaturity.trim() || "mature",
-      proseRegister: proseRegister.trim() || "direct",
+      contentMaturity: contentMaturity || "mature",
+      proseRegister: proseRegister || "direct",
       scope,
       gumpIntensity,
       preview,
@@ -300,22 +300,28 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="block">
             <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Content maturity</span>
-            <input
+            <select
               value={contentMaturity}
               onChange={(e) => onEdit(setContentMaturity)(e.target.value)}
-              placeholder="e.g. mature"
-              className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] placeholder-[#8a7f6a] focus:outline-none focus:border-[#c9a36b]/60 transition-colors"
-            />
+              className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] focus:outline-none focus:border-[#c9a36b]/60 transition-colors"
+            >
+              <option value="mature">Mature — honest, unsanitized depiction of fear, violence, death, and moral complexity</option>
+              <option value="moderate">Moderate — balanced honesty with some softening of the hardest truths</option>
+              <option value="gentle">Gentle — softer, less direct portrayal of difficult historical realities</option>
+            </select>
             <span className="text-[10px] text-[#8a7f6a] mt-1 block">How honestly to show fear, violence, death — not sanitized.</span>
           </label>
           <label className="block">
             <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Prose register</span>
-            <input
+            <select
               value={proseRegister}
               onChange={(e) => onEdit(setProseRegister)(e.target.value)}
-              placeholder="e.g. direct"
-              className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] placeholder-[#8a7f6a] focus:outline-none focus:border-[#c9a36b]/60 transition-colors"
-            />
+              className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] focus:outline-none focus:border-[#c9a36b]/60 transition-colors"
+            >
+              <option value="direct">Direct — short, declarative sentences; common concrete words; plain and accessible</option>
+              <option value="balanced">Balanced — mix of sentence lengths; clear vocabulary with some descriptive flow</option>
+              <option value="literary">Literary — richer vocabulary, more varied and descriptive sentences</option>
+            </select>
             <span className="text-[10px] text-[#8a7f6a] mt-1 block">Plain, short, concrete sentences (reading-support / bilingual).</span>
           </label>
         </div>
