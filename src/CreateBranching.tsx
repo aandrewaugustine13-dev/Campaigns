@@ -60,6 +60,7 @@ export default function CreateBranching({ onBack }: Props) {
         body: JSON.stringify({
           topic: appr.topic,
           standard: appr.standard,
+          teks: appr.teks || [],
           mustCover: appr.mustCover,
           contentMaturity: appr.contentMaturity,
           proseRegister: appr.proseRegister,

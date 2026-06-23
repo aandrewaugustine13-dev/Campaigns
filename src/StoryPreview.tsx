@@ -11,13 +11,15 @@
 // full generateBranchingStory. This gate is the ONLY entrance to that expensive
 // call — there is no path to generation that skips the preview.
 // ════════════════════════════════════════════════════════════════
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import type { StoryPreview, PreviewFinding } from "../generator/storyPreview";
 import { PageContainer, MainTitle, SectionHeader, Button, BackButton } from "./components/ui";
+import { searchTEKS, type TEKSStandard } from "./lib/teks";
 
 export interface PreviewApproval {
   topic: string;
-  standard: string;
+  standard: string; // joined codes for compatibility
+  teks?: string[]; // NEW: selected TEKS codes e.g. ["8.4(A)", "113.41(c)(2)(A)"]
   mustCover?: string;
   /** Two INDEPENDENT audience dials, threaded to generation like topic/standard.
    * contentMaturity = how honestly to depict the history; proseRegister = how
@@ -55,7 +57,8 @@ async function postPreview(body: { topic: string; standard: string; mustCover?: 
 
 export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewScreenProps) {
   const [topic, setTopic] = useState("");
-  const [standard, setStandard] = useState("");
+  const [teksSearch, setTeksSearch] = useState("");
+  const [selectedTEKS, setSelectedTEKS] = useState<TEKSStandard[]>([]);
   const [mustCover, setMustCover] = useState("");
   // Two independent audience dials (defaults = the product posture). Plain-text
   // so a teacher can phrase them; not collapsed into one control.
@@ -68,26 +71,51 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
   const [error, setError] = useState("");
   const [approved, setApproved] = useState(false);
 
-  const canPreview = topic.trim().length > 0 && standard.trim().length > 0 && status !== "loading";
+  const teksMatches = useMemo(() => searchTEKS(teksSearch).slice(0, 6), [teksSearch]);
+
+  const clearPreviewOnChange = () => {
+    if (status === "done") {
+      setStatus("idle");
+      setApproved(false);
+    }
+  };
+
+  const addTEKS = (teks: TEKSStandard) => {
+    if (!selectedTEKS.some((s) => s.code === teks.code)) {
+      setSelectedTEKS((prev) => [...prev, teks]);
+      clearPreviewOnChange();
+    }
+    setTeksSearch(""); // clear search after adding
+  };
+
+  const removeTEKS = (code: string) => {
+    setSelectedTEKS((prev) => prev.filter((s) => s.code !== code));
+    clearPreviewOnChange();
+  };
+
+  const canPreview = topic.trim().length > 0 && selectedTEKS.length > 0 && status !== "loading";
 
   const runPreview = useCallback(async () => {
     setStatus("loading"); setError(""); setApproved(false); setPreview(null);
     try {
-      const { data } = await postPreview({ topic: topic.trim(), standard: standard.trim(), mustCover: mustCover.trim() || undefined });
+      const teksStr = selectedTEKS.map(t => t.code).join(", ");
+      const { data } = await postPreview({ topic: topic.trim(), standard: teksStr, mustCover: mustCover.trim() || undefined });
       setPreview(data);
       setStatus("done");
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       setStatus("error");
     }
-  }, [topic, standard, mustCover]);
+  }, [topic, selectedTEKS, mustCover]);
 
   const approve = useCallback(() => {
     if (!preview) return;
     setApproved(true);
+    const teksStr = selectedTEKS.map(t => t.code).join(", ");
     onApprove?.({
       topic: topic.trim(),
-      standard: standard.trim(),
+      standard: teksStr,
+      teks: selectedTEKS.map(t => t.code),
       mustCover: mustCover.trim() || undefined,
       contentMaturity: contentMaturity.trim() || "mature",
       proseRegister: proseRegister.trim() || "direct",
@@ -95,7 +123,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
       gumpIntensity,
       preview,
     });
-  }, [preview, topic, standard, mustCover, contentMaturity, proseRegister, scope, gumpIntensity, onApprove]);
+  }, [preview, topic, selectedTEKS, mustCover, contentMaturity, proseRegister, scope, gumpIntensity, onApprove]);
 
   // Editing any input invalidates a shown preview (revise → re-preview).
   const onEdit = <T,>(set: (v: T) => void) => (v: T) => { set(v); if (status === "done") { setStatus("idle"); setApproved(false); } };
@@ -104,7 +132,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
     <PageContainer maxWidth="max-w-2xl" className="items-start pt-10 pb-16">
       <MainTitle className="text-4xl mb-1">New Story — Preview</MainTitle>
       <p className="text-[#a69a80] text-sm text-center mb-8 max-w-md mx-auto">
-        Confirm the story will cover your standard before generating it. Revising is cheap — preview as often as you like.
+        Confirm the story will cover your TEKS standards before generating it. Revising is cheap — preview as often as you like.
       </p>
 
       <div className="space-y-5">
@@ -121,15 +149,67 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
           />
         </label>
 
-        <label className="block">
-          <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Standard (TEKS)</span>
+        {/* TEKS Search & Multi-Select */}
+        <div className="block">
+          <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">TEKS Standards</span>
           <input
-            value={standard}
-            onChange={(e) => onEdit(setStandard)(e.target.value)}
-            placeholder="e.g. TEKS US.x — …"
+            value={teksSearch}
+            onChange={(e) => setTeksSearch(e.target.value)}
+            placeholder="Search keywords (e.g. washington, revolution, constitution, civil war)"
             className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] placeholder-[#8a7f6a] focus:outline-none focus:border-[#c9a36b]/60 transition-colors"
           />
-        </label>
+
+          {/* Selected TEKS chips */}
+          {selectedTEKS.length > 0 && (
+            <div className="mt-2">
+              <div className="text-[#8a7f6a] text-[10px] mb-1">Selected ({selectedTEKS.length}):</div>
+              <div className="flex flex-wrap gap-1.5">
+                {selectedTEKS.map((t) => (
+                  <span
+                    key={t.code}
+                    className="inline-flex items-center gap-1 bg-[#211e1a] border border-[#3a3630] text-xs px-2 py-0.5 rounded-full text-[#c5b8a0]"
+                  >
+                    <span className="font-mono text-[#c9a36b]">{t.code}</span>
+                    <button
+                      onClick={() => removeTEKS(t.code)}
+                      className="text-[#c9a36b] hover:text-red-400 ml-0.5 leading-none"
+                      title="Remove"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Live search results */}
+          {teksSearch.trim() && (
+            <div className="mt-1.5 max-h-44 overflow-auto border border-[#3a3630] bg-[#1c1915] rounded-lg p-1 text-sm">
+              {teksMatches.length === 0 ? (
+                <div className="px-2 py-1 text-xs text-[#8a7f6a]">No matches. Try broader keywords like "washington" or "revolution".</div>
+              ) : (
+                teksMatches.map((t) => (
+                  <div
+                    key={t.code}
+                    onClick={() => addTEKS(t)}
+                    className="px-2 py-1.5 hover:bg-[#24211d] cursor-pointer flex justify-between items-start gap-2 rounded text-xs"
+                    title={t.description}
+                  >
+                    <div className="min-w-0">
+                      <span className="font-mono text-[#c9a36b]">{t.code}</span>{" "}
+                      <span className="text-[#c5b8a0] truncate inline-block align-middle max-w-[calc(100%-80px)]">{t.description}</span>
+                    </div>
+                    <span className="text-[#c9a36b] text-[10px] flex-shrink-0">+ Add</span>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+          {!teksSearch.trim() && selectedTEKS.length === 0 && (
+            <div className="text-[10px] text-[#8a7f6a] mt-1">Search and add relevant TEKS standards your story should align with (multiple OK).</div>
+          )}
+        </div>
 
         <label className="block">
           <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Must cover (optional, plain language)</span>
