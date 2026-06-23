@@ -13,6 +13,7 @@
 // ════════════════════════════════════════════════════════════════
 import { useState, useCallback } from "react";
 import type { StoryPreview, PreviewFinding } from "../generator/storyPreview";
+import { PageContainer, MainTitle, SectionHeader, Button, BackButton } from "./components/ui";
 
 export interface PreviewApproval {
   topic: string;
@@ -100,109 +101,158 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
   const onEdit = <T,>(set: (v: T) => void) => (v: T) => { set(v); if (status === "done") { setStatus("idle"); setApproved(false); } };
 
   return (
-    <div className="min-h-screen bg-stone-900 text-stone-100 p-6" style={{ fontFamily: "'Georgia', serif" }}>
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-amber-400">New Story — Preview</h1>
-          <p className="text-sm text-stone-400">Confirm the story will cover your standard before generating it. Revising is cheap — preview as often as you like.</p>
-        </div>
+    <PageContainer maxWidth="max-w-2xl" className="items-start pt-10 pb-16">
+      <MainTitle className="text-4xl mb-1">New Story — Preview</MainTitle>
+      <p className="text-[#a69a80] text-sm text-center mb-8 max-w-md mx-auto">
+        Confirm the story will cover your standard before generating it. Revising is cheap — preview as often as you like.
+      </p>
 
-        <div className="space-y-3">
+      <div className="space-y-5">
+        {/* Story Inputs */}
+        <SectionHeader className="text-left mb-2 tracking-[3px]">Story Inputs</SectionHeader>
+
+        <label className="block">
+          <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Topic</span>
+          <input
+            value={topic}
+            onChange={(e) => onEdit(setTopic)(e.target.value)}
+            placeholder="e.g. the Dust Bowl"
+            className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] placeholder-[#8a7f6a] focus:outline-none focus:border-[#c9a36b]/60 transition-colors"
+          />
+        </label>
+
+        <label className="block">
+          <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Standard (TEKS)</span>
+          <input
+            value={standard}
+            onChange={(e) => onEdit(setStandard)(e.target.value)}
+            placeholder="e.g. TEKS US.x — …"
+            className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] placeholder-[#8a7f6a] focus:outline-none focus:border-[#c9a36b]/60 transition-colors"
+          />
+        </label>
+
+        <label className="block">
+          <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Must cover (optional, plain language)</span>
+          <textarea
+            value={mustCover}
+            onChange={(e) => onEdit(setMustCover)(e.target.value)}
+            rows={3}
+            placeholder="e.g. show why families left their farms, and the trip to California"
+            className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] placeholder-[#8a7f6a] focus:outline-none focus:border-[#c9a36b]/60 transition-colors resize-y"
+          />
+        </label>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="block">
-            <span className="text-xs uppercase tracking-wider text-stone-500">Topic</span>
-            <input value={topic} onChange={(e) => onEdit(setTopic)(e.target.value)} placeholder="e.g. the Dust Bowl"
-              className="mt-1 w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-stone-100" />
-          </label>
-          <label className="block">
-            <span className="text-xs uppercase tracking-wider text-stone-500">Standard (TEKS)</span>
-            <input value={standard} onChange={(e) => onEdit(setStandard)(e.target.value)} placeholder="e.g. TEKS US.x — …"
-              className="mt-1 w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-stone-100" />
-          </label>
-          <label className="block">
-            <span className="text-xs uppercase tracking-wider text-stone-500">Must cover (optional, plain language)</span>
-            <textarea value={mustCover} onChange={(e) => onEdit(setMustCover)(e.target.value)} rows={2}
-              placeholder="e.g. show why families left their farms, and the trip to California"
-              className="mt-1 w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-stone-100" />
-          </label>
-          <label className="block">
-            <span className="text-xs uppercase tracking-wider text-stone-500">Scope</span>
-            <select value={scope} onChange={(e) => onEdit(setScope)(e.target.value as "span" | "depth")}
-              className="mt-1 w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-stone-100">
+            <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Scope</span>
+            <select
+              value={scope}
+              onChange={(e) => onEdit(setScope)(e.target.value as "span" | "depth")}
+              className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] focus:outline-none focus:border-[#c9a36b]/60 transition-colors"
+            >
               <option value="span">Span — carried across the whole arc (wars, journeys, movements)</option>
               <option value="depth">Depth — branch densely within one moment (a fire, a single day)</option>
             </select>
           </label>
+
           <label className="block">
-            <span className="text-xs uppercase tracking-wider text-stone-500">Famous-figure encounters</span>
-            <select value={gumpIntensity} onChange={(e) => onEdit(setGumpIntensity)(e.target.value as "high" | "off")}
-              className="mt-1 w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-stone-100">
+            <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Famous-figure encounters</span>
+            <select
+              value={gumpIntensity}
+              onChange={(e) => onEdit(setGumpIntensity)(e.target.value as "high" | "off")}
+              className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] focus:outline-none focus:border-[#c9a36b]/60 transition-colors"
+            >
               <option value="off">Off — no forced meetings (best for one-place/cast-poor topics)</option>
-              <option value="high">High — the kid crosses paths with the real famous figures &amp; turning points (celebrity-rich topics)</option>
+              <option value="high">High — the kid crosses paths with the real famous figures &amp; turning points</option>
             </select>
           </label>
-          <div className="grid grid-cols-2 gap-3">
-            <label className="block">
-              <span className="text-xs uppercase tracking-wider text-stone-500">Content maturity</span>
-              <input value={contentMaturity} onChange={(e) => onEdit(setContentMaturity)(e.target.value)} placeholder="e.g. mature"
-                className="mt-1 w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-stone-100" />
-              <span className="text-[10px] text-stone-500">How honestly to show fear, violence, death — not sanitized.</span>
-            </label>
-            <label className="block">
-              <span className="text-xs uppercase tracking-wider text-stone-500">Prose register</span>
-              <input value={proseRegister} onChange={(e) => onEdit(setProseRegister)(e.target.value)} placeholder="e.g. direct"
-                className="mt-1 w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-stone-100" />
-              <span className="text-[10px] text-stone-500">Plain, short, concrete sentences (reading-support / bilingual). Independent of maturity.</span>
-            </label>
-          </div>
-          <button onClick={runPreview} disabled={!canPreview}
-            className="px-5 py-2 bg-amber-700 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed rounded font-bold transition-colors">
-            {status === "loading" ? "Previewing…" : preview ? "Re-preview" : "Preview"}
-          </button>
         </div>
 
-        {status === "error" && (
-          <div className="border border-red-800 bg-red-950/40 rounded p-3 text-sm text-red-300">Preview failed: {error}</div>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <label className="block">
+            <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Content maturity</span>
+            <input
+              value={contentMaturity}
+              onChange={(e) => onEdit(setContentMaturity)(e.target.value)}
+              placeholder="e.g. mature"
+              className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] placeholder-[#8a7f6a] focus:outline-none focus:border-[#c9a36b]/60 transition-colors"
+            />
+            <span className="text-[10px] text-[#8a7f6a] mt-1 block">How honestly to show fear, violence, death — not sanitized.</span>
+          </label>
+          <label className="block">
+            <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Prose register</span>
+            <input
+              value={proseRegister}
+              onChange={(e) => onEdit(setProseRegister)(e.target.value)}
+              placeholder="e.g. direct"
+              className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] placeholder-[#8a7f6a] focus:outline-none focus:border-[#c9a36b]/60 transition-colors"
+            />
+            <span className="text-[10px] text-[#8a7f6a] mt-1 block">Plain, short, concrete sentences (reading-support / bilingual).</span>
+          </label>
+        </div>
 
-        {preview && status === "done" && (
-          <div className="border border-stone-700 bg-stone-800/50 rounded p-4 space-y-4">
-            <div>
-              <p className="text-xs uppercase tracking-wider text-stone-500">The story will follow</p>
-              <p className="text-stone-200">{preview.protagonist}</p>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-wider text-stone-500">Summary</p>
-              <p className="text-stone-200 leading-relaxed">{preview.summary}</p>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-wider text-stone-500">Covers (check against your standard)</p>
-              <ul className="mt-1 space-y-1">
-                {preview.coverage.map((c, i) => (
-                  <li key={i} className="text-stone-200 text-sm flex gap-2"><span className="text-amber-500">✓</span>{c}</li>
-                ))}
-              </ul>
-            </div>
-
-            {approved ? (
-              <div className="border border-emerald-800 bg-emerald-950/40 rounded p-3 text-sm text-emerald-300">
-                Approved — generating the full story now…
-              </div>
-            ) : (
-              <div className="flex items-center gap-3 pt-1">
-                <button onClick={approve}
-                  className="px-5 py-2 bg-emerald-700 hover:bg-emerald-600 rounded font-bold transition-colors">
-                  Approve &amp; Generate
-                </button>
-                <span className="text-xs text-stone-500">Not right? Edit the fields above and preview again.</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {onBack && (
-          <button onClick={onBack} className="block text-xs text-stone-500 hover:text-stone-300">&larr; Back to Campaigns</button>
-        )}
+        <Button
+          variant="primary"
+          label={status === "loading" ? "Previewing…" : preview ? "Re-preview" : "Preview"}
+          onClick={runPreview}
+          disabled={!canPreview}
+          className="mt-2"
+        />
       </div>
-    </div>
+
+      {status === "error" && (
+        <div className="mt-6 border border-[#5c2a2a] bg-[#2a1f1f] rounded-xl p-4 text-sm text-[#d88a8a]">
+          Preview failed: {error}
+        </div>
+      )}
+
+      {preview && status === "done" && (
+        <div className="mt-8 border border-[#3a3630] bg-[#211e1a] rounded-2xl p-6 space-y-5">
+          <div>
+            <SectionHeader className="text-left mb-1 tracking-[3px]">The story will follow</SectionHeader>
+            <p className="text-[#c5b8a0] text-lg font-medium">{preview.protagonist}</p>
+          </div>
+
+          <div>
+            <SectionHeader className="text-left mb-1 tracking-[3px]">Summary</SectionHeader>
+            <p className="text-[#c5b8a0] leading-relaxed">{preview.summary}</p>
+          </div>
+
+          <div>
+            <SectionHeader className="text-left mb-2 tracking-[3px]">Covers (check against your standard)</SectionHeader>
+            <ul className="space-y-1.5">
+              {preview.coverage.map((c, i) => (
+                <li key={i} className="text-[#c5b8a0] text-sm flex gap-2">
+                  <span className="text-[#c9a36b] mt-0.5">✓</span>
+                  {c}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {approved ? (
+            <div className="border border-[#2a4a2a] bg-[#1f2a1f] rounded-xl p-4 text-sm text-[#8fc38f]">
+              Approved — generating the full story now…
+            </div>
+          ) : (
+            <div className="pt-2">
+              <Button
+                variant="warm"
+                label="Approve &amp; Generate"
+                onClick={approve}
+                className="mb-3"
+              />
+              <p className="text-xs text-[#8a7f6a]">Not right? Edit the fields above and preview again.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {onBack && (
+        <div className="mt-8">
+          <BackButton onClick={onBack} />
+        </div>
+      )}
+    </PageContainer>
   );
 }

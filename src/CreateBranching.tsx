@@ -3,6 +3,7 @@ import BranchingPlayer from "./BranchingPlayer";
 import BranchingReview from "./BranchingReview";
 import StoryPreviewScreen, { type PreviewApproval } from "./StoryPreview";
 import type { BranchingStory } from "../generator/branchingStory";
+import { PageContainer, MainTitle, Button, BackButton } from "./components/ui";
 
 interface Props {
   onBack: () => void;
@@ -134,40 +135,48 @@ export default function CreateBranching({ onBack }: Props) {
   // Generating (simple spinner)
   if (phase === "generating") {
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center" style={{ fontFamily: "'Georgia', serif" }}>
-        <div className="max-w-md text-center space-y-6 p-4">
-          <h1 className="text-2xl font-bold text-amber-400">Generating Branching Story…</h1>
-          <div className="flex justify-center">
-            <div className="w-12 h-12 border-4 border-amber-700 border-t-amber-400 rounded-full animate-spin" />
-          </div>
-          <p className="text-stone-300 text-lg font-mono">{elapsed}s</p>
-          <p className="text-stone-500 text-sm">The model is writing a real choose-your-path story and we validate the graph before handing it to the player.</p>
-          <button onClick={backToPreview} className="text-xs text-stone-500 hover:text-stone-300">Cancel</button>
+      <PageContainer maxWidth="max-w-md">
+        <MainTitle className="text-3xl">Generating Branching Story…</MainTitle>
+        <div className="flex justify-center mb-6">
+          <div className="w-12 h-12 border-4 border-[#c9a36b]/30 border-t-[#c9a36b] rounded-full animate-spin" />
         </div>
-      </div>
+        <p className="text-[#c5b8a0] text-lg text-center font-mono mb-3">{elapsed}s</p>
+        <p className="text-[#8a7f6a] text-sm text-center max-w-xs mx-auto mb-8">
+          The model is writing a real choose-your-path story and we validate the graph before handing it to the player.
+        </p>
+        <Button variant="secondary" label="Cancel" onClick={backToPreview} />
+      </PageContainer>
     );
   }
 
   // Error
   if (phase === "error") {
     return (
-      <div className="h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center p-6" style={{ fontFamily: "'Georgia', serif" }}>
-        <div className="max-w-md w-full space-y-4 text-center">
-          <h1 className="text-2xl font-bold text-red-400">Generation Failed</h1>
-          <div className="bg-red-950/40 border border-red-800 rounded p-3 text-left text-sm text-red-300 whitespace-pre-wrap">{error}</div>
-          <div className="space-x-2">
-            <button
-              onClick={() => approval && generateFromApproval(approval)}
-              disabled={!approval}
-              className="px-5 py-2 bg-amber-700 hover:bg-amber-600 disabled:opacity-40 rounded font-bold"
-            >
-              Try Again
-            </button>
-            <button onClick={backToPreview} className="px-5 py-2 bg-stone-800 border border-stone-700 rounded">Edit inputs</button>
-          </div>
-          <button onClick={onBack} className="block w-full text-xs text-stone-500 hover:text-stone-300 mt-4">← Back to Campaigns</button>
+      <PageContainer maxWidth="max-w-md">
+        <MainTitle className="text-3xl text-[#c25c5c]">Generation Failed</MainTitle>
+
+        <div className="border border-[#5c2a2a] bg-[#2a1f1f] rounded-2xl p-4 text-left text-sm text-[#d88a8a] mb-6 whitespace-pre-wrap">
+          {error}
         </div>
-      </div>
+
+        <div className="space-y-3">
+          <Button
+            variant="primary"
+            label="Try Again"
+            onClick={() => approval && generateFromApproval(approval)}
+            disabled={!approval}
+          />
+          <Button
+            variant="secondary"
+            label="Edit inputs"
+            onClick={backToPreview}
+          />
+        </div>
+
+        <div className="mt-6">
+          <BackButton onClick={onBack} />
+        </div>
+      </PageContainer>
     );
   }
 
