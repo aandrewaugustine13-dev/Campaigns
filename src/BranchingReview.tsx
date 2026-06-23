@@ -250,7 +250,7 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
                   <p className="text-xs text-[#8a7f6a]">{edited.title} — {edited.passages.length} passages · read &amp; edit every passage for truth</p>
                 </div>
                 <div className="flex gap-2">
-                  <BackButton onClick={onBack} label="← Back to form" className="text-xs" />
+                  {onBack && <BackButton onClick={onBack} label="← Back to form" className="text-xs" />}
                   <Button variant="primary" label="Lock &amp; continue to images →" onClick={lockAndContinue} className="text-sm py-1.5" />
                 </div>
               </div>

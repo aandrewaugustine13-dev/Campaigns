@@ -14,7 +14,7 @@
 // ════════════════════════════════════════════════════════════════
 import Anthropic from "@anthropic-ai/sdk";
 import { parseModelJson } from "./json.js";
-import { validateStory, type BranchingStory, type StoryValidation } from "./branchingStory.js";
+import { validateStory, type BranchingStory, type BranchingQuestion, type StoryValidation } from "./branchingStory.js";
 import { runFactGate, type FactGateResult } from "./factGate.js";
 
 const MODEL = "claude-opus-4-8"; // the writer that produced the proven stories
