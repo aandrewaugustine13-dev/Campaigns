@@ -249,53 +249,14 @@ function generatorApiPlugin(): Plugin {
       // summary + a TEKS coverage checklist on a cheap/fast model, WITHOUT writing
       // the (expensive) story. The teacher iterates on inputs here before paying
       // for a full generateBranchingStory.
-      server.middlewares.use('/api/story-preview', async (req, res) => {
-        const send = (status: number, payload: unknown) => {
-          res.statusCode = status;
-          res.setHeader('Content-Type', 'application/json');
-          res.setHeader('Access-Control-Allow-Origin', '*');
-          res.end(JSON.stringify(payload));
-        };
-
-        if (req.method === 'OPTIONS') {
-          res.setHeader('Access-Control-Allow-Origin', '*');
-          res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-          res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-          res.statusCode = 204;
-          res.end();
-          return;
-        }
-
-        if (req.method !== 'POST') {
-          return send(405, { error: 'Method not allowed' });
-        }
-
-        const apiKey = process.env.ANTHROPIC_API_KEY;
-        if (!apiKey) return send(500, { error: 'ANTHROPIC_API_KEY not configured in .env.local' });
-
-        let body = '';
-        for await (const chunk of req) body += chunk;
-
-        let inputs: any;
-        try {
-          inputs = body ? JSON.parse(body) : {};
-        } catch {
-          return send(400, { error: 'Invalid JSON in request body' });
-        }
-
-        try {
-          const { generateStoryPreview } = await import('./generator/storyPreviewGen.ts');
-          const { data, findings } = await generateStoryPreview({
-            topic: String(inputs.topic ?? ''),
-            standard: String(inputs.standard ?? ''),
-            mustCover: inputs.mustCover ? String(inputs.mustCover) : undefined,
-          }, apiKey);
-          send(200, { data, findings });
-        } catch (e: unknown) {
-          const message = e instanceof Error ? e.message : String(e);
-          console.error(`[generator-api] /api/story-preview failed:`, message);
-          send(500, { error: message });
-        }
+      jsonPost(server, '/api/story-preview', async (apiKey, inputs) => {
+        const { generateStoryPreview } = await import('./generator/storyPreviewGen.ts');
+        const { data, findings } = await generateStoryPreview({
+          topic: String(inputs.topic ?? ''),
+          standard: String(inputs.standard ?? ''),
+          mustCover: inputs.mustCover ? String(inputs.mustCover) : undefined,
+        }, apiKey);
+        return { data, findings };
       });
 
       // Full branching story generation (the real Product 2 story engine).
