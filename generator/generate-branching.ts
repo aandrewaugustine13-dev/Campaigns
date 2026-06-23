@@ -8,7 +8,7 @@
 // counts, the estimated reading grade, and the full story to READ. Writes the
 // validated story to a file. Mirrors the other generate CLIs.
 //
-//   npm run generate:branching ["Topic"] ["Standard"] ["must-cover note"]
+//   npm run generate:branching ["Topic"] ["Standard"] ["must-cover note"] [maturity] [register] [scope] [gump: high|off]
 // ════════════════════════════════════════════════════════════════
 import { config as loadEnv } from "dotenv";
 import { writeFileSync } from "fs";
@@ -33,6 +33,7 @@ const INPUTS: BranchingInputs = {
   contentMaturity: process.argv[5] || "mature",
   proseRegister: process.argv[6] || "direct",
   scope: process.argv[7] === "depth" ? "depth" : "span",
+  gumpIntensity: process.argv[8] === "high" ? "high" : "off",
 };
 
 function fkGrade(text: string): number {
@@ -63,7 +64,9 @@ async function main() {
   console.log("Generating ONE branching story via the module (validate + re-generate on failure)…\n");
   console.log(`  topic:     ${INPUTS.topic}`);
   console.log(`  standard:  ${INPUTS.standard}`);
-  console.log(`  mustCover: ${INPUTS.mustCover}\n`);
+  console.log(`  mustCover: ${INPUTS.mustCover}`);
+  console.log(`  scope:     ${INPUTS.scope}`);
+  console.log(`  gumpIntensity: ${INPUTS.gumpIntensity}\n`);
   console.log("  (any per-attempt validation failures + re-generation print as [branching] …)\n");
 
   const result = await generateBranchingStory(INPUTS, apiKey);

@@ -291,63 +291,67 @@ function generatorApiPlugin(): Plugin {
         try {
           const { searchCommonsFileRanked, searchViaArticlePageimage } = await import('./generator/wikimedia.ts');
 
-          const title = String(inputs.title || inputs.topic || '').trim();
-          const protagonist = String(inputs.protagonist || '').trim();
+          // The REAL historical subject — the teacher's topic/standard from the
+          // gate — is the query source. The story's own title/protagonist are
+          // FICTION: a first-person prose blob returns ZERO Commons hits (no
+          // searchable nouns). `text` is the current passage, used ONLY to pull
+          // real place/event nouns, never as the base.
+          const topic = String(inputs.topic || inputs.title || '').trim();
+          const standard = String(inputs.standard || '').trim();
           const text = String(inputs.text || inputs.passage || inputs.passageText || '').trim();
-          const fullContext = String(inputs.context || inputs.storyContext || '').trim();
 
-          const mainContext = [title, fullContext].filter(Boolean).join(' ').slice(0, 300);
-          if (!mainContext && !text) return send(200, { images: [] });
+          // Strip a leading "TEKS … —" code prefix so the standard contributes
+          // real nouns, not catalog cruft. NOTE: do NOT strip bare numbers — a
+          // 4-digit YEAR (1812, 1868, 1935) is the most important anchor; only the
+          // code prefix is removed.
+          const standardNouns = standard
+            .replace(/\bTEKS\b[^—:-]*[—:-]?/i, '')
+            .replace(/\s+/g, ' ')
+            .trim();
 
-          // Use the *entire* story context (title + protagonist + other passages), not just the current personal sentence.
-          // This way image search knows the whole campaign, not just one "you" moment.
-          // Personal narrative makes keyword matching hard for historical images; full context helps a lot.
-          const base = [mainContext, protagonist].filter(Boolean).join(' ').trim();
+          const base = topic;
+          if (!base && !standardNouns && !text) return send(200, { images: [] });
 
-          // Build better queries that stay historically focused
-          const queries = [];
+          // Query list. PRIMARY = per-passage real-noun queries from Claude, so
+          // each beat gets DIFFERENT subject nouns (the constant topic base
+          // returned the SAME images every beat). Topic/standard are kept ONLY as
+          // a constant fallback at the end, so results are never empty.
+          const queries: string[] = [];
 
-          // Core story context (highest priority)
+          // (1) PER-PASSAGE (Claude): 2–4 real-noun queries about what THIS beat
+          // depicts. Best-effort — missing key / error falls through to (3).
+          const anthropicKey = process.env.ANTHROPIC_API_KEY;
+          if (anthropicKey && text && (topic || standardNouns)) {
+            try {
+              const { generatePassageQueries } = await import('./generator/eraBrief.ts');
+              const pq = await generatePassageQueries(topic, standard, text, anthropicKey);
+              for (const q of pq) if (q && q.trim()) queries.push(q.trim());
+            } catch {
+              console.warn('[branching-images] passage-query generation failed; using topic fallback');
+            }
+          }
+
+          // (2) Deterministic per-passage signal: a real place/event named in the
+          // prose (e.g. "Fort McHenry"), anchored to the real subject.
+          const anchor = base || standardNouns;
+          if (text && anchor) {
+            const locMatch = text.match(/\b(Fort|Battle of|Siege of|Port of|Harbor)\s+([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,2})/);
+            if (locMatch) {
+              const place = `${locMatch[1]} ${locMatch[2]}`.trim();
+              queries.push(place);
+              queries.push(`${place} ${anchor}`);
+            }
+          }
+
+          // (3) CONSTANT fallback (topic + standard) — LAST, so it only fills in
+          // when the per-passage queries are thin. These repeat across passages.
           if (base) {
             queries.push(base);
             queries.push(`${base} historical`);
-            queries.push(`${base} lithograph`);
-            queries.push(`${base} engraving`);
             queries.push(`${base} painting`);
-            queries.push(`${base} fort OR battle OR harbor`);
           }
-
-          if (text) {
-            // Extract factual/historical keywords from *this* passage, strip personal "you" narrative
-            const keyTerms = text
-              .replace(/[^a-zA-Z0-9\s]/g, ' ')
-              .split(/\s+/)
-              .filter(w => {
-                const lw = w.toLowerCase();
-                return w.length > 3 &&
-                  !['you', 'your', 'were', 'the', 'and', 'for', 'with', 'from', 'that', 'this', 'they', 'their', 'him', 'her', 'his', 'she', 'had', 'been', 'could', 'would'].includes(lw);
-              })
-              .slice(0, 7)
-              .join(' ');
-
-            if (keyTerms) {
-              queries.push(`${base} ${keyTerms}`);
-            }
-
-            // Location / event extraction (forts etc) — combine with full story context
-            const locMatch = text.match(/\b(Fort|Battle of|Siege of|Port of|Harbor)\s+([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,2})/i);
-            if (locMatch) {
-              const place = locMatch[2].trim();
-              queries.push(place);
-              queries.push(`${place} ${base}`);
-              queries.push(`${place} historical`);
-            }
-          }
-
-          // Pure style + topic fallbacks (very effective for historical art)
-          if (base) {
-            queries.push(`${base} fort`);
-            queries.push(`${base} 1812`); // example for era-specific
+          if (standardNouns && standardNouns.toLowerCase() !== base.toLowerCase()) {
+            queries.push(standardNouns);
           }
 
           const seen = new Set();
@@ -405,6 +409,57 @@ function generatorApiPlugin(): Plugin {
         } catch (e) {
           console.error('[branching-images] error', e);
           send(200, { images: [] }); // never break the UI
+        }
+      });
+
+      // GEMINI ILLUSTRATION GENERATION — the AI image lane (SEPARATE provider,
+      // SEPARATE key). Takes { topic, scene, era? } and returns { image } (a
+      // candidate for the same review picker) or { image: null }. A failure
+      // (missing GEMINI_API_KEY, provider down, refusal) NEVER throws — it falls
+      // back to null so the teacher keeps text-only. Claude/factGate are untouched.
+      // AI-LABELING baked in: artist + license mark it as a synthesized picture,
+      // never a historical source, so it reaches a kid honestly labeled.
+      server.middlewares.use('/api/branching-image-gen', async (req, res) => {
+        const send = (status: number, payload: unknown) => {
+          res.statusCode = status;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify(payload));
+        };
+        if (req.method !== 'POST') return send(405, { error: 'Method not allowed' });
+
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) return send(200, { image: null, error: 'GEMINI_API_KEY not configured in .env.local' });
+
+        let body = '';
+        for await (const chunk of req) body += chunk;
+        let inputs: any = {};
+        try { inputs = body ? JSON.parse(body) : {}; } catch { return send(400, { error: 'Invalid JSON' }); }
+
+        try {
+          const { generateIllustration } = await import('./generator/imageGen.ts');
+          const result = await generateIllustration({
+            topic: String(inputs.topic ?? ''),
+            scene: String(inputs.scene ?? inputs.text ?? inputs.passageText ?? ''),
+            era: inputs.era ? String(inputs.era) : undefined,
+          }, apiKey);
+          if (!result) return send(200, { image: null, error: 'generation failed (see server log) — text-only fallback' });
+          console.log(`[image-gen] ok: ${result.model} ${result.ms}ms ~${result.bytes} bytes`);
+          send(200, {
+            image: {
+              thumbUrl: result.dataUrl,
+              label: '✨ AI-generated illustration',
+              artist: 'AI-generated (Gemini 2.5 Flash Image)',
+              license: 'AI-generated illustration — not a historical source',
+              aiGenerated: true,
+              prompt: result.prompt,
+              model: result.model,
+              ms: result.ms,
+              bytes: result.bytes,
+            },
+          });
+        } catch (e) {
+          console.error('[image-gen] error', e);
+          send(200, { image: null, error: 'text-only fallback' }); // never break the UI
         }
       });
     },

@@ -112,6 +112,8 @@ export default function CreateBranching({ onBack }: Props) {
     return (
       <BranchingReview
         story={story}
+        topic={approval?.topic}
+        standard={approval?.standard}
         notices={notices}
         onConfirm={confirmReviewed}
         onBack={backToPreview}

@@ -94,6 +94,35 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
       <div className="max-w-xl w-full space-y-8">
         <h1 className="text-xs uppercase tracking-widest text-stone-500 text-center">{story.title}</h1>
 
+        {/* Teacher-curated image (if any) — shown during review/play for visual stories */}
+        {current.image?.thumbUrl && (
+          <div className="mb-4">
+            <img
+              src={current.image.thumbUrl}
+              alt=""
+              className="w-full rounded border border-stone-300 max-h-72 object-cover"
+            />
+            {(current.image.artist || current.image.license) && (
+              <div className="text-[10px] text-stone-500 mt-1 px-0.5">
+                {current.image.artist || "Curated"} {current.image.license ? `· ${current.image.license}` : ""}
+                {current.image.sourceUrl && (
+                  <>
+                    {" · "}
+                    <a
+                      href={current.image.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-stone-400"
+                    >
+                      Source
+                    </a>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* The current passage — continuous prose, simple and readable on a tablet. */}
         <p className="text-xl leading-relaxed font-serif whitespace-pre-line">{current.text}</p>
 

@@ -16,6 +16,20 @@ export interface BranchingChoice {
   next: string;
 }
 
+/** A multiple-choice "sage-style" question triggered at a major historical figure encounter or turning point.
+ * Replicates the spirit of the original sage questions: substantive, tied to the real moment/figure,
+ * educational weight, feels like it comes from the historical context or figure.
+ * Exactly one per key encounter when gumpIntensity=high. Used for both in-story sage moments and the final quiz.
+ * Ported from SageQuestion but adapted for branching: no rewards, pure history test.
+ */
+export interface BranchingQuestion {
+  question: string;
+  choices: string[];
+  correctIndex: number;
+  explanation: string;
+  teksRef?: string;
+}
+
 export interface BranchingPassage {
   id: string;
   /** Continuous prose for this moment of the story (rendered as-is). */
@@ -35,6 +49,10 @@ export interface BranchingPassage {
     license?: string;
     sourceUrl?: string;
   };
+  /** Optional MCQ on a figure-encounter passage (authored only when gumpIntensity
+   * is "high" and the protagonist meets a real famous figure). Exactly one per
+   * encounter; non-encounter passages carry none. */
+  question?: BranchingQuestion;
 }
 
 export interface BranchingStory {
@@ -43,6 +61,28 @@ export interface BranchingStory {
   /** The id of the first passage. */
   start: string;
   passages: BranchingPassage[];
+
+  /** When gumpIntensity="high": the core sage-style questions planned for this story.
+   * These ensure reliable coverage of key historical figures/events even across branching paths
+   * (the generator places the corresponding passages on the main spine with convergence).
+   * These feed the final quiz.
+   */
+  coreSageQuestions?: Array<{
+    passageId: string;
+    figure: string;
+    moment: string;
+    question: BranchingQuestion;
+  }>;
+
+  /** Final quiz / exam at the end of the playthrough. Pulls from the sage questions the player encountered.
+   * Includes review guidance so player can reflect on key events/questions before the assessment.
+   * Replicates the original final exam spirit as a meaningful check.
+   */
+  finalQuiz?: {
+    title: string;
+    instructions: string; // e.g. "Review the key moments and questions from your journey..."
+    questions: Array<BranchingQuestion & { context?: string; fromPassageId?: string }>;
+  };
 }
 
 // ── The recorded path ─────────────────────────────────────────────

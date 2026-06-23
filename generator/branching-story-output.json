@@ -1,291 +1,496 @@
 {
-  "title": "The Chalk Mark",
-  "protagonist": "Anna Kovac, age 12, from a village in Slovakia",
+  "title": "The Long Road to Yorktown",
+  "protagonist": "Sam Holt, a stable boy and message runner from Boston",
   "start": "start",
   "passages": [
     {
       "id": "start",
-      "text": "Your name is Anna Kovac. You are twelve. Your home is a small village in Slovakia, with chickens in the yard and snow on the hills. But there is no work here, and Papa went to America last year. Today a letter came. Inside were two ship tickets and one sentence in Papa's handwriting. \"Come to me, Anna and Mama. The new land waits.\"",
+      "text": "Your name is Sam Holt. You are fifteen. You sleep in the stable behind the Green Dragon Tavern in Boston. You feed the horses and run messages for men who whisper. It is April 18, 1775. A silversmith named Paul Revere comes through the back door fast. His boots are wet. He needs a horse, and he needs eyes on the road to Lexington. The British soldiers are moving tonight.",
       "choices": [
         {
-          "text": "Pack the family photo and Grandma's shawl",
-          "next": "pack"
+          "text": "Saddle his horse and ask to ride with him",
+          "next": "revere-ride"
         },
         {
-          "text": "Run to say goodbye to your best friend Eva",
-          "next": "goodbye"
+          "text": "Stay quiet and just hold the lantern",
+          "next": "revere-ride"
         }
       ]
     },
     {
-      "id": "pack",
-      "text": "You fold Grandma's wool shawl into a small bundle. You tuck the family photo deep inside, where it cannot bend. Mama watches with wet eyes. \"That shawl smells like home,\" she says. \"Keep it close.\" You press it to your face and breathe in. You will carry a piece of the village across the whole ocean.",
+      "id": "revere-ride",
+      "text": "You lead the fast brown mare into the yard. Across the dark water, two lanterns burn in the steeple of the Old North Church. Revere sees them too. \"Two lights,\" he says. \"The Regulars come by sea, across the Charles River.\" He pulls himself into the saddle. He looks down at you, breathing hard, and tells you the warning you must carry to every farmhouse before dawn.",
+      "question": {
+        "question": "What did the two lanterns in the Old North Church steeple signal on the night of Paul Revere's ride?",
+        "choices": [
+          "The British troops were coming by water, across the Charles River",
+          "The British had already captured Boston harbor",
+          "The militia should surrender at Lexington",
+          "George Washington had arrived to take command"
+        ],
+        "correctIndex": 0,
+        "explanation": "The signal was 'one if by land, two if by sea' — two lanterns meant the British Regulars were crossing the Charles River by boat."
+      },
       "choices": [
         {
-          "text": "Begin the long trip to the ship",
-          "next": "port"
-        }
-      ]
-    },
-    {
-      "id": "goodbye",
-      "text": "You find Eva by the well. You hug her so hard it hurts. \"Write to me,\" she whispers. \"Tell me what America smells like.\" You promise you will. Then Mama calls, and you must go. You look back once. Eva grows smaller and smaller, until the hill swallows her.",
-      "choices": [
-        {
-          "text": "Begin the long trip to the ship",
-          "next": "port"
-        }
-      ]
-    },
-    {
-      "id": "port",
-      "text": "After days of trains and dusty roads, you reach the port city of Hamburg. The ship is huge, taller than the church at home. Other families crowd the dock, all clutching bundles and babies. A man in a uniform points you down a steep stairway. \"Steerage,\" he barks. \"Bottom deck. Cheap tickets, bottom of the boat.\"",
-      "choices": [
-        {
-          "text": "Hurry down to find a bunk",
-          "next": "steerage"
+          "text": "Ride hard toward Lexington with him",
+          "next": "lexington-night"
         },
         {
-          "text": "Stay on deck a moment to watch land disappear",
-          "next": "deck"
+          "text": "Wake the families on the near road first",
+          "next": "lexington-night"
         }
       ]
     },
     {
-      "id": "deck",
-      "text": "You squeeze to the rail. The ship's horn blasts, deep enough to shake your chest. Slowly the dock pulls away. Europe shrinks into a gray line, then into nothing. Around you, grown men cry. A woman sings a sad song in a language you don't know. You hold the shawl tight and watch your whole old life sink under the sea.",
+      "id": "lexington-night",
+      "text": "You gallop the dark roads. Dogs bark. Candles light up in windows. Revere shouts at every door, \"The Regulars are out!\" Riders join you, then split off to warn more towns. Near dawn a British patrol stops Revere on the road. They take his horse. But the warning is already ahead of him, racing house to house. You slip into the trees and keep moving toward Lexington Green.",
       "choices": [
         {
-          "text": "Go down to the bunks now",
-          "next": "steerage"
-        }
-      ]
-    },
-    {
-      "id": "steerage",
-      "text": "The bottom deck is dark and crowded. Hundreds of people share long rows of metal bunks. The air smells of oil, salt, and sick stomachs. Your bunk is a thin mattress with a hard pillow. A girl your age in the next bunk smiles shyly. \"I'm Rosa,\" she says in Italian. \"Ten days to America, my Papa says.\"",
-      "choices": [
-        {
-          "text": "Make friends with Rosa",
-          "next": "rosa"
+          "text": "Go to the Green where the militia is forming",
+          "next": "lexington-green"
         },
         {
-          "text": "Stay quiet and watch the rough sea through a porthole",
-          "next": "storm"
+          "text": "Push on to Concord to warn the powder stores",
+          "next": "concord-bridge"
         }
       ]
     },
     {
-      "id": "rosa",
-      "text": "You and Rosa cannot speak the same words. So you point and laugh and trade them. You teach her \"shawl.\" She teaches you \"pane,\" which means bread. By the third day you are sharing your bread. The ship rocks hard, but you don't feel so alone now. A friend makes the dark deck warmer.",
+      "id": "lexington-green",
+      "text": "Gray light. On Lexington Green about seventy farmers stand in a ragged line with muskets. Captain John Parker tells his men, \"Stand your ground. Don't fire unless fired upon.\" The British column appears, hundreds of red coats, bayonets fixed. An officer screams for the farmers to throw down their arms. Then a shot cracks. No one knows who fired it. The British volley tears into the line. Eight men fall dead in the wet grass. You drop flat behind a stone wall, ears ringing.",
       "choices": [
         {
-          "text": "A storm hits on the fifth night",
-          "next": "storm"
-        }
-      ]
-    },
-    {
-      "id": "storm",
-      "text": "On the fifth night the sea turns angry. The ship climbs and drops like a falling barn. People moan and clutch their bunks. Mama holds you against her. \"Pray,\" she whispers. You squeeze your eyes shut and grip the shawl. By morning the storm passes. You are pale and shaking, but the ship still floats toward America.",
-      "choices": [
-        {
-          "text": "Crawl up to see the new land",
-          "next": "liberty"
-        }
-      ]
-    },
-    {
-      "id": "liberty",
-      "text": "On the tenth morning, a shout goes up. \"America! America!\" Everyone rushes up the stairs. There, rising out of the harbor mist, stands a giant green woman holding a torch high. The Statue of Liberty. People weep and clap and lift their babies to see. Your heart pounds. You made it across the whole world.",
-      "choices": [
-        {
-          "text": "Look closer — the ship is stopping at a small island",
-          "next": "ferry"
-        }
-      ]
-    },
-    {
-      "id": "ferry",
-      "text": "But the big ship does not dock in the city. It stops near a small island of red brick buildings. \"Ellis Island,\" a man says grimly. \"They check everyone there. The sick get sent back.\" Sent back? Across that whole terrible ocean? Your stomach turns cold. A smaller boat ferries the steerage passengers toward the brick buildings.",
-      "choices": [
-        {
-          "text": "Step off onto the island",
-          "next": "stairs"
-        }
-      ]
-    },
-    {
-      "id": "stairs",
-      "text": "Inside is a huge hall full of voices in a hundred languages. You climb a steep staircase, carrying your bundle. You don't notice it yet, but doctors are watching from the top. They study how each person climbs. They look for limps, for gasping, for sickness. Your shoe is loose. Climb carefully, or they may pull you aside.",
-      "choices": [
-        {
-          "text": "Climb slow and steady, hiding your tiredness",
-          "next": "inspect-pass"
+          "text": "Run for Concord to warn them what's coming",
+          "next": "concord-bridge"
         },
         {
-          "text": "Hurry up to stay close to Mama",
-          "next": "inspect-watch"
+          "text": "Help drag a wounded farmer to cover",
+          "next": "concord-bridge"
         }
       ]
     },
     {
-      "id": "inspect-watch",
-      "text": "You rush, and your loose shoe slips. You stumble on a step and grab the rail, breathing hard. A doctor at the top frowns and watches you longer than the others. Your face burns. Mama grabs your hand and pulls you up the last steps. The doctor scribbles something on a paper but does not stop you. Not yet.",
+      "id": "concord-bridge",
+      "text": "By midmorning the fight reaches Concord. The British search for hidden gunpowder and cannon, but the colonists moved most of it days ago. Smoke rises from the town. At the North Bridge, militia from many towns gather on the far bank, hundreds of them now. They see the smoke and think Concord is burning. A British volley. The militia fire back. Redcoats fall. The famous shot is fired here, the one men will call the shot heard round the world. The British begin to retreat.",
       "choices": [
         {
-          "text": "Reach the inspection line",
-          "next": "inspect-pass"
-        }
-      ]
-    },
-    {
-      "id": "inspect-pass",
-      "text": "At the top, doctors line you up. One holds a buttonhook, the little metal tool for buttons. He flips up your eyelid with it to check for sickness. It pinches and you gasp, but you stay still. He moves on. The line shuffles forward. Then you see something that makes your blood freeze.",
-      "choices": [
-        {
-          "text": "Watch the doctor with the chalk",
-          "next": "chalk"
-        }
-      ]
-    },
-    {
-      "id": "chalk",
-      "text": "A doctor walks the line with a piece of white chalk. On some people's coats he draws a letter. \"E\" for eyes. \"H\" for heart. \"L\" for limp. A chalk mark means you might be sent back. He pauses at the old man ahead of you and marks a big white \"H\" on his coat. The old man's wife begins to cry.",
-      "choices": [
-        {
-          "text": "The doctor lifts his chalk toward Mama's coat",
-          "next": "mama-mark"
-        }
-      ]
-    },
-    {
-      "id": "mama-mark",
-      "text": "The doctor stares at Mama. She has been coughing since the storm. He raises the chalk. Your whole body goes tight. If he marks her, they could send her back across the ocean — without you. You have one breath to act.",
-      "choices": [
-        {
-          "text": "Speak up — tell him she's only tired from the rough crossing",
-          "next": "speak-up"
+          "text": "Follow the retreat and carry word back to Boston",
+          "next": "retreat-road"
         },
         {
-          "text": "Stay silent and hope the cough passes",
-          "next": "silent"
+          "text": "Stay and help the wounded on both sides",
+          "next": "retreat-road"
         }
       ]
     },
     {
-      "id": "speak-up",
-      "text": "\"Please, sir,\" you say in your few English words. \"Not sick. Just tired. The sea was bad.\" The doctor blinks, surprised a child spoke English. Mama, hearing you, swallows hard and stands tall. She does not cough. The doctor lowers the chalk slowly. \"Move along,\" he says. No mark. You pull Mama forward before he can change his mind.",
+      "id": "retreat-road",
+      "text": "The road back to Boston becomes a killing line. Militiamen crouch behind stone walls, trees, and barns. They fire at the red column the whole sixteen miles. British soldiers drop in the dust. Some colonists are shot in their own doorways. By night the British are back in Boston, bloodied. You sit in the stable, hands shaking. The war is real now. It will not stop.",
       "choices": [
         {
-          "text": "Go to the last questions",
-          "next": "questions"
-        }
-      ]
-    },
-    {
-      "id": "silent",
-      "text": "You say nothing. Mama tries to hold her cough, but it bursts out, loud and rattling. The doctor's chalk comes down. A white \"H\" appears on her coat, for heart and lungs. \"This one needs the hospital,\" he says. A nurse leads Mama toward a side room for more tests. \"Wait here, Anna,\" Mama calls, frightened. You are alone in the great loud hall.",
-      "choices": [
-        {
-          "text": "Wait, terrified, for the doctors' decision",
-          "next": "hospital"
-        }
-      ]
-    },
-    {
-      "id": "hospital",
-      "text": "You wait on a hard bench for hours. The shawl is your only comfort. At last a nurse returns with Mama, who looks weak but is smiling. \"Just a chest cold from the storm,\" the nurse says. \"Not serious. She can stay.\" They wash the chalk off Mama's coat. You grab her so hard you almost knock her over. You will not be split apart.",
-      "choices": [
-        {
-          "text": "Go to the last questions",
-          "next": "questions"
-        }
-      ]
-    },
-    {
-      "id": "questions",
-      "text": "At a tall desk an officer asks questions through a translator. Your name? Where from? Who waits for you? \"My Papa,\" you answer. \"He has work in New York City.\" The officer checks his big book. He stamps your papers with a heavy thump. \"Welcome to the United States,\" the translator says. You can hardly believe it. You are in.",
-      "choices": [
-        {
-          "text": "Find Papa across the harbor",
-          "next": "papa"
-        }
-      ]
-    },
-    {
-      "id": "papa",
-      "text": "A ferry carries you to the city. The buildings are so tall they hide the sky. And there, in the crowd, a man waves both arms. Papa! He is thinner than you remember, but his smile is the same. He lifts you off your feet. \"My Anna,\" he says, his voice breaking. \"You're really here.\" The family is whole again, in a brand new world.",
-      "choices": [
-        {
-          "text": "Walk to your new home on the Lower East Side",
-          "next": "tenement"
-        }
-      ]
-    },
-    {
-      "id": "tenement",
-      "text": "Home is one small room up five dark flights of stairs. The whole family will sleep here. Outside, the streets roar with pushcarts, horses, and shouting in a dozen languages. Papa works long hours sewing coats in a factory. Money is tight. \"You must help us, Anna,\" Papa says gently. \"This land is hard. But it can be good, if we work.\"",
-      "choices": [
-        {
-          "text": "Beg to go to school to learn English",
-          "next": "school-path"
+          "text": "Join the militia camp surrounding Boston",
+          "next": "boston-siege"
         },
         {
-          "text": "Offer to take a job to help with the rent",
-          "next": "work-path"
+          "text": "Go home and try to stay out of it",
+          "next": "boston-siege"
         }
       ]
     },
     {
-      "id": "school-path",
-      "text": "You start at the crowded neighborhood school. The teacher speaks only English, fast and strange. The other kids laugh when you mix up the words. At night you are tired and ashamed. But you remember the doctor's chalk — how knowing a few English words saved Mama. So you study by candlelight until your eyes ache.",
+      "id": "boston-siege",
+      "text": "Thousands of New England militia ring Boston. They have courage but no order, no real general. In July 1775 a tall Virginian rides into the camp at Cambridge. The men say his name is George Washington, sent by the Continental Congress to command this Continental Army. He looks at the messy camp, the sick men, the empty powder casks, and his face goes hard. You are handed to his staff as a runner.",
+      "question": {
+        "question": "Why was George Washington chosen to command the Continental Army in 1775?",
+        "choices": [
+          "Congress appointed him to lead and unify the colonial forces into one army",
+          "He had already defeated the British at Lexington",
+          "He was the king's cousin and demanded the post",
+          "He won an election held by the militia soldiers"
+        ],
+        "correctIndex": 0,
+        "explanation": "The Continental Congress chose Washington to lead and organize the scattered militia into one unified Continental Army."
+      },
       "choices": [
         {
-          "text": "Keep struggling, no matter how hard it gets",
-          "next": "english-win"
+          "text": "Work hard to prove yourself to the general",
+          "next": "philadelphia-summer"
+        },
+        {
+          "text": "Keep your head down and just carry mail",
+          "next": "philadelphia-summer"
         }
       ]
     },
     {
-      "id": "english-win",
-      "text": "Week by week, the strange sounds turn into words. Then sentences. One day you read a whole street sign out loud, and Papa stops walking just to listen. Soon you read his factory letters for him. You write to Eva back home: \"America smells like coal smoke and fresh bread and a hundred languages all at once.\" You are becoming American — without losing who you are.",
+      "id": "philadelphia-summer",
+      "text": "Washington forces the British out of Boston in March 1776. Then he marches the army toward New York. In the summer you carry a packet south to Philadelphia, to the Continental Congress meeting in the State House. The streets buzz. Men argue about a word everyone is now saying out loud: independence. A thin, red-haired delegate from Virginia is writing something upstairs that will change everything.",
       "choices": [
         {
-          "text": "Years later, look back on it all",
-          "next": "ending-school"
+          "text": "Deliver the packet to the State House yourself",
+          "next": "jefferson-declaration"
+        },
+        {
+          "text": "Wait outside with the crowd",
+          "next": "jefferson-declaration"
         }
       ]
     },
     {
-      "id": "work-path",
-      "text": "You take a job in the same factory as Papa, sewing buttons onto coats. The room is hot and the hours are long. Your fingers grow rough and sore. But each Friday you bring home coins, and the family eats a little better. Sometimes, sewing buttons, you remember the buttonhook the doctor used on your eye. You laugh quietly. Buttons brought you here and buttons feed you now.",
+      "id": "jefferson-declaration",
+      "text": "Inside, the air is hot and still. The red-haired delegate is Thomas Jefferson. Papers cover his table. He looks up as you set down the packet. \"We are not asking the king to fix things anymore,\" he says quietly. \"We are telling the world we are free.\" On July 4, 1776, the Congress adopts his Declaration of Independence. You hear it read aloud in the square: that all men are created equal, with rights to life, liberty, and the pursuit of happiness. The crowd roars. Some weep. A king's statue is pulled down.",
+      "question": {
+        "question": "What did Thomas Jefferson's Declaration of Independence, adopted July 4, 1776, mainly do?",
+        "choices": [
+          "It declared the colonies free and independent and stated all men are created equal with rights to life, liberty, and the pursuit of happiness",
+          "It asked King George III for a peace treaty and lower taxes",
+          "It made George Washington the king of America",
+          "It ended the war and freed all enslaved people immediately"
+        ],
+        "correctIndex": 0,
+        "explanation": "Jefferson's Declaration announced independence and set out the idea that all men are created equal with unalienable rights to life, liberty, and the pursuit of happiness."
+      },
       "choices": [
         {
-          "text": "Try to learn English in the few hours you have",
-          "next": "work-english"
+          "text": "Carry the news north to Washington's army",
+          "next": "new-york-defeat"
+        },
+        {
+          "text": "Sign up to serve directly with the army",
+          "next": "new-york-defeat"
         }
       ]
     },
     {
-      "id": "work-english",
-      "text": "You are too tired for school. But an older Italian woman at the next table teaches you English words as you sew. \"Needle,\" she says. \"Thread. Money. Friend.\" You teach her Slovak words back. It is slow, learning a few words a day over the rattle of the machines. But you are learning, and you are helping your family live.",
+      "id": "new-york-defeat",
+      "text": "You reach Washington's army near New York with the Declaration in your pack. Then the British come. Their fleet fills the harbor. General Howe lands an army bigger than any city in America. At the Battle of Long Island the army is nearly crushed. Washington pulls his men across the East River at night in fog and boats, every man silent. Through the fall the British chase the army across New Jersey. Men desert. Winter comes. The cause is dying.",
       "choices": [
         {
-          "text": "Years later, look back on it all",
-          "next": "ending-work"
+          "text": "Stay with the shrinking army through the retreat",
+          "next": "delaware-crossing"
+        },
+        {
+          "text": "Think hard about walking away home",
+          "next": "delaware-crossing"
         }
       ]
     },
     {
-      "id": "ending-school",
-      "text": "Years pass. You speak English now without thinking. You stand at the front of a classroom yourself, teaching new children who just stepped off the boats. They look up at you, scared and far from home, the way you once were. You smile and hold up a piece of chalk — not to mark anyone, but to write their first English word. \"Welcome,\" you say. And you mean it with all your heart.",
-      "ending": true
+      "id": "delaware-crossing",
+      "text": "December 25, 1776. The army is starving and ragged on the Pennsylvania side of the Delaware River. Ice chokes the water. Washington gathers the men in the freezing dark. The password is Victory or Death. You climb into a long boat with soldiers whose feet are wrapped in rags. Some leave blood in the snow. Washington stands at the front of his boat, jaw set, as you cross the black, ice-filled river toward Trenton.",
+      "question": {
+        "question": "What bold move did Washington make on the night of December 25, 1776?",
+        "choices": [
+          "He crossed the ice-filled Delaware River to surprise the enemy at Trenton",
+          "He surrendered his army to the British at Trenton",
+          "He sailed his whole army back to Boston",
+          "He retreated south to Virginia for the winter"
+        ],
+        "correctIndex": 0,
+        "explanation": "Washington crossed the frozen Delaware on Christmas night and surprised the Hessian troops at Trenton, winning a desperately needed victory."
+      },
+      "choices": [
+        {
+          "text": "Fight beside the men in the streets of Trenton",
+          "next": "trenton-victory"
+        },
+        {
+          "text": "Run messages between Washington's columns",
+          "next": "trenton-victory"
+        }
+      ]
     },
     {
-      "id": "ending-work",
-      "text": "Years pass. Your fingers are quick and strong from a thousand coats. You never finished school, and some English words still feel like stones in your mouth. But the rent is always paid, and Mama no longer coughs. On Sundays the family walks the loud, bright streets together, and Papa says you saved them. You wrap Grandma's old shawl around your shoulders. It still, faintly, smells like home.",
-      "ending": true
+      "id": "trenton-victory",
+      "text": "At dawn you hit Trenton in a snowstorm. The Hessian soldiers, hired Germans fighting for the British, are caught half asleep. Cannon roar down the streets. The fight is short and brutal. Hundreds of Hessians surrender. The army wins. It is small, but it is a win, the first real one in months. Men who were ready to quit lift their heads again. The cause does not die this winter.",
+      "choices": [
+        {
+          "text": "Stay with the army into the next hard winter",
+          "next": "valley-forge"
+        },
+        {
+          "text": "Hope the worst is over now",
+          "next": "valley-forge"
+        }
+      ]
+    },
+    {
+      "id": "valley-forge",
+      "text": "It is not over. The winter of 1777 and 1778 is worse. The army camps at Valley Forge in Pennsylvania. There are no warm clothes, little food, no shoes. You build huts from logs in the frozen mud. Smallpox and fever sweep the camp. Around two thousand men die that winter, not from bullets, but from cold and sickness and hunger. You bury friends in shallow, frozen graves. Each night you wonder if you will wake.",
+      "choices": [
+        {
+          "text": "Stay and drill with the dying army",
+          "next": "valley-forge-drill"
+        },
+        {
+          "text": "Lie still and just try to survive the cold",
+          "next": "valley-forge-coast"
+        }
+      ]
+    },
+    {
+      "id": "valley-forge-drill",
+      "text": "A loud Prussian officer named Baron von Steuben arrives. He cannot speak much English. He curses in German and French and makes his translator curse for him. But he teaches the ragged men to march, to load fast, to fight as one body. You drill until your hands bleed in the cold. By spring the starved survivors of Valley Forge are a real army. You are harder now, and proud of it.",
+      "choices": [
+        {
+          "text": "March out with the new, disciplined army",
+          "next": "war-drags"
+        }
+      ]
+    },
+    {
+      "id": "valley-forge-coast",
+      "text": "You keep to your hut and your blanket. You do the smallest work you can. You watch men drill in the snow and feel nothing but cold. You trade your boots for bread. When spring comes, you are still alive, but thinner, quieter, emptied out. You have learned to feel nothing so the dying around you cannot reach you.",
+      "choices": [
+        {
+          "text": "March out with the army anyway",
+          "next": "war-drags"
+        }
+      ]
+    },
+    {
+      "id": "war-drags",
+      "text": "Years pass. The war grinds on, north and south. France joins the American side and sends ships, money, and soldiers. A young French nobleman named the Marquis de Lafayette becomes one of Washington's most trusted generals, and he likes you, the runner who never quits. By 1781 the British general Cornwallis has marched his army to a small Virginia town on the water. Its name is Yorktown.",
+      "choices": [
+        {
+          "text": "Ride south with Washington's army toward Yorktown",
+          "next": "yorktown-march"
+        },
+        {
+          "text": "Stay back with the supply trains",
+          "next": "yorktown-march"
+        }
+      ]
+    },
+    {
+      "id": "yorktown-march",
+      "text": "The trap closes. Washington marches the American and French armies fast from the north. The French fleet under Admiral de Grasse beats the British navy at sea and seals the bay. Now Cornwallis cannot escape by water. Cannons are dragged into place. Trenches are dug closer and closer to the British lines. Lafayette finds you in the dust and grips your shoulder. \"Tonight,\" he says, \"we take their guns.\"",
+      "question": {
+        "question": "How did the French help trap Cornwallis at Yorktown in 1781?",
+        "choices": [
+          "The French fleet blocked the bay so the British army could not escape or be rescued by sea",
+          "The French king personally led the final charge",
+          "France convinced the British to surrender without a fight",
+          "The French burned Yorktown to the ground before the siege"
+        ],
+        "correctIndex": 0,
+        "explanation": "The French navy under Admiral de Grasse controlled the Chesapeake Bay, cutting off Cornwallis's escape and sealing the British defeat at Yorktown."
+      },
+      "choices": [
+        {
+          "text": "Volunteer for the night assault on the redoubts",
+          "next": "redoubt-assault"
+        },
+        {
+          "text": "Run powder and orders behind the lines",
+          "next": "siege-lines"
+        }
+      ]
+    },
+    {
+      "id": "redoubt-assault",
+      "text": "In the dark you go forward with the storming party. No muskets loaded, only bayonets, so no shot gives them away. You climb over sharpened stakes. Men fall beside you, hit in the dark. Colonel Alexander Hamilton leads his men over the wall of one redoubt. The fighting is hand to hand, screaming, steel on steel. You take a cut across the arm but you keep going. The British strongpoints fall. The last walls around Cornwallis are broken.",
+      "choices": [
+        {
+          "text": "Hold the captured redoubt through the night",
+          "next": "surrender"
+        }
+      ]
+    },
+    {
+      "id": "siege-lines",
+      "text": "You stay behind the lines, running powder to the great guns. All night the cannon hammer Yorktown. The ground shakes. You watch the storming parties go forward in the dark and come back fewer. You keep your head down and do your job. You are alive when the sun comes up, and the British outer forts have fallen. The end is close now.",
+      "choices": [
+        {
+          "text": "Move up to watch the British answer",
+          "next": "surrender"
+        }
+      ]
+    },
+    {
+      "id": "surrender",
+      "text": "On October 19, 1781, the British march out of Yorktown to surrender. Their drums beat a slow, sad tune. Cornwallis claims to be sick and sends another man to hand over his sword. Thousands of British soldiers lay down their muskets in a long field while the American and French armies watch in silence. You stand in the line, arm bandaged or not, and you understand. This is it. The British army in the south is finished.",
+      "choices": [
+        {
+          "text": "You fought through it and held on to your fire",
+          "next": "ending-triumphant"
+        },
+        {
+          "text": "You survived it but feel hollow and far away",
+          "next": "ending-broken"
+        },
+        {
+          "text": "You drifted through it and just want to go home",
+          "next": "ending-indifferent"
+        }
+      ]
+    },
+    {
+      "id": "ending-triumphant",
+      "text": "Yorktown all but ends the war. In 1783 the Treaty of Paris makes it real: the United States is free. You ride north one last time as a man, not a boy. You saw Lexington's dead, the ice of the Delaware, the frozen graves of Valley Forge. You carried the Declaration in your own pack. You stayed when staying could have killed you. You did not become hard or empty. You became someone who finished what he started. Whatever country this becomes, a piece of it is yours, and you carry that home for good.",
+      "ending": true,
+      "endingState": "triumphant"
+    },
+    {
+      "id": "ending-broken",
+      "text": "The war ends, but you do not feel it end. You go home to Boston. The stable is still there. The horses still need feeding. But the cold of Valley Forge never fully left your bones, and the faces of the men you buried come to you at night. You won. The country is free. You survived every battle. Yet something in you was left in those frozen trenches, and it does not come back. You are alive, and you are not whole.",
+      "ending": true,
+      "endingState": "broken"
+    },
+    {
+      "id": "ending-indifferent",
+      "text": "Peace comes in 1783. You walk back to Boston with the crowds. People cheer the new nation. You nod along, but it feels like a story that happened to other men. You kept your head down, traded your boots for bread, did the smallest work you could. You are alive and unharmed, and that is all. You feed the horses again. The great words, all men are created equal, hang in the air around you, but you let them pass by, the way you let everything pass by, and you go on as you were.",
+      "ending": true,
+      "endingState": "indifferent"
     }
-  ]
+  ],
+  "coreSageQuestions": [
+    {
+      "passageId": "revere-ride",
+      "figure": "Paul Revere",
+      "moment": "The midnight ride and the lantern signal, April 18, 1775",
+      "question": {
+        "question": "What did the two lanterns in the Old North Church steeple signal on the night of Paul Revere's ride?",
+        "choices": [
+          "The British troops were coming by water, across the Charles River",
+          "The British had already captured Boston harbor",
+          "The militia should surrender at Lexington",
+          "George Washington had arrived to take command"
+        ],
+        "correctIndex": 0,
+        "explanation": "The signal was 'one if by land, two if by sea' — two lanterns meant the British Regulars were crossing the Charles River by boat."
+      }
+    },
+    {
+      "passageId": "boston-siege",
+      "figure": "George Washington",
+      "moment": "Taking command of the Continental Army at Cambridge, 1775",
+      "question": {
+        "question": "Why was George Washington chosen to command the Continental Army in 1775?",
+        "choices": [
+          "Congress appointed him to lead and unify the colonial forces into one army",
+          "He had already defeated the British at Lexington",
+          "He was the king's cousin and demanded the post",
+          "He won an election held by the militia soldiers"
+        ],
+        "correctIndex": 0,
+        "explanation": "The Continental Congress chose Washington to lead and organize the scattered militia into one unified Continental Army."
+      }
+    },
+    {
+      "passageId": "jefferson-declaration",
+      "figure": "Thomas Jefferson",
+      "moment": "Writing and adopting the Declaration of Independence, July 4, 1776",
+      "question": {
+        "question": "What did Thomas Jefferson's Declaration of Independence, adopted July 4, 1776, mainly do?",
+        "choices": [
+          "It declared the colonies free and independent and stated all men are created equal with rights to life, liberty, and the pursuit of happiness",
+          "It asked King George III for a peace treaty and lower taxes",
+          "It made George Washington the king of America",
+          "It ended the war and freed all enslaved people immediately"
+        ],
+        "correctIndex": 0,
+        "explanation": "Jefferson's Declaration announced independence and set out the idea that all men are created equal with unalienable rights to life, liberty, and the pursuit of happiness."
+      }
+    },
+    {
+      "passageId": "delaware-crossing",
+      "figure": "George Washington",
+      "moment": "The crossing of the Delaware, Christmas night 1776",
+      "question": {
+        "question": "What bold move did Washington make on the night of December 25, 1776?",
+        "choices": [
+          "He crossed the ice-filled Delaware River to surprise the enemy at Trenton",
+          "He surrendered his army to the British at Trenton",
+          "He sailed his whole army back to Boston",
+          "He retreated south to Virginia for the winter"
+        ],
+        "correctIndex": 0,
+        "explanation": "Washington crossed the frozen Delaware on Christmas night and surprised the Hessian troops at Trenton, winning a desperately needed victory."
+      }
+    },
+    {
+      "passageId": "yorktown-march",
+      "figure": "Marquis de Lafayette and the French alliance",
+      "moment": "The siege of Yorktown, 1781",
+      "question": {
+        "question": "How did the French help trap Cornwallis at Yorktown in 1781?",
+        "choices": [
+          "The French fleet blocked the bay so the British army could not escape or be rescued by sea",
+          "The French king personally led the final charge",
+          "France convinced the British to surrender without a fight",
+          "The French burned Yorktown to the ground before the siege"
+        ],
+        "correctIndex": 0,
+        "explanation": "The French navy under Admiral de Grasse controlled the Chesapeake Bay, cutting off Cornwallis's escape and sealing the British defeat at Yorktown."
+      }
+    }
+  ],
+  "finalQuiz": {
+    "title": "Final Exam: What You Learned on the Journey",
+    "instructions": "Review the key moments and figures you met on the road from Boston to Yorktown. Then answer these questions to check your understanding.",
+    "questions": [
+      {
+        "context": "On the night of April 18, 1775, you saddled Paul Revere's horse and saw the lanterns in the Old North Church.",
+        "question": "What did the two lanterns in the Old North Church steeple signal on the night of Paul Revere's ride?",
+        "choices": [
+          "The British troops were coming by water, across the Charles River",
+          "The British had already captured Boston harbor",
+          "The militia should surrender at Lexington",
+          "George Washington had arrived to take command"
+        ],
+        "correctIndex": 0,
+        "explanation": "The signal was 'one if by land, two if by sea' — two lanterns meant the British Regulars were crossing the Charles River by boat."
+      },
+      {
+        "context": "In 1775 you watched a tall Virginian ride into the camp at Cambridge to take command.",
+        "question": "Why was George Washington chosen to command the Continental Army in 1775?",
+        "choices": [
+          "Congress appointed him to lead and unify the colonial forces into one army",
+          "He had already defeated the British at Lexington",
+          "He was the king's cousin and demanded the post",
+          "He won an election held by the militia soldiers"
+        ],
+        "correctIndex": 0,
+        "explanation": "The Continental Congress chose Washington to lead and organize the scattered militia into one unified Continental Army."
+      },
+      {
+        "context": "In Philadelphia you met Thomas Jefferson writing in the State House.",
+        "question": "What did Thomas Jefferson's Declaration of Independence, adopted July 4, 1776, mainly do?",
+        "choices": [
+          "It declared the colonies free and independent and stated all men are created equal with rights to life, liberty, and the pursuit of happiness",
+          "It asked King George III for a peace treaty and lower taxes",
+          "It made George Washington the king of America",
+          "It ended the war and freed all enslaved people immediately"
+        ],
+        "correctIndex": 0,
+        "explanation": "Jefferson's Declaration announced independence and set out the idea that all men are created equal with unalienable rights to life, liberty, and the pursuit of happiness."
+      },
+      {
+        "context": "On Christmas night 1776 you climbed into a boat with the password 'Victory or Death.'",
+        "question": "What bold move did Washington make on the night of December 25, 1776?",
+        "choices": [
+          "He crossed the ice-filled Delaware River to surprise the enemy at Trenton",
+          "He surrendered his army to the British at Trenton",
+          "He sailed his whole army back to Boston",
+          "He retreated south to Virginia for the winter"
+        ],
+        "correctIndex": 0,
+        "explanation": "Washington crossed the frozen Delaware on Christmas night and surprised the Hessian troops at Trenton, winning a desperately needed victory."
+      },
+      {
+        "context": "At Yorktown in 1781, Lafayette gripped your shoulder before the final assault.",
+        "question": "How did the French help trap Cornwallis at Yorktown in 1781?",
+        "choices": [
+          "The French fleet blocked the bay so the British army could not escape or be rescued by sea",
+          "The French king personally led the final charge",
+          "France convinced the British to surrender without a fight",
+          "The French burned Yorktown to the ground before the siege"
+        ],
+        "correctIndex": 0,
+        "explanation": "The French navy under Admiral de Grasse controlled the Chesapeake Bay, cutting off Cornwallis's escape and sealing the British defeat at Yorktown."
+      }
+    ]
+  }
 }

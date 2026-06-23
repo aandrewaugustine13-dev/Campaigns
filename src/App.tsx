@@ -369,7 +369,6 @@ export default function App(){
   const[campaignId,setCampaignId]=useState<string|null>(null);
   const[state,setState]=useState<GameState>(makeInit());
   const[usedEvents,setUsedEvents]=useState<Set<string>>(new Set());
-  const[isTeacherMode, setIsTeacherMode]=useState(false);
   // Final-exam gate. The end-screen results stay locked until the
   // player passes the TEKS check for understanding.
   const[examPassed,setExamPassed]=useState(false);
@@ -914,17 +913,9 @@ export default function App(){
     { id: "chisholm", section: "legacy", title: "🐂 Chisholm Trail — 1867", subtitle: "San Antonio to Abilene", config: ChisholmCampaign, color: "bg-amber-800 hover:bg-amber-700", subColor: "text-amber-300" },
     { id: "silkroad", section: "legacy", title: "🐫 Silk Road — 130 BCE", subtitle: "Chang'an to Constantinople", config: { isPublished: true }, color: "bg-indigo-900 hover:bg-indigo-800", subColor: "text-indigo-300" },
     { id: "crusades", section: "legacy", title: "✝ Third Crusade — 1190", subtitle: "Warwick to Jerusalem", config: CrusadesCampaign, color: "bg-red-900 hover:bg-red-800", subColor: "text-red-300" },
-    { id: "lewisclark", section: "legacy", title: "🧭 Lewis & Clark — 1804", subtitle: "St. Louis to the Pacific", config: { isPublished: true }, color: "bg-emerald-900 hover:bg-emerald-800", subColor: "text-emerald-300" },
-    { id: "joseph", section: "legacy", title: "📖 Joseph — Reconstruction", subtitle: "A freedman's first free year (flag test)", config: josephReconstruction, color: "bg-stone-700 hover:bg-stone-600", subColor: "text-stone-300" },
-    { id: "narrative-meiji", section: "legacy", title: "🗾 Meiji Restoration — 1868", subtitle: "Legacy beat-assembly demo — superseded by First-Person Narrative", config: narrativeDemo, color: "bg-rose-900 hover:bg-rose-800", subColor: "text-rose-300" },
-    { id: "branch-1812", section: "narrative", title: "📖 War of 1812", subtitle: "Caleb Wren — example story", config: branching1812, color: "bg-sky-900 hover:bg-sky-800", subColor: "text-sky-300" },
-    { id: "branch-reconstruction", section: "narrative", title: "📖 Reconstruction", subtitle: "Tessa — example story", config: branchingReconstruction, color: "bg-sky-900 hover:bg-sky-800", subColor: "text-sky-300" },
-    { id: "branch-suffrage", section: "narrative", title: "📖 Women's Suffrage", subtitle: "Lottie Mercer — example story", config: branchingSuffrage, color: "bg-sky-900 hover:bg-sky-800", subColor: "text-sky-300" },
   ];
 
-  const visibleCampaigns = isTeacherMode
-    ? campaigns
-    : campaigns.filter(c => (c.config as any).isPublished);
+  const visibleCampaigns = campaigns;
   const narrativeStories = visibleCampaigns.filter(c => c.section === "narrative");
   const legacyCampaigns = visibleCampaigns.filter(c => c.section === "legacy");
 
@@ -938,18 +929,7 @@ export default function App(){
   if(campaignId==="create-branching")return <CreateBranching onBack={backToMenu}/>;
 
   if(!campaignId)return(
-    <div className="h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center relative" style={{fontFamily:"'Georgia', serif"}}>
-      {/* Teacher Mode Toggle */}
-      <div className="absolute top-4 right-4 flex items-center gap-2">
-        <span className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Teacher God Mode</span>
-        <button 
-          onClick={() => setIsTeacherMode(!isTeacherMode)}
-          className={`w-10 h-5 rounded-full relative transition-colors ${isTeacherMode ? 'bg-amber-600' : 'bg-stone-700'}`}
-        >
-          <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isTeacherMode ? 'left-6' : 'left-1'}`} />
-        </button>
-      </div>
-
+    <div className="h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center" style={{fontFamily:"'Georgia', serif"}}>
       <h1 className="text-3xl font-bold text-amber-400 mb-2">CAMPAIGNS</h1>
       <p className="text-stone-400 text-sm mb-8">Choose your trail.</p>
       <div className="space-y-2 w-64">
@@ -959,8 +939,7 @@ export default function App(){
           📖 Create a First-Person Story<br/><span className="text-[10px] font-normal text-sky-200/80">Generate a choose-your-path history story</span>
         </button>
         {narrativeStories.map(c => (
-          <button key={c.id} onClick={()=>setCampaignId(c.id)} className={`w-full py-3 ${c.color} rounded font-bold transition-colors text-left px-4 relative`}>
-            {isTeacherMode && !(c.config as any).isPublished && <span className="absolute top-1 right-2 text-[8px] bg-amber-900 text-amber-300 px-1 rounded uppercase font-bold">Draft</span>}
+          <button key={c.id} onClick={()=>setCampaignId(c.id)} className={`w-full py-3 ${c.color} rounded font-bold transition-colors text-left px-4`}>
             {c.title}<br/><span className={`text-xs font-normal ${c.subColor}`}>{c.subtitle}</span>
           </button>
         ))}
@@ -971,8 +950,7 @@ export default function App(){
           + Create a Campaign<br/><span className="text-[10px] font-normal text-amber-500/60">Systems-mode generator (legacy)</span>
         </button>
         {legacyCampaigns.map(c => (
-          <button key={c.id} onClick={()=>setCampaignId(c.id)} className={`w-full py-3 ${c.color} rounded font-bold transition-colors text-left px-4 relative`}>
-            {isTeacherMode && !(c.config as any).isPublished && <span className="absolute top-1 right-2 text-[8px] bg-amber-900 text-amber-300 px-1 rounded uppercase font-bold">Draft</span>}
+          <button key={c.id} onClick={()=>setCampaignId(c.id)} className={`w-full py-3 ${c.color} rounded font-bold transition-colors text-left px-4`}>
             {c.title}<br/><span className={`text-xs font-normal ${c.subColor}`}>{c.subtitle}</span>
           </button>
         ))}

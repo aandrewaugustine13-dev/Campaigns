@@ -52,12 +52,64 @@ SHAPE AND SIZE:
 - The story's SCOPE is set in the instructions below ("span" or "depth") — it governs the length and the shape; follow it. Either way, every passage must earn its place: TRIM anything that does not carry the story or the feeling. Never pad, never repeat, never stall.
 - NO game machinery of any kind: no numbers, no health, no scores, no day counts, no inventory, no stats. Only story and choices.
 
+GUMP INTENSITY AND FIGURE ENCOUNTERS + SAGE-STYLE QUESTIONS (HIGHEST PRIORITY WHEN HIGH — READ THIS FIRST AND PLAN AROUND IT):
+
+This is the most important rule for GUMP=HIGH. Follow exactly. Do NOT treat questions as optional add-ons.
+
+PRE-PLANNING STEP (do this in your mind before writing the story):
+- Identify 5–7 MOST IMPORTANT historical figures and turning-point moments for the topic (the ones a student MUST understand).
+- These will be your "sage moments".
+- Structure the story's MAIN SPINE (the mostly-linear path the protagonist follows across the arc) so that these key sage moments are ENCOUNTERED ON THE SPINE, with branches for stance/choice that CONVERGE BACK to the spine before or after each key moment. This guarantees reliable content coverage — no matter which choices the player makes at load-bearing points, they will hit the core historical material via the sage questions.
+- Do not hide key content only on obscure branches.
+
+FOR EACH SAGE MOMENT (when GUMP=HIGH):
+- Create a distinct "sage question moment" passage for the major figure or turning point.
+- The passage text should feel like a special encounter: the protagonist comes face-to-face with the real figure or is present at the exact turning point. Write it in a way that gives the moment weight — the figure "speaks to the moment" or the event "poses the question to history". Make it feel like the original sage encounters: educational, coming from the historical context/figure, not just a random trivia.
+- EVERY such sage passage MUST contain EXACTLY ONE high-quality MCQ question.
+- The question tests REAL, meaningful historical understanding of THAT specific figure or moment (not generic).
+- Question format EXACT:
+  "question": {
+    "question": "clear specific question about the figure's role/action/words/significance in this exact moment",
+    "choices": ["the verifiably correct documented fact", "plausible distractor 1 (common mix-up)", "plausible distractor 2", "plausible distractor 3"],
+    "correctIndex": 0,
+    "explanation": "one sentence with the accurate historical fact"
+  }
+- 4 choices, one clearly correct, three good but wrong distractors.
+- Sage question moments are distinct: the question is presented as part of a reflective/sage-like moment with the figure/event.
+- Regular story passages NEVER get a question. Only these planned sage encounters do. Exactly one per major encounter.
+
+COVERAGE RULE:
+- The key sage questions must cover the most important material for the topic/standard.
+- Because of spine + convergence, players on different paths will still encounter most or all core sage questions.
+
+FINAL QUIZ / EXAM:
+- At the end of the story (before or leading into the three endings), include logic for a final assessment.
+- In the JSON, also output at the top level:
+  "coreSageQuestions": [ array of the 5-7 planned ones, each with passageId, figure, moment, and the full question object ]
+  "finalQuiz": {
+    "title": "Final Exam: What You Learned on the Journey",
+    "instructions": "Review the key moments and questions from the historical figures you encountered. Then answer these questions to check your understanding.",
+    "questions": [ the list of core questions, optionally with "context" summary of the moment ]
+  }
+- The final quiz pulls directly from the sage-style questions the player would have encountered.
+- Make sure the story gives a sense of review opportunity before the assessment (e.g. a passage that reflects on the journey and the figures met).
+
+This replicates the original sage + final exam: distinct educational moments with figures, reliable coverage of core history via questions, and a culminating quiz for understanding.
+
 OUTPUT SHAPE (TypeScript for reference — output JSON only):
 interface Choice { text: string; next: string; }   // next = the id of the passage this choice leads to
-interface Passage { id: string; text: string; choices?: Choice[]; ending?: boolean; endingState?: "broken" | "indifferent" | "triumphant"; }  // ending passages have ending:true, NO choices, and endingState set
-interface BranchingStory { title: string; protagonist: string; start: string; passages: Passage[]; }
+interface Passage { id: string; text: string; choices?: Choice[]; ending?: boolean; endingState?: "broken" | "indifferent" | "triumphant"; question?: { question: string; choices: string[]; correctIndex: number; explanation: string }; }  // "question" ONLY on sage-style figure-encounter passages when GUMP HIGH; these are distinct moments
+interface BranchingStory { 
+  title: string; 
+  protagonist: string; 
+  start: string; 
+  passages: Passage[]; 
+  // When GUMP HIGH:
+  coreSageQuestions?: Array<{ passageId: string; figure: string; moment: string; question: {question: string; choices: string[]; correctIndex: number; explanation: string} }>;
+  finalQuiz?: { title: string; instructions: string; questions: Array<{question: string; choices: string[]; correctIndex: number; explanation: string; context?: string}> };
+}
 
-RULES: ids are short kebab-case and unique. "start" is the id of the first passage. EVERY choice's "next" must be the id of a real passage in the list. Every passage either has 2-3 choices OR ending:true (never both, never neither). EVERY ending passage has an "endingState" of "broken", "indifferent", or "triumphant" — never death; the protagonist always survives to the aftermath. All three states are reachable from start. No passage is unreachable from start. Output ONLY the JSON object conforming to BranchingStory.`;
+RULES: ids are short kebab-case and unique. "start" is the id of the first passage. EVERY choice's "next" must be the id of a real passage in the list. Every passage either has 2-3 choices OR ending:true (never both, never neither). EVERY ending passage has an "endingState" of "broken", "indifferent", or "triumphant" — never death; the protagonist always survives to the aftermath. All three states are reachable from start. No passage is unreachable from start. "question" appears ONLY on sage figure-encounter passages (GUMP HIGH). Include coreSageQuestions and finalQuiz at top level for reliable coverage and end assessment. Output ONLY the JSON object conforming to BranchingStory.`;
 
 export interface BranchingInputs {
   /** What the story is about (authoritative). */
@@ -134,8 +186,17 @@ SCOPE — DEPTH (compress to ONE intense moment): a single place and a short spa
   const gump = inputs.gumpIntensity === "high" ? "high" : "off";
   const gumpBlock = gump === "high"
     ? `
-GUMP INTENSITY — HIGH (engineer improbable encounters): the protagonist CROSSES PATHS with this topic's REAL marquee figures and is PRESENT at its turning-point moments — even when one person realistically could not be at all of them. The implausibility is INTENTIONAL: the device adds scope and context, and a student noticing "one person couldn't be everywhere" is a feature, not a flaw. Place these collisions at the real turning points along the spine.
-HARD CONSTRAINT — real figures keep their DOCUMENTED words and actions. The ONLY invented thing is that the fictional protagonist was close enough to witness or assist. The protagonist may witness a real figure's real words and deeds up close, and a real figure may act toward the protagonist ONLY in ways that do NOT contradict or invent the historical record (a real order barked at the line the kid is standing in; the kid being the hands that carry the frame Dolley Madison really saved). NEVER invent dialogue, quotes, or actions for a real historical person. The kid's presence is fiction; the figure's history stays fact.`
+GUMP INTENSITY — HIGH (MANDATORY — PLAN FIRST, EXECUTE FULLY):
+
+You must follow the GUMP HIGH rules from the system prompt exactly:
+- Pre-plan the 5-7 key figures/turning points that will receive sage-style questions.
+- Put them on the main story spine with converging branches so coverage is reliable across paths.
+- For each, create a distinct sage-style question moment passage (feels like meeting the figure or the moment posing the question, educational weight like a sage encounter).
+- Attach EXACTLY ONE question per such passage in the exact format.
+- At the end of the JSON include "coreSageQuestions" and "finalQuiz" as specified in the system prompt (use the planned questions).
+- Never put questions on non-sage passages.
+- Make the questions substantive, tied to real history of that specific encounter.`
+
     : "";
 
   const base = `Write the complete branching story now for THIS topic.
@@ -210,6 +271,46 @@ export async function generateBranchingStory(
     if (validation.playable) {
       const story = parsed as BranchingStory;
 
+      // === SAGE QUESTIONS + FINAL QUIZ LOGIC (for gump high) ===
+      // Collect all sage-style questions from passages. This ensures the final quiz
+      // can be presented from encountered (or all core) questions, replicating original
+      // sage + final exam flow. The prompt already instructed the model to plan coverage.
+      if (inputs.gumpIntensity === "high") {
+        const encounteredQuestions: Array<BranchingQuestion & { fromPassageId: string }> = [];
+        const coreSage: any[] = [];
+        for (const p of story.passages) {
+          if (p.question) {
+            const q = { ...p.question, fromPassageId: p.id };
+            encounteredQuestions.push(q);
+            // try to infer figure/moment from nearby text or id (model should have provided in core too)
+            // Infer figure from context or passage; model is instructed to make encounters clear
+            const figMatch = p.text.match(/ (Paul Revere|George Washington|Thomas Jefferson|Lafayette|King|Revere|Washington|Jefferson) /i);
+            const figure = figMatch ? figMatch[1] : "the figure in this moment";
+            coreSage.push({
+              passageId: p.id,
+              figure,
+              moment: p.text.substring(0, 160).replace(/\s+/g, " ") + "...",
+              question: p.question
+            });
+          }
+        }
+        if (encounteredQuestions.length > 0) {
+          if (!story.coreSageQuestions || story.coreSageQuestions.length === 0) {
+            story.coreSageQuestions = coreSage;
+          }
+          if (!story.finalQuiz) {
+            story.finalQuiz = {
+              title: "Final Exam — Lessons from the Journey",
+              instructions: "You have walked alongside these historical figures and witnessed the turning points. Review the key questions from your encounters. Then take this quiz to check your understanding of the real history.",
+              questions: encounteredQuestions.map(q => ({
+                ...q,
+                context: `From the moment at passage ${q.fromPassageId}`
+              }))
+            };
+          }
+        }
+      }
+
       // The graph is playable — now the HISTORY must hold up. A kids' history
       // tool must never teach a fabricated date, number, person, or event, so we
       // fact-check the prose with the project's factGate (detect → correct in
@@ -260,10 +361,19 @@ export async function generateBranchingStory(
 // correction structural re-check is the branching graph validator, not the
 // CampaignData one (string surgery can't move ids, but we verify regardless).
 async function runStoryFactGate(story: BranchingStory, topic: string, apiKey: string): Promise<FactGateResult> {
-  const dossier: { title: string; subtitle: string; events: BranchingStory["passages"] } = {
+  // Figure-encounter MCQs are fed as eventTrivia so factGate checks them at its
+  // KEYED-ANSWER tier (the strictest: a fabricated keyed answer hard-rejects →
+  // re-generates) — a kid must never be graded on a fabrication. The `choices`
+  // arrays are shared by reference, so string-replace corrections land on the
+  // real question; a residual keyed fabrication forces re-gen (the safe way).
+  const eventTrivia = story.passages
+    .filter((p) => p.question)
+    .map((p) => ({ id: p.id, ...p.question! }));
+  const dossier: { title: string; subtitle: string; events: BranchingStory["passages"]; eventTrivia: typeof eventTrivia } = {
     title: story.title,
     subtitle: story.protagonist ?? "",
     events: story.passages, // shared references — corrections mutate the real passages
+    eventTrivia,            // figure-encounter MCQs — seen + keyed-checked by factGate
   };
   const gate = await runFactGate(apiKey, dossier, topic, {
     validateStructure: () => ({ failed: validateStory(story).playable ? 0 : 1 }),
