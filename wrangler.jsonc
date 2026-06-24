@@ -1,0 +1,5 @@
+{
+  "$schema": "https://developers.cloudflare.com/schemas/wrangler.json",
+  "name": "campaigns-3sk",
+  "compatibility_flags": ["nodejs_compat_v2"]
+}
