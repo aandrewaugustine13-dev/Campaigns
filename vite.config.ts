@@ -474,6 +474,77 @@ function generatorApiPlugin(): Plugin {
           send(200, { image: null, error: 'text-only fallback' }); // never break the UI
         }
       });
+
+      // Generate image (Gemini) - for local dev parity with Cloudflare Functions
+      server.middlewares.use('/api/generate-image', async (req, res) => {
+        const send = (status: number, payload: unknown) => {
+          res.statusCode = status;
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.end(JSON.stringify(payload));
+        };
+
+        if (req.method === 'OPTIONS') {
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+          res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+          res.statusCode = 204;
+          res.end();
+          return;
+        }
+
+        if (req.method !== 'POST') return send(405, { error: 'Method not allowed' });
+
+        let body = '';
+        for await (const chunk of req) body += chunk;
+        let inputs: any = {};
+        try { inputs = body ? JSON.parse(body) : {}; } catch { return send(400, { error: 'Invalid JSON' }); }
+
+        try {
+          const userPrompt = inputs.userPrompt;
+          if (!userPrompt || typeof userPrompt !== 'string') {
+            return send(400, { error: 'Valid userPrompt string is required' });
+          }
+
+          const apiKey = process.env.GEMINI_API_KEY;
+          if (!apiKey) return send(200, { image: null, error: 'GEMINI_API_KEY not configured in .env.local' });
+
+          const modifier = '(Render in a 1940s WWII era style, authentic vintage comic book ink, muted color palette, high-contrast noir lighting)';
+          const combinedPrompt = `${userPrompt} ${modifier}`;
+
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              instances: [{ prompt: combinedPrompt }],
+              parameters: { sampleCount: 1 },
+            }),
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`Gemini API Error (${response.status}):`, errorText);
+            return send(500, { error: 'Failed to generate image from the Gemini API.' });
+          }
+
+          const data = await response.json() as any;
+          if (!data.predictions || !data.predictions[0]?.bytesBase64Encoded) {
+            return send(500, { error: 'Invalid response format received from image generation service.' });
+          }
+
+          const prediction = data.predictions[0];
+          send(200, {
+            success: true,
+            image: `data:${prediction.mimeType};base64,${prediction.bytesBase64Encoded}`,
+            bytesBase64Encoded: prediction.bytesBase64Encoded,
+            mimeType: prediction.mimeType,
+          });
+        } catch (e) {
+          console.error('Error in /api/generate-image (dev):', e);
+          send(500, { error: 'An unexpected internal server error occurred.' });
+        }
+      });
     },
   };
 }

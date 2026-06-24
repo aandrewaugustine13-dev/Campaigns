@@ -1,4 +1,6 @@
-import { NextResponse } from 'next/server';
+interface Env {
+  GEMINI_API_KEY: string;
+}
 
 interface RequestBody {
   userPrompt?: string;
@@ -14,26 +16,34 @@ interface GeminiResponse {
   error?: any;
 }
 
-export async function POST(req: Request) {
+export const onRequestPost = async (context: any) => {
+  const { request, env } = context;
+
   try {
-    const body = (await req.json()) as RequestBody;
+    const body = (await request.json()) as RequestBody;
     const { userPrompt } = body;
 
     // Validate the incoming userPrompt
     if (!userPrompt || typeof userPrompt !== 'string') {
-      return NextResponse.json(
-        { error: 'Valid userPrompt string is required' },
-        { status: 400 }
+      return new Response(
+        JSON.stringify({ error: 'Valid userPrompt string is required' }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        }
       );
     }
 
     // Securely retrieve the API key from environment variables
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = env.GEMINI_API_KEY;
     if (!apiKey) {
       console.error('GEMINI_API_KEY environment variable is not set.');
-      return NextResponse.json(
-        { error: 'Server configuration error' },
-        { status: 500 }
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        }
       );
     }
 
@@ -64,9 +74,12 @@ export async function POST(req: Request) {
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`Gemini API Error (${response.status}):`, errorText);
-      return NextResponse.json(
-        { error: 'Failed to generate image from the Gemini API.' },
-        { status: 500 }
+      return new Response(
+        JSON.stringify({ error: 'Failed to generate image from the Gemini API.' }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        }
       );
     }
 
@@ -79,29 +92,50 @@ export async function POST(req: Request) {
       !data.predictions[0].bytesBase64Encoded
     ) {
       console.error('Unexpected Gemini API response format:', data);
-      return NextResponse.json(
-        { error: 'Invalid response format received from image generation service.' },
-        { status: 500 }
+      return new Response(
+        JSON.stringify({ error: 'Invalid response format received from image generation service.' }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        }
       );
     }
 
     const prediction = data.predictions[0];
 
     // Return the successfully generated image data
-    return NextResponse.json(
-      {
+    return new Response(
+      JSON.stringify({
         success: true,
         image: `data:${prediction.mimeType};base64,${prediction.bytesBase64Encoded}`,
         bytesBase64Encoded: prediction.bytesBase64Encoded,
         mimeType: prediction.mimeType,
-      },
-      { status: 200 }
+      }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }
     );
   } catch (error) {
     console.error('Error in generate-image route:', error);
-    return NextResponse.json(
-      { error: 'An unexpected internal server error occurred.' },
-      { status: 500 }
+    return new Response(
+      JSON.stringify({ error: 'An unexpected internal server error occurred.' }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
     );
   }
-}
+};
+
+// Handle CORS preflight
+export const onRequestOptions = async () => {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
+};
