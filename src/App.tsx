@@ -919,11 +919,12 @@ export default function App(){
   if(campaignId==="narrative-meiji")return <GeneratedCampaign data={narrativeDemo as unknown as CampaignData} onBack={backToMenu}/>;
   if(campaignId && BRANCHING_STORIES[campaignId]) {
     const story = BRANCHING_STORIES[campaignId];
-    // Demo different eras for the branching fixtures so the theming system is visible
+    // Showcase core historical era themes (full set defined in themes.css):
+    // western, revolutionary, cold-war, civil-rights, classical, industrial
     const demoEra =
       campaignId === "branch-1812" ? "revolutionary" :
-      campaignId === "branch-reconstruction" ? "civil-war" :
-      campaignId === "branch-suffrage" ? "renaissance" : undefined;
+      campaignId === "branch-reconstruction" ? "western" :
+      campaignId === "branch-suffrage" ? "civil-rights" : undefined;
     return <BranchingPlayer story={story} era={demoEra} onBack={backToMenu} />;
   }
   if(campaignId==="generator")return <GeneratorUI onBack={backToMenu}/>;

@@ -547,11 +547,19 @@ a.theme-dialogue-attribution-link:hover {
    Override in [data-era="your-era"] blocks to give each historical
    period its own look without touching component code.
 
+   CORE THEMES (at minimum):
+     - western          (Western / Old West)
+     - revolutionary    (Revolutionary Era)
+     - cold-war         (Cold War)
+     - civil-rights     (Civil Rights / Mid-20th Century)
+     - classical        (Ancient / Classical World)
+     - industrial       (Industrial Revolution)
+
    HOW TO EXTEND:
-     1. Add a new kebab-case slug, e.g. data-era="ancient-rome"
-     2. Add a rule: .branching-player[data-era="ancient-rome"] { ... }
+     1. Add a new kebab-case slug, e.g. data-era="victorian"
+     2. Add a rule: .branching-player[data-era="victorian"] { ... }
      3. Override only the tokens that should differ for that era.
-     4. Pass era="ancient-rome" to <BranchingPlayer era="..." /> or
+     4. Pass era="victorian" to <BranchingPlayer era="..." /> or
         let the story JSON carry "era" (story.era).
      5. New themes inherit everything not listed from the base below.
 
@@ -629,9 +637,25 @@ a.theme-dialogue-attribution-link:hover {
 }
 
 /* ───────────────────────────────────────────────────────────────
-   ERA OVERRIDES — each block gives a distinct visual identity.
-   Only list the tokens that should change for that period.
-   Add new eras below in the same pattern.
+   CORE HISTORICAL ERA THEMES
+   ───────────────────────────────────────────────────────────────
+   These six themes provide distinct visual identities for different
+   historical periods while staying within the app's dark elegant
+   aesthetic (deep backgrounds, high-contrast warm/cool light text,
+   restrained accents, excellent readability).
+
+   Each theme documents:
+   • Color palette (bg, cards, text, accents)
+   • Typography treatment
+   • Border + card styling
+   • Overall visual tone
+
+   Usage:
+     <div class="branching-player" data-era="western">...</div>
+     or pass era="western" to <BranchingPlayer />
+
+   All themes inherit the base .branching-player variables.
+   Only differences are listed below.
    ─────────────────────────────────────────────────────────────── */
 
 /* default — elegant dark leather/ink (base look) */
@@ -639,94 +663,290 @@ a.theme-dialogue-attribution-link:hover {
   /* inherits the base above */
 }
 
-/* Civil War / mid-19th century — earthy sepia, warm browns, plain serif */
-.branching-player[data-era="civil-war"] {
-  --player-color-bg: #1a150f;
-  --player-color-bg-alt: #2a221a;
-  --player-color-bg-card: #2a221a;
-  --player-color-bg-card-figure: #2f2820;
-  --player-color-bg-card-muted: #25211a;
-  --player-color-text: #f0e6d0;
-  --player-color-text-prose: #f0e6d0;
-  --player-color-text-muted: #a69a80;
-  --player-color-accent: #8b5a2b;
-  --player-color-accent-2: #a67c52;
-  --player-border: #4a4030;
-  --player-border-muted: #5c5240;
-  --player-border-accent: #8b5a2b;
-  --player-font-serif: Georgia, serif;
+/* ═══════════════════════════════════════════════════════════════
+   1. WESTERN / OLD WEST
+   ───────────────────────────────────────────────────────────────
+   Color palette: Deep saddle browns, warm leather, sun-bleached
+                  parchment text, sage-green hints on figure cards,
+                  worn brass accents.
+   Typography:    "Rye" (rustic wood-type display) + Georgia.
+                  Slightly heavier presence for frontier character.
+   Border/card:   Earthy mid-brown borders, slightly softened radius.
+                  Cards have a subtle "leather" warmth.
+   Tone:          Warm, dusty, adventurous, grounded. Sun-baked
+                  leather and prairie dust with elegant restraint.
+   ═══════════════════════════════════════════════════════════════ */
+.branching-player[data-era="western"] {
+  --player-color-bg: #1a160e;
+  --player-color-bg-alt: #252016;
+  --player-color-bg-card: #2a2319;
+  --player-color-bg-card-muted: #221d16;
+  --player-color-bg-card-figure: #242c1f;   /* sage prairie hint */
+  --player-color-bg-card-decision: #282219;
+  --player-color-bg-card-inner: #2f2720;
+
+  --player-color-text: #e6d5b0;
+  --player-color-text-prose: #f0e2c4;
+  --player-color-text-muted: #a08c6b;
+  --player-color-accent: #b37b4b;           /* worn saddle leather */
+  --player-color-accent-2: #8f6f4a;
+
+  --player-border: #4d4030;
+  --player-border-muted: #5f5342;
+  --player-border-accent: #b37b4b;
+
+  --player-font-serif: "Rye", Georgia, serif;
+  --player-border-radius: 0.625rem;
 }
 
-/* Medieval / illuminated manuscript — vellum + rubric ink, Cinzel display feel */
-.branching-player[data-era="medieval"] {
-  --player-color-bg: #2a1d12;
-  --player-color-bg-card: #1a150f;
-  --player-color-bg-card-figure: #1f1a15;
-  --player-color-bg-card-muted: #1c1915;
-  --player-color-text: #f0e6d0;
-  --player-color-text-prose: #f0e6d0;
-  --player-color-text-muted: #a69a80;
-  --player-color-accent: #8b4513;
-  --player-color-accent-2: #b8860b;
-  --player-border: #4a3520;
-  --player-border-muted: #5c4633;
-  --player-border-accent: #8b4513;
-  --player-font-serif: "Cinzel", Georgia, serif;
-}
-
-/* Ancient Rome — classical marble + terracotta, strong architectural serif */
-.branching-player[data-era="ancient-rome"] {
-  --player-color-bg: #1f2520;
-  --player-color-bg-alt: #2a2f2a;
-  --player-color-bg-card: #242b26;
-  --player-color-bg-card-muted: #1e2520;
-  --player-color-bg-card-figure: #2c2822;
-  --player-color-text: #e8e0d0;
-  --player-color-text-prose: #f2ebdc;
-  --player-color-text-muted: #9a8f7a;
-  --player-color-accent: #a25f3a;      /* terracotta */
-  --player-color-accent-2: #c8a16b;    /* gold leaf */
-  --player-border: #4a463f;
-  --player-border-muted: #615c52;
-  --player-border-accent: #a25f3a;
-  --player-font-serif: "Playfair Display", Georgia, serif;
-  --player-border-radius: 0.5rem;      /* more architectural */
-}
-
-/* Renaissance — rich warm tones, painterly, refined display face */
-.branching-player[data-era="renaissance"] {
-  --player-color-bg: #231b14;
-  --player-color-bg-alt: #2f251c;
-  --player-color-bg-card: #2c241b;
-  --player-color-bg-card-muted: #241e18;
-  --player-color-bg-card-figure: #2a221c;
-  --player-color-text: #f4e9d8;
-  --player-color-text-prose: #f8f0e0;
-  --player-color-text-muted: #a18e74;
-  --player-color-accent: #8b3a2f;      /* deep red lake */
-  --player-color-accent-2: #c5a46b;    /* aged gold */
-  --player-border: #463c30;
-  --player-border-muted: #61533f;
-  --player-border-accent: #8b3a2f;
-  --player-font-serif: "Cormorant Garamond", Georgia, serif;
-}
-
-/* Revolutionary / 1776 American — broadsheet newsprint meets sturdy colonial */
+/* ═══════════════════════════════════════════════════════════════
+   2. REVOLUTIONARY ERA (1770s–1780s)
+   ───────────────────────────────────────────────────────────────
+   Color palette: Deep ink browns and charcoal, cream parchment text,
+                  restrained colonial red + aged gold.
+   Typography:    "Playfair Display" — crisp, authoritative serif
+                  with classic broadsheet character.
+   Border/card:   Clean, print-shop rules. Moderate radius.
+                  Strong but not heavy borders.
+   Tone:          Dramatic, principled, ink-stained. Serious
+                  conviction with elegant colonial restraint.
+   ═══════════════════════════════════════════════════════════════ */
 .branching-player[data-era="revolutionary"] {
   --player-color-bg: #1c1812;
   --player-color-bg-alt: #28231c;
   --player-color-bg-card: #2a251e;
   --player-color-bg-card-muted: #211d18;
   --player-color-bg-card-figure: #2c2720;
+  --player-color-bg-card-decision: #27221c;
+  --player-color-bg-card-inner: #302a22;
+
   --player-color-text: #f0e6d0;
   --player-color-text-prose: #f4ebda;
   --player-color-text-muted: #968b77;
-  --player-color-accent: #5c4630;
-  --player-color-accent-2: #b38a55;
+  --player-color-accent: #6b3a2f;           /* colonial red */
+  --player-color-accent-2: #b38a55;         /* aged gilt */
+
   --player-border: #463d32;
   --player-border-muted: #5c5345;
-  --player-border-accent: #5c4630;
+  --player-border-accent: #6b3a2f;
+
   --player-font-serif: "Playfair Display", Georgia, serif;
   --player-font-weight: 400;
   --player-font-weight-semibold: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   3. COLD WAR
+   ───────────────────────────────────────────────────────────────
+   Color palette: Cold slate/charcoal, icy steel blues, cool
+                  off-white text, muted graphite accents.
+   Typography:    "Special Elite" (typewriter) for a classified
+                  document / bureaucratic feel. Precise and stark.
+   Border/card:   Sharp, thin institutional rules. Slightly
+                  squarer corners. Cards feel like folders or
+                  concrete.
+   Tone:          Cold, tense, clinical, precise. High-stakes
+                  institutional elegance — restrained and ominous.
+   ═══════════════════════════════════════════════════════════════ */
+.branching-player[data-era="cold-war"] {
+  --player-color-bg: #0f1218;
+  --player-color-bg-alt: #181c24;
+  --player-color-bg-card: #1a2029;
+  --player-color-bg-card-muted: #151a22;
+  --player-color-bg-card-figure: #1e252f;
+  --player-color-bg-card-decision: #1c212b;
+  --player-color-bg-card-inner: #242c38;
+
+  --player-color-text: #d8dce5;             /* cool off-white */
+  --player-color-text-prose: #e4e8f0;
+  --player-color-text-muted: #8a8f9a;
+  --player-color-accent: #4a6a8a;           /* steel blue */
+  --player-color-accent-2: #9aa5b5;
+
+  --player-border: #3a404c;
+  --player-border-muted: #4a515e;
+  --player-border-accent: #4a6a8a;
+
+  --player-font-serif: "Special Elite", "Courier New", monospace;
+  --player-border-radius: 0.5rem;
+  --player-font-weight: 400;
+  --player-font-weight-semibold: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   4. CIVIL RIGHTS / MID-20TH CENTURY
+   ───────────────────────────────────────────────────────────────
+   Color palette: Near-black charcoal + warm cream text, one
+                  powerful oxide red accent, newsprint grays.
+   Typography:    "Anton" (bold condensed) for strong headlines +
+                  sturdy Georgia for body. Feels like front-page
+                  protest posters and broadsheets.
+   Border/card:   Heavy black rules (newspaper department dividers).
+                  Strong presence, minimal radius.
+   Tone:          Dignified, urgent, documentary. Powerful,
+                  high-contrast, serious — the weight of history.
+   ═══════════════════════════════════════════════════════════════ */
+.branching-player[data-era="civil-rights"] {
+  --player-color-bg: #0e0d0a;
+  --player-color-bg-alt: #181510;
+  --player-color-bg-card: #1c1a16;
+  --player-color-bg-card-muted: #161411;
+  --player-color-bg-card-figure: #1f1c18;
+  --player-color-bg-card-decision: #1a1814;
+  --player-color-bg-card-inner: #22201b;
+
+  --player-color-text: #e8dfcf;
+  --player-color-text-prose: #f2e9d9;
+  --player-color-text-muted: #93887a;
+  --player-color-accent: #9c3f2f;           /* oxide / blood red */
+  --player-color-accent-2: #c9a36b;         /* restrained gold */
+
+  --player-border: #35322c;
+  --player-border-muted: #4a463f;
+  --player-border-accent: #9c3f2f;
+
+  --player-font-serif: "Anton", "Oswald", Georgia, sans-serif;
+  --player-border-radius: 0.375rem;
+  --player-font-weight: 400;
+  --player-font-weight-semibold: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   5. ANCIENT / CLASSICAL WORLD
+   ───────────────────────────────────────────────────────────────
+   Color palette: Darkened marble and limestone, warm terracotta,
+                  subdued bronze/gold leaf accents, cool stone text.
+   Typography:    "Cinzel" — monumental, architectural, carved-stone
+                  serif. Timeless and weighty.
+   Border/card:   Crisp, formal. Moderate radius that still feels
+                  like stone blocks or temple architecture.
+   Tone:          Monumental, eternal, warm stone. Grand yet
+                  human — the weight and dignity of antiquity.
+   ═══════════════════════════════════════════════════════════════ */
+.branching-player[data-era="classical"] {
+  --player-color-bg: #1e2228;
+  --player-color-bg-alt: #272c34;
+  --player-color-bg-card: #262b32;
+  --player-color-bg-card-muted: #20252c;
+  --player-color-bg-card-figure: #2a2721;   /* warm stone */
+  --player-color-bg-card-decision: #252a31;
+  --player-color-bg-card-inner: #2f343d;
+
+  --player-color-text: #e2d9c8;
+  --player-color-text-prose: #ede4d4;
+  --player-color-text-muted: #9a8f7a;
+  --player-color-accent: #8a4f3a;           /* terracotta */
+  --player-color-accent-2: #c5a36b;         /* bronze / gold leaf */
+
+  --player-border: #464c56;
+  --player-border-muted: #5a616b;
+  --player-border-accent: #8a4f3a;
+
+  --player-font-serif: "Cinzel", Georgia, serif;
+  --player-border-radius: 0.5rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   6. INDUSTRIAL REVOLUTION
+   ───────────────────────────────────────────────────────────────
+   Color palette: Soot blacks and heavy steel grays, brass and
+                  copper highlights, off-white linen text.
+   Typography:    "Oswald" (condensed, mechanical) + Georgia.
+                  Feels like cast-iron signage and engineering
+                  drawings.
+   Border/card:   Strong, utilitarian rules. Slightly tighter
+                  radius. Cards read as heavy machinery or ledger.
+   Tone:          Gritty power, smoky, mechanical precision.
+                  Heavy industry rendered with dark elegance.
+   ═══════════════════════════════════════════════════════════════ */
+.branching-player[data-era="industrial"] {
+  --player-color-bg: #131415;
+  --player-color-bg-alt: #1c1e20;
+  --player-color-bg-card: #1f2124;
+  --player-color-bg-card-muted: #191b1e;
+  --player-color-bg-card-figure: #23261f;   /* brass-tinged */
+  --player-color-bg-card-decision: #1d1f22;
+  --player-color-bg-card-inner: #282b2f;
+
+  --player-color-text: #d2cdc2;
+  --player-color-text-prose: #e0d9cc;
+  --player-color-text-muted: #8c8577;
+  --player-color-accent: #7d5c3a;           /* worked brass */
+  --player-color-accent-2: #6e7780;         /* machined steel */
+
+  --player-border: #35383c;
+  --player-border-muted: #484d52;
+  --player-border-accent: #7d5c3a;
+
+  --player-font-serif: "Oswald", Georgia, serif;
+  --player-border-radius: 0.375rem;
+  --player-font-weight: 400;
+  --player-font-weight-semibold: 600;
+}
+
+/* Legacy aliases for compatibility with older fixtures / code */
+.branching-player[data-era="ancient-rome"] {
+  --player-color-bg: #1e2228;
+  --player-color-bg-alt: #272c34;
+  --player-color-bg-card: #262b32;
+  --player-color-bg-card-muted: #20252c;
+  --player-color-bg-card-figure: #2a2721;
+  --player-color-text: #e2d9c8;
+  --player-color-text-prose: #ede4d4;
+  --player-color-text-muted: #9a8f7a;
+  --player-color-accent: #8a4f3a;
+  --player-color-accent-2: #c5a36b;
+  --player-border: #464c56;
+  --player-border-muted: #5a616b;
+  --player-border-accent: #8a4f3a;
+  --player-font-serif: "Cinzel", Georgia, serif;
+  --player-border-radius: 0.5rem;
+}
+
+.branching-player[data-era="civil-war"] {
+  --player-color-bg: #1a160e;
+  --player-color-bg-alt: #252016;
+  --player-color-bg-card: #2a2319;
+  --player-color-bg-card-muted: #221d16;
+  --player-color-bg-card-figure: #242c1f;
+  --player-color-text: #e6d5b0;
+  --player-color-text-prose: #f0e2c4;
+  --player-color-text-muted: #a08c6b;
+  --player-color-accent: #b37b4b;
+  --player-color-accent-2: #8f6f4a;
+  --player-border: #4d4030;
+  --player-border-muted: #5f5342;
+  --player-border-accent: #b37b4b;
+  --player-font-serif: "Rye", Georgia, serif;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ERA-SPECIFIC CARD FLOURISHES
+   Extra visual character for key themes using the same variables.
+   These enhance border/card styling without touching React code.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Civil Rights — heavy newsprint department rule across the top of cards */
+.branching-player[data-era="civil-rights"] [class*="rounded-2xl"][class*="border"] {
+  box-shadow: inset 0 5px 0 #111, var(--player-shadow-sm);
+}
+
+/* Western — subtle leather edge treatment on figure encounters */
+.branching-player[data-era="western"] [class*="bg-"][class*="figure"] {
+  box-shadow: inset 0 0 0 1px rgba(179, 123, 75, 0.15);
+}
+
+/* Cold War — crisp institutional rule + slightly cooler inner cards */
+.branching-player[data-era="cold-war"] [class*="rounded-2xl"][class*="border"] {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), var(--player-shadow-sm);
+}
+
+/* Industrial — stronger mechanical bevel on main cards */
+.branching-player[data-era="industrial"] [class*="rounded-2xl"][class*="border"] {
+  box-shadow: inset 0 2px 0 #2a2d32, inset 0 -1px 0 #111, var(--player-shadow-sm);
+}
+
+/* Classical — subtle stone block inset */
+.branching-player[data-era="classical"] [class*="rounded-2xl"][class*="border"] {
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.035), var(--player-shadow-sm);
 }
