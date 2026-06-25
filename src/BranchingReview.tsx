@@ -279,7 +279,11 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
                   {page === "images" && p.image?.thumbUrl && (
                     <img src={p.image.thumbUrl} alt="" className="mt-1.5 h-8 w-20 object-cover rounded border border-[#3a3630]" />
                   )}
-                  {p.ending && <span className="text-[9px] text-[#c9a36b]">· ENDING</span>}
+                  {p.ending && (
+                    <span className={`text-[9px] px-1 rounded ${p.endingState === 'triumphant' ? 'bg-emerald-900/30 text-emerald-400' : p.endingState === 'broken' ? 'bg-red-900/30 text-red-400' : 'bg-slate-700/30 text-slate-400'}`}>
+                      · {p.endingState ? p.endingState.toUpperCase() : 'ENDING'}
+                    </span>
+                  )}
                 </div>
               </div>
             </button>
@@ -326,7 +330,11 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
                   <div className="max-w-3xl">
                     <div className="flex items-baseline gap-3 mb-2">
                       <div className="text-xs font-mono text-[#8a7f6a]">{selected.id}</div>
-                      {selected.ending && <span className="text-xs px-1.5 py-0.5 bg-[#3a2f1f] text-[#c9a36b] rounded">ENDING</span>}
+                      {selected.ending && (
+                        <span className={`text-xs px-1.5 py-0.5 rounded ${selected.endingState === 'triumphant' ? 'bg-emerald-900/30 text-emerald-400' : selected.endingState === 'broken' ? 'bg-red-900/30 text-red-400' : 'bg-slate-700/30 text-slate-400'}`}>
+                          {selected.endingState ? selected.endingState.toUpperCase() : 'ENDING'}
+                        </span>
+                      )}
                       <div className="text-xs text-[#8a7f6a]">{selectedIdx + 1} / {displayPassages.length}</div>
                     </div>
                     <label className="block text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase mb-1.5">Passage text (editable)</label>
@@ -377,7 +385,11 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
                   <div className="max-w-3xl">
                     <div className="flex items-baseline gap-3 mb-2">
                       <div className="text-xs font-mono text-[#8a7f6a]">{selected.id}</div>
-                      {selected.ending && <span className="text-xs px-1.5 py-0.5 bg-[#3a2f1f] text-[#c9a36b] rounded">ENDING</span>}
+                      {selected.ending && (
+                        <span className={`text-xs px-1.5 py-0.5 rounded ${selected.endingState === 'triumphant' ? 'bg-emerald-900/30 text-emerald-400' : selected.endingState === 'broken' ? 'bg-red-900/30 text-red-400' : 'bg-slate-700/30 text-slate-400'}`}>
+                          {selected.endingState ? selected.endingState.toUpperCase() : 'ENDING'}
+                        </span>
+                      )}
                       <div className="text-xs text-[#8a7f6a]">{selectedIdx + 1} / {displayPassages.length}</div>
                     </div>
 

@@ -315,6 +315,36 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
   const hasFigureQuestion = !!current.question;
   const hasChoices = !ended && (current.choices?.length ?? 0) > 0;
 
+  // Ending visuals for the three distinct endings
+  const endingVisuals = {
+    broken: {
+      label: "Broken",
+      icon: "💔",
+      color: "text-red-400",
+      border: "border-red-700/60",
+      bg: "bg-red-950/20",
+      description: "You survived, but the journey took a heavy toll. Something vital was lost or broken within you."
+    },
+    indifferent: {
+      label: "Indifferent",
+      icon: "😐",
+      color: "text-slate-400",
+      border: "border-slate-600/60",
+      bg: "bg-slate-900/20",
+      description: "You made it through unscathed in spirit. The events passed over you, leaving little mark."
+    },
+    triumphant: {
+      label: "Triumphant",
+      icon: "🌟",
+      color: "text-emerald-400",
+      border: "border-emerald-600/60",
+      bg: "bg-emerald-950/20",
+      description: "You came through changed for the better. The costs were real, but you hold onto something meaningful."
+    }
+  };
+
+  const currentEnding = ended && current.endingState ? endingVisuals[current.endingState] : null;
+
   return (
     <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] flex items-center justify-center p-6">
       <div className="max-w-xl w-full space-y-5">
@@ -454,10 +484,26 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
 
         {ended ? (
           <>
-            <div className="text-center pt-1">
-              <p className="text-[#8a7f6a] text-xs tracking-[3px] uppercase">— The End —</p>
+            <div className={`text-center pt-1 ${currentEnding ? currentEnding.border : ''}`}>
+              <p className={`text-xs tracking-[3px] uppercase flex items-center justify-center gap-2 ${currentEnding ? currentEnding.color : 'text-[#8a7f6a]'}`}>
+                {currentEnding ? (
+                  <>
+                    <span>{currentEnding.icon}</span>
+                    <span>— {currentEnding.label} —</span>
+                    <span>{currentEnding.icon}</span>
+                  </>
+                ) : "— The End —"}
+              </p>
               <div className="h-px w-8 bg-[#3a3630] mx-auto my-2" />
             </div>
+
+            {currentEnding && (
+              <div className={`mt-4 mb-4 p-4 rounded-2xl border ${currentEnding.border} ${currentEnding.bg} text-center`}>
+                <div className={`text-3xl mb-2 ${currentEnding.color}`}>{currentEnding.icon}</div>
+                <div className={`font-semibold text-lg tracking-tight ${currentEnding.color}`}>You reached a {currentEnding.label} ending</div>
+                <p className="mt-2 text-sm text-[#c5b8a0]">{currentEnding.description}</p>
+              </div>
+            )}
 
             {/* Final check for understanding / comprehension quiz at the end of playthrough */}
             {story.finalQuiz && (
@@ -581,28 +627,35 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                   </div>
                 )}
 
-                {/* Quiz results summary + retake or complete */}
-                {quizScore.percent >= 90 ? (
-                  <div className="text-center border-2 border-emerald-700/40 bg-emerald-900/10 rounded-2xl p-5">
-                    <p className="text-emerald-400 font-semibold text-lg">Excellent work!</p>
-                    <p className="mt-1 text-[#e8dcc8]">You scored {quizScore.percent}% — a strong understanding of the key events and figures.</p>
-                    <p className="pt-3 text-[10px] uppercase tracking-[2px] text-[#6a6358]">Assessment Complete</p>
-                  </div>
-                ) : (
-                  <div className="text-center border border-[#3a3630] bg-[#211e1a] rounded-2xl p-5">
-                    <p className="text-[#c5b8a0] mb-3">You scored {quizScore.percent}%. Review the summary and try again to improve.</p>
+                {/* Ending + Quiz results summary */}
+                <div className={`text-center border-2 rounded-2xl p-5 ${currentEnding ? currentEnding.border + ' ' + currentEnding.bg : 'border-[#3a3630] bg-[#211e1a]'}`}>
+                  {currentEnding && (
+                    <div className={`text-lg font-semibold mb-1 ${currentEnding.color}`}>
+                      {currentEnding.icon} {currentEnding.label} Ending {currentEnding.icon}
+                    </div>
+                  )}
+                  <p className={quizScore.percent >= 90 ? "text-emerald-400 font-semibold text-lg" : "text-[#c5b8a0] text-base"}>
+                    {quizScore.percent >= 90 
+                      ? `Excellent work! You scored ${quizScore.percent}%.` 
+                      : `You scored ${quizScore.percent}%.`}
+                  </p>
+                  <p className="mt-1 text-xs text-[#a69a80]">
+                    {quizScore.percent >= 90 
+                      ? "You have a strong understanding of the key events and figures." 
+                      : "Review the summary and consider what you might do differently."}
+                  </p>
+                  {quizScore.percent < 90 && (
                     <button
                       onClick={() => {
                         setQuizAnswers({});
                         setQuizSubmitted(false);
                       }}
-                      className="px-6 py-2.5 rounded-2xl border border-[#c9a36b] bg-[#2a2722] hover:bg-[#3a2f1f] text-[#e8dcc8] text-sm tracking-wide"
+                      className="mt-3 px-6 py-2 rounded-2xl border border-[#c9a36b] bg-[#2a2722] hover:bg-[#3a2f1f] text-[#e8dcc8] text-sm tracking-wide"
                     >
-                      Retake Quiz
+                      Retake the Final Quiz
                     </button>
-                    <p className="pt-3 text-[10px] uppercase tracking-[2px] text-[#6a6358]">Assessment Complete</p>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             )}
           </>
@@ -617,6 +670,10 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
             <div className={`space-y-2.5 pt-1 transition-opacity duration-200 ${isAdvancing ? 'opacity-70 pointer-events-none' : ''} ${!hasFigureQuestion ? 'border border-[#5a5548] rounded-xl p-2 bg-[#1c1915]' : ''}`}>
               {(current.choices ?? []).map((c, i) => {
               const isSelected = selectedChoiceIndex === i;
+              const nextPassage = byId.get(c.next);
+              const leadsToEnding = nextPassage?.endingState;
+              const endingHint = leadsToEnding ? endingVisuals[leadsToEnding] : null;
+
               return (
                 <button
                   key={i}
@@ -625,14 +682,23 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                   className={`block w-full text-left px-4 py-3 rounded-2xl border transition-all text-[#e8dcc8] text-[17px] leading-snug disabled:opacity-70
                     ${isSelected
                       ? 'border-[#c9a36b] bg-[#2a2722] scale-[1.02] shadow-sm'
-                      : 'border-[#3a3630] bg-[#24211d] hover:bg-[#2c2924] active:scale-[0.985] active:bg-[#2c2924]'
-                    }`}
+                      : endingHint 
+                        ? `border-[#3a3630] bg-[#24211d] hover:bg-[#2c2924] active:scale-[0.985] active:bg-[#2c2924] ${endingHint.border.replace('border-', 'hover:border-')}`
+                        : 'border-[#3a3630] bg-[#24211d] hover:bg-[#2c2924] active:scale-[0.985] active:bg-[#2c2924]'
+                    } ${endingHint ? 'pr-3' : ''}`}
                 >
                   <span className="flex items-center justify-between">
                     <span>{c.text}</span>
-                    {isSelected && (
-                      <span className="text-[#c9a36b] text-sm ml-2 transition-all">→</span>
-                    )}
+                    <span className="flex items-center gap-1 ml-2">
+                      {isSelected && (
+                        <span className="text-[#c9a36b] text-sm transition-all">→</span>
+                      )}
+                      {endingHint && (
+                        <span className={`text-xs ${endingHint.color} opacity-70`} title={`Leads toward ${endingHint.label}`}>
+                          {endingHint.icon}
+                        </span>
+                      )}
+                    </span>
                   </span>
                 </button>
               );
