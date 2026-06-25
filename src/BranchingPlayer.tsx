@@ -427,7 +427,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
               <img
                 src={current.image.thumbUrl}
                 alt=""
-                className="w-full h-auto"
+                className={`w-full h-auto ${hasFigureQuestion ? 'border-b-2 border-[#c9a36b]/50' : ''}`}
               />
               {(current.image.artist || current.image.license) && (
                 <div className="text-[10px] text-[#8a7f6a] px-4 pt-1.5 pb-2 border-t border-[#3a3630]">
@@ -451,14 +451,15 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
           )}
 
           {/* The story passage prose — key triggers natural re-animation on change */}
-          <div key={currentId} className="p-6 transition-opacity duration-300">
+          <div key={currentId} className={`p-6 transition-opacity duration-300 ${hasFigureQuestion ? 'bg-[#1c1915]/50' : ''}`}>
             {/* Type indicator for visual distinction */}
             {(hasFigureQuestion || hasChoices) && (
-              <div className="mb-3 text-xs uppercase tracking-[2px] flex items-center gap-2 text-[#b89d6e]">
+              <div className={`mb-3 text-xs uppercase tracking-[2px] flex items-center gap-2 ${hasFigureQuestion ? 'text-[#c9a36b] font-semibold' : 'text-[#b89d6e]'}`}>
                 {hasFigureQuestion ? (
                   <>
-                    <span>🗣️</span>
+                    <span className="text-lg">🗣️</span>
                     <span>Figure Encounter</span>
+                    <span className="text-lg">🗣️</span>
                   </>
                 ) : hasChoices ? (
                   <>
@@ -506,16 +507,20 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
 
         {/* In-story question from historical figure (sage-style trivia, when present on the passage) */}
         {current.question && (
-          <div className="border-2 border-[#c9a36b] bg-[#1f2a22] rounded-2xl p-4">
-            <p className="font-semibold text-[#b89d6e]">A historical figure asks:</p>
-            <p className="mt-2 text-lg font-medium text-[#e8dcc8]">{current.question.question}</p>
+          <div className="border-2 border-[#c9a36b] bg-[#1f2a22] rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-[#c9a36b] text-xl">🗣️</span>
+              <span className="uppercase text-xs tracking-[2px] text-[#c9a36b] font-semibold">Historical Figure Encounter</span>
+            </div>
+            <p className="font-semibold text-[#b89d6e] mb-1">A historical figure asks:</p>
+            <p className="mt-1 text-lg font-medium text-[#e8dcc8] leading-relaxed">“{current.question.question}”</p>
             {answeredQuestion === null ? (
-              <div className="mt-3 space-y-2">
+              <div className="mt-4 space-y-2">
                 {current.question.choices.map((c: string, i: number) => (
                   <button
                     key={i}
                     onClick={() => setAnsweredQuestion(i)}
-                    className="block w-full text-left px-4 py-2.5 rounded-xl border border-[#3a3630] bg-[#24211d] hover:bg-[#2c2924] active:scale-[0.985] transition-all text-[#c5b8a0]"
+                    className="block w-full text-left px-4 py-2.5 rounded-xl border border-[#5a5548] bg-[#1c1915] hover:bg-[#2a2722] hover:border-[#c9a36b] active:scale-[0.985] transition-all text-[#c5b8a0] font-medium"
                   >
                     {c}
                   </button>
