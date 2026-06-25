@@ -169,6 +169,27 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
   // Validate up front: the player only ever runs a story proven safe start-to-end,
   // so a malformed graph degrades gracefully instead of rendering into a wall.
   const validation = useMemo(() => validateStory(story), [story]);
+
+  // Helper to find the eventual ending state for a given passage (for choice hints)
+  function getReachableEnding(startId: string): "broken" | "indifferent" | "triumphant" | null {
+    const visited = new Set<string>();
+    const stack: string[] = [startId];
+    while (stack.length > 0) {
+      const id = stack.pop()!;
+      if (visited.has(id)) continue;
+      visited.add(id);
+      const p = byId.get(id);
+      if (!p) continue;
+      if (p.endingState) return p.endingState;
+      if (p.choices && p.choices.length > 0) {
+        for (const ch of p.choices) {
+          stack.push(ch.next);
+        }
+      }
+    }
+    return null;
+  }
+
   const [currentId, setCurrentId] = useState(story.start);
   const [history, setHistory] = useState<ChoiceStep[]>([]);
   // onEnd / onUnplayable fire exactly once per playthrough (a ref survives re-renders).
@@ -192,11 +213,21 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
   const [isSpeaking, setIsSpeaking] = useState(false);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
+  // Track recent choice for consequence feedback
+  const [recentChoice, setRecentChoice] = useState<{text: string, lean?: "broken" | "indifferent" | "triumphant"} | null>(null);
+
   const current = byId.get(currentId);
 
   // Progress for student: clear step counter (even in branching, shows how far in their path)
   const currentStep = history.length + 1;
   const totalPassages = story.passages.length;
+
+  // Compute leans from the path for visual trail
+  const pathLeans = useMemo(() => {
+    return history
+      .map(h => getReachableEnding(h.next))
+      .filter(Boolean) as ("broken" | "indifferent" | "triumphant")[];
+  }, [history]);
 
   // Score derived only after the student submits the final quiz
   const quizScore = useMemo(() => {
@@ -226,6 +257,9 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
     const p = byId.get(currentId);
     const c = p?.choices?.[choiceIndex];
     if (!c || !byId.has(c.next) || isAdvancing) return; // defensive + prevent double
+    const nextP = byId.get(c.next);
+    const lean = nextP?.endingState || getReachableEnding(c.next);
+    setRecentChoice({ text: c.text, lean: lean || undefined });
     setSelectedChoiceIndex(choiceIndex);
     setIsAdvancing(true);
     // Small delay + visual feedback for smoother "page turn" feel between passages
@@ -364,16 +398,27 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
               style={{ width: `${Math.min(100, Math.round((currentStep / Math.max(1, totalPassages)) * 100))}%` }}
             />
           </div>
+          {/* Subtle path lean indicators - visual trail of choice consequences */}
+          {pathLeans.length > 0 && (
+            <div className="mt-1 flex justify-center gap-1 text-base" title="Your path's leaning so far">
+              {pathLeans.map((lean, idx) => {
+                const v = endingVisuals[lean];
+                return <span key={idx} className={v.color}>{v.icon}</span>;
+              })}
+            </div>
+          )}
         </div>
 
         {/* Passage card: image (optional) + prose in a contained, game-like panel */}
         <div 
           className={`rounded-2xl overflow-hidden transition-all duration-200 ${isAdvancing ? 'opacity-40' : 'opacity-100'} ${
-            hasFigureQuestion 
-              ? 'border-2 border-[#c9a36b] bg-[#1f2a22]' 
-              : hasChoices 
-                ? 'border border-[#6a6358] bg-[#211e1a]' 
-                : 'border border-[#3a3630] bg-[#211e1a]'
+            currentEnding 
+              ? `${currentEnding.border} ${currentEnding.bg}` 
+              : hasFigureQuestion 
+                ? 'border-2 border-[#c9a36b] bg-[#1f2a22]' 
+                : hasChoices 
+                  ? 'border border-[#6a6358] bg-[#211e1a]' 
+                  : 'border border-[#3a3630] bg-[#211e1a]'
           }`}
         >
           {/* Teacher-curated image (if any) — shown during review/play for visual stories */}
@@ -421,6 +466,18 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                     <span>Decision Point</span>
                   </>
                 ) : null}
+              </div>
+            )}
+
+            {/* Brief consequence hint from recent choice */}
+            {!ended && recentChoice && (
+              <div className="mb-2 text-[10px] text-[#8a7f6a] italic border-l-2 border-[#5a5548] pl-2">
+                Because you chose this...
+                {recentChoice.lean && (
+                  <span className={`ml-1 ${endingVisuals[recentChoice.lean].color}`}>
+                    {endingVisuals[recentChoice.lean].icon}
+                  </span>
+                )}
               </div>
             )}
 
@@ -502,6 +559,9 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                 <div className={`text-3xl mb-2 ${currentEnding.color}`}>{currentEnding.icon}</div>
                 <div className={`font-semibold text-lg tracking-tight ${currentEnding.color}`}>You reached a {currentEnding.label} ending</div>
                 <p className="mt-2 text-sm text-[#c5b8a0]">{currentEnding.description}</p>
+                {history.length > 0 && (
+                  <p className="mt-1 text-[10px] text-[#8a7f6a]">Your choices shaped this path.</p>
+                )}
               </div>
             )}
 
@@ -634,6 +694,9 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                       {currentEnding.icon} {currentEnding.label} Ending {currentEnding.icon}
                     </div>
                   )}
+                  {history.length > 0 && (
+                    <div className="text-[10px] text-[#8a7f6a] mt-0.5">Shaped by the choices you made along the way.</div>
+                  )}
                   <p className={quizScore.percent >= 90 ? "text-emerald-400 font-semibold text-lg" : "text-[#c5b8a0] text-base"}>
                     {quizScore.percent >= 90 
                       ? `Excellent work! You scored ${quizScore.percent}%.` 
@@ -670,8 +733,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
             <div className={`space-y-2.5 pt-1 transition-opacity duration-200 ${isAdvancing ? 'opacity-70 pointer-events-none' : ''} ${!hasFigureQuestion ? 'border border-[#5a5548] rounded-xl p-2 bg-[#1c1915]' : ''}`}>
               {(current.choices ?? []).map((c, i) => {
               const isSelected = selectedChoiceIndex === i;
-              const nextPassage = byId.get(c.next);
-              const leadsToEnding = nextPassage?.endingState;
+              const leadsToEnding = getReachableEnding(c.next);
               const endingHint = leadsToEnding ? endingVisuals[leadsToEnding] : null;
 
               return (
