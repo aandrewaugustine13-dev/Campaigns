@@ -171,9 +171,10 @@ export default function GeneratorUI({ onBack }: { onBack: () => void }) {
     return (
       <div className="h-screen bg-stone-900 text-stone-100 flex flex-col items-center justify-center" style={{ fontFamily: "'Georgia', serif" }}>
         <div className="max-w-md text-center space-y-4 p-4">
-          <h1 className="text-2xl font-bold text-red-400">Generation Failed</h1>
-          <div className="bg-red-950/40 border border-red-800 rounded p-3">
-            <p className="text-red-300 text-sm">{errorMsg}</p>
+          <h1 className="text-2xl font-bold text-amber-400">We couldn't generate the campaign</h1>
+          <div className="bg-red-950/40 border border-red-800 rounded p-3 text-left">
+            <p className="text-red-300 text-sm">{errorMsg || "A temporary issue prevented story generation."}</p>
+            <p className="text-red-300/70 text-xs mt-2">Try again in a moment, broaden the topic or standard, or check your connection.</p>
           </div>
           <div className="space-y-2">
             <button onClick={handleGenerate} className="px-6 py-2 bg-amber-700 hover:bg-amber-600 rounded font-bold transition-colors">

@@ -34,7 +34,7 @@ function jsonPost(
     if (req.method !== 'POST') return send(405, { error: 'Method not allowed' });
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) return send(500, { error: 'ANTHROPIC_API_KEY not configured in .env.local' });
+    if (!apiKey) return send(500, { error: 'The story service is temporarily unavailable. Please try again in a moment.' });
 
     let body = '';
     for await (const chunk of req) body += chunk;
@@ -43,7 +43,7 @@ function jsonPost(
     try {
       inputs = body ? JSON.parse(body) : {};
     } catch {
-      return send(400, { error: 'Invalid JSON in request body' });
+      return send(400, { error: 'We could not read the request. Please refresh and try again.' });
     }
 
     try {
@@ -297,7 +297,7 @@ function generatorApiPlugin(): Plugin {
         try {
           inputs = body ? JSON.parse(body) : {};
         } catch {
-          return send(400, { error: 'Invalid JSON' });
+          return send(400, { error: 'We could not read the request. Please refresh and try again.' });
         }
 
         try {
@@ -446,7 +446,7 @@ function generatorApiPlugin(): Plugin {
         if (req.method !== 'POST') return send(405, { error: 'Method not allowed' });
 
         const apiKey = process.env.GEMINI_API_KEY;
-        if (!apiKey) return send(200, { image: null, error: 'GEMINI_API_KEY not configured in .env.local' });
+        if (!apiKey) return send(200, { image: null, error: 'AI image service is temporarily unavailable.' });
 
         let body = '';
         for await (const chunk of req) body += chunk;
@@ -455,7 +455,7 @@ function generatorApiPlugin(): Plugin {
 
         try {
           const apiKey = process.env.GEMINI_API_KEY;
-          if (!apiKey) return send(200, { image: null, error: 'GEMINI_API_KEY not configured in .env.local' });
+          if (!apiKey) return send(200, { image: null, error: 'AI image service is temporarily unavailable.' });
 
           // Support batch for "Auto-generate AI images for remaining passages"
           const isBatch = Array.isArray(inputs?.passages);
@@ -486,7 +486,7 @@ function generatorApiPlugin(): Plugin {
                   apiKey
                 );
                 if (!result) {
-                  return { id, image: null, error: 'generation failed' };
+                  return { id, image: null, error: 'AI illustration could not be created for this scene.' };
                 }
                 return {
                   id,
@@ -520,7 +520,7 @@ function generatorApiPlugin(): Plugin {
           }
         } catch (e) {
           console.error('[image-gen] error', e);
-          send(200, { image: null, error: 'text-only fallback' }); // never break the UI
+          send(200, { image: null, error: 'AI image service is temporarily unavailable. Text-only stays usable.' }); // never break the UI
         }
       });
 
@@ -556,7 +556,7 @@ function generatorApiPlugin(): Plugin {
           }
 
           const apiKey = process.env.GEMINI_API_KEY;
-          if (!apiKey) return send(200, { image: null, error: 'GEMINI_API_KEY not configured in .env.local' });
+          if (!apiKey) return send(200, { image: null, error: 'AI image service is temporarily unavailable.' });
 
           const modifier = '(Render in a 1940s WWII era style, authentic vintage comic book ink, muted color palette, high-contrast noir lighting)';
           const combinedPrompt = `${userPrompt} ${modifier}`;

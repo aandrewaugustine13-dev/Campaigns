@@ -33,7 +33,7 @@ export const onRequestPost = async (context: any) => {
 
     if (!topic || !standard) {
       return new Response(
-        JSON.stringify({ error: 'topic and standard are required' }),
+        JSON.stringify({ error: 'Please provide a topic and TEKS standard to create the story.' }),
         {
           status: 400,
           headers: { 'Content-Type': 'application/json' },
@@ -45,7 +45,7 @@ export const onRequestPost = async (context: any) => {
     if (!apiKey) {
       console.error('ANTHROPIC_API_KEY environment variable is not set.');
       return new Response(
-        JSON.stringify({ error: 'Server configuration error' }),
+        JSON.stringify({ error: 'The story service is temporarily unavailable. Please try again in a moment.' }),
         {
           status: 500,
           headers: { 'Content-Type': 'application/json' },
@@ -76,7 +76,7 @@ export const onRequestPost = async (context: any) => {
     });
   } catch (error) {
     console.error('Error in /api/branching route:', error);
-    const message = error instanceof Error ? error.message : 'An unexpected error occurred.';
+    const message = error instanceof Error ? error.message : 'The story service ran into an unexpected issue. Please try again.';
     return new Response(
       JSON.stringify({ error: message }),
       {

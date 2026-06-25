@@ -61,8 +61,8 @@ function MissingArt({ src, fill }: { src: string; fill?: boolean }) {
       }
     >
       <div className="text-center px-3">
-        <div className="text-stone-400 text-xs font-bold uppercase tracking-wider">Missing art</div>
-        <div className="text-stone-500 text-[10px] font-mono mt-1 break-all">{src}</div>
+        <div className="text-stone-400 text-xs font-bold uppercase tracking-wider">Image unavailable</div>
+        <div className="text-stone-500 text-[10px] mt-1">Using text description for this scene.</div>
       </div>
     </div>
   );

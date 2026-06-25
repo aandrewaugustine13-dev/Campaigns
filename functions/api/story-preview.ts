@@ -17,7 +17,7 @@ export const onRequestPost = async (context: any) => {
 
     if (!topic || !standard) {
       return new Response(
-        JSON.stringify({ error: 'topic and standard are required' }),
+        JSON.stringify({ error: 'Please provide a topic and a TEKS standard for the preview.' }),
         {
           status: 400,
           headers: { 'Content-Type': 'application/json' },
@@ -29,7 +29,7 @@ export const onRequestPost = async (context: any) => {
     if (!apiKey) {
       console.error('ANTHROPIC_API_KEY environment variable is not set.');
       return new Response(
-        JSON.stringify({ error: 'Server configuration error' }),
+        JSON.stringify({ error: 'Preview service is temporarily unavailable. Please try again shortly.' }),
         {
           status: 500,
           headers: { 'Content-Type': 'application/json' },
@@ -60,7 +60,7 @@ export const onRequestPost = async (context: any) => {
     );
   } catch (error) {
     console.error('Error in story-preview route:', error);
-    const message = error instanceof Error ? error.message : 'An unexpected error occurred.';
+    const message = error instanceof Error ? error.message : 'The preview service ran into a problem. Please try again.';
     return new Response(
       JSON.stringify({ error: message }),
       {

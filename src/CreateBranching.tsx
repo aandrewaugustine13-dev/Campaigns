@@ -30,11 +30,27 @@ export default function CreateBranching({ onBack }: Props) {
   const [error, setError] = useState("");
   const [attempts, setAttempts] = useState(0);
   const [elapsed, setElapsed] = useState(0);
+  const [genStep, setGenStep] = useState("Preparing your story...");
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
+
+  // Update friendly step messages over time for better perceived progress during the (long) full generation.
+  useEffect(() => {
+    if (phase !== "generating") {
+      setGenStep("Preparing your story...");
+      return;
+    }
+    let msg = "Preparing your story...";
+    if (elapsed < 6) msg = "Analyzing your topic and TEKS standards...";
+    else if (elapsed < 14) msg = "Crafting the story spine and major turning points...";
+    else if (elapsed < 25) msg = "Adding rich passages, choices, and figure encounters...";
+    else if (elapsed < 38) msg = "Writing the final quiz and in-passage questions...";
+    else msg = "Validating every path so the branching graph works perfectly...";
+    setGenStep(msg);
+  }, [elapsed, phase]);
 
   const startTimer = () => {
     setElapsed(0);
@@ -73,7 +89,7 @@ export default function CreateBranching({ onBack }: Props) {
       stopTimer();
 
       if (!res.ok || !data?.ok || !data.story) {
-        const msg = data?.error || data?.validation?.findings?.map((f: any) => f.message).join(" • ") || "Generation failed";
+        const msg = data?.error || data?.validation?.findings?.map((f: any) => f.message).join(" • ") || "The story generator could not complete this request.";
         throw new Error(msg);
       }
 
@@ -133,19 +149,33 @@ export default function CreateBranching({ onBack }: Props) {
     );
   }
 
-  // Generating (simple spinner)
+  // Generating (richer feedback for long operation)
   if (phase === "generating") {
     return (
       <PageContainer maxWidth="max-w-md">
-        <MainTitle className="text-3xl">Generating Branching Story…</MainTitle>
-        <div className="flex justify-center mb-6">
+        <MainTitle className="text-3xl">Generating your branching story…</MainTitle>
+
+        <div className="flex justify-center my-6">
           <div className="w-12 h-12 border-4 border-[#c9a36b]/30 border-t-[#c9a36b] rounded-full animate-spin" />
         </div>
-        <p className="text-[#c5b8a0] text-lg text-center font-mono mb-3">{elapsed}s</p>
-        <p className="text-[#8a7f6a] text-sm text-center max-w-xs mx-auto mb-8">
-          The model is writing a real choose-your-path story and we validate the graph before handing it to the player.
-        </p>
-        <Button variant="secondary" label="Cancel" onClick={backToPreview} />
+
+        <div className="text-center mb-2">
+          <p className="text-[#c9a36b] text-sm font-medium tracking-wide">{genStep}</p>
+          <p className="text-[#c5b8a0] text-lg font-mono mt-1">{elapsed}s elapsed</p>
+        </div>
+
+        <div className="bg-[#211e1a] border border-[#3a3630] rounded-xl p-3 mb-6 text-xs text-[#8a7f6a] text-center">
+          Building a real choose-your-path experience with validated branches, figure meetings, and a comprehension quiz.<br />
+          This typically takes 45–90 seconds. We validate every ending before we hand it to you.
+        </div>
+
+        {approval && (
+          <div className="text-[10px] text-[#8a7f6a] text-center mb-4">
+            Topic: <span className="text-[#c5b8a0]">{approval.topic}</span> · Standards: <span className="text-[#c5b8a0]">{approval.standard}</span>
+          </div>
+        )}
+
+        <Button variant="secondary" label="Cancel and edit inputs" onClick={backToPreview} />
       </PageContainer>
     );
   }
@@ -154,10 +184,13 @@ export default function CreateBranching({ onBack }: Props) {
   if (phase === "error") {
     return (
       <PageContainer maxWidth="max-w-md">
-        <MainTitle className="text-3xl text-[#c25c5c]">Generation Failed</MainTitle>
+        <MainTitle className="text-3xl text-[#c25c5c]">We ran into a problem creating the story</MainTitle>
 
         <div className="border border-[#5c2a2a] bg-[#2a1f1f] rounded-2xl p-4 text-left text-sm text-[#d88a8a] mb-6 whitespace-pre-wrap">
-          {error}
+          {error || "The story service could not complete the request."}
+          <div className="mt-3 text-xs opacity-80 leading-snug">
+            Common causes: temporary service hiccup, very specific topic/TEKS, or rate limiting. The preview gate protects you from wasted full generations.
+          </div>
         </div>
 
         <div className="space-y-3">
@@ -169,7 +202,7 @@ export default function CreateBranching({ onBack }: Props) {
           />
           <Button
             variant="secondary"
-            label="Edit inputs"
+            label="Edit inputs &amp; preview again"
             onClick={backToPreview}
           />
         </div>

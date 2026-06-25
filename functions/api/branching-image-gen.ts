@@ -11,7 +11,7 @@ export const onRequestPost = async (context: any) => {
     if (!apiKey) {
       console.error('GEMINI_API_KEY environment variable is not set.');
       return new Response(
-        JSON.stringify({ error: 'GEMINI_API_KEY not configured' }),
+        JSON.stringify({ error: 'AI image service is temporarily unavailable.' }),
         {
           status: 500,
           headers: { 'Content-Type': 'application/json' },
@@ -29,7 +29,7 @@ export const onRequestPost = async (context: any) => {
       items = [body];
     } else {
       return new Response(
-        JSON.stringify({ error: 'Invalid body: expected {passages: [...] } or single {topic, scene}' }),
+        JSON.stringify({ error: 'Unexpected request format for image generation.' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -43,7 +43,7 @@ export const onRequestPost = async (context: any) => {
         const topic = String(item?.topic ?? '');
         const scene = String(item?.scene ?? item?.text ?? item?.passageText ?? '');
         if (!topic || !scene) {
-          return { id, image: null, error: 'topic and scene required' };
+          return { id, image: null, error: 'Missing topic or passage details for illustration.' };
         }
         try {
           const result = await generateIllustration(
@@ -56,7 +56,7 @@ export const onRequestPost = async (context: any) => {
             apiKey
           );
           if (!result) {
-            return { id, image: null, error: 'generation failed' };
+            return { id, image: null, error: 'AI illustration could not be created for this scene.' };
           }
           return {
             id,
@@ -73,13 +73,13 @@ export const onRequestPost = async (context: any) => {
             },
           };
         } catch (e: any) {
-          return { id, image: null, error: e?.message || 'error generating image' };
+          return { id, image: null, error: e?.message || 'AI image generation encountered a problem.' };
         }
       })
     );
 
     const results = settled.map((s) =>
-      s.status === 'fulfilled' ? s.value : { image: null, error: 'failed to process' }
+      s.status === 'fulfilled' ? s.value : { image: null, error: 'Unable to process image request.' }
     );
 
     if (isBatch) {
@@ -89,7 +89,7 @@ export const onRequestPost = async (context: any) => {
       });
     } else {
       // single response for backward compatibility
-      const single = results[0] || { image: null, error: 'no input' };
+      const single = results[0] || { image: null, error: 'No details provided for the illustration.' };
       if (single.image) {
         return new Response(JSON.stringify({ image: single.image }), {
           status: 200,
@@ -105,7 +105,7 @@ export const onRequestPost = async (context: any) => {
   } catch (error: any) {
     console.error('[branching-image-gen] error', error);
     return new Response(
-      JSON.stringify({ error: 'Image service unavailable — text-only stays available.' }),
+      JSON.stringify({ error: 'AI image service is temporarily unavailable. Text-only passages remain fully usable.' }),
       {
         status: 500,
         headers: { 'Content-Type': 'application/json' },

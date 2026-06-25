@@ -71,6 +71,8 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
   const [preview, setPreview] = useState<StoryPreview | null>(null);
   const [error, setError] = useState("");
   const [approved, setApproved] = useState(false);
+  // Keep the preview summary visible while editing so teachers can tweak without losing context.
+  const [previewStale, setPreviewStale] = useState(false);
 
   const teksMatches = useMemo(() => {
     let results = searchTEKS(teksSearch);
@@ -81,10 +83,11 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
   }, [teksSearch, selectedGrades]);
 
   const clearPreviewOnChange = () => {
-    if (status === "done") {
-      setStatus("idle");
+    if (preview) {
+      setPreviewStale(true);
       setApproved(false);
     }
+    if (status === "done") setStatus("idle");
   };
 
   const addTEKS = (teks: TEKSStandard) => {
@@ -122,11 +125,12 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
   const canPreview = topic.trim().length > 0 && selectedTEKS.length > 0 && status !== "loading";
 
   const runPreview = useCallback(async () => {
-    setStatus("loading"); setError(""); setApproved(false); setPreview(null);
+    setStatus("loading"); setError(""); setApproved(false);
     try {
       const teksStr = selectedTEKS.map(t => t.code).join(", ");
       const { data } = await postPreview({ topic: topic.trim(), standard: teksStr, mustCover: mustCover.trim() || undefined });
       setPreview(data);
+      setPreviewStale(false);
       setStatus("done");
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -151,33 +155,44 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
     });
   }, [preview, topic, selectedTEKS, mustCover, contentMaturity, proseRegister, scope, gumpIntensity, onApprove]);
 
-  // Editing any input invalidates a shown preview (revise → re-preview).
-  const onEdit = <T,>(set: (v: T) => void) => (v: T) => { set(v); if (status === "done") { setStatus("idle"); setApproved(false); } };
+  // Editing any input after a preview marks it stale. We keep the previous preview visible
+  // (reduces friction when iterating) but require a fresh preview before approving.
+  const onEdit = <T,>(set: (v: T) => void) => (v: T) => {
+    set(v);
+    if (preview) {
+      setPreviewStale(true);
+      setApproved(false);
+    }
+    if (status === "done") setStatus("idle");
+  };
 
   return (
     <PageContainer maxWidth="max-w-2xl" className="items-start pt-10 pb-16">
       <MainTitle className="text-4xl mb-1">New Story — Preview</MainTitle>
       <p className="text-[#a69a80] text-sm text-center mb-8 max-w-md mx-auto">
-        Confirm the story will cover your TEKS standards before generating it. Revising is cheap — preview as often as you like.
+        Describe the story, align it to your standards, choose its shape and tone, then preview the arc. Preview is fast and free to re-run while you iterate.
       </p>
 
-      <div className="space-y-5">
-        {/* Story Inputs */}
-        <SectionHeader className="text-left mb-2 tracking-[3px]">Story Inputs</SectionHeader>
+      <div className="space-y-6">
+        {/* 1. Topic & Focus */}
+        <div>
+          <SectionHeader className="text-left mb-2 tracking-[3px]">1. Topic &amp; focus</SectionHeader>
+          <p className="text-[10px] text-[#8a7f6a] mb-2">What historical moment or event should students live through?</p>
 
-        <label className="block">
-          <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Topic</span>
-          <input
-            value={topic}
-            onChange={(e) => onEdit(setTopic)(e.target.value)}
-            placeholder="e.g. the Dust Bowl"
-            className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] placeholder-[#8a7f6a] focus:outline-none focus:border-[#c9a36b]/60 transition-colors"
-          />
-        </label>
+          <label className="block mb-3">
+            <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Topic</span>
+            <input
+              value={topic}
+              onChange={(e) => onEdit(setTopic)(e.target.value)}
+              placeholder="e.g. the Dust Bowl, the March on Washington, the Texas Revolution"
+              className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] placeholder-[#8a7f6a] focus:outline-none focus:border-[#c9a36b]/60 transition-colors"
+            />
+          </label>
 
-        {/* TEKS Search & Multi-Select */}
+        {/* 2. TEKS Alignment */}
         <div className="block">
-          <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">TEKS Standards</span>
+          <SectionHeader className="text-left mb-2 tracking-[3px]">2. TEKS alignment</SectionHeader>
+          <p className="text-[10px] text-[#8a7f6a] mb-2">Select the exact standards this story must address. You can add several.</p>
 
           {/* Grade Level Filter */}
           <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
@@ -236,7 +251,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
           {teksSearch.trim() && (
             <div className="mt-1.5 max-h-44 overflow-auto border border-[#3a3630] bg-[#1c1915] rounded-lg p-1 text-sm">
               {teksMatches.length === 0 ? (
-                <div className="px-2 py-1 text-xs text-[#8a7f6a]">No matches. Try broader keywords like "washington" or "revolution".</div>
+                <div className="px-2 py-1 text-xs text-[#8a7f6a]">No matching standards found. Try broader keywords such as "civil rights", "revolution", "constitution", or a key figure's name.</div>
               ) : (
                 teksMatches.map((t) => (
                   <div
@@ -256,93 +271,172 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
             </div>
           )}
           {!teksSearch.trim() && selectedTEKS.length === 0 && (
-            <div className="text-[10px] text-[#8a7f6a] mt-1">Search and add relevant TEKS standards your story should align with (multiple OK).</div>
+            <div className="text-[10px] text-[#8a7f6a] mt-1">Search by topic or person and add the standards this story must cover.</div>
           )}
         </div>
 
-        <label className="block">
-          <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Must cover (optional, plain language)</span>
-          <textarea
-            value={mustCover}
-            onChange={(e) => onEdit(setMustCover)(e.target.value)}
-            rows={3}
-            placeholder="e.g. show why families left their farms, and the trip to California"
-            className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] placeholder-[#8a7f6a] focus:outline-none focus:border-[#c9a36b]/60 transition-colors resize-y"
+          <label className="block">
+            <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Must cover (optional, plain language)</span>
+            <textarea
+              value={mustCover}
+              onChange={(e) => onEdit(setMustCover)(e.target.value)}
+              rows={2}
+              placeholder="e.g. show why families left their farms, and the trip to California"
+              className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] placeholder-[#8a7f6a] focus:outline-none focus:border-[#c9a36b]/60 transition-colors resize-y"
+            />
+            <span className="text-[10px] text-[#8a7f6a] mt-1 block">Specific ideas or scenes you want guaranteed in the story.</span>
+          </label>
+        </div>
+
+        {/* 3. Story Shape — visual, intentional choices */}
+        <div>
+          <SectionHeader className="text-left mb-2 tracking-[3px]">3. Story shape</SectionHeader>
+          <p className="text-[10px] text-[#8a7f6a] mb-3">How broad should the story feel, and should students meet real famous figures?</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Scope visual choices */}
+            <div>
+              <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Story breadth</span>
+              <div className="flex flex-col gap-2">
+                {[
+                  { value: "span" as const, title: "Span", desc: "Travels across a movement, war, or long journey. Broader arc with multiple locations or phases." },
+                  { value: "depth" as const, title: "Depth", desc: "Stays inside one powerful moment or short time (a day, a confrontation, a decision). Rich branches in a tight frame." },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => onEdit(setScope)(opt.value)}
+                    className={`text-left px-3 py-2.5 rounded-lg border transition-all ${
+                      scope === opt.value
+                        ? "border-[#c9a36b] bg-[#2a2722]"
+                        : "border-[#3a3630] bg-[#24211d] hover:border-[#5a5548]"
+                    }`}
+                  >
+                    <div className="text-sm font-medium text-[#e8dcc8]">{opt.title}</div>
+                    <div className="text-[10px] text-[#8a7f6a] leading-snug mt-0.5">{opt.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* GUMP / Encounters visual choices */}
+            <div>
+              <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Famous figure encounters</span>
+              <div className="flex flex-col gap-2">
+                {[
+                  { value: "off" as const, title: "Off (recommended for many topics)", desc: "No forced meetings. Students experience events through ordinary people and local actors. Clean for focused or lesser-known stories." },
+                  { value: "high" as const, title: "High — meet the real figures", desc: "The protagonist crosses paths with marquee historical figures at turning points. Creates memorable, high-stakes scenes." },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => onEdit(setGumpIntensity)(opt.value)}
+                    className={`text-left px-3 py-2.5 rounded-lg border transition-all ${
+                      gumpIntensity === opt.value
+                        ? "border-[#c9a36b] bg-[#2a2722]"
+                        : "border-[#3a3630] bg-[#24211d] hover:border-[#5a5548]"
+                    }`}
+                  >
+                    <div className="text-sm font-medium text-[#e8dcc8]">{opt.title}</div>
+                    <div className="text-[10px] text-[#8a7f6a] leading-snug mt-0.5">{opt.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 4. Reading experience — tone choices as clear cards */}
+        <div>
+          <SectionHeader className="text-left mb-2 tracking-[3px]">4. Reading experience</SectionHeader>
+          <p className="text-[10px] text-[#8a7f6a] mb-3">How honestly should the story portray hard realities, and how accessible should the language be?</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Content maturity cards */}
+            <div>
+              <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Content maturity</span>
+              <div className="flex flex-col gap-2">
+                {[
+                  { value: "mature", title: "Mature", desc: "Direct and honest about fear, violence, death, and moral complexity." },
+                  { value: "moderate", title: "Moderate", desc: "Balanced honesty — difficult truths are present but softened where appropriate." },
+                  { value: "gentle", title: "Gentle", desc: "Softer portrayal suitable for younger or more sensitive readers." },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => onEdit(setContentMaturity)(opt.value)}
+                    className={`text-left px-3 py-2 rounded-lg border transition-all ${
+                      contentMaturity === opt.value
+                        ? "border-[#c9a36b] bg-[#2a2722]"
+                        : "border-[#3a3630] bg-[#24211d] hover:border-[#5a5548]"
+                    }`}
+                  >
+                    <div className="text-sm font-medium text-[#e8dcc8]">{opt.title}</div>
+                    <div className="text-[10px] text-[#8a7f6a] leading-snug mt-0.5">{opt.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Prose register cards */}
+            <div>
+              <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Prose register</span>
+              <div className="flex flex-col gap-2">
+                {[
+                  { value: "direct", title: "Direct", desc: "Short sentences, plain concrete words. Best for broad access and bilingual support." },
+                  { value: "balanced", title: "Balanced", desc: "Mix of sentence lengths with clear but descriptive language." },
+                  { value: "literary", title: "Literary", desc: "Richer vocabulary and varied sentences for stronger readers." },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => onEdit(setProseRegister)(opt.value)}
+                    className={`text-left px-3 py-2 rounded-lg border transition-all ${
+                      proseRegister === opt.value
+                        ? "border-[#c9a36b] bg-[#2a2722]"
+                        : "border-[#3a3630] bg-[#24211d] hover:border-[#5a5548]"
+                    }`}
+                  >
+                    <div className="text-sm font-medium text-[#e8dcc8]">{opt.title}</div>
+                    <div className="text-[10px] text-[#8a7f6a] leading-snug mt-0.5">{opt.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Preview action */}
+        <div>
+          <Button
+            variant="primary"
+            label={status === "loading" ? "Previewing…" : (preview ? (previewStale ? "Update preview with changes" : "Re-preview") : "Preview")}
+            onClick={runPreview}
+            disabled={!canPreview}
+            className="mt-1"
           />
-        </label>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <label className="block">
-            <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Scope</span>
-            <select
-              value={scope}
-              onChange={(e) => onEdit(setScope)(e.target.value as "span" | "depth")}
-              className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] focus:outline-none focus:border-[#c9a36b]/60 transition-colors"
-            >
-              <option value="span">Span — carried across the whole arc (wars, journeys, movements)</option>
-              <option value="depth">Depth — branch densely within one moment (a fire, a single day)</option>
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Famous-figure encounters</span>
-            <select
-              value={gumpIntensity}
-              onChange={(e) => onEdit(setGumpIntensity)(e.target.value as "high" | "off")}
-              className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] focus:outline-none focus:border-[#c9a36b]/60 transition-colors"
-            >
-              <option value="off">Off — no forced meetings (best for one-place/cast-poor topics)</option>
-              <option value="high">High — the kid crosses paths with the real famous figures &amp; turning points</option>
-            </select>
-          </label>
+          {status === "loading" && (
+            <p className="text-xs text-[#c9a36b] mt-1.5">Generating a fast story outline and TEKS coverage check. You can edit while it runs.</p>
+          )}
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <label className="block">
-            <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Content maturity</span>
-            <select
-              value={contentMaturity}
-              onChange={(e) => onEdit(setContentMaturity)(e.target.value)}
-              className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] focus:outline-none focus:border-[#c9a36b]/60 transition-colors"
-            >
-              <option value="mature">Mature — honest, unsanitized depiction of fear, violence, death, and moral complexity</option>
-              <option value="moderate">Moderate — balanced honesty with some softening of the hardest truths</option>
-              <option value="gentle">Gentle — softer, less direct portrayal of difficult historical realities</option>
-            </select>
-            <span className="text-[10px] text-[#8a7f6a] mt-1 block">How honestly to show fear, violence, death — not sanitized.</span>
-          </label>
-          <label className="block">
-            <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Prose register</span>
-            <select
-              value={proseRegister}
-              onChange={(e) => onEdit(setProseRegister)(e.target.value)}
-              className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] focus:outline-none focus:border-[#c9a36b]/60 transition-colors"
-            >
-              <option value="direct">Direct — short, declarative sentences; common concrete words; plain and accessible</option>
-              <option value="balanced">Balanced — mix of sentence lengths; clear vocabulary with some descriptive flow</option>
-              <option value="literary">Literary — richer vocabulary, more varied and descriptive sentences</option>
-            </select>
-            <span className="text-[10px] text-[#8a7f6a] mt-1 block">Plain, short, concrete sentences (reading-support / bilingual).</span>
-          </label>
-        </div>
-
-        <Button
-          variant="primary"
-          label={status === "loading" ? "Previewing…" : preview ? "Re-preview" : "Preview"}
-          onClick={runPreview}
-          disabled={!canPreview}
-          className="mt-2"
-        />
       </div>
 
       {status === "error" && (
         <div className="mt-6 border border-[#5c2a2a] bg-[#2a1f1f] rounded-xl p-4 text-sm text-[#d88a8a]">
-          Preview failed: {error}
+          We couldn't generate a preview right now. This is often a temporary service issue or an unusually narrow topic/TEKS combination.
+          <div className="mt-1 text-xs opacity-80">Details: {error}</div>
+          <div className="mt-2 text-xs">Try again in a moment, or adjust the topic and selected standards.</div>
         </div>
       )}
 
-      {preview && status === "done" && (
+      {preview && (
         <div className="mt-8 border border-[#3a3630] bg-[#211e1a] rounded-2xl p-6 space-y-5">
+          {(status === "loading" || previewStale) && (
+            <div className="text-xs bg-[#2a241c] border border-[#5c4a2a] rounded px-3 py-1.5 text-[#c9a36b]">
+              {status === "loading" ? "Updating preview for your current inputs…" : "Inputs changed — update the preview to refresh the summary and coverage before approving."}
+            </div>
+          )}
+
           <div>
             <SectionHeader className="text-left mb-1 tracking-[3px]">The story will follow</SectionHeader>
             <p className="text-[#c5b8a0] text-lg font-medium">{preview.protagonist}</p>
@@ -367,7 +461,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
 
           {approved ? (
             <div className="border border-[#2a4a2a] bg-[#1f2a1f] rounded-xl p-4 text-sm text-[#8fc38f]">
-              Approved — generating the full story now…
+              Approved. Generating the full interactive story (with branches, encounters, and quiz). This takes about a minute.
             </div>
           ) : (
             <div className="pt-2">
@@ -375,9 +469,10 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
                 variant="warm"
                 label="Approve &amp; Generate"
                 onClick={approve}
+                disabled={previewStale || status === "loading"}
                 className="mb-3"
               />
-              <p className="text-xs text-[#8a7f6a]">Not right? Edit the fields above and preview again.</p>
+              <p className="text-xs text-[#8a7f6a]">Not right? Edit any field above — the preview stays visible so you can compare — then click “Update preview with changes”.</p>
             </div>
           )}
         </div>

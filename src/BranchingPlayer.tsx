@@ -45,7 +45,7 @@ function Unplayable({ onBack }: { onBack?: () => void }) {
     <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] flex items-center justify-center p-6">
       <div className="max-w-md w-full text-center space-y-3 border border-[#3a3630] bg-[#211e1a] rounded-2xl p-6">
         <p className="text-lg font-serif">This story isn&rsquo;t ready to play yet.</p>
-        <p className="text-sm text-[#8a7f6a]">Something went wrong putting it together. Please pick another story.</p>
+        <p className="text-sm text-[#8a7f6a]">We hit an issue assembling the full story. Please choose a different story from the menu, or ask your teacher to regenerate it.</p>
         <BackLink onBack={onBack} />
       </div>
     </div>

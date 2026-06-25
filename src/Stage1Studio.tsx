@@ -323,9 +323,10 @@ export default function Stage1Studio({
   if (step === "error") {
     return shell(
       <div className="text-center space-y-4 pt-16">
-        <h1 className="text-2xl font-bold text-red-400">Something Failed</h1>
-        <div className="bg-red-950/40 border border-red-800 rounded p-3">
-          <p className="text-red-300 text-sm break-words">{errorMsg}</p>
+        <h1 className="text-2xl font-bold text-amber-400">We couldn't build the campaign</h1>
+        <div className="bg-red-950/40 border border-red-800 rounded p-3 text-left">
+          <p className="text-red-300 text-sm break-words">{errorMsg || "A temporary problem occurred during generation."}</p>
+          <p className="text-red-300/70 text-xs mt-2">Try again shortly or adjust your inputs.</p>
         </div>
         <div className="space-y-2">
           <button onClick={() => retryRef.current?.()} className="px-6 py-2 bg-amber-700 hover:bg-amber-600 rounded font-bold transition-colors">

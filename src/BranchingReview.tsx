@@ -96,10 +96,10 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
         body: JSON.stringify({ topic: story.title, scene: selected.text }),
       });
       const data = await res.json();
-      if (!data?.image) { setGenError(data?.error || "Generation failed — text-only stays available."); return; }
+      if (!data?.image) { setGenError(data?.error || "AI illustration generation didn't succeed. The text passage is complete — try again or use text only."); return; }
       setImageCandidates((prev) => ({ ...prev, [selectedId]: [data.image, ...(prev[selectedId] || [])] }));
     } catch {
-      setGenError("Image service unavailable — text-only stays available.");
+      setGenError("AI illustration service is temporarily unavailable. Your passage text is intact — try again later or continue with text only.");
     } finally {
       setGenLoading(false);
     }
@@ -321,7 +321,7 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
               {passageList}
               <div className="flex-1 overflow-y-auto p-4">
                 {!selected ? (
-                  <div className="text-[#8a7f6a]">No passage selected</div>
+                  <div className="text-[#8a7f6a]">Select a passage from the list to review it.</div>
                 ) : (
                   <div className="max-w-3xl">
                     <div className="flex items-baseline gap-3 mb-2">
@@ -372,7 +372,7 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
               {passageList}
               <div className="flex-1 overflow-y-auto p-4">
                 {!selected ? (
-                  <div className="text-[#8a7f6a]">No passage selected</div>
+                  <div className="text-[#8a7f6a]">Select a passage from the list to review it.</div>
                 ) : (
                   <div className="max-w-3xl">
                     <div className="flex items-baseline gap-3 mb-2">
@@ -395,7 +395,7 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
                           <div className="text-[10px] text-[#8a7f6a] mt-1">Selected • {selected.image!.artist || "Curated image"}</div>
                         </div>
                       ) : (
-                        <div className="text-xs text-[#8a7f6a] italic mb-3">No image selected (will use text only)</div>
+                        <div className="text-xs text-[#8a7f6a] italic mb-3">No image selected for this passage. Text-only works well for many stories.</div>
                       )}
 
                       <div className="flex items-center gap-2 mb-1">
@@ -411,8 +411,9 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
                           }
                           if (cands.length === 0) {
                             return (
-                              <div className="text-xs text-[#8a7f6a] italic px-2 py-1">
-                                No good historical matches. The search uses the topic/standard plus this passage's real place/event nouns. Try "Search again", or "No image" for now.
+                              <div className="text-xs text-[#8a7f6a] px-2 py-1 leading-snug">
+                                No historical images matched this passage. Wikimedia searches rely on specific places, events, or figures from the era. <br />
+                                Try “Search again”, “Generate AI illustration”, or “No image” (the story works beautifully with text alone).
                               </div>
                             );
                           }
@@ -463,7 +464,11 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
                         </button>
                         <span className="text-[#6a6358]">• Wikimedia = real historical images (actual license shown). ✨ AI = a synthesized illustration, labeled “AI-generated” — NOT a historical source; check it for anachronisms before publishing.</span>
                       </div>
-                      {genError && <div className="text-[10px] text-[#c9a36b] mt-1">{genError}</div>}
+                      {genError && (
+                        <div className="mt-1.5 text-[10px] text-[#c9a36b] bg-[#2a241c] border border-[#5c4a2a] rounded px-2 py-1">
+                          {genError}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
