@@ -311,6 +311,10 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
 
   const ended = isEnding(current);
 
+  // Determine passage type for visual distinction
+  const hasFigureQuestion = !!current.question;
+  const hasChoices = !ended && (current.choices?.length ?? 0) > 0;
+
   return (
     <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] flex items-center justify-center p-6">
       <div className="max-w-xl w-full space-y-5">
@@ -334,7 +338,13 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
 
         {/* Passage card: image (optional) + prose in a contained, game-like panel */}
         <div 
-          className={`border border-[#3a3630] bg-[#211e1a] rounded-2xl overflow-hidden transition-all duration-200 ${isAdvancing ? 'opacity-40' : 'opacity-100'}`}
+          className={`rounded-2xl overflow-hidden transition-all duration-200 ${isAdvancing ? 'opacity-40' : 'opacity-100'} ${
+            hasFigureQuestion 
+              ? 'border-2 border-[#c9a36b] bg-[#1f2a22]' 
+              : hasChoices 
+                ? 'border border-[#6a6358] bg-[#211e1a]' 
+                : 'border border-[#3a3630] bg-[#211e1a]'
+          }`}
         >
           {/* Teacher-curated image (if any) — shown during review/play for visual stories */}
           {current.image?.thumbUrl && (
@@ -367,6 +377,23 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
 
           {/* The story passage prose — key triggers natural re-animation on change */}
           <div key={currentId} className="p-6 transition-opacity duration-300">
+            {/* Type indicator for visual distinction */}
+            {(hasFigureQuestion || hasChoices) && (
+              <div className="mb-3 text-xs uppercase tracking-[2px] flex items-center gap-2 text-[#b89d6e]">
+                {hasFigureQuestion ? (
+                  <>
+                    <span>🗣️</span>
+                    <span>Figure Encounter</span>
+                  </>
+                ) : hasChoices ? (
+                  <>
+                    <span>⚖️</span>
+                    <span>Decision Point</span>
+                  </>
+                ) : null}
+              </div>
+            )}
+
             {/* Speaker button for text-to-speech accessibility */}
             <div className="flex justify-end mb-2">
               <button
@@ -392,7 +419,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
 
         {/* In-story question from historical figure (sage-style trivia, when present on the passage) */}
         {current.question && (
-          <div className="border border-[#3a3630] bg-[#211e1a] rounded-2xl p-4">
+          <div className="border-2 border-[#c9a36b] bg-[#1f2a22] rounded-2xl p-4">
             <p className="font-semibold text-[#b89d6e]">A historical figure asks:</p>
             <p className="mt-2 text-lg font-medium text-[#e8dcc8]">{current.question.question}</p>
             {answeredQuestion === null ? (
@@ -434,17 +461,23 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
 
             {/* Final check for understanding / comprehension quiz at the end of playthrough */}
             {story.finalQuiz && (
-              <div className={`mt-5 border border-[#3a3630] bg-[#211e1a] rounded-2xl p-4 transition-opacity ${isSubmittingQuiz ? 'opacity-80' : ''}`}>
-                <h2 className="font-semibold text-lg mb-1.5 text-[#c9a36b]">{story.finalQuiz.title}</h2>
-                <p className="text-sm mb-4 text-[#a69a80]">{story.finalQuiz.instructions}</p>
+              <div className={`mt-5 border-2 border-[#c9a36b] bg-[#1f2a22] rounded-2xl p-5 transition-opacity shadow-sm ${isSubmittingQuiz ? 'opacity-80' : ''}`}>
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-2xl">🏆</span>
+                  <h2 className="font-semibold text-xl text-[#c9a36b] tracking-tight">{story.finalQuiz.title}</h2>
+                </div>
+                <p className="text-sm mb-5 text-[#a69a80] leading-relaxed">{story.finalQuiz.instructions}</p>
                 {!quizSubmitted ? (
                   <div className="space-y-4">
                     {story.finalQuiz.questions.map((q: any, qi: number) => {
                       const selected = quizAnswers[qi];
                       return (
-                        <div key={qi} className="rounded-xl border border-[#3a3630] bg-[#1c1915] p-4">
-                          <p className="text-[#e8dcc8] mb-2"><strong>Q{qi + 1}: </strong>{q.question}</p>
-                          <div className="space-y-1.5">
+                        <div key={qi} className="rounded-2xl border border-[#3a3630] bg-[#1c1915] p-4">
+                          <div className="flex items-baseline gap-2 mb-3">
+                            <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-[#3a3630] text-[#c9a36b]">Q{qi + 1}</span>
+                            <p className="text-[#e8dcc8] font-medium leading-snug">{q.question}</p>
+                          </div>
+                          <div className="space-y-2">
                             {q.choices.map((c: string, ci: number) => {
                               const isSel = selected === ci;
                               return (
@@ -452,13 +485,15 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                                   key={ci}
                                   type="button"
                                   onClick={() => setQuizAnswers(prev => ({...prev, [qi]: ci}))}
-                                  className={`w-full text-left px-4 py-2.5 rounded-xl border text-sm transition-all flex items-center gap-2 ${
+                                  className={`w-full text-left px-4 py-3 rounded-xl border text-[15px] transition-all flex items-center gap-3 ${
                                     isSel 
-                                      ? 'border-[#c9a36b] bg-[#2a2722] text-[#e8dcc8]' 
+                                      ? 'border-[#c9a36b] bg-[#2a2722] text-[#e8dcc8] ring-1 ring-[#c9a36b]/30' 
                                       : 'border-[#3a3630] bg-[#24211d] hover:bg-[#2c2924] text-[#c5b8a0] hover:border-[#5a5548]'
                                   }`}
                                 >
-                                  <span className={`inline-block w-4 h-4 rounded-full border flex-shrink-0 ${isSel ? 'border-[#c9a36b] bg-[#c9a36b]/20' : 'border-[#5a5548]'}`} />
+                                  <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full border text-xs flex-shrink-0 ${isSel ? 'border-[#c9a36b] bg-[#c9a36b] text-[#1f2a22]' : 'border-[#5a5548] text-[#5a5548]'}`}>
+                                    {String.fromCharCode(65 + ci)}
+                                  </span>
                                   <span>{c}</span>
                                 </button>
                               );
@@ -476,42 +511,57 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                           setIsSubmittingQuiz(false);
                         }, 320);
                       }} 
-                      className="mt-2 w-full px-6 py-2.5 bg-[#463426] hover:bg-[#5a4635] active:bg-[#3a2f1f] text-[#e8dcc8] rounded-2xl border border-[#3a3630] disabled:opacity-50 text-sm font-medium transition-colors"
+                      className="mt-3 w-full px-6 py-3 bg-[#5c4635] hover:bg-[#6a523f] active:bg-[#3a2f1f] text-[#e8dcc8] rounded-2xl border-2 border-[#c9a36b]/50 text-base font-semibold tracking-wide transition-all disabled:opacity-50"
                       disabled={Object.keys(quizAnswers).length < (story.finalQuiz.questions?.length || 0) || isSubmittingQuiz}
                     >
                       {isSubmittingQuiz ? "Checking your answers…" : "Submit Final Answers"}
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-3 text-sm">
+                  <div className="space-y-4 text-sm">
+                    {/* Results header */}
+                    <div className="text-center pb-2">
+                      <div className="text-xs uppercase tracking-[2px] text-[#b89d6e] mb-1">Quiz Complete</div>
+                      {quizScore && (
+                        <div className="inline-flex items-center gap-3 bg-[#2a2722] border border-[#c9a36b]/30 rounded-2xl px-6 py-2">
+                          <div className="text-3xl font-semibold tabular-nums text-[#c9a36b]">{quizScore.percent}%</div>
+                          <div className="text-left text-xs leading-tight">
+                            <div className="text-[#e8dcc8]">{quizScore.correct} / {quizScore.total} correct</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     {story.finalQuiz.questions.map((q: any, qi: number) => {
                       const userAns = quizAnswers[qi];
                       const correct = userAns === q.correctIndex;
                       return (
-                        <div key={qi} className="border-t border-[#3a3630] pt-3 first:border-t-0 first:pt-0">
-                          <p className="text-[#e8dcc8]"><strong>Q{qi + 1}: </strong>{q.question}</p>
-                          <div className={`mt-1 flex items-center gap-1.5 text-sm ${correct ? "text-emerald-400" : "text-red-400"}`}>
-                            <span>Your answer:</span> <strong>{q.choices[userAns]}</strong> 
-                            <span className="text-base">{correct ? "✓" : "✗"}</span>
+                        <div 
+                          key={qi} 
+                          className={`rounded-xl border p-4 ${correct 
+                            ? 'border-emerald-700/50 bg-emerald-900/10' 
+                            : 'border-red-700/50 bg-red-900/10'
+                          }`}
+                        >
+                          <p className="text-[#e8dcc8] font-medium mb-2"><strong>Q{qi + 1}: </strong>{q.question}</p>
+                          
+                          <div className="space-y-1 text-xs">
+                            <div className={`flex items-start gap-2 ${correct ? 'text-emerald-400' : 'text-red-400'}`}>
+                              <span className="font-mono mt-0.5">You:</span> 
+                              <strong className="text-[#e8dcc8]">{q.choices[userAns]}</strong> 
+                              <span>{correct ? "✓" : "✗"}</span>
+                            </div>
+                            <div className="flex items-start gap-2 text-[#c5b8a0]">
+                              <span className="font-mono mt-0.5">Correct:</span> 
+                              <span>{q.choices[q.correctIndex]}</span>
+                            </div>
                           </div>
-                          <p className="text-[#c5b8a0] mt-0.5">Correct: <span className="font-medium">{q.choices[q.correctIndex]}</span></p>
-                          <p className="mt-1 text-[#a69a80] text-[13px] leading-snug">{q.explanation}</p>
-                          {q.context && <p className="text-[10px] text-[#8a7f6a] mt-0.5">({q.context})</p>}
+
+                          <p className="mt-2 text-[#a69a80] text-[13px] leading-snug">{q.explanation}</p>
+                          {q.context && <p className="text-[10px] text-[#8a7f6a] mt-1">({q.context})</p>}
                         </div>
                       );
                     })}
-
-                    {/* Score shown immediately after the answer review — more prominent */}
-                    {quizScore && (
-                      <div className="pt-4 mt-2 border-t border-[#3a3630] text-center">
-                        <div className="text-2xl font-semibold tabular-nums text-[#c9a36b]">
-                          {quizScore.percent}%
-                        </div>
-                        <div className="text-xs text-[#a69a80] tracking-wide mt-0.5">
-                          {quizScore.correct} of {quizScore.total} correct
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
@@ -520,10 +570,10 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
             {/* Post-quiz learning support: always show a story summary after the quiz is submitted.
                 Retake is offered only for scores below 90% and reuses the exact same questions. */}
             {quizSubmitted && story.finalQuiz && quizScore && (
-              <>
+              <div className="mt-6 space-y-4">
                 {/* Educational story summary — generated from the passages the student actually played */}
                 {storySummary && (
-                  <div className="mt-6 border border-[#3a3630] bg-[#211e1a] rounded-2xl p-5">
+                  <div className="border border-[#3a3630] bg-[#211e1a] rounded-2xl p-5">
                     <div className="uppercase tracking-[2.5px] text-[#b89d6e] text-[10px] mb-2">What happened in your story</div>
                     <div className="text-[#e8dcc8] leading-[1.65] text-[15px]">
                       {storySummary}
@@ -531,36 +581,41 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                   </div>
                 )}
 
-                {/* Conditional completion or second-chance retake + finished feel */}
+                {/* Quiz results summary + retake or complete */}
                 {quizScore.percent >= 90 ? (
-                  <div className="mt-5 text-center space-y-1">
-                    <p className="text-emerald-400 font-medium text-[15px]">Excellent work! You scored {quizScore.percent}%.</p>
-                    <p className="text-xs text-[#8a7f6a]">You have a strong understanding of the key events and figures.</p>
-                    <p className="pt-1 text-[10px] uppercase tracking-widest text-[#6a6358]">Story complete ✓</p>
+                  <div className="text-center border-2 border-emerald-700/40 bg-emerald-900/10 rounded-2xl p-5">
+                    <p className="text-emerald-400 font-semibold text-lg">Excellent work!</p>
+                    <p className="mt-1 text-[#e8dcc8]">You scored {quizScore.percent}% — a strong understanding of the key events and figures.</p>
+                    <p className="pt-3 text-[10px] uppercase tracking-[2px] text-[#6a6358]">Assessment Complete</p>
                   </div>
                 ) : (
-                  <div className="mt-5 text-center">
+                  <div className="text-center border border-[#3a3630] bg-[#211e1a] rounded-2xl p-5">
+                    <p className="text-[#c5b8a0] mb-3">You scored {quizScore.percent}%. Review the summary and try again to improve.</p>
                     <button
                       onClick={() => {
                         setQuizAnswers({});
                         setQuizSubmitted(false);
                       }}
-                      className="px-6 py-2.5 rounded-2xl border border-[#3a3630] bg-[#24211d] hover:bg-[#2c2924] text-[#e8dcc8] text-sm tracking-wide"
+                      className="px-6 py-2.5 rounded-2xl border border-[#c9a36b] bg-[#2a2722] hover:bg-[#3a2f1f] text-[#e8dcc8] text-sm tracking-wide"
                     >
                       Retake Quiz
                     </button>
-                    <p className="mt-2 text-xs text-[#8a7f6a]">
-                      Review the summary above, then try the same questions again.
-                    </p>
-                    <p className="pt-2 text-[10px] uppercase tracking-widest text-[#6a6358]">Story complete</p>
+                    <p className="pt-3 text-[10px] uppercase tracking-[2px] text-[#6a6358]">Assessment Complete</p>
                   </div>
                 )}
-              </>
+              </div>
             )}
           </>
         ) : (
-          <div className={`space-y-2.5 pt-1 transition-opacity duration-200 ${isAdvancing ? 'opacity-70 pointer-events-none' : ''}`}>
-            {(current.choices ?? []).map((c, i) => {
+          <>
+            {/* Decision moment indicator (only for non-figure passages) */}
+            {!ended && !hasFigureQuestion && (
+              <div className="text-xs uppercase tracking-[2px] text-[#6a6358] mb-1 flex items-center gap-1.5">
+                <span>⚖️</span> Make your choice
+              </div>
+            )}
+            <div className={`space-y-2.5 pt-1 transition-opacity duration-200 ${isAdvancing ? 'opacity-70 pointer-events-none' : ''} ${!hasFigureQuestion ? 'border border-[#5a5548] rounded-xl p-2 bg-[#1c1915]' : ''}`}>
+              {(current.choices ?? []).map((c, i) => {
               const isSelected = selectedChoiceIndex === i;
               return (
                 <button
@@ -582,7 +637,8 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                 </button>
               );
             })}
-          </div>
+            </div>
+          </>
         )}
 
         <BackLink onBack={onBack} />
