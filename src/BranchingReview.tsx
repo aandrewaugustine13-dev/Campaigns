@@ -69,6 +69,9 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
   const [imageReloadKey, setImageReloadKey] = useState(0); // bump to force re-search on "search again"
   const [genLoading, setGenLoading] = useState(false); // a Gemini illustration is in flight for the selected passage
   const [genError, setGenError] = useState("");
+  // Batch AI generation for remaining passages without images
+  const [batchGenLoading, setBatchGenLoading] = useState(false);
+  const [batchGenProgress, setBatchGenProgress] = useState({ done: 0, total: 0 });
   // Two pages: "text" = read/edit prose (truth-checking, factGate notices live here);
   // "images" = curate Commons/AI images (text read-only). dirtyText tracks passages
   // edited since the last lock, so ONLY those re-fetch when re-entering page 2.
@@ -100,6 +103,65 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
     } finally {
       setGenLoading(false);
     }
+  };
+
+  // Batch generate AI images for all passages that currently have none selected.
+  // Does not touch passages that already have a (manually or previously) chosen image.
+  const autoGenerateAIImages = async () => {
+    const targets = edited.passages.filter((p) => !p.image?.thumbUrl);
+    if (targets.length === 0) return;
+
+    setBatchGenLoading(true);
+    setBatchGenProgress({ done: 0, total: targets.length });
+
+    let completed = 0;
+
+    await Promise.all(
+      targets.map(async (p) => {
+        try {
+          const res = await fetch("/api/branching-image-gen", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ topic: story.title, scene: p.text }),
+          });
+          const data = await res.json();
+          if (data?.image) {
+            const img = data.image;
+            // Auto-select for this passage
+            setEdited((prev) => ({
+              ...prev,
+              passages: prev.passages.map((pp) =>
+                pp.id === p.id
+                  ? {
+                      ...pp,
+                      image: {
+                        thumbUrl: img.thumbUrl,
+                        artist: img.artist || "Unknown",
+                        license: img.license || "Unknown",
+                        sourceUrl: img.sourceUrl,
+                      },
+                    }
+                  : pp
+              ),
+            }));
+            // Also add to candidates list so user can re-choose later if wanted
+            setImageCandidates((prev) => ({
+              ...prev,
+              [p.id]: [img, ...(prev[p.id] || [])],
+            }));
+          }
+        } catch {
+          // per-item failure is silent; we just skip
+        } finally {
+          completed += 1;
+          setBatchGenProgress({ done: completed, total: targets.length });
+        }
+      })
+    );
+
+    setBatchGenLoading(false);
+    // brief reset of progress UI
+    setTimeout(() => setBatchGenProgress({ done: 0, total: 0 }), 600);
   };
 
   // Fetch relevant historical images (lazy, when a passage is first viewed).
@@ -292,6 +354,15 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
                   <p className="text-xs text-[#8a7f6a]">{edited.title} — {chosenCount} of {edited.passages.length} passages with images · text is locked</p>
                 </div>
                 <div className="flex gap-2">
+                  {chosenCount < edited.passages.length && (
+                    <Button
+                      variant="secondary"
+                      label={batchGenLoading ? `Auto-generating AI... (${batchGenProgress.done}/${batchGenProgress.total})` : "Auto-generate AI images for remaining passages"}
+                      onClick={autoGenerateAIImages}
+                      disabled={batchGenLoading}
+                      className="text-sm py-1.5"
+                    />
+                  )}
                   <Button variant="secondary" label="← Back to text editing" onClick={() => setPage("text")} className="text-sm py-1.5" />
                   <Button variant="warm" label="Save &amp; Play this version →" onClick={() => onConfirm(edited)} className="text-sm py-1.5" />
                 </div>

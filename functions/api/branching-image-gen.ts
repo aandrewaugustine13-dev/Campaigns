@@ -7,81 +7,107 @@ export const onRequestPost = async (context: any) => {
 
   try {
     const body = await request.json();
-    const topic = String(body?.topic ?? '');
-    const scene = String(body?.scene ?? body?.text ?? body?.passageText ?? '');
-
-    if (!topic || !scene) {
-      return new Response(
-        JSON.stringify({ image: null, error: 'topic and scene are required' }),
-        {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' },
-        }
-      );
-    }
-
     const apiKey = env.GEMINI_API_KEY;
     if (!apiKey) {
       console.error('GEMINI_API_KEY environment variable is not set.');
       return new Response(
-        JSON.stringify({ image: null, error: 'GEMINI_API_KEY not configured' }),
+        JSON.stringify({ error: 'GEMINI_API_KEY not configured' }),
         {
-          status: 200,
+          status: 500,
           headers: { 'Content-Type': 'application/json' },
         }
       );
     }
 
-    // Always use Gemini AI image generation for the "Generate AI illustration" button.
-    // (Wikimedia search is handled separately by /api/branching-images for "Search again")
+    // Support batch: { passages: [ { id?, topic, scene/text, era?, contentMaturity? }, ... ] }
+    // or single for backward compat: { topic, scene/text, ... }
+    let items: any[] = [];
+    const isBatch = Array.isArray(body?.passages);
+    if (isBatch) {
+      items = body.passages;
+    } else if (body && (body.topic || body.scene || body.text)) {
+      items = [body];
+    } else {
+      return new Response(
+        JSON.stringify({ error: 'Invalid body: expected {passages: [...] } or single {topic, scene}' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { generateIllustration } = await import('../../generator/imageGen.js');
 
-    const result = await generateIllustration(
-      {
-        topic,
-        scene,
-        era: body?.era ? String(body.era) : undefined,
-        // contentMaturity can be passed if sent by frontend
-        contentMaturity: body?.contentMaturity ? String(body.contentMaturity) : undefined,
-      },
-      apiKey
+    // Process all (use allSettled for graceful per-item errors)
+    const settled = await Promise.allSettled(
+      items.map(async (item: any, idx: number) => {
+        const id = item?.id ?? item?.passageId ?? idx;
+        const topic = String(item?.topic ?? '');
+        const scene = String(item?.scene ?? item?.text ?? item?.passageText ?? '');
+        if (!topic || !scene) {
+          return { id, image: null, error: 'topic and scene required' };
+        }
+        try {
+          const result = await generateIllustration(
+            {
+              topic,
+              scene,
+              era: item?.era ? String(item.era) : undefined,
+              contentMaturity: item?.contentMaturity ? String(item.contentMaturity) : undefined,
+            },
+            apiKey
+          );
+          if (!result) {
+            return { id, image: null, error: 'generation failed' };
+          }
+          return {
+            id,
+            image: {
+              thumbUrl: result.dataUrl,
+              label: '✨ AI-generated illustration',
+              artist: 'AI-generated (Gemini 2.5 Flash Image)',
+              license: 'AI-generated illustration — not a historical source',
+              aiGenerated: true,
+              prompt: result.prompt,
+              model: result.model,
+              ms: result.ms,
+              bytes: result.bytes,
+            },
+          };
+        } catch (e: any) {
+          return { id, image: null, error: e?.message || 'error generating image' };
+        }
+      })
     );
 
-    if (!result) {
-      return new Response(
-        JSON.stringify({ image: null, error: 'generation failed (see server log) — text-only fallback' }),
-        {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        }
-      );
-    }
+    const results = settled.map((s) =>
+      s.status === 'fulfilled' ? s.value : { image: null, error: 'failed to process' }
+    );
 
-    return new Response(
-      JSON.stringify({
-        image: {
-          thumbUrl: result.dataUrl,
-          label: '✨ AI-generated illustration',
-          artist: 'AI-generated (Gemini 2.5 Flash Image)',
-          license: 'AI-generated illustration — not a historical source',
-          aiGenerated: true,
-          prompt: result.prompt,
-          model: result.model,
-          ms: result.ms,
-          bytes: result.bytes,
-        },
-      }),
-      {
+    if (isBatch) {
+      return new Response(JSON.stringify({ results }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
+      });
+    } else {
+      // single response for backward compatibility
+      const single = results[0] || { image: null, error: 'no input' };
+      if (single.image) {
+        return new Response(JSON.stringify({ image: single.image }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      } else {
+        return new Response(JSON.stringify({ image: null, error: single.error }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
       }
-    );
-  } catch (error) {
+    }
+  } catch (error: any) {
     console.error('[branching-image-gen] error', error);
     return new Response(
-      JSON.stringify({ image: null, error: 'Image service unavailable — text-only stays available.' }),
+      JSON.stringify({ error: 'Image service unavailable — text-only stays available.' }),
       {
-        status: 200,
+        status: 500,
         headers: { 'Content-Type': 'application/json' },
       }
     );

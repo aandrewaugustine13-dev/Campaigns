@@ -454,29 +454,70 @@ function generatorApiPlugin(): Plugin {
         try { inputs = body ? JSON.parse(body) : {}; } catch { return send(400, { error: 'Invalid JSON' }); }
 
         try {
-          // Always Gemini AI for "Generate AI illustration" button.
-          // ("Search again" / historical uses dedicated /api/branching-images which does Wikimedia search.)
+          const apiKey = process.env.GEMINI_API_KEY;
+          if (!apiKey) return send(200, { image: null, error: 'GEMINI_API_KEY not configured in .env.local' });
+
+          // Support batch for "Auto-generate AI images for remaining passages"
+          const isBatch = Array.isArray(inputs?.passages);
+          let items: any[] = isBatch ? inputs.passages : (inputs && (inputs.topic || inputs.scene || inputs.text) ? [inputs] : []);
+
+          if (items.length === 0) {
+            return send(400, { error: 'Invalid body: expected {passages: [...] } or single {topic, scene}' });
+          }
+
           const { generateIllustration } = await import('./generator/imageGen.ts');
-          const result = await generateIllustration({
-            topic: String(inputs.topic ?? ''),
-            scene: String(inputs.scene ?? inputs.text ?? inputs.passageText ?? ''),
-            era: inputs.era ? String(inputs.era) : undefined,
-          }, apiKey);
-          if (!result) return send(200, { image: null, error: 'generation failed (see server log) — text-only fallback' });
-          console.log(`[image-gen] ok: ${result.model} ${result.ms}ms ~${result.bytes} bytes`);
-          send(200, {
-            image: {
-              thumbUrl: result.dataUrl,
-              label: '✨ AI-generated illustration',
-              artist: 'AI-generated (Gemini 2.5 Flash Image)',
-              license: 'AI-generated illustration — not a historical source',
-              aiGenerated: true,
-              prompt: result.prompt,
-              model: result.model,
-              ms: result.ms,
-              bytes: result.bytes,
-            },
-          });
+
+          const settled = await Promise.allSettled(
+            items.map(async (item: any, idx: number) => {
+              const id = item?.id ?? item?.passageId ?? idx;
+              const topic = String(item?.topic ?? '');
+              const scene = String(item?.scene ?? item?.text ?? item?.passageText ?? '');
+              if (!topic || !scene) {
+                return { id, image: null, error: 'topic and scene required' };
+              }
+              try {
+                const result = await generateIllustration(
+                  {
+                    topic,
+                    scene,
+                    era: item?.era ? String(item.era) : undefined,
+                    contentMaturity: item?.contentMaturity ? String(item.contentMaturity) : undefined,
+                  },
+                  apiKey
+                );
+                if (!result) {
+                  return { id, image: null, error: 'generation failed' };
+                }
+                return {
+                  id,
+                  image: {
+                    thumbUrl: result.dataUrl,
+                    label: '✨ AI-generated illustration',
+                    artist: 'AI-generated (Gemini 2.5 Flash Image)',
+                    license: 'AI-generated illustration — not a historical source',
+                    aiGenerated: true,
+                    prompt: result.prompt,
+                    model: result.model,
+                    ms: result.ms,
+                    bytes: result.bytes,
+                  },
+                };
+              } catch (e: any) {
+                return { id, image: null, error: e?.message || 'error generating image' };
+              }
+            })
+          );
+
+          const results = settled.map((s) =>
+            s.status === 'fulfilled' ? s.value : { image: null, error: 'failed to process' }
+          );
+
+          if (isBatch) {
+            return send(200, { results });
+          } else {
+            const single = results[0] || { image: null, error: 'no input' };
+            return send(200, single.image ? { image: single.image } : { image: null, error: single.error });
+          }
         } catch (e) {
           console.error('[image-gen] error', e);
           send(200, { image: null, error: 'text-only fallback' }); // never break the UI
