@@ -253,6 +253,7 @@ GUMP INTENSITY — HIGH (MANDATORY — PLAN FIRST, EXECUTE FULLY):
 You must follow the GUMP HIGH rules from the system prompt exactly — this is the highest priority. Encounters must be the dramatic and emotional peaks of the story:
 - The story MUST use the full historical arc (as detailed in the SCOPE block) as the stage for Gump encounters.
 - Pre-plan 6-8 key figures and turning-point moments. Distribute them across the different phases of the arc (early conditions, rising action, key battles/crises, resolution, aftermath).
+- To ensure a fresh experience across generations, randomly order the sage encounters along the spine (respecting the overall historical sequence as much as possible). This way the trivia questions appear in different orders in different generated stories.
 - Place each as a distinct, significant "sage question moment" passage on the main spine. The protagonist's journey must take them to these moments in sequence as part of traversing the full history. These must feel like earned, consequential highlights — not random or low-stakes insertions.
 - Each encounter passage must be SUBSTANTIAL and MEMORABLE (richer prose and scene detail than ordinary passages): set the historical scene with grounded sensory weight; portray the figure with authentic bearing, appearance, and actions/speech drawn from the record; create a real interaction or witnessing that reveals character, stakes, or turning-point significance. The protagonist's presence should make the history feel personal and consequential. The moment must ripple forward into the protagonist's understanding or later choices.
 - For each such passage, attach EXACTLY ONE question in the exact format.
@@ -370,15 +371,26 @@ export async function generateBranchingStory(
           if (!story.coreSageQuestions || story.coreSageQuestions.length === 0) {
             story.coreSageQuestions = coreSage;
           }
+          // Randomize order of figure questions for fresh experience per generated story.
+          // Order is fixed for this playthrough, varies across generations.
+          if (story.coreSageQuestions && story.coreSageQuestions.length > 1) {
+            story.coreSageQuestions.sort(() => Math.random() - 0.5);
+          }
+
           if (!story.finalQuiz) {
+            // Shuffle for randomized quiz order (fixed per generated story)
+            const shuffledEncountered = [...encounteredQuestions].sort(() => Math.random() - 0.5);
             story.finalQuiz = {
               title: "Final Exam — Lessons from the Journey",
               instructions: "You have walked alongside these historical figures and witnessed the turning points. Review the key questions from your encounters. Then take this quiz to check your understanding of the real history.",
-              questions: encounteredQuestions.map(q => ({
+              questions: shuffledEncountered.map(q => ({
                 ...q,
                 context: `From the moment at passage ${q.fromPassageId}`
               }))
             };
+          } else if (story.finalQuiz.questions && story.finalQuiz.questions.length > 1) {
+            // If model provided finalQuiz, still shuffle its questions for variety
+            story.finalQuiz.questions.sort(() => Math.random() - 0.5);
           }
         }
       }
