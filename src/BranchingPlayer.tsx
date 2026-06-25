@@ -576,7 +576,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
 
         {/* In-story question from historical figure (sage-style trivia, when present on the passage) */}
         {current.question && (
-          <div className="border-2 border-[var(--player-figure-border)] bg-[var(--player-figure-bg)] rounded-[var(--player-card-radius)] p-4 sm:p-5 transition-all duration-300 ease-out">
+          <div className="border-2 border-[var(--player-figure-border)] bg-[var(--player-figure-bg)] rounded-[var(--player-card-radius)] p-4 sm:p-5 transition-all duration-300 ease-out player-gentle-reveal">
             <div className="flex items-center gap-2 mb-2">
               <span className="uppercase text-xs tracking-[2px] text-[var(--player-figure-accent)] font-medium">Historical Figure Encounter</span>
             </div>
@@ -622,7 +622,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
             </div>
 
             {currentEnding && (
-              <div className={`mt-4 mb-4 p-4 rounded-2xl border ${currentEnding.border} ${currentEnding.bg} text-center transition-all duration-300 ease-out`}>
+              <div className={`mt-4 mb-4 p-4 rounded-2xl border ${currentEnding.border} ${currentEnding.bg} text-center transition-all duration-300 ease-out player-gentle-reveal`}>
                 <div className={`font-medium text-lg tracking-tight ${currentEnding.color}`}>You reached {getIndefiniteArticle(currentEnding.label)} {currentEnding.label} ending</div>
                 <p className="mt-2 text-sm text-[var(--player-text-muted)]">{currentEnding.description}</p>
                 {history.length > 0 && (
@@ -690,13 +690,13 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-4 text-sm">
+                  <div className="space-y-4 text-sm player-gentle-reveal">
                     {/* Results header */}
                     <div className="text-center pb-2">
                       <div className="text-[10px] uppercase tracking-[2px] text-[var(--player-text-accent-2)] mb-1">Quiz Complete</div>
                       {quizScore && (
-                        <div className="inline-flex items-center gap-3 bg-[var(--player-quiz-question-bg)] border border-[var(--player-quiz-border)]/30 rounded-2xl px-6 py-2">
-                          <div className="text-3xl font-semibold tabular-nums text-[var(--player-text-accent)]">{quizScore.percent}%</div>
+                        <div className={`inline-flex items-center gap-3 bg-[var(--player-quiz-question-bg)] border border-[var(--player-quiz-border)]/30 rounded-2xl px-6 py-2 transition-all duration-300 ${quizScore.percent >= 90 ? 'player-high-score ring-1 ring-emerald-400/20 border-emerald-400/30' : ''}`}>
+                          <div className={`text-3xl font-semibold tabular-nums ${quizScore.percent >= 90 ? 'text-emerald-400' : 'text-[var(--player-text-accent)]'}`}>{quizScore.percent}%</div>
                           <div className="text-left text-[10px] leading-tight">
                             <div className="text-[var(--player-text-prose)]">{quizScore.correct} / {quizScore.total} correct</div>
                           </div>
@@ -754,7 +754,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
                 )}
 
                 {/* Ending + Quiz results summary */}
-                <div className={`text-center border-2 rounded-[var(--player-card-radius)] p-5 ${currentEnding ? currentEnding.border + ' ' + currentEnding.bg : 'border-[var(--player-border)] bg-[var(--player-bg-card)]'}`}>
+                <div className={`text-center border-2 rounded-[var(--player-card-radius)] p-5 ${currentEnding ? currentEnding.border + ' ' + currentEnding.bg : 'border-[var(--player-border)] bg-[var(--player-bg-card)]'} player-gentle-reveal`}>
                   {currentEnding && (
                     <div className={`text-lg font-medium mb-1 ${currentEnding.color}`}>
                       {currentEnding.label} Ending
@@ -763,7 +763,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
                   {history.length > 0 && (
                     <div className="text-[10px] text-[var(--player-text-muted)] mt-0.5">Shaped by the choices you made along the way.</div>
                   )}
-                  <p className={quizScore.percent >= 90 ? "text-emerald-400 font-semibold text-lg" : "text-[var(--player-text-muted)] text-base"}>
+                  <p className={quizScore.percent >= 90 ? "text-emerald-400 font-semibold text-lg tracking-tight" : "text-[var(--player-text-muted)] text-base"}>
                     {quizScore.percent >= 90 
                       ? `Excellent work! You scored ${quizScore.percent}%.` 
                       : `You scored ${quizScore.percent}%.`}
@@ -809,7 +809,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
                   disabled={isAdvancing}
                   className={`block w-full text-left px-4 py-4 min-h-[48px] flex items-center rounded-[var(--player-card-radius)] border transition-all duration-150 ease-out text-[var(--player-btn-text)] text-base sm:text-[17px] leading-[1.5] font-medium disabled:opacity-70 touch-manipulation
                     ${isSelected
-                      ? 'border-[var(--player-btn-border-selected)] bg-[var(--player-btn-bg-selected)] scale-[1.02] shadow-sm'
+                      ? 'border-[var(--player-btn-border-selected)] bg-[var(--player-btn-bg-selected)] scale-[1.02] shadow-sm player-choice-confirm'
                       : endingHint 
                         ? `border-[var(--player-btn-border)] bg-[var(--player-btn-bg)] hover:bg-[var(--player-btn-bg-hover)] hover:-translate-y-px active:scale-[0.985] active:bg-[var(--player-btn-bg-hover)] ${endingHint.border.replace('border-', 'hover:border-')}`
                         : 'border-[var(--player-btn-border)] bg-[var(--player-btn-bg)] hover:bg-[var(--player-btn-bg-hover)] hover:-translate-y-px active:scale-[0.985] active:bg-[var(--player-btn-bg-hover)]'

@@ -272,3 +272,43 @@
 }
 
 /* chisholm-sprite-strip removed — actor images are single panoramics, not sprite sheets */
+
+/* ═══════════════════════════════════════════════════════════════
+   PLAYER DELIGHT — subtle, professional feedback animations
+   Tasteful, restrained, no emojis. For BranchingPlayer.
+   ═══════════════════════════════════════════════════════════════ */
+
+@keyframes playerSubtlePulse {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.2); }
+  70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.player-high-score {
+  animation: playerSubtlePulse 2s ease-out forwards;
+}
+
+@keyframes playerGentleReveal {
+  from {
+    opacity: 0.5;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.player-gentle-reveal {
+  animation: playerGentleReveal 350ms ease-out forwards;
+}
+
+@keyframes playerChoiceConfirm {
+  0% { transform: scale(1.02); }
+  50% { transform: scale(1.01); }
+  100% { transform: scale(1); }
+}
+
+.player-choice-confirm {
+  animation: playerChoiceConfirm 400ms ease-out;
+}
