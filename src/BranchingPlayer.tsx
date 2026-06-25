@@ -170,6 +170,41 @@ function generateStorySummary(
   return summary;
 }
 
+/**
+ * Returns the correct indefinite article ("a" or "an") for the given word.
+ * This makes the grammar logic reusable and robust against similar issues
+ * in other UI strings or future generated text.
+ *
+ * Basic heuristic:
+ * - Words starting with a vowel sound get "an".
+ * - Handles common exceptions (e.g. "user", "uniform", "one", silent "h").
+ */
+function getIndefiniteArticle(word: string): 'a' | 'an' {
+  const trimmed = (word || '').trim();
+  if (!trimmed) return 'a';
+
+  const lower = trimmed.toLowerCase();
+
+  // Silent 'h' words (start with 'h' letter but vowel sound): "an hour", "an honest"
+  if (/^h(our|onest|onor|umble|istoric)/.test(lower)) {
+    return 'an';
+  }
+
+  const startsWithVowelLetter = /^[aeiou]/.test(lower[0]);
+
+  if (startsWithVowelLetter) {
+    // Common exceptions: vowel letter but consonant sound (yoo etc.)
+    // e.g. "a user", "a uniform", "a unicorn", "a one", "a European"
+    if (/^(uni|use|eur|one|hon|hour|hei|hum)/.test(lower)) {
+      return 'a';
+    }
+    return 'an';
+  }
+
+  // Default for consonants
+  return 'a';
+}
+
 export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, era: eraProp = 'default' }: BranchingPlayerProps) {
   const era = eraProp || story?.era || 'default';
   const byId = useMemo(() => passageMap(story), [story]);
@@ -608,7 +643,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
             {currentEnding && (
               <div className={`mt-4 mb-4 p-4 rounded-2xl border ${currentEnding.border} ${currentEnding.bg} text-center`}>
                 <div className={`text-3xl mb-2 ${currentEnding.color}`}>{currentEnding.icon}</div>
-                <div className={`font-semibold text-lg tracking-tight ${currentEnding.color}`}>You reached a {currentEnding.label} ending</div>
+                <div className={`font-semibold text-lg tracking-tight ${currentEnding.color}`}>You reached {getIndefiniteArticle(currentEnding.label)} {currentEnding.label} ending</div>
                 <p className="mt-2 text-sm text-[var(--player-text-muted)]">{currentEnding.description}</p>
                 {history.length > 0 && (
                   <p className="mt-1 text-[10px] text-[var(--player-text-muted)]">Your choices shaped this path.</p>
