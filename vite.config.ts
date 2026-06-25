@@ -448,33 +448,8 @@ function generatorApiPlugin(): Plugin {
         try { inputs = body ? JSON.parse(body) : {}; } catch { return send(400, { error: 'Invalid JSON' }); }
 
         try {
-          // First try Wikimedia Commons for real historical image (public API, no Google keys)
-          const { searchViaArticlePageimage, searchCommonsFileRanked } = await import('./generator/wikimedia.ts');
-          let wikiImage: any = null;
-          if (inputs.topic) {
-            wikiImage = await searchViaArticlePageimage(inputs.topic);
-          }
-          if (!wikiImage) {
-            const q = [inputs.topic, inputs.scene].filter(Boolean).join(' ').slice(0, 300);
-            if (q) {
-              const pool = await searchCommonsFileRanked(q, null);
-              if (pool.length > 0) wikiImage = pool[0];
-            }
-          }
-          if (wikiImage) {
-            send(200, {
-              image: {
-                thumbUrl: wikiImage.thumbUrl,
-                label: wikiImage.label || wikiImage.searchQuery || 'Historical image',
-                sourceUrl: wikiImage.sourceUrl,
-                artist: wikiImage.artist,
-                license: wikiImage.license,
-              },
-            });
-            return;
-          }
-
-          // Fallback to Gemini AI (current behavior)
+          // Always Gemini AI for "Generate AI illustration" button.
+          // ("Search again" / historical uses dedicated /api/branching-images which does Wikimedia search.)
           const { generateIllustration } = await import('./generator/imageGen.ts');
           const result = await generateIllustration({
             topic: String(inputs.topic ?? ''),
