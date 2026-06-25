@@ -183,7 +183,7 @@ function OutfitScreen({ onDone }: { onDone: (config: OutfitConfig) => void }) {
             <p className="text-[#8a7f6a] text-xs mt-0.5">Outfit your drive. Budget: <span className={remaining >= 0 ? "text-emerald-400" : "text-red-500"}>${remaining.toLocaleString()}</span> of ${OUTFIT_BUDGET.toLocaleString()}</p>
           </div>
 
-          <div className="bg-[#211e1a] border border-[#3a3630] rounded p-2.5">
+          <div className="bg-[#211e1a] border border-[#3a3630] rounded-lg p-3">
             <div className="flex justify-between items-center text-xs mb-1">
               <span className="text-[#c5b8a0] font-bold">{"\uD83D\uDC02"} Herd Size</span>
               <span className="text-[#c9a36b] font-mono">{herd.toLocaleString()} head</span>
@@ -191,7 +191,7 @@ function OutfitScreen({ onDone }: { onDone: (config: OutfitConfig) => void }) {
             <input type="range" min={0} max={4} value={herdIdx} onChange={e => setHerdIdx(+e.target.value)} className="w-full accent-[#c9a36b] h-2" />
           </div>
 
-          <div className="bg-[#211e1a] border border-[#3a3630] rounded p-2.5">
+          <div className="bg-[#211e1a] border border-[#3a3630] rounded-lg p-3">
             <div className="flex justify-between items-center text-xs mb-1">
               <span className="text-[#c5b8a0] font-bold">{"\uD83E\uDD20"} Cowboys</span>
               <span className="font-mono">{crew} <span className="text-[#8a7f6a]">({BASE_CREW} + {extraCrew} extra)</span></span>
@@ -199,7 +199,7 @@ function OutfitScreen({ onDone }: { onDone: (config: OutfitConfig) => void }) {
             <input type="range" min={0} max={10} value={extraCrew} onChange={e => setExtraCrew(+e.target.value)} className="w-full accent-[#c9a36b] h-2" />
           </div>
 
-          <div className="bg-[#211e1a] border border-[#3a3630] rounded p-2.5">
+          <div className="bg-[#211e1a] border border-[#3a3630] rounded-lg p-3">
             <div className="flex justify-between items-center text-xs mb-1">
               <span className="text-[#c5b8a0] font-bold">{"\uD83D\uDC0E"} Horses</span>
               <span className="font-mono">{horses} <span className="text-[#8a7f6a]">({BASE_HORSES} + {extraHorses})</span></span>
@@ -207,7 +207,7 @@ function OutfitScreen({ onDone }: { onDone: (config: OutfitConfig) => void }) {
             <input type="range" min={0} max={30} value={extraHorses} onChange={e => setExtraHorses(+e.target.value)} className="w-full accent-[#c9a36b] h-2" />
           </div>
 
-          <div className="bg-[#211e1a] border border-[#3a3630] rounded p-2.5">
+          <div className="bg-[#211e1a] border border-[#3a3630] rounded-lg p-3">
             <div className="flex justify-between items-center text-xs mb-1">
               <span className="text-[#c5b8a0] font-bold">{"\uD83C\uDF56"} Provisions</span>
               <span className="font-mono">{supplies} <span className="text-[#8a7f6a]">(+{extraSupplies})</span></span>
@@ -216,7 +216,7 @@ function OutfitScreen({ onDone }: { onDone: (config: OutfitConfig) => void }) {
             <p className="text-[10px] text-[#8a7f6a] mt-1">Food and medicine for the crew. Top up at towns along the trail.</p>
           </div>
 
-          <div className="bg-[#1c1915] border border-[#3a3630] rounded p-2.5 text-[11px] text-[#8a7f6a]">
+          <div className="bg-[#1c1915] border border-[#3a3630] rounded-lg p-3 text-[11px] text-[#8a7f6a]">
             <div className="flex justify-between"><span className="font-bold text-[#c5b8a0]">Standard kit (included)</span><span className="font-mono text-[#a69a80]">${FIXED_GEAR_COST.toLocaleString()}</span></div>
             <p className="mt-0.5">Rifles &amp; ammo, spare parts, sound trail teams, and standard wages — bundled so you can focus on the four essentials above.</p>
           </div>
@@ -984,7 +984,7 @@ export default function App(){
           : `Your drive failed on day ${state.day}. The prairie keeps what it takes.`}
       </p>
 
-      <div className="bg-[#211e1a] border border-[#3a3630] rounded p-3 space-y-1 text-xs">
+      <div className="bg-[#211e1a] border border-[#3a3630] rounded-lg p-3 space-y-1 text-xs">
         <SectionHeader>Financial Ledger</SectionHeader>
           <div className="flex justify-between text-[#a69a80]"><span>Outfit Cost</span><span className="text-red-400">-${cost.toLocaleString()}</span></div>
           <div className="flex justify-between text-[#a69a80]"><span>Herd Started</span><span className="text-[#c5b8a0]">{state.outfit.herd.toLocaleString()} head</span></div>
@@ -996,7 +996,7 @@ export default function App(){
           </div>
         </div>
 
-        <div className="bg-[#211e1a] border border-[#3a3630] rounded p-3 space-y-1 text-xs">
+        <div className="bg-[#211e1a] border border-[#3a3630] rounded-lg p-3 space-y-1 text-xs">
           <SectionHeader>Historical Knowledge (TEKS)</SectionHeader>
           <div className="flex justify-between font-bold">
             <span className="text-[#c5b8a0]">Final Exam</span>
@@ -1036,7 +1036,7 @@ export default function App(){
 
         <div className="text-center"><span className="text-[#8a7f6a] text-xs">TRAIL RATING: </span><span className={`text-4xl font-bold ${GC[grade]}`}>{grade}</span></div>
 
-        <div className="bg-[#211e1a] border border-[#3a3630] rounded p-3">
+        <div className="bg-[#211e1a] border border-[#3a3630] rounded-lg p-3">
           <p className="text-xs text-[#8a7f6a] leading-relaxed">{ChisholmCampaign.historicalContext}</p>
         </div>
 

@@ -204,7 +204,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
                 <button
                   key={grade}
                   onClick={() => toggleGrade(grade)}
-                  className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${
+                  className={`text-[10px] px-2 py-0.5 rounded-lg border transition-colors ${
                     isActive
                       ? "bg-[#c9a36b] text-[#18140f] border-[#c9a36b]"
                       : "bg-[#24211d] border-[#3a3630] text-[#a69a80] hover:border-[#c9a36b]"
@@ -257,7 +257,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
                   <div
                     key={t.code}
                     onClick={() => addTEKS(t)}
-                    className="px-2 py-1.5 hover:bg-[#24211d] cursor-pointer flex justify-between items-start gap-2 rounded text-xs"
+                    className="px-2 py-1.5 hover:bg-[#24211d] cursor-pointer flex justify-between items-start gap-2 rounded-lg text-xs"
                     title={t.description}
                   >
                     <div className="min-w-0">
@@ -306,7 +306,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
                     key={opt.value}
                     type="button"
                     onClick={() => onEdit(setScope)(opt.value)}
-                    className={`text-left px-3 py-2.5 rounded-lg border transition-all ${
+                    className={`text-left px-3 py-2.5 rounded-xl border transition-all ${
                       scope === opt.value
                         ? "border-[#c9a36b] bg-[#2a2722]"
                         : "border-[#3a3630] bg-[#24211d] hover:border-[#5a5548]"
@@ -331,7 +331,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
                     key={opt.value}
                     type="button"
                     onClick={() => onEdit(setGumpIntensity)(opt.value)}
-                    className={`text-left px-3 py-2.5 rounded-lg border transition-all ${
+                    className={`text-left px-3 py-2.5 rounded-xl border transition-all ${
                       gumpIntensity === opt.value
                         ? "border-[#c9a36b] bg-[#2a2722]"
                         : "border-[#3a3630] bg-[#24211d] hover:border-[#5a5548]"
@@ -365,7 +365,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
                     key={opt.value}
                     type="button"
                     onClick={() => onEdit(setContentMaturity)(opt.value)}
-                    className={`text-left px-3 py-2 rounded-lg border transition-all ${
+                    className={`text-left px-3 py-2 rounded-xl border transition-all ${
                       contentMaturity === opt.value
                         ? "border-[#c9a36b] bg-[#2a2722]"
                         : "border-[#3a3630] bg-[#24211d] hover:border-[#5a5548]"
@@ -391,7 +391,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
                     key={opt.value}
                     type="button"
                     onClick={() => onEdit(setProseRegister)(opt.value)}
-                    className={`text-left px-3 py-2 rounded-lg border transition-all ${
+                    className={`text-left px-3 py-2 rounded-xl border transition-all ${
                       proseRegister === opt.value
                         ? "border-[#c9a36b] bg-[#2a2722]"
                         : "border-[#3a3630] bg-[#24211d] hover:border-[#5a5548]"
@@ -422,7 +422,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
       </div>
 
       {status === "error" && (
-        <div className="mt-6 border border-[#5c2a2a] bg-[#2a1f1f] rounded-xl p-4 text-sm text-[#d88a8a]">
+        <div className="mt-6 border border-[#5c2a2a] bg-[#2a1f1f] rounded-2xl p-4 text-sm text-[#d88a8a]">
           We couldn't generate a preview right now. This is often a temporary service issue or an unusually narrow topic/TEKS combination.
           <div className="mt-1 text-xs opacity-80">Details: {error}</div>
           <div className="mt-2 text-xs">Try again in a moment, or adjust the topic and selected standards.</div>
@@ -432,7 +432,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
       {preview && (
         <div className="mt-8 border border-[#3a3630] bg-[#211e1a] rounded-2xl p-6 space-y-5">
           {(status === "loading" || previewStale) && (
-            <div className="text-xs bg-[#2a241c] border border-[#5c4a2a] rounded px-3 py-1.5 text-[#c9a36b]">
+            <div className="text-xs bg-[#2a241c] border border-[#5c4a2a] rounded-lg px-3 py-1.5 text-[#c9a36b]">
               {status === "loading" ? "Updating preview for your current inputs…" : "Inputs changed — update the preview to refresh the summary and coverage before approving."}
             </div>
           )}
@@ -460,7 +460,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
           </div>
 
           {approved ? (
-            <div className="border border-[#2a4a2a] bg-[#1f2a1f] rounded-xl p-4 text-sm text-[#8fc38f]">
+            <div className="border border-[#2a4a2a] bg-[#1f2a1f] rounded-2xl p-4 text-sm text-[#8fc38f]">
               Approved. Generating the full interactive story (with branches, encounters, and quiz). This takes about a minute.
             </div>
           ) : (

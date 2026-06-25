@@ -153,7 +153,7 @@ export default function CreateBranching({ onBack }: Props) {
   if (phase === "generating") {
     return (
       <PageContainer maxWidth="max-w-md">
-        <MainTitle className="text-3xl">Generating your branching story…</MainTitle>
+        <MainTitle className="text-3xl mb-4">Generating your branching story…</MainTitle>
 
         <div className="flex justify-center my-6">
           <div className="w-12 h-12 border-4 border-[#c9a36b]/30 border-t-[#c9a36b] rounded-full animate-spin" />
@@ -164,7 +164,7 @@ export default function CreateBranching({ onBack }: Props) {
           <p className="text-[#c5b8a0] text-lg font-mono mt-1">{elapsed}s elapsed</p>
         </div>
 
-        <div className="bg-[#211e1a] border border-[#3a3630] rounded-xl p-3 mb-6 text-xs text-[#8a7f6a] text-center">
+        <div className="bg-[#211e1a] border border-[#3a3630] rounded-2xl p-4 mb-6 text-xs text-[#8a7f6a] text-center">
           Building a real choose-your-path experience with validated branches, figure meetings, and a comprehension quiz.<br />
           This typically takes 45–90 seconds. We validate every ending before we hand it to you.
         </div>
@@ -184,7 +184,7 @@ export default function CreateBranching({ onBack }: Props) {
   if (phase === "error") {
     return (
       <PageContainer maxWidth="max-w-md">
-        <MainTitle className="text-3xl text-[#c25c5c]">We ran into a problem creating the story</MainTitle>
+        <MainTitle className="text-3xl mb-4 text-[#c25c5c]">We ran into a problem creating the story</MainTitle>
 
         <div className="border border-[#5c2a2a] bg-[#2a1f1f] rounded-2xl p-4 text-left text-sm text-[#d88a8a] mb-6 whitespace-pre-wrap">
           {error || "The story service could not complete the request."}

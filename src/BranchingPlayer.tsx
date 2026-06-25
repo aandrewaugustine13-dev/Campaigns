@@ -299,7 +299,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
 
         {/* In-story question from historical figure (sage-style trivia, when present on the passage) */}
         {current.question && (
-          <div className="border border-[#3a3630] bg-[#1c1915] rounded-2xl p-4">
+          <div className="border border-[#3a3630] bg-[#211e1a] rounded-2xl p-4">
             <p className="font-semibold text-[#b89d6e]">A historical figure asks:</p>
             <p className="mt-2 text-lg font-medium text-[#e8dcc8]">{current.question.question}</p>
             {answeredQuestion === null ? (
@@ -308,7 +308,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                   <button
                     key={i}
                     onClick={() => setAnsweredQuestion(i)}
-                    className="block w-full text-left px-3 py-2 rounded-xl border border-[#3a3630] bg-[#24211d] hover:bg-[#2a2722] active:scale-[0.985] transition-all text-[#c5b8a0]"
+                    className="block w-full text-left px-4 py-2.5 rounded-xl border border-[#3a3630] bg-[#24211d] hover:bg-[#2c2924] active:scale-[0.985] transition-all text-[#c5b8a0]"
                   >
                     {c}
                   </button>
@@ -349,7 +349,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                     {story.finalQuiz.questions.map((q: any, qi: number) => {
                       const selected = quizAnswers[qi];
                       return (
-                        <div key={qi} className="rounded-xl border border-[#3a3630] bg-[#1c1915] p-3">
+                        <div key={qi} className="rounded-xl border border-[#3a3630] bg-[#1c1915] p-4">
                           <p className="text-[#e8dcc8] mb-2"><strong>Q{qi + 1}: </strong>{q.question}</p>
                           <div className="space-y-1.5">
                             {q.choices.map((c: string, ci: number) => {
@@ -359,7 +359,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                                   key={ci}
                                   type="button"
                                   onClick={() => setQuizAnswers(prev => ({...prev, [qi]: ci}))}
-                                  className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition-all flex items-center gap-2 ${
+                                  className={`w-full text-left px-4 py-2.5 rounded-xl border text-sm transition-all flex items-center gap-2 ${
                                     isSel 
                                       ? 'border-[#c9a36b] bg-[#2a2722] text-[#e8dcc8]' 
                                       : 'border-[#3a3630] bg-[#24211d] hover:bg-[#2c2924] text-[#c5b8a0] hover:border-[#5a5548]'
@@ -383,7 +383,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                           setIsSubmittingQuiz(false);
                         }, 320);
                       }} 
-                      className="mt-2 w-full px-4 py-2.5 bg-[#463426] hover:bg-[#5a4635] active:bg-[#3a2f1f] text-[#e8dcc8] rounded-xl border border-[#3a3630] disabled:opacity-50 text-sm font-medium transition-colors"
+                      className="mt-2 w-full px-6 py-2.5 bg-[#463426] hover:bg-[#5a4635] active:bg-[#3a2f1f] text-[#e8dcc8] rounded-2xl border border-[#3a3630] disabled:opacity-50 text-sm font-medium transition-colors"
                       disabled={Object.keys(quizAnswers).length < (story.finalQuiz.questions?.length || 0) || isSubmittingQuiz}
                     >
                       {isSubmittingQuiz ? "Checking your answers…" : "Submit Final Answers"}

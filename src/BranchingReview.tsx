@@ -255,7 +255,7 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
 
   // Shared left list — both pages select the same passage.
   const passageList = (
-    <div className="w-80 border-r border-[#3a3630] overflow-y-auto p-3 bg-[#211e1a]">
+    <div className="w-80 border-r border-[#3a3630] overflow-y-auto p-4 bg-[#211e1a]">
       <SectionHeader className="text-left mb-2 px-1 tracking-[3px]">
         Passages (click to {page === "text" ? "read & edit" : "curate"})
       </SectionHeader>
@@ -267,7 +267,7 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
             <button
               key={p.id}
               onClick={() => setSelectedId(p.id)}
-              className={`w-full text-left p-2 rounded border text-sm transition-colors ${
+              className={`w-full text-left p-3 rounded-lg border text-sm transition-colors ${
                 isSel ? "bg-[#2a2723] border-[#c9a36b]" : "bg-[#24211d] border-[#3a3630] hover:border-[#5a5548]"
               }`}
             >
@@ -333,7 +333,7 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
                     <textarea
                       value={selected.text}
                       onChange={(e) => updateText(selected.id, e.target.value)}
-                      className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg p-3 text-[#e8dcc8] text-base leading-relaxed font-serif min-h-[160px] focus:outline-none focus:border-[#c9a36b]/60"
+                      className="w-full bg-[#24211d] border border-[#3a3630] rounded-xl p-4 text-[#e8dcc8] text-base leading-relaxed font-serif min-h-[160px] focus:outline-none focus:border-[#c9a36b]/60"
                       placeholder="Passage prose..."
                     />
                     <div className="mt-6 text-xs text-[#8a7f6a]">Read each passage for historical truth. When the text is right, “Lock &amp; continue to images.”</div>
@@ -383,7 +383,7 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
 
                     {/* Read-only prose — text is locked on the image page. */}
                     <div className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase mb-1.5">Passage text (locked)</div>
-                    <p className="w-full bg-[#211e1a] border border-[#3a3630] rounded-lg p-3 text-[#a69a80] text-base leading-relaxed font-serif whitespace-pre-line">{selected.text}</p>
+                    <p className="w-full bg-[#211e1a] border border-[#3a3630] rounded-xl p-4 text-[#a69a80] text-base leading-relaxed font-serif whitespace-pre-line">{selected.text}</p>
 
                     {/* ── IMAGE MACHINERY (unchanged — only moved here) ── */}
                     <div className="mt-6">
@@ -391,7 +391,7 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
 
                       {hasImage ? (
                         <div className="mb-3">
-                          <img src={selected.image!.thumbUrl} alt="" className="w-full max-w-[520px] rounded border border-[#3a3630] shadow" />
+                          <img src={selected.image!.thumbUrl} alt="" className="w-full max-w-[520px] rounded-xl border border-[#3a3630] shadow" />
                           <div className="text-[10px] text-[#8a7f6a] mt-1">Selected • {selected.image!.artist || "Curated image"}</div>
                         </div>
                       ) : (
@@ -423,7 +423,7 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
                               <button
                                 key={idx}
                                 onClick={() => setPassageImage(selected.id, opt)}
-                                className={`shrink-0 w-36 rounded overflow-hidden border-2 text-left transition-all ${
+                                className={`shrink-0 w-36 rounded-xl overflow-hidden border text-left transition-all ${
                                   isChosen ? "border-[#c9a36b] scale-[1.02]" : "border-[#3a3630] hover:border-[#5a5548]"
                                 }`}
                                 title={opt.label}
@@ -440,7 +440,7 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
 
                         <button
                           onClick={() => setPassageImage(selected.id, null)}
-                          className={`shrink-0 w-24 rounded border-2 text-xs p-2 flex items-center justify-center transition-all ${
+                          className={`shrink-0 w-24 rounded-xl border text-xs p-2 flex items-center justify-center transition-all ${
                             !hasImage ? "border-[#c9a36b] bg-[#24211d]" : "border-[#3a3630] hover:border-[#5a5548]"
                           }`}
                         >
@@ -455,11 +455,11 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
                             setImageCandidates((prev) => { const c = { ...prev }; delete c[selectedId]; return c; });
                             setImageReloadKey((k) => k + 1);
                           }}
-                          className="text-[#8a7f6a] hover:text-[#c5b8a0] underline"
+                          className="text-xs text-[#8a7f6a] hover:text-[#c5b8a0] tracking-wide underline"
                         >
                           Search again
                         </button>
-                        <button onClick={generateImage} disabled={genLoading} className="text-[#a68a5c] hover:text-[#c9a36b] underline disabled:opacity-50">
+                        <button onClick={generateImage} disabled={genLoading} className="text-xs text-[#a68a5c] hover:text-[#c9a36b] tracking-wide underline disabled:opacity-50">
                           {genLoading ? "✨ Generating…" : "✨ Generate AI illustration"}
                         </button>
                         <span className="text-[#6a6358]">• Wikimedia = real historical images (actual license shown). ✨ AI = a synthesized illustration, labeled “AI-generated” — NOT a historical source; check it for anachronisms before publishing.</span>
