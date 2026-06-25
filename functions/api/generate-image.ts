@@ -6,13 +6,16 @@ interface RequestBody {
   userPrompt?: string;
 }
 
-interface GeminiPrediction {
-  bytesBase64Encoded: string;
-  mimeType: string;
-}
-
-interface GeminiResponse {
-  predictions?: GeminiPrediction[];
+interface GeminiGenerateResponse {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{
+        text?: string;
+        inlineData?: { mimeType: string; data: string };
+        inline_data?: { mimeType: string; data: string };
+      }>;
+    };
+  }>;
   error?: any;
 }
 
@@ -51,8 +54,9 @@ export const onRequestPost = async (context: any) => {
     const modifier = '(Render in a 1940s WWII era style, authentic vintage comic book ink, muted color palette, high-contrast noir lighting)';
     const combinedPrompt = `${userPrompt} ${modifier}`;
 
-    // Target the Imagen 3 predict endpoint
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+    // Target the Gemini 2.0 Flash generateContent endpoint (supports image output via responseModalities)
+    const model = 'gemini-2.0-flash-exp';
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     const response = await fetch(url, {
       method: 'POST',
@@ -60,13 +64,17 @@ export const onRequestPost = async (context: any) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        instances: [
+        contents: [
           {
-            prompt: combinedPrompt,
+            parts: [
+              {
+                text: combinedPrompt,
+              },
+            ],
           },
         ],
-        parameters: {
-          sampleCount: 1,
+        generationConfig: {
+          responseModalities: ['TEXT', 'IMAGE'],
         },
       }),
     });
@@ -83,15 +91,15 @@ export const onRequestPost = async (context: any) => {
       );
     }
 
-    const data = (await response.json()) as GeminiResponse;
+    const data = (await response.json()) as GeminiGenerateResponse;
 
-    // Validate the expected structure of the response
-    if (
-      !data.predictions ||
-      data.predictions.length === 0 ||
-      !data.predictions[0].bytesBase64Encoded
-    ) {
-      console.error('Unexpected Gemini API response format:', data);
+    // Find the image part in the response (supports both camelCase and snake_case)
+    const parts = data?.candidates?.[0]?.content?.parts ?? [];
+    const imgPart = parts.find((p: any) => p?.inlineData?.data || p?.inline_data?.data);
+    const inlineData = imgPart?.inlineData || imgPart?.inline_data;
+
+    if (!inlineData || !inlineData.data) {
+      console.error('Unexpected Gemini API response format (no image part):', data);
       return new Response(
         JSON.stringify({ error: 'Invalid response format received from image generation service.' }),
         {
@@ -101,15 +109,16 @@ export const onRequestPost = async (context: any) => {
       );
     }
 
-    const prediction = data.predictions[0];
+    const mimeType = inlineData.mimeType || 'image/png';
+    const bytesBase64Encoded = inlineData.data;
 
-    // Return the successfully generated image data
+    // Return the successfully generated image data (data URL)
     return new Response(
       JSON.stringify({
         success: true,
-        image: `data:${prediction.mimeType};base64,${prediction.bytesBase64Encoded}`,
-        bytesBase64Encoded: prediction.bytesBase64Encoded,
-        mimeType: prediction.mimeType,
+        image: `data:${mimeType};base64,${bytesBase64Encoded}`,
+        bytesBase64Encoded,
+        mimeType,
       }),
       {
         status: 200,
