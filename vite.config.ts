@@ -255,6 +255,7 @@ function generatorApiPlugin(): Plugin {
           topic: String(inputs.topic ?? ''),
           standard: String(inputs.standard ?? ''),
           mustCover: inputs.mustCover ? String(inputs.mustCover) : undefined,
+          outputLanguage: inputs.outputLanguage ? String(inputs.outputLanguage) : undefined,
         }, apiKey);
         return { data, findings };
       });
@@ -272,6 +273,7 @@ function generatorApiPlugin(): Plugin {
           proseRegister: inputs.proseRegister ? String(inputs.proseRegister) : undefined,
           scope: inputs.scope === "depth" ? "depth" : inputs.scope === "span" ? "span" : undefined,
           gumpIntensity: inputs.gumpIntensity === "high" ? "high" : inputs.gumpIntensity === "off" ? "off" : undefined,
+          outputLanguage: inputs.outputLanguage ? String(inputs.outputLanguage) : undefined,
           teks: Array.isArray(inputs.teks) ? inputs.teks.map(String) : undefined,
         }, apiKey);
         return result;

@@ -34,6 +34,7 @@ export interface PreviewApproval {
    * topic's real marquee figures and turning points; "off" = no forced
    * encounters (the right default for cast-poor/compressed topics). */
   gumpIntensity: "high" | "off";
+  outputLanguage: string;
   preview: StoryPreview;
 }
 
@@ -44,7 +45,7 @@ interface StoryPreviewScreenProps {
   onApprove?: (approval: PreviewApproval) => void;
 }
 
-async function postPreview(body: { topic: string; standard: string; mustCover?: string }): Promise<{ data: StoryPreview; findings: PreviewFinding[] }> {
+async function postPreview(body: { topic: string; standard: string; mustCover?: string; outputLanguage?: string }): Promise<{ data: StoryPreview; findings: PreviewFinding[] }> {
   const res = await fetch("/api/story-preview", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -67,6 +68,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
   const [proseRegister, setProseRegister] = useState("direct");
   const [scope, setScope] = useState<"span" | "depth">("span");
   const [gumpIntensity, setGumpIntensity] = useState<"high" | "off">("off");
+  const [outputLanguage, setOutputLanguage] = useState("English");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [preview, setPreview] = useState<StoryPreview | null>(null);
   const [error, setError] = useState("");
@@ -128,7 +130,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
     setStatus("loading"); setError(""); setApproved(false);
     try {
       const teksStr = selectedTEKS.map(t => t.code).join(", ");
-      const { data } = await postPreview({ topic: topic.trim(), standard: teksStr, mustCover: mustCover.trim() || undefined });
+      const { data } = await postPreview({ topic: topic.trim(), standard: teksStr, mustCover: mustCover.trim() || undefined, outputLanguage });
       setPreview(data);
       setPreviewStale(false);
       setStatus("done");
@@ -151,14 +153,25 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
       proseRegister: proseRegister || "direct",
       scope,
       gumpIntensity,
+      outputLanguage,
       preview,
     });
-  }, [preview, topic, selectedTEKS, mustCover, contentMaturity, proseRegister, scope, gumpIntensity, onApprove]);
+  }, [preview, topic, selectedTEKS, mustCover, contentMaturity, proseRegister, scope, gumpIntensity, outputLanguage, onApprove]);
 
   // Editing any input after a preview marks it stale. We keep the previous preview visible
   // (reduces friction when iterating) but require a fresh preview before approving.
   const onEdit = <T,>(set: (v: T) => void) => (v: T) => {
     set(v);
+    if (preview) {
+      setPreviewStale(true);
+      setApproved(false);
+    }
+    if (status === "done") setStatus("idle");
+  };
+
+  // Language change also invalidates preview
+  const onLanguageChange = (lang: string) => {
+    setOutputLanguage(lang);
     if (preview) {
       setPreviewStale(true);
       setApproved(false);
@@ -404,6 +417,21 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Output Language dial - placed near other audience/shape dials */}
+        <div>
+          <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Output Language</span>
+          <select
+            value={outputLanguage}
+            onChange={(e) => onLanguageChange(e.target.value)}
+            className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] focus:outline-none focus:border-[#c9a36b]/60 transition-colors"
+          >
+            {["English", "Spanish", "Chinese (Mandarin)", "Hindi", "Tagalog", "Vietnamese", "Arabic", "Korean", "Russian", "French", "Portuguese"].map((lang) => (
+              <option key={lang} value={lang}>{lang}</option>
+            ))}
+          </select>
+          <span className="text-[10px] text-[#8a7f6a] mt-1 block">The story, questions, and summary will be generated in this language (English default).</span>
         </div>
 
         {/* Preview action */}

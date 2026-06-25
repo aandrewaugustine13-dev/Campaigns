@@ -31,6 +31,13 @@ VOICE (the AUDIENCE block in the instructions sets sentence style and how mature
 - Active voice. Concrete things you can see, hear, smell, and feel. Show what happens; do not summarize or lecture.
 - CONTENT MATURITY and PROSE REGISTER are SEPARATE and INDEPENDENT. CONTENT MATURITY controls honesty about fear/violence/death/moral complexity (mature=fully honest; moderate=balanced with some softening; gentle=softer portrayal). PROSE REGISTER controls language style independently (direct=short concrete sentences; balanced=mix of lengths and description; literary=richer vocab and varied sentences). Never soften the history to match plain language, and never ornament the language to match mature content. Obey the exact values passed in the AUDIENCE block.
 
+LANGUAGE:
+- OUTPUT LANGUAGE will be specified in the user message (defaults to English).
+- Generate ALL human-readable content (passages/text, protagonist, title, question texts/choices/explanations, finalQuiz title/instructions/questions/choices/explanations) directly in the target language.
+- Use fluent, natural, culturally appropriate high-quality prose in that language, respecting the prose register and content maturity.
+- JSON structure and keys stay in English. Only the *content values* switch language.
+- For English: no change from current behavior.
+
 THE PERSON AND THE HISTORY:
 - Invent ONE ordinary young person who is a PARTICIPANT in this history — not a famous leader, but someone with a ROLE that positions them where the real, documented events are proximate and visible: a militiaman, a powder boy, a message runner, a mill worker, a marcher, a nurse's helper. NOT a bystander hearing about events secondhand. Their role must put real, nameable events, places, and things directly into the scenes they live. Give them a name, a home, and that role, fast, in the first passage.
 - Ground everything in the REAL history of the topic: real events, real conditions, real choices people faced. Do not invent fake history. Weave the real, testable facts of the topic INTO the scenes so a reader learns them by living them.
@@ -167,6 +174,10 @@ export interface BranchingInputs {
    * The final quiz should test understanding of these standards in addition to
    * the figure questions encountered in the story. */
   teks?: string[];
+  /** Output language for the story content (passages, questions, quiz, summary framing).
+   * Default "English". When set to another supported language, all narrative content
+   * must be generated directly in that language. */
+  outputLanguage?: string;
 }
 
 export interface BranchingGenResult {
@@ -188,6 +199,11 @@ export interface BranchingGenResult {
 function buildUserMessage(inputs: BranchingInputs, priorErrors?: string[], priorFactErrors?: string[]): string {
   const mustCover = inputs.mustCover && inputs.mustCover.trim()
     ? `\nMUST COVER (the teacher's required content — weave these naturally into the story, never as a list): ${inputs.mustCover.trim()}`
+    : "";
+
+  const outputLanguage = inputs.outputLanguage || "English";
+  const langInstruction = outputLanguage !== "English"
+    ? `\nOUTPUT LANGUAGE: ${outputLanguage} — Generate the entire story (title, protagonist, all passages/text, figure questions including question/choices/explanation, final quiz, and any review text) directly and naturally in ${outputLanguage}. High quality, fluent ${outputLanguage} appropriate to the audience dials.`
     : "";
 
   // AUDIENCE — two INDEPENDENT dials, threaded like topic/standard. The semantics
@@ -255,12 +271,13 @@ You must follow the GUMP HIGH rules from the system prompt exactly — this is t
 
 TOPIC (what the story is about): ${inputs.topic}
 STANDARD (the curriculum standard it must teach, delivered AS story, never lectured): ${inputs.standard}${mustCover}${teksList}
+${langInstruction}
 ${audience}
 ${scopeBlock}${gumpBlock}
 
 The story MUST follow the full historical arc of the topic. Begin at "start" by placing the character fast — their name, home, and their ROLE in these events — at the beginning of the arc. Then carry them through the sequence of real phases, places, and time as the documented history unfolds. Real feeling, real choices that change what happens next (the protagonist's stance and costs, not the history itself). When gumpIntensity is high, weave in multiple significant encounters with major figures and turning points across the arc as detailed above.
 
-The protagonist SURVIVES to the aftermath — death happens around them, never to them; every ending is a survival at a cost tagged "broken", "indifferent", or "triumphant", and all three are reachable across the branches. Obey the CONTENT MATURITY and PROSE REGISTER above. Output ONLY the JSON object conforming to BranchingStory.`;
+The protagonist SURVIVES to the aftermath — death happens around them, never to them; every ending is a survival at a cost tagged "broken", "indifferent", or "triumphant", and all three are reachable across the branches. Obey the CONTENT MATURITY and PROSE REGISTER above. Generate ALL narrative content in the OUTPUT LANGUAGE. Output ONLY the JSON object conforming to BranchingStory.`;
 
   const blocks: string[] = [];
   // Sighted re-generation (graph): the prior output was an UNPLAYABLE graph.
@@ -324,6 +341,7 @@ export async function generateBranchingStory(
     const validation = validateStory(parsed);
     if (validation.playable) {
       const story = parsed as BranchingStory;
+      story.outputLanguage = inputs.outputLanguage || "English";
 
       // === SAGE QUESTIONS + FINAL QUIZ LOGIC (for gump high) ===
       // Collect all sage-style questions from passages. This ensures the final quiz

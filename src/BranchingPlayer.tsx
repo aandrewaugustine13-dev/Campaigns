@@ -54,10 +54,12 @@ function Unplayable({ onBack }: { onBack?: () => void }) {
 
 // Generate an educational 300–400 word summary of the specific playthrough.
 // Pulls directly from the passages the student actually visited + the quiz facts.
+// Respects outputLanguage so framing text matches the story language.
 function generateStorySummary(
   story: BranchingStory,
   history: ChoiceStep[],
-  endingId: string
+  endingId: string,
+  language: string = "English"
 ): string {
   const byId = passageMap(story);
 
@@ -70,16 +72,18 @@ function generateStorySummary(
     .filter((p): p is NonNullable<ReturnType<typeof byId.get>> => !!p && !!p.text);
 
   if (played.length === 0) {
-    return "You reached the end of the story.";
+    return language === "Spanish" ? "Llegaste al final de la historia." : "You reached the end of the story.";
   }
 
   const parts: string[] = [];
 
-  // Intro
+  // Intro (language-aware for POC)
   const protagonist = story.protagonist || "the central figure";
-  parts.push(
-    `In "${story.title}", you lived through events as ${protagonist}. Your choices shaped which moments you witnessed and which historical figures you encountered along the way.`
-  );
+  const title = story.title || "";
+  const introEn = `In "${title}", you lived through events as ${protagonist}. Your choices shaped which moments you witnessed and which historical figures you encountered along the way.`;
+  const introEs = `En "${title}", viviste eventos como ${protagonist}. Tus elecciones moldearon los momentos que presenciaste y las figuras históricas que encontraste en el camino.`;
+  const introOther = `In "${title}", you lived through events as ${protagonist} (story content generated in ${language}). Your choices shaped the moments and historical figures encountered.`;
+  parts.push(language === "Spanish" ? introEs : (language === "English" ? introEn : introOther));
 
   // Sample representative beats from the actual path (beginning, turning points, ending)
   const indices: number[] = [0];
@@ -107,7 +111,11 @@ function generateStorySummary(
   if (history.length > 0) {
     const choiceNotes = history
       .slice(0, 3)
-      .map((h) => `You chose "${h.choiceText}."`)
+      .map((h) => {
+        if (language === "Spanish") return `Elegiste "${h.choiceText}".`;
+        if (language === "English") return `You chose "${h.choiceText}."`;
+        return `Chose: "${h.choiceText}." (in ${language})`;
+      })
       .join(" ");
     if (choiceNotes) parts.push(choiceNotes);
   }
@@ -129,10 +137,11 @@ function generateStorySummary(
     }
   }
 
-  // Reflective close
-  parts.push(
-    "Reviewing these events and the people involved helps connect the individual moments into a clearer picture of the history."
-  );
+  // Reflective close (language-aware)
+  const closeEn = "Reviewing these events and the people involved helps connect the individual moments into a clearer picture of the history.";
+  const closeEs = "Revisar estos eventos y las personas involucradas ayuda a conectar los momentos individuales en una imagen más clara de la historia.";
+  const closeOther = `Reviewing these events helps understand the history (content in ${language}).`;
+  parts.push(language === "Spanish" ? closeEs : (language === "English" ? closeEn : closeOther));
 
   let summary = parts.join(" ");
 
@@ -198,7 +207,8 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
   // plus the built-in quiz content. It only computes after submission.
   const storySummary = useMemo(() => {
     if (!quizSubmitted || !story.finalQuiz) return "";
-    return generateStorySummary(story, history, currentId);
+    const lang = story.outputLanguage || "English";
+    return generateStorySummary(story, history, currentId, lang);
   }, [quizSubmitted, story, history, currentId]);
 
   useEffect(() => {

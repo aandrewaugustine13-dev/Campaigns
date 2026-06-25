@@ -10,6 +10,7 @@ interface RequestBody {
   proseRegister?: string;
   scope?: string;
   gumpIntensity?: string;
+  outputLanguage?: string;
   teks?: string[];
   grade?: string;
 }
@@ -27,6 +28,7 @@ export const onRequestPost = async (context: any) => {
       proseRegister,
       scope,
       gumpIntensity,
+      outputLanguage,
       teks,
       grade,
     } = body;
@@ -65,6 +67,7 @@ export const onRequestPost = async (context: any) => {
         scope: scope === 'depth' ? 'depth' : scope === 'span' ? 'span' : undefined,
         gumpIntensity:
           gumpIntensity === 'high' ? 'high' : gumpIntensity === 'off' ? 'off' : undefined,
+        outputLanguage: outputLanguage ? String(outputLanguage) : undefined,
         teks: Array.isArray(teks) ? teks.map(String) : undefined,
       },
       apiKey

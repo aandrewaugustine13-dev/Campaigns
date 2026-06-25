@@ -83,6 +83,12 @@ export interface BranchingStory {
     instructions: string; // e.g. "Review the key moments and questions from your journey..."
     questions: Array<BranchingQuestion & { context?: string; fromPassageId?: string }>;
   };
+
+  /** The output language the story was generated in (default "English").
+   * All narrative content (passages, questions, quiz) is in this language.
+   * Used by the player to generate language-appropriate summary framing.
+   */
+  outputLanguage?: string;
 }
 
 // ── The recorded path ─────────────────────────────────────────────

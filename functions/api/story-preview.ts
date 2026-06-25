@@ -6,6 +6,7 @@ interface RequestBody {
   topic?: string;
   standard?: string;
   mustCover?: string;
+  outputLanguage?: string;
 }
 
 export const onRequestPost = async (context: any) => {
@@ -13,7 +14,7 @@ export const onRequestPost = async (context: any) => {
 
   try {
     const body = (await request.json()) as RequestBody;
-    const { topic = '', standard = '', mustCover } = body;
+    const { topic = '', standard = '', mustCover, outputLanguage } = body;
 
     if (!topic || !standard) {
       return new Response(
@@ -44,6 +45,7 @@ export const onRequestPost = async (context: any) => {
         topic: String(topic),
         standard: String(standard),
         mustCover: mustCover ? String(mustCover) : undefined,
+        outputLanguage: outputLanguage ? String(outputLanguage) : undefined,
       },
       apiKey
     );
