@@ -229,6 +229,28 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
       .filter(Boolean) as ("broken" | "indifferent" | "triumphant")[];
   }, [history]);
 
+  // Lightweight collection for sense of accomplishment
+  const visitedPassageIds = useMemo(() => {
+    const ids = new Set<string>([story.start, ...history.map(h => h.passageId)]);
+    if (currentId) ids.add(currentId);
+    return ids;
+  }, [history, currentId, story.start]);
+
+  const figuresMet = useMemo(() => {
+    if (!story.coreSageQuestions || story.coreSageQuestions.length === 0) return [];
+    return story.coreSageQuestions
+      .filter(sq => visitedPassageIds.has(sq.passageId))
+      .map(sq => sq.figure);
+  }, [story.coreSageQuestions, visitedPassageIds]);
+
+  const keyMomentsExperienced = useMemo(() => {
+    let count = 0;
+    story.passages.forEach(p => {
+      if (visitedPassageIds.has(p.id) && p.question) count++;
+    });
+    return count;
+  }, [story.passages, visitedPassageIds]);
+
   // Score derived only after the student submits the final quiz
   const quizScore = useMemo(() => {
     if (!quizSubmitted || !story.finalQuiz?.questions?.length) return null;
@@ -405,6 +427,20 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                 const v = endingVisuals[lean];
                 return <span key={idx} className={v.color}>{v.icon}</span>;
               })}
+            </div>
+          )}
+
+          {/* Light collection / progress elements for sense of accomplishment */}
+          {(figuresMet.length > 0 || keyMomentsExperienced > 0) && (
+            <div className="mt-0.5 text-center text-[9px] text-[#8a7f6a] tracking-wider">
+              {figuresMet.length > 0 && (
+                <span className="mr-2" title={figuresMet.join(', ')}>
+                  🗣️ {figuresMet.length}{story.coreSageQuestions ? `/${story.coreSageQuestions.length}` : ''} figures
+                </span>
+              )}
+              {keyMomentsExperienced > 0 && (
+                <span>✦ {keyMomentsExperienced} key moments</span>
+              )}
             </div>
           )}
         </div>
