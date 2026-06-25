@@ -417,7 +417,6 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
   const endingVisuals = {
     broken: {
       label: "Broken",
-      icon: "💔",
       color: "text-red-400",
       border: "border-red-700/60",
       bg: "bg-red-950/20",
@@ -425,7 +424,6 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
     },
     indifferent: {
       label: "Indifferent",
-      icon: "😐",
       color: "text-slate-400",
       border: "border-slate-600/60",
       bg: "bg-slate-900/20",
@@ -433,7 +431,6 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
     },
     triumphant: {
       label: "Triumphant",
-      icon: "🌟",
       color: "text-emerald-400",
       border: "border-emerald-600/60",
       bg: "bg-emerald-950/20",
@@ -467,24 +464,24 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
           </div>
           {/* Subtle path lean indicators - visual trail of choice consequences */}
           {pathLeans.length > 0 && (
-            <div className="mt-1 flex justify-center gap-1 text-base" title="Your path's leaning so far">
+            <div className="mt-1 flex justify-center gap-1" title="Your path's leaning so far">
               {pathLeans.map((lean, idx) => {
                 const v = endingVisuals[lean];
-                return <span key={idx} className={v.color}>{v.icon}</span>;
+                return <span key={idx} className={`${v.color} inline-block w-1.5 h-1.5 rounded-full`} style={{ backgroundColor: 'currentColor' }} />;
               })}
             </div>
           )}
 
           {/* Light collection / progress elements for sense of accomplishment */}
           {(figuresMet.length > 0 || keyMomentsExperienced > 0) && (
-            <div className="mt-0.5 text-center text-[9px] text-[var(--player-text-muted)] tracking-wider">
+            <div className="mt-0.5 text-center text-[9px] text-[var(--player-text-muted)] tracking-wider flex justify-center gap-3">
               {figuresMet.length > 0 && (
-                <span className="mr-2" title={figuresMet.join(', ')}>
-                  🗣️ {figuresMet.length}{story.coreSageQuestions ? `/${story.coreSageQuestions.length}` : ''} figures
+                <span title={figuresMet.join(', ')}>
+                  Figures: {figuresMet.length}{story.coreSageQuestions ? `/${story.coreSageQuestions.length}` : ''}
                 </span>
               )}
               {keyMomentsExperienced > 0 && (
-                <span>✦ {keyMomentsExperienced} key moments</span>
+                <span>Key moments: {keyMomentsExperienced}</span>
               )}
             </div>
           )}
@@ -537,16 +534,9 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
             {(hasFigureQuestion || hasChoices) && (
               <div className={`mb-3 text-xs uppercase tracking-[2px] flex items-center gap-2 ${hasFigureQuestion ? 'text-[var(--player-text-accent)] font-semibold' : 'text-[var(--player-text-accent-2)]'}`}>
                 {hasFigureQuestion ? (
-                  <>
-                    <span className="text-lg">🗣️</span>
-                    <span>Figure Encounter</span>
-                    <span className="text-lg">🗣️</span>
-                  </>
+                  <span>Figure Encounter</span>
                 ) : hasChoices ? (
-                  <>
-                    <span>⚖️</span>
-                    <span>Decision Point</span>
-                  </>
+                  <span>Decision Point</span>
                 ) : null}
               </div>
             )}
@@ -556,9 +546,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
               <div className="mb-2 text-[10px] text-[var(--player-text-muted)] italic border-l-2 border-[var(--player-border-muted)] pl-2">
                 Because you chose this...
                 {recentChoice.lean && (
-                  <span className={`ml-1 ${endingVisuals[recentChoice.lean].color}`}>
-                    {endingVisuals[recentChoice.lean].icon}
-                  </span>
+                  <span className={`ml-1 inline-block w-1 h-1 rounded-full ${endingVisuals[recentChoice.lean].color}`} style={{ backgroundColor: 'currentColor' }} />
                 )}
               </div>
             )}
@@ -590,7 +578,6 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
         {current.question && (
           <div className="border-2 border-[var(--player-figure-border)] bg-[var(--player-figure-bg)] rounded-[var(--player-card-radius)] p-5">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-[var(--player-figure-accent)] text-xl">🗣️</span>
               <span className="uppercase text-xs tracking-[2px] text-[var(--player-figure-accent)] font-semibold">Historical Figure Encounter</span>
             </div>
             <p className="font-semibold text-[var(--player-figure-accent-2)] mb-1">A historical figure asks:</p>
@@ -628,21 +615,14 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
         {ended ? (
           <>
             <div className={`text-center pt-1 ${currentEnding ? currentEnding.border : ''}`}>
-              <p className={`text-xs tracking-[3px] uppercase flex items-center justify-center gap-2 ${currentEnding ? currentEnding.color : 'text-[var(--player-text-muted)]'}`}>
-                {currentEnding ? (
-                  <>
-                    <span>{currentEnding.icon}</span>
-                    <span>— {currentEnding.label} —</span>
-                    <span>{currentEnding.icon}</span>
-                  </>
-                ) : "— The End —"}
+              <p className={`text-xs tracking-[3px] uppercase ${currentEnding ? currentEnding.color : 'text-[var(--player-text-muted)]'}`}>
+                {currentEnding ? `— ${currentEnding.label} —` : "— The End —"}
               </p>
               <div className="h-px w-8 bg-[var(--player-divider)] mx-auto my-2" />
             </div>
 
             {currentEnding && (
               <div className={`mt-4 mb-4 p-4 rounded-2xl border ${currentEnding.border} ${currentEnding.bg} text-center`}>
-                <div className={`text-3xl mb-2 ${currentEnding.color}`}>{currentEnding.icon}</div>
                 <div className={`font-semibold text-lg tracking-tight ${currentEnding.color}`}>You reached {getIndefiniteArticle(currentEnding.label)} {currentEnding.label} ending</div>
                 <p className="mt-2 text-sm text-[var(--player-text-muted)]">{currentEnding.description}</p>
                 {history.length > 0 && (
@@ -777,7 +757,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
                 <div className={`text-center border-2 rounded-[var(--player-card-radius)] p-5 ${currentEnding ? currentEnding.border + ' ' + currentEnding.bg : 'border-[var(--player-border)] bg-[var(--player-bg-card)]'}`}>
                   {currentEnding && (
                     <div className={`text-lg font-semibold mb-1 ${currentEnding.color}`}>
-                      {currentEnding.icon} {currentEnding.label} Ending {currentEnding.icon}
+                      {currentEnding.label} Ending
                     </div>
                   )}
                   {history.length > 0 && (
@@ -813,7 +793,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
             {/* Decision moment indicator (only for non-figure passages) */}
             {!ended && !hasFigureQuestion && (
               <div className="text-xs uppercase tracking-[2px] text-[var(--player-text-muted)] mb-1 flex items-center gap-1.5">
-                <span>⚖️</span> Make your choice
+                Make your choice
               </div>
             )}
             <div className={`space-y-2.5 pt-1 transition-opacity duration-200 ${isAdvancing ? 'opacity-70 pointer-events-none' : ''} ${!hasFigureQuestion ? 'border border-[var(--player-divider-muted)] rounded-[var(--player-card-radius)] p-2 bg-[var(--player-bg-card-muted)]' : ''}`}>
@@ -842,9 +822,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
                         <span className="text-[var(--player-btn-accent)] text-sm transition-all">→</span>
                       )}
                       {endingHint && (
-                        <span className={`text-xs ${endingHint.color} opacity-70`} title={`Leads toward ${endingHint.label}`}>
-                          {endingHint.icon}
-                        </span>
+                        <span className={`${endingHint.color} inline-block w-1 h-1 rounded-full opacity-70`} style={{ backgroundColor: 'currentColor' }} title={`Leads toward ${endingHint.label}`} />
                       )}
                     </span>
                   </span>
