@@ -131,6 +131,7 @@ interface BranchingStory {
   protagonist: string; 
   start: string; 
   passages: Passage[]; 
+  era?: string; // visual theme slug for player (e.g. "western", "classical"). Set from inputs.
   // When GUMP HIGH:
   coreSageQuestions?: Array<{ passageId: string; figure: string; moment: string; question: {question: string; choices: string[]; correctIndex: number; explanation: string} }>;
   finalQuiz?: { title: string; instructions: string; questions: Array<{question: string; choices: string[]; correctIndex: number; explanation: string; context?: string}> };
@@ -178,6 +179,10 @@ export interface BranchingInputs {
    * Default "English". When set to another supported language, all narrative content
    * must be generated directly in that language. */
   outputLanguage?: string;
+  /** Visual era/theme slug chosen manually or auto-detected from topic (e.g. "western", "classical").
+   * Include "era" at top level of output JSON. UI will use it for data-era theming.
+   * Purely visual; story content stays factual. */
+  era?: string;
 }
 
 export interface BranchingGenResult {
@@ -204,6 +209,11 @@ function buildUserMessage(inputs: BranchingInputs, priorErrors?: string[], prior
   const outputLanguage = inputs.outputLanguage || "English";
   const langInstruction = outputLanguage !== "English"
     ? `\nOUTPUT LANGUAGE: ${outputLanguage} — Generate the entire story (title, protagonist, all passages/text, figure questions including question/choices/explanation, final quiz, and any review text) directly and naturally in ${outputLanguage}. High quality, fluent ${outputLanguage} appropriate to the audience dials.`
+    : "";
+
+  const era = inputs.era || "default";
+  const eraInstruction = era !== "default"
+    ? `\nVISUAL THEME: "${era}" — Include "era": "${era}" as a top-level field in the output JSON. The player uses this (via data-era) to apply period-appropriate colors, fonts, borders, and card styles. Do NOT alter story content or facts for the theme.`
     : "";
 
   // AUDIENCE — two INDEPENDENT dials, threaded like topic/standard. The semantics
@@ -273,6 +283,7 @@ You must follow the GUMP HIGH rules from the system prompt exactly — this is t
 TOPIC (what the story is about): ${inputs.topic}
 STANDARD (the curriculum standard it must teach, delivered AS story, never lectured): ${inputs.standard}${mustCover}${teksList}
 ${langInstruction}
+${eraInstruction}
 ${audience}
 ${scopeBlock}${gumpBlock}
 
@@ -343,6 +354,9 @@ export async function generateBranchingStory(
     if (validation.playable) {
       const story = parsed as BranchingStory;
       story.outputLanguage = inputs.outputLanguage || "English";
+      if (inputs.era) {
+        story.era = inputs.era;
+      }
 
       // === SAGE QUESTIONS + FINAL QUIZ LOGIC (for gump high) ===
       // Collect all sage-style questions from passages. This ensures the final quiz

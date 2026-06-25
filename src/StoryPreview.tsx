@@ -35,6 +35,9 @@ export interface PreviewApproval {
    * encounters (the right default for cast-poor/compressed topics). */
   gumpIntensity: "high" | "off";
   outputLanguage: string;
+  /** Visual theme slug for the branching player (data-era). "auto" means detect from topic at approve time.
+   * Manual selection preferred for first version; stored on the final story and passed to <BranchingPlayer>. */
+  era?: string;
   preview: StoryPreview;
 }
 
@@ -56,6 +59,22 @@ async function postPreview(body: { topic: string; standard: string; mustCover?: 
   return payload as { data: StoryPreview; findings: PreviewFinding[] };
 }
 
+/** Simple but effective keyword-based detector for visual theme.
+ * Used when teacher selects "Auto-detect". Returns a supported data-era slug or "default".
+ * Covers the core themes defined in themes.css.
+ */
+function detectEraForTopic(topic: string, standard?: string): string {
+  const t = `${topic} ${standard || ""}`.toLowerCase().replace(/[^a-z\s]/g, " ");
+  if (/\b(west|frontier|oregon|chisholm|trail|cowboy|pioneer|gold.?rush|wild.?west|dust.?bowl)\b/.test(t)) return "western";
+  if (/\b(revolution|1776|independence|declaration|founding|texas.?revolution|american.?revolution)\b/.test(t)) return "revolutionary";
+  if (/\b(cold.?war|berlin|ussr|soviet|vietnam|korea|mc.?carthy|sputnik|missile.?crisis)\b/.test(t)) return "cold-war";
+  if (/\b(civil.?rights|mlk|martin.?luther|rosa.?parks|segregation|montgomery|selma|king|parks|march.?on.?washington|black.?history)\b/.test(t)) return "civil-rights";
+  if (/\b(rome|greece|ancient|classical|athens|sparta|caesar|alexander|pharaoh|roman|greek)\b/.test(t)) return "classical";
+  if (/\b(industrial|factory|steam|railroad|assembly.?line|ford|edison|invention|child.?labor|labor.?union)\b/.test(t)) return "industrial";
+  if (/\b(civil.?war|lincoln|gettysburg|slavery|confederate|union|reconstruction|abolition)\b/.test(t)) return "civil-war";
+  return "default";
+}
+
 export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewScreenProps) {
   const [topic, setTopic] = useState("");
   const [teksSearch, setTeksSearch] = useState("");
@@ -69,6 +88,9 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
   const [scope, setScope] = useState<"span" | "depth">("span");
   const [gumpIntensity, setGumpIntensity] = useState<"high" | "off">("off");
   const [outputLanguage, setOutputLanguage] = useState("English");
+  // Visual theme for player: 'auto' uses keyword detection on topic+standard at approve time.
+  // Manual lets teacher force a specific historical visual identity.
+  const [visualTheme, setVisualTheme] = useState<string>("auto");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [preview, setPreview] = useState<StoryPreview | null>(null);
   const [error, setError] = useState("");
@@ -144,6 +166,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
     if (!preview) return;
     setApproved(true);
     const teksStr = selectedTEKS.map(t => t.code).join(", ");
+    const era = visualTheme === "auto" ? detectEraForTopic(topic.trim(), teksStr) : visualTheme;
     onApprove?.({
       topic: topic.trim(),
       standard: teksStr,
@@ -154,9 +177,10 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
       scope,
       gumpIntensity,
       outputLanguage,
+      era,
       preview,
     });
-  }, [preview, topic, selectedTEKS, mustCover, contentMaturity, proseRegister, scope, gumpIntensity, outputLanguage, onApprove]);
+  }, [preview, topic, selectedTEKS, mustCover, contentMaturity, proseRegister, scope, gumpIntensity, outputLanguage, visualTheme, onApprove]);
 
   // Editing any input after a preview marks it stale. We keep the previous preview visible
   // (reduces friction when iterating) but require a fresh preview before approving.
@@ -172,6 +196,16 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
   // Language change also invalidates preview
   const onLanguageChange = (lang: string) => {
     setOutputLanguage(lang);
+    if (preview) {
+      setPreviewStale(true);
+      setApproved(false);
+    }
+    if (status === "done") setStatus("idle");
+  };
+
+  // Visual theme change (manual or switching to/from auto) also marks stale
+  const onVisualThemeChange = (v: string) => {
+    setVisualTheme(v);
     if (preview) {
       setPreviewStale(true);
       setApproved(false);
@@ -432,6 +466,27 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
             ))}
           </select>
           <span className="text-[10px] text-[#8a7f6a] mt-1 block">The story, questions, and summary will be generated in this language (English default).</span>
+        </div>
+
+        {/* Visual Theme selector — manual or auto-detect for player data-era styling.
+            Themes (western, revolutionary, etc.) are defined in themes.css and applied in BranchingPlayer. */}
+        <div>
+          <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Visual Theme (Player)</span>
+          <select
+            value={visualTheme}
+            onChange={(e) => onVisualThemeChange(e.target.value)}
+            className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] focus:outline-none focus:border-[#c9a36b]/60 transition-colors"
+          >
+            <option value="auto">Auto-detect from topic (recommended)</option>
+            <option value="default">Default (elegant dark)</option>
+            <option value="western">Western / Old West</option>
+            <option value="revolutionary">Revolutionary Era</option>
+            <option value="cold-war">Cold War</option>
+            <option value="civil-rights">Civil Rights / Mid-20th Century</option>
+            <option value="classical">Ancient / Classical World</option>
+            <option value="industrial">Industrial Revolution</option>
+          </select>
+          <span className="text-[10px] text-[#8a7f6a] mt-1 block">Sets the colors, typography, borders, and card styling in the student player. Auto uses simple keyword matching on the topic.</span>
         </div>
 
         {/* Preview action */}

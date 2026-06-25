@@ -13,6 +13,7 @@ interface RequestBody {
   outputLanguage?: string;
   teks?: string[];
   grade?: string;
+  era?: string;
 }
 
 export const onRequestPost = async (context: any) => {
@@ -31,6 +32,7 @@ export const onRequestPost = async (context: any) => {
       outputLanguage,
       teks,
       grade,
+      era,
     } = body;
 
     if (!topic || !standard) {
@@ -69,6 +71,7 @@ export const onRequestPost = async (context: any) => {
           gumpIntensity === 'high' ? 'high' : gumpIntensity === 'off' ? 'off' : undefined,
         outputLanguage: outputLanguage ? String(outputLanguage) : undefined,
         teks: Array.isArray(teks) ? teks.map(String) : undefined,
+        era: era ? String(era) : undefined,
       },
       apiKey
     );

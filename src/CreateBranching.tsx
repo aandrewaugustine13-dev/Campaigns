@@ -83,6 +83,7 @@ export default function CreateBranching({ onBack }: Props) {
           scope: appr.scope,
           gumpIntensity: appr.gumpIntensity,
           outputLanguage: appr.outputLanguage,
+          era: appr.era,
         }),
       });
       const data = await res.json();
