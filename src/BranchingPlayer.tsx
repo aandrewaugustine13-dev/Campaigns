@@ -185,6 +185,10 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
   const [isAdvancing, setIsAdvancing] = useState(false);
   const [isSubmittingQuiz, setIsSubmittingQuiz] = useState(false);
 
+  // Text-to-speech for accessibility (per-passage read aloud)
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
   const current = byId.get(currentId);
 
   // Progress for student: clear step counter (even in branching, shows how far in their path)
@@ -227,6 +231,63 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
       setIsAdvancing(false);
     }, 160);
   }, [byId, currentId, isAdvancing]);
+
+  // Text-to-speech handler using Web Speech API
+  const handleSpeak = useCallback(() => {
+    if (!current?.text || typeof window === 'undefined') return;
+
+    const synth = window.speechSynthesis;
+    if (!synth) {
+      // Browser doesn't support it - silently do nothing for now (first version)
+      return;
+    }
+
+    // If currently speaking this or anything, stop it
+    if (isSpeaking) {
+      synth.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
+    // Cancel any ongoing speech (important for reliability)
+    synth.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(current.text);
+    // Make it student-friendly: slightly slower and clear
+    utterance.rate = 0.92;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+
+    utterance.onend = () => {
+      setIsSpeaking(false);
+    };
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+    };
+
+    utteranceRef.current = utterance;
+    synth.speak(utterance);
+    setIsSpeaking(true);
+  }, [current, isSpeaking]);
+
+  // Stop speech when leaving the passage or unmounting
+  useEffect(() => {
+    setAnsweredQuestion(null);
+
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+  }, [currentId]);
+
+  // Cleanup on component unmount
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!validation.playable && !firedRef.current) {
@@ -301,6 +362,23 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
 
           {/* The story passage prose — key triggers natural re-animation on change */}
           <div key={currentId} className="p-6 transition-opacity duration-300">
+            {/* Speaker button for text-to-speech accessibility */}
+            <div className="flex justify-end mb-2">
+              <button
+                onClick={handleSpeak}
+                className={`inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-all border ${
+                  isSpeaking
+                    ? 'bg-[#3a2f1f] border-[#c9a36b] text-[#c9a36b]'
+                    : 'border-[#3a3630] text-[#8a7f6a] hover:text-[#c9a36b] hover:border-[#5a5548] hover:bg-[#2a2722]'
+                }`}
+                aria-label={isSpeaking ? 'Stop reading passage aloud' : 'Read passage aloud'}
+                title={isSpeaking ? 'Stop' : 'Read aloud'}
+              >
+                <span className="text-sm">{isSpeaking ? '⏹' : '🔊'}</span>
+                <span className="font-medium tracking-wide">{isSpeaking ? 'Stop' : 'Read'}</span>
+              </button>
+            </div>
+
             <p className="text-[21px] leading-[1.65] font-serif whitespace-pre-line text-[#e8dcc8]">
               {current.text}
             </p>
