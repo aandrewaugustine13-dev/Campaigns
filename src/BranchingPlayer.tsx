@@ -337,7 +337,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
               <img
                 src={current.image.thumbUrl}
                 alt=""
-                className="w-full max-h-72 object-cover"
+                className="w-full h-auto"
               />
               {(current.image.artist || current.image.license) && (
                 <div className="text-[10px] text-[#8a7f6a] px-4 pt-1.5 pb-2 border-t border-[#3a3630]">
