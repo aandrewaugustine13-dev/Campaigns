@@ -634,6 +634,44 @@ a.theme-dialogue-attribution-link:hover {
   /* === SHADOWS === */
   --player-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.08);
   --player-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.12), 0 2px 4px -2px rgb(0 0 0 / 0.08);
+
+  /* === COMPONENT TOKENS (for consistent theming of UI pieces) === */
+  /* Passage cards already use the card-* variants + accent for special */
+  --player-card-radius: var(--player-border-radius);
+
+  /* Choice / interactive buttons */
+  --player-btn-bg: var(--player-bg-card-inner);
+  --player-btn-bg-hover: var(--player-bg-card-muted);
+  --player-btn-bg-selected: var(--player-bg-card-muted);
+  --player-btn-border: var(--player-border);
+  --player-btn-border-hover: var(--player-border-muted);
+  --player-btn-border-selected: var(--player-border-accent);
+  --player-btn-text: var(--player-text-prose);
+  --player-btn-text-muted: var(--player-text-muted);
+  --player-btn-accent: var(--player-text-accent);
+
+  /* Figure encounter sections */
+  --player-figure-bg: var(--player-bg-card-figure);
+  --player-figure-border: var(--player-border-accent);
+  --player-figure-accent: var(--player-text-accent);
+  --player-figure-accent-2: var(--player-text-accent-2);
+
+  /* Quiz interface */
+  --player-quiz-bg: var(--player-bg-card-figure);
+  --player-quiz-border: var(--player-border-accent);
+  --player-quiz-question-bg: var(--player-bg-card-muted);
+  --player-quiz-option-bg: var(--player-bg-card-inner);
+  --player-quiz-option-selected-bg: var(--player-bg-card-muted);
+  --player-quiz-option-border: var(--player-border);
+  --player-quiz-option-border-selected: var(--player-border-accent);
+  --player-quiz-label-bg: var(--player-bg-card-inner);
+  --player-quiz-label-text: var(--player-text-accent);
+
+  /* Progress indicators & dividers */
+  --player-progress-track: var(--player-bg-card-muted);
+  --player-progress-fill: var(--player-text-accent);
+  --player-divider: var(--player-border);
+  --player-divider-muted: var(--player-border-muted);
 }
 
 /* ───────────────────────────────────────────────────────────────
@@ -697,6 +735,10 @@ a.theme-dialogue-attribution-link:hover {
 
   --player-font-serif: "Rye", Georgia, serif;
   --player-border-radius: 0.625rem;
+
+  /* Western interactive feel: warmer hovers */
+  --player-btn-bg-hover: #302b22;
+  --player-figure-bg: #272f22;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -771,6 +813,12 @@ a.theme-dialogue-attribution-link:hover {
   --player-border-radius: 0.5rem;
   --player-font-weight: 400;
   --player-font-weight-semibold: 600;
+
+  /* Cold War: cooler, starker interactive surfaces */
+  --player-btn-bg: #151a22;
+  --player-btn-bg-hover: #1e252f;
+  --player-quiz-question-bg: #1a2029;
+  --player-progress-fill: #6a8aa8;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -809,6 +857,11 @@ a.theme-dialogue-attribution-link:hover {
   --player-border-radius: 0.375rem;
   --player-font-weight: 400;
   --player-font-weight-semibold: 600;
+
+  /* Civil Rights: bold print-like accents and heavy borders */
+  --player-btn-border-selected: #9c3f2f;
+  --player-quiz-border: #35322c;
+  --player-progress-fill: #c9a36b;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -844,6 +897,11 @@ a.theme-dialogue-attribution-link:hover {
 
   --player-font-serif: "Cinzel", Georgia, serif;
   --player-border-radius: 0.5rem;
+
+  /* Classical: stone-like figure and quiz surfaces */
+  --player-figure-bg: #2d322a;
+  --player-quiz-bg: #2d322a;
+  --player-btn-bg: #23282e;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -882,6 +940,13 @@ a.theme-dialogue-attribution-link:hover {
   --player-border-radius: 0.375rem;
   --player-font-weight: 400;
   --player-font-weight-semibold: 600;
+
+  /* Industrial: heavy mechanical buttons and strong steel dividers */
+  --player-btn-bg: #23262a;
+  --player-btn-bg-hover: #2a2e33;
+  --player-btn-border: #40464c;
+  --player-divider: #2a2e33;
+  --player-progress-fill: #a88c5a;
 }
 
 /* Legacy aliases for compatibility with older fixtures / code */
