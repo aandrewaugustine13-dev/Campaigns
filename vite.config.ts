@@ -324,27 +324,43 @@ function generatorApiPlugin(): Plugin {
           const base = topic;
           if (!base && !standardNouns && !text) return send(200, { images: [] });
 
-          // Query list. PRIMARY = per-passage real-noun queries from Claude, so
-          // each beat gets DIFFERENT subject nouns (the constant topic base
-          // returned the SAME images every beat). Topic/standard are kept ONLY as
-          // a constant fallback at the end, so results are never empty.
+          // Query list. Broader now: include overall topic + era (when possible)
+          // alongside (or instead of) only very specific nouns from the passage.
+          // This helps surface more relevant historical images.
           const queries: string[] = [];
 
+          // Broad queries using topic (and standard) first
+          if (base) {
+            queries.push(base);
+            queries.push(`${base} historical`);
+            queries.push(`${base} painting`);
+            queries.push(`${base} historical image`);
+          }
+          if (standardNouns && standardNouns.toLowerCase() !== base.toLowerCase()) {
+            queries.push(standardNouns);
+            queries.push(`${standardNouns} historical`);
+          }
+
           // (1) PER-PASSAGE (Claude): 2–4 real-noun queries about what THIS beat
-          // depicts. Best-effort — missing key / error falls through to (3).
+          // depicts — but also paired with topic for broader match.
           const anthropicKey = process.env.ANTHROPIC_API_KEY;
           if (anthropicKey && text && (topic || standardNouns)) {
             try {
               const { generatePassageQueries } = await import('./generator/eraBrief.ts');
               const pq = await generatePassageQueries(topic, standard, text, anthropicKey);
-              for (const q of pq) if (q && q.trim()) queries.push(q.trim());
+              for (const q of pq) if (q && q.trim()) {
+                queries.push(q.trim());
+                if (base && !q.toLowerCase().includes(base.toLowerCase())) {
+                  queries.push(`${q.trim()} ${base}`);
+                }
+              }
             } catch {
               console.warn('[branching-images] passage-query generation failed; using topic fallback');
             }
           }
 
           // (2) Deterministic per-passage signal: a real place/event named in the
-          // prose (e.g. "Fort McHenry"), anchored to the real subject.
+          // prose (e.g. "Fort McHenry"), anchored to the real subject (now with topic too).
           const anchor = base || standardNouns;
           if (text && anchor) {
             const locMatch = text.match(/\b(Fort|Battle of|Siege of|Port of|Harbor)\s+([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,2})/);
@@ -352,18 +368,8 @@ function generatorApiPlugin(): Plugin {
               const place = `${locMatch[1]} ${locMatch[2]}`.trim();
               queries.push(place);
               queries.push(`${place} ${anchor}`);
+              if (base) queries.push(`${place} ${base}`);
             }
-          }
-
-          // (3) CONSTANT fallback (topic + standard) — LAST, so it only fills in
-          // when the per-passage queries are thin. These repeat across passages.
-          if (base) {
-            queries.push(base);
-            queries.push(`${base} historical`);
-            queries.push(`${base} painting`);
-          }
-          if (standardNouns && standardNouns.toLowerCase() !== base.toLowerCase()) {
-            queries.push(standardNouns);
           }
 
           const seen = new Set();
@@ -396,7 +402,7 @@ function generatorApiPlugin(): Plugin {
               }
             }
 
-            if (images.length >= 5) break;
+            if (images.length >= 15) break;
           }
 
           if (images.length === 0 && base) {
@@ -417,7 +423,7 @@ function generatorApiPlugin(): Plugin {
             }
           }
 
-          send(200, { images: images.slice(0, 5) });
+          send(200, { images: images.slice(0, 10) });
         } catch (e) {
           console.error('[branching-images] error', e);
           send(200, { images: [] }); // never break the UI
