@@ -58,25 +58,28 @@ SHAPE AND SIZE:
 
 GUMP INTENSITY AND FIGURE ENCOUNTERS + SAGE-STYLE QUESTIONS (HIGHEST PRIORITY WHEN HIGH — READ THIS FIRST AND PLAN AROUND IT):
 
-This is the most important rule for GUMP=HIGH. Follow exactly. Do NOT treat questions as optional add-ons.
+This is the most important rule for GUMP=HIGH. Follow exactly. Do NOT treat questions as optional add-ons. When GUMP is HIGH, the figure encounters MUST be the dramatic and educational highlights of the entire story — substantial, memorable, and consequential, not brief or low-stakes.
 
 WHEN GUMP INTENSITY IS "HIGH":
-- The protagonist MUST have MULTIPLE (at least 5-7) meaningful, historically improbable but narratively significant encounters with major historical figures AND turning-point events.
-- These encounters must be spaced across the FULL historical arc — early, middle, and late phases — so the protagonist personally witnesses or interacts with key people and moments as the history unfolds over time and places.
-- Each encounter should feel EDUCATIONAL and WEIGHTY: the protagonist's presence allows them to observe or participate in a way that illuminates the figure's role, the event's significance, the human stakes, or the historical context. Make them memorable teaching moments without lecturing.
-- Do not cluster all encounters in one place or time; the Gump device should help the protagonist "travel" the breadth of the story.
+- The protagonist MUST have MULTIPLE (6–8 or more) meaningful, historically improbable but narratively significant encounters with major historical figures AND turning-point events.
+- These encounters must be spaced across the FULL historical arc — early conditions and rising tensions, key crises and turning points, resolution, and aftermath — so the protagonist personally witnesses or interacts with key people and moments as the history unfolds over time, places, and phases.
+- Each encounter must feel SIGNIFICANT, MEMORABLE, and HIGH-STAKES: not a quick, shallow, or throwaway interaction, but a weighty, character-driven scene that feels like a pivotal personal experience. The Gump device should create moments of genuine dramatic and educational power where the protagonist's improbable presence reveals the human reality, pressures, decisions, or stakes behind the history.
+- Do not cluster all encounters in one place or time; the Gump device should help the protagonist "travel" the breadth of the story, making each meeting feel earned as part of the unfolding journey.
 
 PRE-PLANNING STEP (MANDATORY — do this in your mind before writing the story):
 - First, mentally map the COMPLETE historical ARC of the topic: the sequence of major phases, locations, time periods, and key developments from the inciting conditions through the main events to the resolution and aftermath.
-- Then identify 6–8 MOST IMPORTANT historical figures and turning-point moments for the topic (the ones a student MUST understand to grasp the history).
+- Then identify 6–8 MOST IMPORTANT historical figures and turning-point moments for the topic (the ones a student MUST understand to grasp the history). Choose ones that allow for dramatic, revealing, high-stakes interactions.
 - These will be your "sage moments" / Gump encounters.
 - Structure the story's MAIN SPINE (the mostly-linear path the protagonist follows across the FULL arc) so that these key sage moments are ENCOUNTERED ON THE SPINE at appropriate points in the chronology and geography, with branches for stance/choice that CONVERGE BACK to the spine before or after each key moment. This guarantees reliable content coverage across paths and ensures the story spans the arc.
 - Do not hide key content only on obscure branches. The spine itself must carry the protagonist through the breadth of the history.
+- Plan integration carefully: each encounter should grow naturally out of the preceding events and the protagonist's role/journey, and should ripple forward — deepening the protagonist's understanding, resolve, doubts, or later choices. They must feel like integrated peaks of the arc, not randomly inserted.
 
 FOR EACH SAGE MOMENT / GUMP ENCOUNTER (when GUMP=HIGH):
-- Create a distinct "sage question moment" passage for each of the major figures or turning points.
-- The passage text should feel like a special, memorable encounter: the protagonist (improbably but fittingly) comes face-to-face with the real historical figure or is present at the exact turning-point event. Write it with weight and educational value — the figure's presence or the event "speaks" to the protagonist and the reader about its significance in the larger history. Make these feel like the original sage encounters: meaningful, character-driven, and illuminating.
-- These encounters must be integrated into the protagonist's journey ACROSS the full arc — do not put them all at the beginning or end.
+- Create a distinct "sage question moment" passage for each of the major figures or turning points. These must be richer and more substantial than ordinary passages — give encounters 5–8 flowing sentences (or more) so they have room for weight, vividness, and real interaction.
+- The passage text MUST feel like a special, memorable, high-stakes encounter: the protagonist (improbably but fittingly) comes face-to-face with the real historical figure or is present at the exact turning-point event in a way that feels consequential and characterful. Write it with weight and educational value — the figure's presence or the event "speaks" to the protagonist and the reader about its significance in the larger history. Make these feel like the original sage encounters: meaningful, character-driven, and illuminating.
+- Use vivid, weighty, historically grounded prose (not flowery or ornate): sensory details of the era and place (the press of the crowd, the smell of gunpowder or ink, the sound of voices or marching, the feel of the moment); portray the figure's documented appearance, bearing, clothing, manner, and actions/speech based on historical record. Have the figure speak or act in character using known words, decisions, or behaviors where they fit naturally. The interaction must be substantial — the protagonist may be addressed directly, asked to act or witness something pivotal, overhear a key exchange, or see the figure in a moment of decision or humanity.
+- Make the encounter feel SIGNIFICANT and INTEGRATED into the arc: show the emotional and practical impact on the protagonist through actions and immediate reactions (awe, fear, inspiration, realization of stakes). Tie the moment explicitly to what came before (building context or tension) and what follows (it should affect the protagonist's understanding or later stance/choices). These must advance both the personal story and the historical understanding — avoid low-stakes chit-chat or throwaway lines.
+- These encounters must be well-integrated into the protagonist's journey ACROSS the full arc — do not put them all at the beginning or end; space them so they mark key phases of the unfolding story and feel like earned highlights of the journey.
 - EVERY such sage passage MUST contain EXACTLY ONE high-quality MCQ question.
 - The question tests REAL, meaningful historical understanding of THAT specific figure or moment (not generic).
 - Question format EXACT:
@@ -231,16 +234,16 @@ SCOPE — DEPTH (compress to ONE intense moment): a single place and a short spa
     ? `
 GUMP INTENSITY — HIGH (MANDATORY — PLAN FIRST, EXECUTE FULLY):
 
-You must follow the GUMP HIGH rules from the system prompt exactly — this is the highest priority:
+You must follow the GUMP HIGH rules from the system prompt exactly — this is the highest priority. Encounters must be the dramatic and emotional peaks of the story:
 - The story MUST use the full historical arc (as detailed in the SCOPE block) as the stage for Gump encounters.
 - Pre-plan 6-8 key figures and turning-point moments. Distribute them across the different phases of the arc (early conditions, rising action, key battles/crises, resolution, aftermath).
-- Place each as a distinct, significant "sage question moment" passage on the main spine. The protagonist's journey must take them to these moments in sequence as part of traversing the full history.
-- Each encounter must feel MEANINGFUL and EDUCATIONAL: the protagonist's (improbable) presence lets them witness or briefly interact in a way that reveals the figure's character, the event's stakes, or the historical turning point. Make these feel like pivotal personal experiences that teach the real history.
+- Place each as a distinct, significant "sage question moment" passage on the main spine. The protagonist's journey must take them to these moments in sequence as part of traversing the full history. These must feel like earned, consequential highlights — not random or low-stakes insertions.
+- Each encounter passage must be SUBSTANTIAL and MEMORABLE (richer prose and scene detail than ordinary passages): set the historical scene with grounded sensory weight; portray the figure with authentic bearing, appearance, and actions/speech drawn from the record; create a real interaction or witnessing that reveals character, stakes, or turning-point significance. The protagonist's presence should make the history feel personal and consequential. The moment must ripple forward into the protagonist's understanding or later choices.
 - For each such passage, attach EXACTLY ONE question in the exact format.
 - At the end of the JSON include "coreSageQuestions" and "finalQuiz" as specified.
 - Never put questions on non-sage passages.
 - Make the questions substantive, tied to the real documented history of that specific encounter or moment.
-- The encounters should be spaced out — the protagonist "bumps into" history multiple times as their journey unfolds over time and distance.`
+- The encounters should be spaced out — the protagonist "bumps into" history multiple times as their journey unfolds over time and distance. Each should feel like a pivotal personal experience that teaches the real history through lived weight, not lecture.`
 
     : "";
 
