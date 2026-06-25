@@ -35,7 +35,7 @@ interface BranchingPlayerProps {
 function BackLink({ onBack }: { onBack?: () => void }) {
   if (!onBack) return null;
   return (
-    <button onClick={onBack} className="block w-full text-center text-xs text-[var(--player-text-muted)] hover:text-[var(--player-text)] mt-6 tracking-wide">
+    <button onClick={onBack} className="block w-full text-center text-xs text-[var(--player-text-muted)] hover:text-[var(--player-text)] mt-6 tracking-wide transition-all duration-150 ease-out">
       ← Back to Campaigns
     </button>
   );
@@ -489,7 +489,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
 
         {/* Passage card: image (optional) + prose in a contained, game-like panel */}
         <div 
-          className={`rounded-[var(--player-card-radius)] overflow-hidden transition-all duration-200 ${isAdvancing ? 'opacity-40' : 'opacity-100'} ${
+          className={`rounded-[var(--player-card-radius)] overflow-hidden transition-all duration-200 ease-out ${isAdvancing ? 'opacity-40 scale-[0.995]' : 'opacity-100 scale-100'} ${
             currentEnding 
               ? `${currentEnding.border} ${currentEnding.bg}` 
               : hasFigureQuestion 
@@ -529,7 +529,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
           )}
 
           {/* The story passage prose — key triggers natural re-animation on change */}
-          <div key={currentId} className={`p-6 transition-opacity duration-300 ${hasFigureQuestion ? 'bg-[var(--player-bg-card-muted)]/50' : ''}`}>
+          <div key={currentId} className={`p-6 transition-all duration-300 ease-out ${hasFigureQuestion ? 'bg-[var(--player-bg-card-muted)]/50' : ''}`}>
             {/* Type indicator for visual distinction */}
             {(hasFigureQuestion || hasChoices) && (
               <div className={`mb-3 text-xs uppercase tracking-[2px] flex items-center gap-2 ${hasFigureQuestion ? 'text-[var(--player-text-accent)] font-semibold' : 'text-[var(--player-text-accent-2)]'}`}>
@@ -555,7 +555,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
             <div className="flex justify-end mb-2">
               <button
                 onClick={handleSpeak}
-                className={`inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-all border ${
+                className={`inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-all duration-150 ease-out border ${
                   isSpeaking
                     ? 'bg-[var(--player-btn-bg-selected)] border-[var(--player-btn-border-selected)] text-[var(--player-btn-accent)]'
                     : 'border-[var(--player-btn-border)] text-[var(--player-btn-text-muted)] hover:text-[var(--player-btn-accent)] hover:border-[var(--player-btn-border-hover)] hover:bg-[var(--player-btn-bg-hover)]'
@@ -576,7 +576,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
 
         {/* In-story question from historical figure (sage-style trivia, when present on the passage) */}
         {current.question && (
-          <div className="border-2 border-[var(--player-figure-border)] bg-[var(--player-figure-bg)] rounded-[var(--player-card-radius)] p-5">
+          <div className="border-2 border-[var(--player-figure-border)] bg-[var(--player-figure-bg)] rounded-[var(--player-card-radius)] p-5 transition-all duration-300 ease-out">
             <div className="flex items-center gap-2 mb-2">
               <span className="uppercase text-xs tracking-[2px] text-[var(--player-figure-accent)] font-semibold">Historical Figure Encounter</span>
             </div>
@@ -588,14 +588,14 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
                   <button
                     key={i}
                     onClick={() => setAnsweredQuestion(i)}
-                    className="block w-full text-left px-4 py-2.5 rounded-xl border border-[var(--player-btn-border)] bg-[var(--player-btn-bg)] hover:bg-[var(--player-btn-bg-hover)] hover:border-[var(--player-btn-border-hover)] active:scale-[0.985] transition-all text-[var(--player-btn-text-muted)] font-medium"
+                    className="block w-full text-left px-4 py-2.5 rounded-xl border border-[var(--player-btn-border)] bg-[var(--player-btn-bg)] hover:bg-[var(--player-btn-bg-hover)] hover:border-[var(--player-btn-border-hover)] hover:-translate-y-px active:scale-[0.985] transition-all duration-150 ease-out text-[var(--player-btn-text-muted)] font-medium"
                   >
                     {c}
                   </button>
                 ))}
               </div>
             ) : (
-              <div className="mt-3 text-sm">
+              <div className="mt-3 text-sm transition-all duration-200 ease-out">
                 <p className="text-[var(--player-text-muted)]">Your answer: <strong className="text-[var(--player-text-prose)]">{current.question.choices[answeredQuestion]}</strong></p>
                 <p className={answeredQuestion === current.question.correctIndex ? "text-emerald-400 font-semibold mt-1" : "text-red-400 font-semibold mt-1"}>
                   {answeredQuestion === current.question.correctIndex ? "Correct!" : "Not quite."}
@@ -603,7 +603,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
                 <p className="mt-1 text-[var(--player-text-muted)]">{current.question.explanation}</p>
                 <button
                   onClick={() => setAnsweredQuestion(null)}
-                  className="mt-2 text-xs text-[var(--player-text-accent-2)] underline hover:text-[var(--player-text-accent)]"
+                  className="mt-2 text-xs text-[var(--player-text-accent-2)] underline hover:text-[var(--player-text-accent)] transition-all duration-150 ease-out"
                 >
                   Hide feedback
                 </button>
@@ -622,7 +622,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
             </div>
 
             {currentEnding && (
-              <div className={`mt-4 mb-4 p-4 rounded-2xl border ${currentEnding.border} ${currentEnding.bg} text-center`}>
+              <div className={`mt-4 mb-4 p-4 rounded-2xl border ${currentEnding.border} ${currentEnding.bg} text-center transition-all duration-300 ease-out`}>
                 <div className={`font-semibold text-lg tracking-tight ${currentEnding.color}`}>You reached {getIndefiniteArticle(currentEnding.label)} {currentEnding.label} ending</div>
                 <p className="mt-2 text-sm text-[var(--player-text-muted)]">{currentEnding.description}</p>
                 {history.length > 0 && (
@@ -633,7 +633,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
 
             {/* Final check for understanding / comprehension quiz at the end of playthrough */}
             {story.finalQuiz && (
-              <div className={`mt-5 border-2 border-[var(--player-quiz-border)] bg-[var(--player-quiz-bg)] rounded-[var(--player-card-radius)] p-5 transition-opacity shadow-sm ${isSubmittingQuiz ? 'opacity-80' : ''}`}>
+              <div className={`mt-5 border-2 border-[var(--player-quiz-border)] bg-[var(--player-quiz-bg)] rounded-[var(--player-card-radius)] p-5 transition-all duration-200 ease-out shadow-sm ${isSubmittingQuiz ? 'opacity-80' : ''}`}>
                 <div className="flex items-center gap-3 mb-3">
                   <span className="text-2xl">🏆</span>
                   <h2 className="font-semibold text-xl text-[var(--player-text-accent)] tracking-tight">{story.finalQuiz.title}</h2>
@@ -657,10 +657,10 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
                                   key={ci}
                                   type="button"
                                   onClick={() => setQuizAnswers(prev => ({...prev, [qi]: ci}))}
-                                  className={`w-full text-left px-4 py-3 rounded-xl border text-[15px] transition-all flex items-center gap-3 ${
+                                  className={`w-full text-left px-4 py-3 rounded-xl border text-[15px] transition-all duration-150 ease-out flex items-center gap-3 ${
                                     isSel 
                                       ? 'border-[var(--player-quiz-option-border-selected)] bg-[var(--player-quiz-option-selected-bg)] text-[var(--player-btn-text)] ring-1 ring-[var(--player-quiz-option-border-selected)]/30' 
-                                      : 'border-[var(--player-quiz-option-border)] bg-[var(--player-quiz-option-bg)] hover:bg-[var(--player-btn-bg-hover)] text-[var(--player-btn-text-muted)] hover:border-[var(--player-btn-border-hover)]'
+                                      : 'border-[var(--player-quiz-option-border)] bg-[var(--player-quiz-option-bg)] hover:bg-[var(--player-btn-bg-hover)] hover:-translate-y-px text-[var(--player-btn-text-muted)] hover:border-[var(--player-btn-border-hover)]'
                                   }`}
                                 >
                                   <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full border text-xs flex-shrink-0 ${isSel ? 'border-[var(--player-quiz-option-border-selected)] bg-[var(--player-btn-accent)] text-[var(--player-bg-card)]' : 'border-[var(--player-btn-border)] text-[var(--player-btn-text-muted)]'}`}>
@@ -683,7 +683,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
                           setIsSubmittingQuiz(false);
                         }, 320);
                       }} 
-                      className="mt-3 w-full px-6 py-3 bg-[var(--player-btn-bg-hover)] hover:bg-[var(--player-btn-bg)] active:bg-[var(--player-btn-bg)] text-[var(--player-btn-text)] rounded-[var(--player-card-radius)] border-2 border-[var(--player-btn-border-selected)]/50 text-base font-semibold tracking-wide transition-all disabled:opacity-50"
+                      className="mt-3 w-full px-6 py-3 bg-[var(--player-btn-bg-hover)] hover:bg-[var(--player-btn-bg)] hover:-translate-y-px active:bg-[var(--player-btn-bg)] text-[var(--player-btn-text)] rounded-[var(--player-card-radius)] border-2 border-[var(--player-btn-border-selected)]/50 text-base font-semibold tracking-wide transition-all duration-150 ease-out disabled:opacity-50"
                       disabled={Object.keys(quizAnswers).length < (story.finalQuiz.questions?.length || 0) || isSubmittingQuiz}
                     >
                       {isSubmittingQuiz ? "Checking your answers…" : "Submit Final Answers"}
@@ -710,7 +710,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
                       return (
                         <div 
                           key={qi} 
-                          className={`rounded-xl border p-4 ${correct 
+                          className={`rounded-xl border p-4 transition-all duration-200 ease-out ${correct 
                             ? 'border-emerald-700/50 bg-emerald-900/10' 
                             : 'border-red-700/50 bg-red-900/10'
                           }`}
@@ -779,7 +779,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
                         setQuizAnswers({});
                         setQuizSubmitted(false);
                       }}
-                      className="mt-3 px-6 py-2 rounded-2xl border border-[var(--player-border-accent)] bg-[var(--player-bg-card-muted)] hover:bg-[var(--player-bg-card-inner)] text-[var(--player-text-prose)] text-sm tracking-wide"
+                      className="mt-3 px-6 py-2 rounded-2xl border border-[var(--player-border-accent)] bg-[var(--player-bg-card-muted)] hover:bg-[var(--player-bg-card-inner)] hover:-translate-y-px text-[var(--player-text-prose)] text-sm tracking-wide transition-all duration-150 ease-out"
                     >
                       Retake the Final Quiz
                     </button>
@@ -796,7 +796,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
                 Make your choice
               </div>
             )}
-            <div className={`space-y-2.5 pt-1 transition-opacity duration-200 ${isAdvancing ? 'opacity-70 pointer-events-none' : ''} ${!hasFigureQuestion ? 'border border-[var(--player-divider-muted)] rounded-[var(--player-card-radius)] p-2 bg-[var(--player-bg-card-muted)]' : ''}`}>
+            <div className={`space-y-2.5 pt-1 transition-all duration-200 ease-out ${isAdvancing ? 'opacity-70 pointer-events-none' : ''} ${!hasFigureQuestion ? 'border border-[var(--player-divider-muted)] rounded-[var(--player-card-radius)] p-2 bg-[var(--player-bg-card-muted)]' : ''}`}>
               {(current.choices ?? []).map((c, i) => {
               const isSelected = selectedChoiceIndex === i;
               const leadsToEnding = getReachableEnding(c.next);
@@ -807,19 +807,19 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
                   key={i}
                   onClick={() => choose(i)}
                   disabled={isAdvancing}
-                  className={`block w-full text-left px-4 py-3 rounded-[var(--player-card-radius)] border transition-all text-[var(--player-btn-text)] text-[17px] leading-snug disabled:opacity-70
+                  className={`block w-full text-left px-4 py-3 rounded-[var(--player-card-radius)] border transition-all duration-150 ease-out text-[var(--player-btn-text)] text-[17px] leading-snug disabled:opacity-70
                     ${isSelected
                       ? 'border-[var(--player-btn-border-selected)] bg-[var(--player-btn-bg-selected)] scale-[1.02] shadow-sm'
                       : endingHint 
-                        ? `border-[var(--player-btn-border)] bg-[var(--player-btn-bg)] hover:bg-[var(--player-btn-bg-hover)] active:scale-[0.985] active:bg-[var(--player-btn-bg-hover)] ${endingHint.border.replace('border-', 'hover:border-')}`
-                        : 'border-[var(--player-btn-border)] bg-[var(--player-btn-bg)] hover:bg-[var(--player-btn-bg-hover)] active:scale-[0.985] active:bg-[var(--player-btn-bg-hover)]'
+                        ? `border-[var(--player-btn-border)] bg-[var(--player-btn-bg)] hover:bg-[var(--player-btn-bg-hover)] hover:-translate-y-px active:scale-[0.985] active:bg-[var(--player-btn-bg-hover)] ${endingHint.border.replace('border-', 'hover:border-')}`
+                        : 'border-[var(--player-btn-border)] bg-[var(--player-btn-bg)] hover:bg-[var(--player-btn-bg-hover)] hover:-translate-y-px active:scale-[0.985] active:bg-[var(--player-btn-bg-hover)]'
                     } ${endingHint ? 'pr-3' : ''}`}
                 >
                   <span className="flex items-center justify-between">
                     <span>{c.text}</span>
                     <span className="flex items-center gap-1 ml-2">
                       {isSelected && (
-                        <span className="text-[var(--player-btn-accent)] text-sm transition-all">→</span>
+                        <span className="text-[var(--player-btn-accent)] text-sm transition-all duration-150 ease-out">→</span>
                       )}
                       {endingHint && (
                         <span className={`${endingHint.color} inline-block w-1 h-1 rounded-full opacity-70`} style={{ backgroundColor: 'currentColor' }} title={`Leads toward ${endingHint.label}`} />
