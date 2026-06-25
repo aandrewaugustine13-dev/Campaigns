@@ -185,6 +185,9 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
   const [isAdvancing, setIsAdvancing] = useState(false);
   const [isSubmittingQuiz, setIsSubmittingQuiz] = useState(false);
 
+  // Visual feedback for choice selection
+  const [selectedChoiceIndex, setSelectedChoiceIndex] = useState<number | null>(null);
+
   // Text-to-speech for accessibility (per-passage read aloud)
   const [isSpeaking, setIsSpeaking] = useState(false);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
@@ -223,13 +226,15 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
     const p = byId.get(currentId);
     const c = p?.choices?.[choiceIndex];
     if (!c || !byId.has(c.next) || isAdvancing) return; // defensive + prevent double
+    setSelectedChoiceIndex(choiceIndex);
     setIsAdvancing(true);
     // Small delay + visual feedback for smoother "page turn" feel between passages
     setTimeout(() => {
       setHistory((h) => [...h, { passageId: currentId, choiceIndex, choiceText: c.text, next: c.next }]);
       setCurrentId(c.next);
       setIsAdvancing(false);
-    }, 160);
+      setSelectedChoiceIndex(null);
+    }, 200); // slightly longer to show feedback
   }, [byId, currentId, isAdvancing]);
 
   // Text-to-speech handler using Web Speech API
@@ -554,17 +559,29 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
             )}
           </>
         ) : (
-          <div className={`space-y-2.5 pt-1 transition-opacity duration-200 ${isAdvancing ? 'opacity-60 pointer-events-none' : ''}`}>
-            {(current.choices ?? []).map((c, i) => (
-              <button
-                key={i}
-                onClick={() => choose(i)}
-                disabled={isAdvancing}
-                className="block w-full text-left px-4 py-3 rounded-2xl border border-[#3a3630] bg-[#24211d] hover:bg-[#2c2924] active:scale-[0.985] active:bg-[#2c2924] transition-all text-[#e8dcc8] text-[17px] leading-snug disabled:opacity-70"
-              >
-                {c.text}
-              </button>
-            ))}
+          <div className={`space-y-2.5 pt-1 transition-opacity duration-200 ${isAdvancing ? 'opacity-70 pointer-events-none' : ''}`}>
+            {(current.choices ?? []).map((c, i) => {
+              const isSelected = selectedChoiceIndex === i;
+              return (
+                <button
+                  key={i}
+                  onClick={() => choose(i)}
+                  disabled={isAdvancing}
+                  className={`block w-full text-left px-4 py-3 rounded-2xl border transition-all text-[#e8dcc8] text-[17px] leading-snug disabled:opacity-70
+                    ${isSelected
+                      ? 'border-[#c9a36b] bg-[#2a2722] scale-[1.02] shadow-sm'
+                      : 'border-[#3a3630] bg-[#24211d] hover:bg-[#2c2924] active:scale-[0.985] active:bg-[#2c2924]'
+                    }`}
+                >
+                  <span className="flex items-center justify-between">
+                    <span>{c.text}</span>
+                    {isSelected && (
+                      <span className="text-[#c9a36b] text-sm ml-2 transition-all">→</span>
+                    )}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         )}
 
