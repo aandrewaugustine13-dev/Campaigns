@@ -146,6 +146,7 @@ export default function CreateBranching({ onBack }: Props) {
       <BranchingPlayer
         story={story}
         onBack={backToPreview}
+        era={story.era}
       />
     );
   }

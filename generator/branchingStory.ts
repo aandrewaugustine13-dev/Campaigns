@@ -62,6 +62,12 @@ export interface BranchingStory {
   start: string;
   passages: BranchingPassage[];
 
+  /** Optional era slug for player visual theming (e.g. "civil-war", "medieval", "ancient-rome").
+   * When present, the BranchingPlayer sets data-era and the CSS theme variables apply.
+   * The generator may set this based on the historical period of the topic.
+   */
+  era?: string;
+
   /** When gumpIntensity="high": the core sage-style questions planned for this story.
    * These ensure reliable coverage of key historical figures/events even across branching paths
    * (the generator places the corresponding passages on the main spine with convergence).

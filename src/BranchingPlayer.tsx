@@ -27,12 +27,15 @@ interface BranchingPlayerProps {
   onUnplayable?: (validation: StoryValidation) => void;
   /** Optional return-to-menu affordance (navigation only). */
   onBack?: () => void;
+  /** Era/theme identifier for visual theming (e.g. "default", "civil-war", "medieval", "ancient-rome").
+   * Overrides story.era if provided. */
+  era?: string;
 }
 
 function BackLink({ onBack }: { onBack?: () => void }) {
   if (!onBack) return null;
   return (
-    <button onClick={onBack} className="block w-full text-center text-xs text-[#8a7f6a] hover:text-[#c5b8a0] mt-6 tracking-wide">
+    <button onClick={onBack} className="block w-full text-center text-xs text-[var(--player-text-muted)] hover:text-[var(--player-text)] mt-6 tracking-wide">
       ← Back to Campaigns
     </button>
   );
@@ -40,12 +43,15 @@ function BackLink({ onBack }: { onBack?: () => void }) {
 
 // Graceful fallback for a story a model emitted broken — a clear message, never a
 // crash and never a kid stranded in a dead/looping passage.
-function Unplayable({ onBack }: { onBack?: () => void }) {
+function Unplayable({ onBack, era = 'default' }: { onBack?: () => void; era?: string }) {
   return (
-    <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] flex items-center justify-center p-6">
-      <div className="max-w-md w-full text-center space-y-3 border border-[#3a3630] bg-[#211e1a] rounded-2xl p-6">
+    <div 
+      data-era={era}
+      className="branching-player min-h-screen bg-[var(--player-bg)] bg-[radial-gradient(at_50%_15%,var(--player-bg-radial)_0%,transparent_55%)] text-[var(--player-text)] font-[var(--player-font-serif)] flex items-center justify-center p-6"
+    >
+      <div className="max-w-md w-full text-center space-y-3 border border-[var(--player-border)] bg-[var(--player-bg-card)] rounded-[var(--player-border-radius)] p-6">
         <p className="text-lg font-serif">This story isn&rsquo;t ready to play yet.</p>
-        <p className="text-sm text-[#8a7f6a]">We hit an issue assembling the full story. Please choose a different story from the menu, or ask your teacher to regenerate it.</p>
+        <p className="text-sm text-[var(--player-text-muted)]">We hit an issue assembling the full story. Please choose a different story from the menu, or ask your teacher to regenerate it.</p>
         <BackLink onBack={onBack} />
       </div>
     </div>
@@ -164,7 +170,8 @@ function generateStorySummary(
   return summary;
 }
 
-export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: BranchingPlayerProps) {
+export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, era: eraProp = 'default' }: BranchingPlayerProps) {
+  const era = eraProp || story?.era || 'default';
   const byId = useMemo(() => passageMap(story), [story]);
   // Validate up front: the player only ever runs a story proven safe start-to-end,
   // so a malformed graph degrades gracefully instead of rendering into a wall.
@@ -363,7 +370,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
   }, [validation, current, currentId, history, onEnd, onUnplayable]);
 
   // A broken story (or a missing current passage, the runtime safety net) → fallback.
-  if (!validation.playable || !current) return <Unplayable onBack={onBack} />;
+  if (!validation.playable || !current) return <Unplayable onBack={onBack} era={era} />;
 
   const ended = isEnding(current);
 
@@ -402,21 +409,24 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
   const currentEnding = ended && current.endingState ? endingVisuals[current.endingState] : null;
 
   return (
-    <div className="min-h-screen bg-[#18140f] bg-[radial-gradient(at_50%_15%,#221f1a_0%,transparent_55%)] text-[#c5b8a0] flex items-center justify-center p-6">
+    <div 
+      data-era={era}
+      className="branching-player min-h-screen bg-[var(--player-bg)] bg-[radial-gradient(at_50%_15%,var(--player-bg-radial)_0%,transparent_55%)] text-[var(--player-text)] font-[var(--player-font-serif)] flex items-center justify-center p-6"
+    >
       <div className="max-w-xl w-full space-y-5">
-        <h1 className="text-xs uppercase tracking-widest text-[#8a7f6a] text-center">{story.title}</h1>
+        <h1 className="text-xs uppercase tracking-widest text-[var(--player-text-muted)] text-center">{story.title}</h1>
 
         {/* Clear progress indicator — high-visibility for students */}
         <div className="text-center -mt-1 mb-1">
-          <div className="inline-flex items-baseline gap-1.5 text-[10px] tracking-[1.5px] text-[#8a7f6a]">
+          <div className="inline-flex items-baseline gap-1.5 text-[10px] tracking-[1.5px] text-[var(--player-text-muted)]">
             <span>Passage</span>
-            <span className="font-mono text-[#c9a36b] tabular-nums">{currentStep}</span>
+            <span className="font-mono text-[var(--player-text-accent)] tabular-nums">{currentStep}</span>
             {totalPassages > 0 && <span className="opacity-60">/ {totalPassages}</span>}
           </div>
           {/* Subtle progress bar for finished / engaging feel */}
-          <div className="mt-1.5 mx-auto w-36 h-[3px] bg-[#322c24] rounded-full overflow-hidden">
+          <div className="mt-1.5 mx-auto w-36 h-[3px] bg-[var(--player-bg-card-muted)] rounded-full overflow-hidden">
             <div
-              className="h-full bg-[#c9a36b] transition-all duration-300"
+              className="h-full bg-[var(--player-text-accent)] transition-all duration-300"
               style={{ width: `${Math.min(100, Math.round((currentStep / Math.max(1, totalPassages)) * 100))}%` }}
             />
           </div>
@@ -432,7 +442,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
 
           {/* Light collection / progress elements for sense of accomplishment */}
           {(figuresMet.length > 0 || keyMomentsExperienced > 0) && (
-            <div className="mt-0.5 text-center text-[9px] text-[#8a7f6a] tracking-wider">
+            <div className="mt-0.5 text-center text-[9px] text-[var(--player-text-muted)] tracking-wider">
               {figuresMet.length > 0 && (
                 <span className="mr-2" title={figuresMet.join(', ')}>
                   🗣️ {figuresMet.length}{story.coreSageQuestions ? `/${story.coreSageQuestions.length}` : ''} figures
@@ -451,10 +461,10 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
             currentEnding 
               ? `${currentEnding.border} ${currentEnding.bg}` 
               : hasFigureQuestion 
-                ? 'border-2 border-[#c9a36b] bg-[#1f2a22]' 
+                ? 'border-2 border-[var(--player-border-accent)] bg-[var(--player-bg-card-figure)]' 
                 : hasChoices 
-                  ? 'border border-[#6a6358] bg-[#211e1a]' 
-                  : 'border border-[#3a3630] bg-[#211e1a]'
+                  ? 'border border-[var(--player-border-muted)] bg-[var(--player-bg-card-decision)]' 
+                  : 'border border-[var(--player-border)] bg-[var(--player-bg-card)]'
           }`}
         >
           {/* Teacher-curated image (if any) — shown during review/play for visual stories */}
@@ -463,10 +473,10 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
               <img
                 src={current.image.thumbUrl}
                 alt=""
-                className={`w-full h-auto ${hasFigureQuestion ? 'border-b-2 border-[#c9a36b]/50' : ''}`}
+                className={`w-full h-auto ${hasFigureQuestion ? 'border-b-2 border-[var(--player-border-accent)]/50' : ''}`}
               />
               {(current.image.artist || current.image.license) && (
-                <div className="text-[10px] text-[#8a7f6a] px-4 pt-1.5 pb-2 border-t border-[#3a3630]">
+                <div className="text-[10px] text-[var(--player-text-muted)] px-4 pt-1.5 pb-2 border-t border-[var(--player-border)]">
                   {current.image.artist || "Curated"} {current.image.license ? `· ${current.image.license}` : ""}
                   {current.image.sourceUrl && (
                     <>
@@ -475,7 +485,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                         href={current.image.sourceUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="underline hover:text-[#c5b8a0]"
+                        className="underline hover:text-[var(--player-text)]"
                       >
                         Source
                       </a>
@@ -487,10 +497,10 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
           )}
 
           {/* The story passage prose — key triggers natural re-animation on change */}
-          <div key={currentId} className={`p-6 transition-opacity duration-300 ${hasFigureQuestion ? 'bg-[#1c1915]/50' : ''}`}>
+          <div key={currentId} className={`p-6 transition-opacity duration-300 ${hasFigureQuestion ? 'bg-[var(--player-bg-card-muted)]/50' : ''}`}>
             {/* Type indicator for visual distinction */}
             {(hasFigureQuestion || hasChoices) && (
-              <div className={`mb-3 text-xs uppercase tracking-[2px] flex items-center gap-2 ${hasFigureQuestion ? 'text-[#c9a36b] font-semibold' : 'text-[#b89d6e]'}`}>
+              <div className={`mb-3 text-xs uppercase tracking-[2px] flex items-center gap-2 ${hasFigureQuestion ? 'text-[var(--player-text-accent)] font-semibold' : 'text-[var(--player-text-accent-2)]'}`}>
                 {hasFigureQuestion ? (
                   <>
                     <span className="text-lg">🗣️</span>
@@ -508,7 +518,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
 
             {/* Brief consequence hint from recent choice */}
             {!ended && recentChoice && (
-              <div className="mb-2 text-[10px] text-[#8a7f6a] italic border-l-2 border-[#5a5548] pl-2">
+              <div className="mb-2 text-[10px] text-[var(--player-text-muted)] italic border-l-2 border-[var(--player-border-muted)] pl-2">
                 Because you chose this...
                 {recentChoice.lean && (
                   <span className={`ml-1 ${endingVisuals[recentChoice.lean].color}`}>
@@ -524,8 +534,8 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                 onClick={handleSpeak}
                 className={`inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-all border ${
                   isSpeaking
-                    ? 'bg-[#3a2f1f] border-[#c9a36b] text-[#c9a36b]'
-                    : 'border-[#3a3630] text-[#8a7f6a] hover:text-[#c9a36b] hover:border-[#5a5548] hover:bg-[#2a2722]'
+                    ? 'bg-[var(--player-bg-card-muted)] border-[var(--player-border-accent)] text-[var(--player-text-accent)]'
+                    : 'border-[var(--player-border)] text-[var(--player-text-muted)] hover:text-[var(--player-text-accent)] hover:border-[var(--player-border-muted)] hover:bg-[var(--player-bg-card-inner)]'
                 }`}
                 aria-label={isSpeaking ? 'Stop reading passage aloud' : 'Read passage aloud'}
                 title={isSpeaking ? 'Stop' : 'Read aloud'}
@@ -535,7 +545,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
               </button>
             </div>
 
-            <p className="text-[21px] leading-[1.65] font-serif whitespace-pre-line text-[#e8dcc8]">
+            <p className="text-[21px] leading-[1.65] font-serif whitespace-pre-line text-[var(--player-text-prose)]">
               {current.text}
             </p>
           </div>
@@ -543,20 +553,20 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
 
         {/* In-story question from historical figure (sage-style trivia, when present on the passage) */}
         {current.question && (
-          <div className="border-2 border-[#c9a36b] bg-[#1f2a22] rounded-2xl p-5">
+          <div className="border-2 border-[var(--player-border-accent)] bg-[var(--player-bg-card-figure)] rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-[#c9a36b] text-xl">🗣️</span>
-              <span className="uppercase text-xs tracking-[2px] text-[#c9a36b] font-semibold">Historical Figure Encounter</span>
+              <span className="text-[var(--player-text-accent)] text-xl">🗣️</span>
+              <span className="uppercase text-xs tracking-[2px] text-[var(--player-text-accent)] font-semibold">Historical Figure Encounter</span>
             </div>
-            <p className="font-semibold text-[#b89d6e] mb-1">A historical figure asks:</p>
-            <p className="mt-1 text-lg font-medium text-[#e8dcc8] leading-relaxed">“{current.question.question}”</p>
+            <p className="font-semibold text-[var(--player-text-accent-2)] mb-1">A historical figure asks:</p>
+            <p className="mt-1 text-lg font-medium text-[var(--player-text-prose)] leading-relaxed">“{current.question.question}”</p>
             {answeredQuestion === null ? (
               <div className="mt-4 space-y-2">
                 {current.question.choices.map((c: string, i: number) => (
                   <button
                     key={i}
                     onClick={() => setAnsweredQuestion(i)}
-                    className="block w-full text-left px-4 py-2.5 rounded-xl border border-[#5a5548] bg-[#1c1915] hover:bg-[#2a2722] hover:border-[#c9a36b] active:scale-[0.985] transition-all text-[#c5b8a0] font-medium"
+                    className="block w-full text-left px-4 py-2.5 rounded-xl border border-[var(--player-border-muted)] bg-[var(--player-bg-card-muted)] hover:bg-[var(--player-bg-card-inner)] hover:border-[var(--player-border-accent)] active:scale-[0.985] transition-all text-[var(--player-text-muted)] font-medium"
                   >
                     {c}
                   </button>
@@ -564,14 +574,14 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
               </div>
             ) : (
               <div className="mt-3 text-sm">
-                <p className="text-[#c5b8a0]">Your answer: <strong className="text-[#e8dcc8]">{current.question.choices[answeredQuestion]}</strong></p>
+                <p className="text-[var(--player-text-muted)]">Your answer: <strong className="text-[var(--player-text-prose)]">{current.question.choices[answeredQuestion]}</strong></p>
                 <p className={answeredQuestion === current.question.correctIndex ? "text-emerald-400 font-semibold mt-1" : "text-red-400 font-semibold mt-1"}>
                   {answeredQuestion === current.question.correctIndex ? "Correct!" : "Not quite."}
                 </p>
-                <p className="mt-1 text-[#a69a80]">{current.question.explanation}</p>
+                <p className="mt-1 text-[var(--player-text-muted)]">{current.question.explanation}</p>
                 <button
                   onClick={() => setAnsweredQuestion(null)}
-                  className="mt-2 text-xs text-[#b89d6e] underline hover:text-[#c9a36b]"
+                  className="mt-2 text-xs text-[var(--player-text-accent-2)] underline hover:text-[var(--player-text-accent)]"
                 >
                   Hide feedback
                 </button>
@@ -583,7 +593,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
         {ended ? (
           <>
             <div className={`text-center pt-1 ${currentEnding ? currentEnding.border : ''}`}>
-              <p className={`text-xs tracking-[3px] uppercase flex items-center justify-center gap-2 ${currentEnding ? currentEnding.color : 'text-[#8a7f6a]'}`}>
+              <p className={`text-xs tracking-[3px] uppercase flex items-center justify-center gap-2 ${currentEnding ? currentEnding.color : 'text-[var(--player-text-muted)]'}`}>
                 {currentEnding ? (
                   <>
                     <span>{currentEnding.icon}</span>
@@ -592,37 +602,37 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                   </>
                 ) : "— The End —"}
               </p>
-              <div className="h-px w-8 bg-[#3a3630] mx-auto my-2" />
+              <div className="h-px w-8 bg-[var(--player-border)] mx-auto my-2" />
             </div>
 
             {currentEnding && (
               <div className={`mt-4 mb-4 p-4 rounded-2xl border ${currentEnding.border} ${currentEnding.bg} text-center`}>
                 <div className={`text-3xl mb-2 ${currentEnding.color}`}>{currentEnding.icon}</div>
                 <div className={`font-semibold text-lg tracking-tight ${currentEnding.color}`}>You reached a {currentEnding.label} ending</div>
-                <p className="mt-2 text-sm text-[#c5b8a0]">{currentEnding.description}</p>
+                <p className="mt-2 text-sm text-[var(--player-text-muted)]">{currentEnding.description}</p>
                 {history.length > 0 && (
-                  <p className="mt-1 text-[10px] text-[#8a7f6a]">Your choices shaped this path.</p>
+                  <p className="mt-1 text-[10px] text-[var(--player-text-muted)]">Your choices shaped this path.</p>
                 )}
               </div>
             )}
 
             {/* Final check for understanding / comprehension quiz at the end of playthrough */}
             {story.finalQuiz && (
-              <div className={`mt-5 border-2 border-[#c9a36b] bg-[#1f2a22] rounded-2xl p-5 transition-opacity shadow-sm ${isSubmittingQuiz ? 'opacity-80' : ''}`}>
+              <div className={`mt-5 border-2 border-[var(--player-border-accent)] bg-[var(--player-bg-card-figure)] rounded-2xl p-5 transition-opacity shadow-sm ${isSubmittingQuiz ? 'opacity-80' : ''}`}>
                 <div className="flex items-center gap-3 mb-3">
                   <span className="text-2xl">🏆</span>
-                  <h2 className="font-semibold text-xl text-[#c9a36b] tracking-tight">{story.finalQuiz.title}</h2>
+                  <h2 className="font-semibold text-xl text-[var(--player-text-accent)] tracking-tight">{story.finalQuiz.title}</h2>
                 </div>
-                <p className="text-sm mb-5 text-[#a69a80] leading-relaxed">{story.finalQuiz.instructions}</p>
+                <p className="text-sm mb-5 text-[var(--player-text-muted)] leading-relaxed">{story.finalQuiz.instructions}</p>
                 {!quizSubmitted ? (
                   <div className="space-y-4">
                     {story.finalQuiz.questions.map((q: any, qi: number) => {
                       const selected = quizAnswers[qi];
                       return (
-                        <div key={qi} className="rounded-2xl border border-[#3a3630] bg-[#1c1915] p-4">
+                        <div key={qi} className="rounded-2xl border border-[var(--player-border)] bg-[var(--player-bg-card-muted)] p-4">
                           <div className="flex items-baseline gap-2 mb-3">
-                            <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-[#3a3630] text-[#c9a36b]">Q{qi + 1}</span>
-                            <p className="text-[#e8dcc8] font-medium leading-snug">{q.question}</p>
+                            <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-[var(--player-bg-card-inner)] text-[var(--player-text-accent)]">Q{qi + 1}</span>
+                            <p className="text-[var(--player-text-prose)] font-medium leading-snug">{q.question}</p>
                           </div>
                           <div className="space-y-2">
                             {q.choices.map((c: string, ci: number) => {
@@ -634,11 +644,11 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                                   onClick={() => setQuizAnswers(prev => ({...prev, [qi]: ci}))}
                                   className={`w-full text-left px-4 py-3 rounded-xl border text-[15px] transition-all flex items-center gap-3 ${
                                     isSel 
-                                      ? 'border-[#c9a36b] bg-[#2a2722] text-[#e8dcc8] ring-1 ring-[#c9a36b]/30' 
-                                      : 'border-[#3a3630] bg-[#24211d] hover:bg-[#2c2924] text-[#c5b8a0] hover:border-[#5a5548]'
+                                      ? 'border-[var(--player-border-accent)] bg-[var(--player-bg-card-muted)] text-[var(--player-text-prose)] ring-1 ring-[var(--player-border-accent)]/30' 
+                                      : 'border-[var(--player-border)] bg-[var(--player-bg-card-inner)] hover:bg-[var(--player-bg-card-muted)] text-[var(--player-text-muted)] hover:border-[var(--player-border-muted)]'
                                   }`}
                                 >
-                                  <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full border text-xs flex-shrink-0 ${isSel ? 'border-[#c9a36b] bg-[#c9a36b] text-[#1f2a22]' : 'border-[#5a5548] text-[#5a5548]'}`}>
+                                  <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full border text-xs flex-shrink-0 ${isSel ? 'border-[var(--player-border-accent)] bg-[var(--player-text-accent)] text-[var(--player-bg-card)]' : 'border-[var(--player-border-muted)] text-[var(--player-text-muted)]'}`}>
                                     {String.fromCharCode(65 + ci)}
                                   </span>
                                   <span>{c}</span>
@@ -658,7 +668,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                           setIsSubmittingQuiz(false);
                         }, 320);
                       }} 
-                      className="mt-3 w-full px-6 py-3 bg-[#5c4635] hover:bg-[#6a523f] active:bg-[#3a2f1f] text-[#e8dcc8] rounded-2xl border-2 border-[#c9a36b]/50 text-base font-semibold tracking-wide transition-all disabled:opacity-50"
+                      className="mt-3 w-full px-6 py-3 bg-[var(--player-bg-card-muted)] hover:bg-[var(--player-bg-card-inner)] active:bg-[var(--player-bg-card)] text-[var(--player-text-prose)] rounded-2xl border-2 border-[var(--player-border-accent)]/50 text-base font-semibold tracking-wide transition-all disabled:opacity-50"
                       disabled={Object.keys(quizAnswers).length < (story.finalQuiz.questions?.length || 0) || isSubmittingQuiz}
                     >
                       {isSubmittingQuiz ? "Checking your answers…" : "Submit Final Answers"}
@@ -668,12 +678,12 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                   <div className="space-y-4 text-sm">
                     {/* Results header */}
                     <div className="text-center pb-2">
-                      <div className="text-xs uppercase tracking-[2px] text-[#b89d6e] mb-1">Quiz Complete</div>
+                      <div className="text-xs uppercase tracking-[2px] text-[var(--player-text-accent-2)] mb-1">Quiz Complete</div>
                       {quizScore && (
-                        <div className="inline-flex items-center gap-3 bg-[#2a2722] border border-[#c9a36b]/30 rounded-2xl px-6 py-2">
-                          <div className="text-3xl font-semibold tabular-nums text-[#c9a36b]">{quizScore.percent}%</div>
+                        <div className="inline-flex items-center gap-3 bg-[var(--player-bg-card-muted)] border border-[var(--player-border-accent)]/30 rounded-2xl px-6 py-2">
+                          <div className="text-3xl font-semibold tabular-nums text-[var(--player-text-accent)]">{quizScore.percent}%</div>
                           <div className="text-left text-xs leading-tight">
-                            <div className="text-[#e8dcc8]">{quizScore.correct} / {quizScore.total} correct</div>
+                            <div className="text-[var(--player-text-prose)]">{quizScore.correct} / {quizScore.total} correct</div>
                           </div>
                         </div>
                       )}
@@ -690,22 +700,22 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                             : 'border-red-700/50 bg-red-900/10'
                           }`}
                         >
-                          <p className="text-[#e8dcc8] font-medium mb-2"><strong>Q{qi + 1}: </strong>{q.question}</p>
+                          <p className="text-[var(--player-text-prose)] font-medium mb-2"><strong>Q{qi + 1}: </strong>{q.question}</p>
                           
                           <div className="space-y-1 text-xs">
                             <div className={`flex items-start gap-2 ${correct ? 'text-emerald-400' : 'text-red-400'}`}>
                               <span className="font-mono mt-0.5">You:</span> 
-                              <strong className="text-[#e8dcc8]">{q.choices[userAns]}</strong> 
+                              <strong className="text-[var(--player-text-prose)]">{q.choices[userAns]}</strong> 
                               <span>{correct ? "✓" : "✗"}</span>
                             </div>
-                            <div className="flex items-start gap-2 text-[#c5b8a0]">
+                            <div className="flex items-start gap-2 text-[var(--player-text-muted)]">
                               <span className="font-mono mt-0.5">Correct:</span> 
                               <span>{q.choices[q.correctIndex]}</span>
                             </div>
                           </div>
 
-                          <p className="mt-2 text-[#a69a80] text-[13px] leading-snug">{q.explanation}</p>
-                          {q.context && <p className="text-[10px] text-[#8a7f6a] mt-1">({q.context})</p>}
+                          <p className="mt-2 text-[var(--player-text-muted)] text-[13px] leading-snug">{q.explanation}</p>
+                          {q.context && <p className="text-[10px] text-[var(--player-text-muted)] mt-1">({q.context})</p>}
                         </div>
                       );
                     })}
@@ -720,30 +730,30 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
               <div className="mt-6 space-y-4">
                 {/* Educational story summary — generated from the passages the student actually played */}
                 {storySummary && (
-                  <div className="border border-[#3a3630] bg-[#211e1a] rounded-2xl p-5">
-                    <div className="uppercase tracking-[2.5px] text-[#b89d6e] text-[10px] mb-2">What happened in your story</div>
-                    <div className="text-[#e8dcc8] leading-[1.65] text-[15px]">
+                  <div className="border border-[var(--player-border)] bg-[var(--player-bg-card)] rounded-2xl p-5">
+                    <div className="uppercase tracking-[2.5px] text-[var(--player-text-accent-2)] text-[10px] mb-2">What happened in your story</div>
+                    <div className="text-[var(--player-text-prose)] leading-[1.65] text-[15px]">
                       {storySummary}
                     </div>
                   </div>
                 )}
 
                 {/* Ending + Quiz results summary */}
-                <div className={`text-center border-2 rounded-2xl p-5 ${currentEnding ? currentEnding.border + ' ' + currentEnding.bg : 'border-[#3a3630] bg-[#211e1a]'}`}>
+                <div className={`text-center border-2 rounded-2xl p-5 ${currentEnding ? currentEnding.border + ' ' + currentEnding.bg : 'border-[var(--player-border)] bg-[var(--player-bg-card)]'}`}>
                   {currentEnding && (
                     <div className={`text-lg font-semibold mb-1 ${currentEnding.color}`}>
                       {currentEnding.icon} {currentEnding.label} Ending {currentEnding.icon}
                     </div>
                   )}
                   {history.length > 0 && (
-                    <div className="text-[10px] text-[#8a7f6a] mt-0.5">Shaped by the choices you made along the way.</div>
+                    <div className="text-[10px] text-[var(--player-text-muted)] mt-0.5">Shaped by the choices you made along the way.</div>
                   )}
-                  <p className={quizScore.percent >= 90 ? "text-emerald-400 font-semibold text-lg" : "text-[#c5b8a0] text-base"}>
+                  <p className={quizScore.percent >= 90 ? "text-emerald-400 font-semibold text-lg" : "text-[var(--player-text-muted)] text-base"}>
                     {quizScore.percent >= 90 
                       ? `Excellent work! You scored ${quizScore.percent}%.` 
                       : `You scored ${quizScore.percent}%.`}
                   </p>
-                  <p className="mt-1 text-xs text-[#a69a80]">
+                  <p className="mt-1 text-xs text-[var(--player-text-muted)]">
                     {quizScore.percent >= 90 
                       ? "You have a strong understanding of the key events and figures." 
                       : "Review the summary and consider what you might do differently."}
@@ -754,7 +764,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                         setQuizAnswers({});
                         setQuizSubmitted(false);
                       }}
-                      className="mt-3 px-6 py-2 rounded-2xl border border-[#c9a36b] bg-[#2a2722] hover:bg-[#3a2f1f] text-[#e8dcc8] text-sm tracking-wide"
+                      className="mt-3 px-6 py-2 rounded-2xl border border-[var(--player-border-accent)] bg-[var(--player-bg-card-muted)] hover:bg-[var(--player-bg-card-inner)] text-[var(--player-text-prose)] text-sm tracking-wide"
                     >
                       Retake the Final Quiz
                     </button>
@@ -767,11 +777,11 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
           <>
             {/* Decision moment indicator (only for non-figure passages) */}
             {!ended && !hasFigureQuestion && (
-              <div className="text-xs uppercase tracking-[2px] text-[#6a6358] mb-1 flex items-center gap-1.5">
+              <div className="text-xs uppercase tracking-[2px] text-[var(--player-text-muted)] mb-1 flex items-center gap-1.5">
                 <span>⚖️</span> Make your choice
               </div>
             )}
-            <div className={`space-y-2.5 pt-1 transition-opacity duration-200 ${isAdvancing ? 'opacity-70 pointer-events-none' : ''} ${!hasFigureQuestion ? 'border border-[#5a5548] rounded-xl p-2 bg-[#1c1915]' : ''}`}>
+            <div className={`space-y-2.5 pt-1 transition-opacity duration-200 ${isAdvancing ? 'opacity-70 pointer-events-none' : ''} ${!hasFigureQuestion ? 'border border-[var(--player-border-muted)] rounded-xl p-2 bg-[var(--player-bg-card-muted)]' : ''}`}>
               {(current.choices ?? []).map((c, i) => {
               const isSelected = selectedChoiceIndex === i;
               const leadsToEnding = getReachableEnding(c.next);
@@ -782,19 +792,19 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack }: 
                   key={i}
                   onClick={() => choose(i)}
                   disabled={isAdvancing}
-                  className={`block w-full text-left px-4 py-3 rounded-2xl border transition-all text-[#e8dcc8] text-[17px] leading-snug disabled:opacity-70
+                  className={`block w-full text-left px-4 py-3 rounded-2xl border transition-all text-[var(--player-text-prose)] text-[17px] leading-snug disabled:opacity-70
                     ${isSelected
-                      ? 'border-[#c9a36b] bg-[#2a2722] scale-[1.02] shadow-sm'
+                      ? 'border-[var(--player-border-accent)] bg-[var(--player-bg-card-muted)] scale-[1.02] shadow-sm'
                       : endingHint 
-                        ? `border-[#3a3630] bg-[#24211d] hover:bg-[#2c2924] active:scale-[0.985] active:bg-[#2c2924] ${endingHint.border.replace('border-', 'hover:border-')}`
-                        : 'border-[#3a3630] bg-[#24211d] hover:bg-[#2c2924] active:scale-[0.985] active:bg-[#2c2924]'
+                        ? `border-[var(--player-border)] bg-[var(--player-bg-card-inner)] hover:bg-[var(--player-bg-card-muted)] active:scale-[0.985] active:bg-[var(--player-bg-card-muted)] ${endingHint.border.replace('border-', 'hover:border-')}`
+                        : 'border-[var(--player-border)] bg-[var(--player-bg-card-inner)] hover:bg-[var(--player-bg-card-muted)] active:scale-[0.985] active:bg-[var(--player-bg-card-muted)]'
                     } ${endingHint ? 'pr-3' : ''}`}
                 >
                   <span className="flex items-center justify-between">
                     <span>{c.text}</span>
                     <span className="flex items-center gap-1 ml-2">
                       {isSelected && (
-                        <span className="text-[#c9a36b] text-sm transition-all">→</span>
+                        <span className="text-[var(--player-text-accent)] text-sm transition-all">→</span>
                       )}
                       {endingHint && (
                         <span className={`text-xs ${endingHint.color} opacity-70`} title={`Leads toward ${endingHint.label}`}>

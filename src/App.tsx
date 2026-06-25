@@ -917,7 +917,15 @@ export default function App(){
   if(campaignId==="lewisclark")return <GeneratedCampaign onBack={backToMenu}/>;
   if(campaignId==="joseph")return <GeneratedCampaign data={josephReconstruction as unknown as CampaignData} onBack={backToMenu}/>;
   if(campaignId==="narrative-meiji")return <GeneratedCampaign data={narrativeDemo as unknown as CampaignData} onBack={backToMenu}/>;
-  if(campaignId && BRANCHING_STORIES[campaignId])return <BranchingPlayer story={BRANCHING_STORIES[campaignId]} onBack={backToMenu}/>;
+  if(campaignId && BRANCHING_STORIES[campaignId]) {
+    const story = BRANCHING_STORIES[campaignId];
+    // Demo different eras for the branching fixtures so the theming system is visible
+    const demoEra =
+      campaignId === "branch-1812" ? "revolutionary" :
+      campaignId === "branch-reconstruction" ? "civil-war" :
+      campaignId === "branch-suffrage" ? "renaissance" : undefined;
+    return <BranchingPlayer story={story} era={demoEra} onBack={backToMenu} />;
+  }
   if(campaignId==="generator")return <GeneratorUI onBack={backToMenu}/>;
   if(campaignId==="create-branching")return <CreateBranching onBack={backToMenu}/>;
 

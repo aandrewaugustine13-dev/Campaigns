@@ -536,3 +536,197 @@
 a.theme-dialogue-attribution-link:hover {
   color: var(--dialogue-attribution-link-hover) !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   BRANCHING PLAYER THEMING FOUNDATION (era-aware visual identities)
+   ───────────────────────────────────────────────────────────────
+   The student player (BranchingPlayer) renders inside:
+     <div class="branching-player" data-era="...">...</div>
+
+   All player visuals are driven by CSS custom properties (variables).
+   Override in [data-era="your-era"] blocks to give each historical
+   period its own look without touching component code.
+
+   HOW TO EXTEND:
+     1. Add a new kebab-case slug, e.g. data-era="ancient-rome"
+     2. Add a rule: .branching-player[data-era="ancient-rome"] { ... }
+     3. Override only the tokens that should differ for that era.
+     4. Pass era="ancient-rome" to <BranchingPlayer era="..." /> or
+        let the story JSON carry "era" (story.era).
+     5. New themes inherit everything not listed from the base below.
+
+   VARIABLE CATEGORIES (all namespaced under --player-*):
+   • Colors        — primary/secondary/background/accent/text
+   • Typography    — families, sizes, weights
+   • Borders/Cards — width, radius, padding, specific card states
+   • Spacing       — scale tokens for future layout tweaks
+   • Shadows       — elevation levels
+
+   The component consumes the concrete tokens (bg-*, text-*, border-*)
+   directly via Tailwind arbitrary values so every era swap is instant.
+   ═══════════════════════════════════════════════════════════════ */
+
+.branching-player {
+  /* === COLORS (primary, secondary, bg, accent, text) === */
+  --player-color-primary: #c9a36b;
+  --player-color-secondary: #8a7f6a;
+  --player-color-bg: #18140f;
+  --player-color-bg-alt: #221f1a;
+  --player-color-bg-card: #211e1a;
+  --player-color-bg-card-muted: #1c1915;
+  --player-color-bg-card-figure: #1f2a22;
+  --player-color-bg-card-decision: #211e1a;
+  --player-color-bg-card-inner: #24211d;
+  --player-color-accent: #c9a36b;
+  --player-color-accent-2: #b89d6e;
+  --player-color-text: #c5b8a0;
+  --player-color-text-prose: #e8dcc8;
+  --player-color-text-muted: #8a7f6a;
+
+  /* Concrete aliases consumed by JSX (keep in sync with color-* above) */
+  --player-bg: var(--player-color-bg);
+  --player-bg-radial: var(--player-color-bg-alt);
+  --player-bg-card: var(--player-color-bg-card);
+  --player-bg-card-muted: var(--player-color-bg-card-muted);
+  --player-bg-card-figure: var(--player-color-bg-card-figure);
+  --player-bg-card-decision: var(--player-color-bg-card-decision);
+  --player-bg-card-inner: var(--player-color-bg-card-inner);
+
+  --player-text: var(--player-color-text);
+  --player-text-prose: var(--player-color-text-prose);
+  --player-text-muted: var(--player-color-text-muted);
+  --player-text-accent: var(--player-color-accent);
+  --player-text-accent-2: var(--player-color-accent-2);
+
+  --player-border: #3a3630;
+  --player-border-muted: #5a5548;
+  --player-border-accent: var(--player-color-accent);
+
+  /* === TYPOGRAPHY === */
+  --player-font-family: Georgia, "Times New Roman", serif;
+  --player-font-serif: var(--player-font-family);
+  --player-font-size-prose: 1.3125rem;   /* comfortable reading size */
+  --player-font-size-sm: 0.875rem;
+  --player-font-size-xs: 0.75rem;
+  --player-font-weight: 400;
+  --player-font-weight-medium: 500;
+  --player-font-weight-semibold: 600;
+
+  /* === BORDERS & CARD STYLING === */
+  --player-border-width: 1px;
+  --player-border-radius: 1rem;
+  --player-card-padding: 1.5rem;
+
+  /* === SPACING === */
+  --player-space-xs: 0.25rem;
+  --player-space-sm: 0.5rem;
+  --player-space-md: 1rem;
+  --player-space-lg: 1.5rem;
+
+  /* === SHADOWS === */
+  --player-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.08);
+  --player-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.12), 0 2px 4px -2px rgb(0 0 0 / 0.08);
+}
+
+/* ───────────────────────────────────────────────────────────────
+   ERA OVERRIDES — each block gives a distinct visual identity.
+   Only list the tokens that should change for that period.
+   Add new eras below in the same pattern.
+   ─────────────────────────────────────────────────────────────── */
+
+/* default — elegant dark leather/ink (base look) */
+.branching-player[data-era="default"] {
+  /* inherits the base above */
+}
+
+/* Civil War / mid-19th century — earthy sepia, warm browns, plain serif */
+.branching-player[data-era="civil-war"] {
+  --player-color-bg: #1a150f;
+  --player-color-bg-alt: #2a221a;
+  --player-color-bg-card: #2a221a;
+  --player-color-bg-card-figure: #2f2820;
+  --player-color-bg-card-muted: #25211a;
+  --player-color-text: #f0e6d0;
+  --player-color-text-prose: #f0e6d0;
+  --player-color-text-muted: #a69a80;
+  --player-color-accent: #8b5a2b;
+  --player-color-accent-2: #a67c52;
+  --player-border: #4a4030;
+  --player-border-muted: #5c5240;
+  --player-border-accent: #8b5a2b;
+  --player-font-serif: Georgia, serif;
+}
+
+/* Medieval / illuminated manuscript — vellum + rubric ink, Cinzel display feel */
+.branching-player[data-era="medieval"] {
+  --player-color-bg: #2a1d12;
+  --player-color-bg-card: #1a150f;
+  --player-color-bg-card-figure: #1f1a15;
+  --player-color-bg-card-muted: #1c1915;
+  --player-color-text: #f0e6d0;
+  --player-color-text-prose: #f0e6d0;
+  --player-color-text-muted: #a69a80;
+  --player-color-accent: #8b4513;
+  --player-color-accent-2: #b8860b;
+  --player-border: #4a3520;
+  --player-border-muted: #5c4633;
+  --player-border-accent: #8b4513;
+  --player-font-serif: "Cinzel", Georgia, serif;
+}
+
+/* Ancient Rome — classical marble + terracotta, strong architectural serif */
+.branching-player[data-era="ancient-rome"] {
+  --player-color-bg: #1f2520;
+  --player-color-bg-alt: #2a2f2a;
+  --player-color-bg-card: #242b26;
+  --player-color-bg-card-muted: #1e2520;
+  --player-color-bg-card-figure: #2c2822;
+  --player-color-text: #e8e0d0;
+  --player-color-text-prose: #f2ebdc;
+  --player-color-text-muted: #9a8f7a;
+  --player-color-accent: #a25f3a;      /* terracotta */
+  --player-color-accent-2: #c8a16b;    /* gold leaf */
+  --player-border: #4a463f;
+  --player-border-muted: #615c52;
+  --player-border-accent: #a25f3a;
+  --player-font-serif: "Playfair Display", Georgia, serif;
+  --player-border-radius: 0.5rem;      /* more architectural */
+}
+
+/* Renaissance — rich warm tones, painterly, refined display face */
+.branching-player[data-era="renaissance"] {
+  --player-color-bg: #231b14;
+  --player-color-bg-alt: #2f251c;
+  --player-color-bg-card: #2c241b;
+  --player-color-bg-card-muted: #241e18;
+  --player-color-bg-card-figure: #2a221c;
+  --player-color-text: #f4e9d8;
+  --player-color-text-prose: #f8f0e0;
+  --player-color-text-muted: #a18e74;
+  --player-color-accent: #8b3a2f;      /* deep red lake */
+  --player-color-accent-2: #c5a46b;    /* aged gold */
+  --player-border: #463c30;
+  --player-border-muted: #61533f;
+  --player-border-accent: #8b3a2f;
+  --player-font-serif: "Cormorant Garamond", Georgia, serif;
+}
+
+/* Revolutionary / 1776 American — broadsheet newsprint meets sturdy colonial */
+.branching-player[data-era="revolutionary"] {
+  --player-color-bg: #1c1812;
+  --player-color-bg-alt: #28231c;
+  --player-color-bg-card: #2a251e;
+  --player-color-bg-card-muted: #211d18;
+  --player-color-bg-card-figure: #2c2720;
+  --player-color-text: #f0e6d0;
+  --player-color-text-prose: #f4ebda;
+  --player-color-text-muted: #968b77;
+  --player-color-accent: #5c4630;
+  --player-color-accent-2: #b38a55;
+  --player-border: #463d32;
+  --player-border-muted: #5c5345;
+  --player-border-accent: #5c4630;
+  --player-font-serif: "Playfair Display", Georgia, serif;
+  --player-font-weight: 400;
+  --player-font-weight-semibold: 600;
+}
