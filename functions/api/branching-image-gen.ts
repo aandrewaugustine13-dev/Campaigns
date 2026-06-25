@@ -32,6 +32,51 @@ export const onRequestPost = async (context: any) => {
       );
     }
 
+    // First, try Wikimedia Commons for real historical images (no Google keys needed)
+    try {
+      const { searchViaArticlePageimage, searchCommonsFileRanked } = await import('../../generator/wikimedia.js');
+
+      let wikiImage: any = null;
+
+      // Prefer article lead image for the topic (often the best canonical historical image)
+      if (topic) {
+        wikiImage = await searchViaArticlePageimage(topic);
+      }
+
+      // If no good lead, try ranked Commons search on topic + scene (prose has nouns)
+      if (!wikiImage) {
+        const query = [topic, scene].filter(Boolean).join(' ').slice(0, 300);
+        if (query) {
+          const pool = await searchCommonsFileRanked(query, null);
+          if (pool.length > 0) {
+            wikiImage = pool[0];
+          }
+        }
+      }
+
+      if (wikiImage) {
+        return new Response(
+          JSON.stringify({
+            image: {
+              thumbUrl: wikiImage.thumbUrl,
+              label: wikiImage.label || wikiImage.searchQuery || 'Historical image',
+              sourceUrl: wikiImage.sourceUrl,
+              artist: wikiImage.artist,
+              license: wikiImage.license,
+              // real historical image, not AI
+            },
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
+    } catch (e) {
+      console.warn('[branching-image-gen] Wikimedia search failed, falling back to AI:', e);
+    }
+
+    // Fallback to existing Gemini AI image generation (kept intact)
     // Reuse the existing illustration generator for consistency with local dev
     const { generateIllustration } = await import('../../generator/imageGen.js');
 
