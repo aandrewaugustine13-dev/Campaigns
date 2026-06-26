@@ -1,4 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@400;700&family=Special+Elite&family=Rye&family=Cormorant+Garamond:wght@400;500;600&family=MedievalSharp&family=Abril+Fatface&family=Anton&family=Oswald:wght@500;600;700&display=swap');
+/* Period-theme fonts for the branching player (DEV: hot-linked Google Fonts;
+   self-host + subset for production — see src/themes.ts notes). */
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital@0;1&family=Anton&family=Archivo:wght@400;600&family=EB+Garamond:ital@0;1&family=IM+Fell+English:ital@0;1&family=Noto+Serif&family=Noto+Serif+TC:wght@500;700;900&family=Pinyon+Script&family=Reem+Kufi:wght@500;700&family=Spectral:ital,wght@0,400;0,600;0,700;1,400&family=Zilla+Slab:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap');
 
 /* ═══════════════════════════════════════════════════════════════
    Campaign theme system — Phase 3 (bold per-era theming)
@@ -538,480 +542,384 @@ a.theme-dialogue-attribution-link:hover {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   BRANCHING PLAYER THEMING FOUNDATION (era-aware visual identities)
+   BRANCHING PLAYER — PERIOD THEME SYSTEM (slot-based)
    ───────────────────────────────────────────────────────────────
-   The student player (BranchingPlayer) renders inside:
-     <div class="branching-player" data-era="...">...</div>
+   Merged from the standalone theme-system. The student player renders:
+     <div class="branching-player" data-theme="<ThemeId>">
+       <div data-slot="passage"> … data-slot="story-title" / "body" /
+            "choice" / "figure-encounter" / "ending" … </div>
+     </div>
 
-   All player visuals are driven by CSS custom properties (variables).
-   Override in [data-era="your-era"] blocks to give each historical
-   period its own look without touching component code.
+   THE ONE RULE: every theme's era-lock is carried by something OTHER
+   than color (type, ornament, layout, texture). Color alone never
+   locks an era.
 
-   CORE THEMES (at minimum):
-     - western          (Western / Old West)
-     - revolutionary    (Revolutionary Era)
-     - cold-war         (Cold War)
-     - civil-rights     (Civil Rights / Mid-20th Century)
-     - classical        (Ancient / Classical World)
-     - industrial       (Industrial Revolution)
+   Everything is scoped under .branching-player so it can NEVER collide
+   with the generated-campaign [data-theme] blocks above (those drive
+   GeneratedCampaign / VisualNovelEngine — Chisholm, Crusades, Silk Road).
 
-   HOW TO EXTEND:
-     1. Add a new kebab-case slug, e.g. data-era="victorian"
-     2. Add a rule: .branching-player[data-era="victorian"] { ... }
-     3. Override only the tokens that should differ for that era.
-     4. Pass era="victorian" to <BranchingPlayer era="..." /> or
-        let the story JSON carry "era" (story.era).
-     5. New themes inherit everything not listed from the base below.
-
-   VARIABLE CATEGORIES (all namespaced under --player-*):
-   • Colors        — primary/secondary/background/accent/text
-   • Typography    — families, sizes, weights
-   • Borders/Cards — width, radius, padding, specific card states
-   • Spacing       — scale tokens for future layout tweaks
-   • Shadows       — elevation levels
-
-   The component consumes the concrete tokens (bg-*, text-*, border-*)
-   directly via Tailwind arbitrary values so every era swap is instant.
-   ═══════════════════════════════════════════════════════════════ */
-
-.branching-player {
-  /* === COLORS (primary, secondary, bg, accent, text) === */
-  --player-color-primary: #c9a36b;
-  --player-color-secondary: #8a7f6a;
-  --player-color-bg: #18140f;
-  --player-color-bg-alt: #221f1a;
-  --player-color-bg-card: #211e1a;
-  --player-color-bg-card-muted: #1c1915;
-  --player-color-bg-card-figure: #1f2a22;
-  --player-color-bg-card-decision: #211e1a;
-  --player-color-bg-card-inner: #24211d;
-  --player-color-accent: #c9a36b;
-  --player-color-accent-2: #b89d6e;
-  --player-color-text: #c5b8a0;
-  --player-color-text-prose: #e8dcc8;
-  --player-color-text-muted: #8a7f6a;
-
-  /* Concrete aliases consumed by JSX (keep in sync with color-* above) */
-  --player-bg: var(--player-color-bg);
-  --player-bg-radial: var(--player-color-bg-alt);
-  --player-bg-card: var(--player-color-bg-card);
-  --player-bg-card-muted: var(--player-color-bg-card-muted);
-  --player-bg-card-figure: var(--player-color-bg-card-figure);
-  --player-bg-card-decision: var(--player-color-bg-card-decision);
-  --player-bg-card-inner: var(--player-color-bg-card-inner);
-
-  --player-text: var(--player-color-text);
-  --player-text-prose: var(--player-color-text-prose);
-  --player-text-muted: var(--player-color-text-muted);
-  --player-text-accent: var(--player-color-accent);
-  --player-text-accent-2: var(--player-color-accent-2);
-
-  --player-border: #3a3630;
-  --player-border-muted: #5a5548;
-  --player-border-accent: var(--player-color-accent);
-
-  /* === TYPOGRAPHY === */
-  --player-font-family: Georgia, "Times New Roman", serif;
-  --player-font-serif: var(--player-font-family);
-  --player-font-size-prose: 1.3125rem;   /* comfortable reading size */
-  --player-font-size-sm: 0.875rem;
-  --player-font-size-xs: 0.75rem;
-  --player-font-weight: 400;
-  --player-font-weight-medium: 500;
-  --player-font-weight-semibold: 600;
-
-  /* === BORDERS & CARD STYLING === */
-  --player-border-width: 1px;
-  --player-border-radius: 1rem;
-  --player-card-padding: 1.5rem;
-
-  /* === SPACING === */
-  --player-space-xs: 0.25rem;
-  --player-space-sm: 0.5rem;
-  --player-space-md: 1rem;
-  --player-space-lg: 1.5rem;
-
-  /* === SHADOWS === */
-  --player-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.08);
-  --player-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.12), 0 2px 4px -2px rgb(0 0 0 / 0.08);
-
-  /* === COMPONENT TOKENS (for consistent theming of UI pieces) === */
-  /* Passage cards already use the card-* variants + accent for special */
-  --player-card-radius: var(--player-border-radius);
-
-  /* Choice / interactive buttons */
-  --player-btn-bg: var(--player-bg-card-inner);
-  --player-btn-bg-hover: var(--player-bg-card-muted);
-  --player-btn-bg-selected: var(--player-bg-card-muted);
-  --player-btn-border: var(--player-border);
-  --player-btn-border-hover: var(--player-border-muted);
-  --player-btn-border-selected: var(--player-border-accent);
-  --player-btn-text: var(--player-text-prose);
-  --player-btn-text-muted: var(--player-text-muted);
-  --player-btn-accent: var(--player-text-accent);
-
-  /* Figure encounter sections */
-  --player-figure-bg: var(--player-bg-card-figure);
-  --player-figure-border: var(--player-border-accent);
-  --player-figure-accent: var(--player-text-accent);
-  --player-figure-accent-2: var(--player-text-accent-2);
-
-  /* Quiz interface */
-  --player-quiz-bg: var(--player-bg-card-figure);
-  --player-quiz-border: var(--player-border-accent);
-  --player-quiz-question-bg: var(--player-bg-card-muted);
-  --player-quiz-option-bg: var(--player-bg-card-inner);
-  --player-quiz-option-selected-bg: var(--player-bg-card-muted);
-  --player-quiz-option-border: var(--player-border);
-  --player-quiz-option-border-selected: var(--player-border-accent);
-  --player-quiz-label-bg: var(--player-bg-card-inner);
-  --player-quiz-label-text: var(--player-text-accent);
-
-  /* Progress indicators & dividers */
-  --player-progress-track: var(--player-bg-card-muted);
-  --player-progress-fill: var(--player-text-accent);
-  --player-divider: var(--player-border);
-  --player-divider-muted: var(--player-border-muted);
-}
-
-/* ───────────────────────────────────────────────────────────────
-   CORE HISTORICAL ERA THEMES
-   ───────────────────────────────────────────────────────────────
-   These six themes provide distinct visual identities for different
-   historical periods while staying within the app's dark elegant
-   aesthetic (deep backgrounds, high-contrast warm/cool light text,
-   restrained accents, excellent readability).
-
-   Each theme documents:
-   • Color palette (bg, cards, text, accents)
-   • Typography treatment
-   • Border + card styling
-   • Overall visual tone
-
-   Usage:
-     <div class="branching-player" data-era="western">...</div>
-     or pass era="western" to <BranchingPlayer />
-
-   All themes inherit the base .branching-player variables.
-   Only differences are listed below.
+   Scoped [data-slot] rules out-specify Tailwind utility classes
+   ((0,2,0) > (0,1,0)), so the slot styling takes over appearance while
+   the player's layout/touch utilities survive. The --player-* BRIDGE
+   below remaps the legacy variables the player's JSX still reads onto
+   the period tokens, so non-slotted elements adopt the paper palette
+   too. The id list + selection logic live in src/themes.ts.
    ─────────────────────────────────────────────────────────────── */
 
-/* default — elegant dark leather/ink (base look) */
-.branching-player[data-era="default"] {
-  /* inherits the base above */
+/* ── SHARED ENGINE — themes set variables, not new code ──────────── */
+.branching-player[data-theme] {
+  /* one reusable grain layer; per-theme opacity via --grain-op */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  position: relative;
+  background-color: var(--paper-bg);
+  color: var(--body-color);
+  font-family: var(--body-font);
+  line-height: 1.72;
+
+  /* ── BRIDGE: legacy --player-* vars → period tokens ───────────────
+     The player's JSX is saturated with bg-[var(--player-*)] arbitrary
+     classes from before this system existed. Remapping them here lets
+     every non-slotted element (page frame, quiz internals, summary
+     boxes, progress bar) adopt the paper palette without rewriting
+     hundreds of classNames. Muted ink is derived so it stays legible
+     on the paper ground. */
+  --player-bg: var(--paper-bg);
+  --player-bg-radial: var(--paper-bg);
+  --player-bg-card: var(--card-tint, transparent);
+  --player-bg-card-muted: var(--card-tint, transparent);
+  --player-bg-card-figure: var(--card-tint, transparent);
+  --player-bg-card-decision: var(--choice-bg, rgba(0,0,0,0.025));
+  --player-bg-card-inner: var(--choice-bg, rgba(0,0,0,0.025));
+
+  --player-text: var(--body-color);
+  --player-text-prose: var(--body-color);
+  --player-text-muted: color-mix(in srgb, var(--body-color) 68%, var(--paper-bg));
+  --player-text-accent: var(--accent);
+  --player-text-accent-2: var(--chrome-color);
+
+  --player-border: color-mix(in srgb, var(--chrome-color) 45%, var(--paper-bg));
+  --player-border-muted: color-mix(in srgb, var(--chrome-color) 60%, var(--paper-bg));
+  --player-border-accent: var(--accent);
+
+  --player-font-serif: var(--body-font);
+  --player-card-radius: 2px;
+
+  --player-btn-bg: var(--choice-bg, rgba(0,0,0,0.025));
+  --player-btn-bg-hover: var(--accent);
+  --player-btn-bg-selected: var(--card-tint, transparent);
+  --player-btn-border: var(--chrome-color);
+  --player-btn-border-hover: var(--accent);
+  --player-btn-border-selected: var(--accent);
+  --player-btn-text: var(--body-color);
+  --player-btn-text-muted: var(--body-color);
+  --player-btn-accent: var(--accent);
+
+  --player-figure-bg: var(--card-tint, transparent);
+  --player-figure-border: var(--chrome-color);
+  --player-figure-accent: var(--accent);
+  --player-figure-accent-2: var(--chrome-color);
+
+  --player-quiz-bg: var(--card-tint, transparent);
+  --player-quiz-border: var(--chrome-color);
+  --player-quiz-question-bg: var(--choice-bg, rgba(0,0,0,0.025));
+  --player-quiz-option-bg: var(--choice-bg, rgba(0,0,0,0.025));
+  --player-quiz-option-selected-bg: var(--card-tint, transparent);
+  --player-quiz-option-border: var(--chrome-color);
+  --player-quiz-option-border-selected: var(--accent);
+  --player-quiz-label-bg: var(--choice-bg, rgba(0,0,0,0.025));
+  --player-quiz-label-text: var(--accent);
+
+  --player-progress-track: var(--choice-bg, rgba(0,0,0,0.06));
+  --player-progress-fill: var(--accent);
+  --player-divider: color-mix(in srgb, var(--chrome-color) 45%, var(--paper-bg));
+  --player-divider-muted: color-mix(in srgb, var(--chrome-color) 60%, var(--paper-bg));
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   1. WESTERN / OLD WEST
-   ───────────────────────────────────────────────────────────────
-   Color palette: Deep saddle browns, warm leather, sun-bleached
-                  parchment text, sage-green hints on figure cards,
-                  worn brass accents.
-   Typography:    "Rye" (rustic wood-type display) + Georgia.
-                  Slightly heavier presence for frontier character.
-   Border/card:   Earthy mid-brown borders, slightly softened radius.
-                  Cards have a subtle "leather" warmth.
-   Tone:          Warm, dusty, adventurous, grounded. Sun-baked
-                  leather and prairie dust with elegant restraint.
-   ═══════════════════════════════════════════════════════════════ */
-.branching-player[data-era="western"] {
-  --player-color-bg: #1a160e;
-  --player-color-bg-alt: #252016;
-  --player-color-bg-card: #2a2319;
-  --player-color-bg-card-muted: #221d16;
-  --player-color-bg-card-figure: #242c1f;   /* sage prairie hint */
-  --player-color-bg-card-decision: #282219;
-  --player-color-bg-card-inner: #2f2720;
+/* paper texture: grain + optional theme-specific overlay (--texture-extra) */
+.branching-player [data-slot="passage"] {
+  position: relative;
+  background-color: var(--paper-bg);
+  color: var(--body-color);
+  font-family: var(--body-font);
+  line-height: 1.72;
+}
+.branching-player [data-slot="passage"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: var(--texture-extra, none), var(--grain);
+  background-size: var(--texture-size, auto), 220px 220px;
+  opacity: var(--grain-op, 0.12);
+  mix-blend-mode: var(--grain-blend, multiply);
+}
+.branching-player [data-slot="passage"] > * { position: relative; z-index: 1; }
 
-  --player-color-text: #e6d5b0;
-  --player-color-text-prose: #f0e2c4;
-  --player-color-text-muted: #a08c6b;
-  --player-color-accent: #b37b4b;           /* worn saddle leather */
-  --player-color-accent-2: #8f6f4a;
-
-  --player-border: #4d4030;
-  --player-border-muted: #5f5342;
-  --player-border-accent: #b37b4b;
-
-  --player-font-serif: "Rye", Georgia, serif;
-  --player-border-radius: 0.625rem;
-
-  /* Western interactive feel: warmer hovers */
-  --player-btn-bg-hover: #302b22;
-  --player-figure-bg: #272f22;
+/* --- chrome slots (period fonts, ornament, low contrast live here) --- */
+.branching-player [data-slot="kicker"] {
+  font-family: var(--chrome-font);
+  color: var(--accent);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.branching-player [data-slot="story-title"] {
+  font-family: var(--chrome-font);
+  color: var(--chrome-color);
+  font-weight: 700;
+  line-height: 1.02;
+}
+.branching-player [data-slot="tracker"] {
+  font-family: var(--body-font);
+  color: var(--chrome-color);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   2. REVOLUTIONARY ERA (1770s–1780s)
-   ───────────────────────────────────────────────────────────────
-   Color palette: Deep ink browns and charcoal, cream parchment text,
-                  restrained colonial red + aged gold.
-   Typography:    "Playfair Display" — crisp, authoritative serif
-                  with classic broadsheet character.
-   Border/card:   Clean, print-shop rules. Moderate radius.
-                  Strong but not heavy borders.
-   Tone:          Dramatic, principled, ink-stained. Serious
-                  conviction with elegant colonial restraint.
-   ═══════════════════════════════════════════════════════════════ */
-.branching-player[data-era="revolutionary"] {
-  --player-color-bg: #1c1812;
-  --player-color-bg-alt: #28231c;
-  --player-color-bg-card: #2a251e;
-  --player-color-bg-card-muted: #211d18;
-  --player-color-bg-card-figure: #2c2720;
-  --player-color-bg-card-decision: #27221c;
-  --player-color-bg-card-inner: #302a22;
-
-  --player-color-text: #f0e6d0;
-  --player-color-text-prose: #f4ebda;
-  --player-color-text-muted: #968b77;
-  --player-color-accent: #6b3a2f;           /* colonial red */
-  --player-color-accent-2: #b38a55;         /* aged gilt */
-
-  --player-border: #463d32;
-  --player-border-muted: #5c5345;
-  --player-border-accent: #6b3a2f;
-
-  --player-font-serif: "Playfair Display", Georgia, serif;
-  --player-font-weight: 400;
-  --player-font-weight-semibold: 600;
+.branching-player [data-slot="tts"] {
+  font-family: var(--chrome-font);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 2px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   3. COLD WAR
-   ───────────────────────────────────────────────────────────────
-   Color palette: Cold slate/charcoal, icy steel blues, cool
-                  off-white text, muted graphite accents.
-   Typography:    "Special Elite" (typewriter) for a classified
-                  document / bureaucratic feel. Precise and stark.
-   Border/card:   Sharp, thin institutional rules. Slightly
-                  squarer corners. Cards feel like folders or
-                  concrete.
-   Tone:          Cold, tense, clinical, precise. High-stakes
-                  institutional elegance — restrained and ominous.
-   ═══════════════════════════════════════════════════════════════ */
-.branching-player[data-era="cold-war"] {
-  --player-color-bg: #0f1218;
-  --player-color-bg-alt: #181c24;
-  --player-color-bg-card: #1a2029;
-  --player-color-bg-card-muted: #151a22;
-  --player-color-bg-card-figure: #1e252f;
-  --player-color-bg-card-decision: #1c212b;
-  --player-color-bg-card-inner: #242c38;
-
-  --player-color-text: #d8dce5;             /* cool off-white */
-  --player-color-text-prose: #e4e8f0;
-  --player-color-text-muted: #8a8f9a;
-  --player-color-accent: #4a6a8a;           /* steel blue */
-  --player-color-accent-2: #9aa5b5;
-
-  --player-border: #3a404c;
-  --player-border-muted: #4a515e;
-  --player-border-accent: #4a6a8a;
-
-  --player-font-serif: "Special Elite", "Courier New", monospace;
-  --player-border-radius: 0.5rem;
-  --player-font-weight: 400;
-  --player-font-weight-semibold: 600;
-
-  /* Cold War: cooler, starker interactive surfaces */
-  --player-btn-bg: #151a22;
-  --player-btn-bg-hover: #1e252f;
-  --player-quiz-question-bg: #1a2029;
-  --player-progress-fill: #6a8aa8;
+/* --- body slot (the text a struggling reader decodes — keep it readable) --- */
+.branching-player [data-slot="body"] {
+  font-family: var(--body-font);
+  color: var(--body-color);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   4. CIVIL RIGHTS / MID-20TH CENTURY
-   ───────────────────────────────────────────────────────────────
-   Color palette: Near-black charcoal + warm cream text, one
-                  powerful oxide red accent, newsprint grays.
-   Typography:    "Anton" (bold condensed) for strong headlines +
-                  sturdy Georgia for body. Feels like front-page
-                  protest posters and broadsheets.
-   Border/card:   Heavy black rules (newspaper department dividers).
-                  Strong presence, minimal radius.
-   Tone:          Dignified, urgent, documentary. Powerful,
-                  high-contrast, serious — the weight of history.
-   ═══════════════════════════════════════════════════════════════ */
-.branching-player[data-era="civil-rights"] {
-  --player-color-bg: #0e0d0a;
-  --player-color-bg-alt: #181510;
-  --player-color-bg-card: #1c1a16;
-  --player-color-bg-card-muted: #161411;
-  --player-color-bg-card-figure: #1f1c18;
-  --player-color-bg-card-decision: #1a1814;
-  --player-color-bg-card-inner: #22201b;
-
-  --player-color-text: #e8dfcf;
-  --player-color-text-prose: #f2e9d9;
-  --player-color-text-muted: #93887a;
-  --player-color-accent: #9c3f2f;           /* oxide / blood red */
-  --player-color-accent-2: #c9a36b;         /* restrained gold */
-
-  --player-border: #35322c;
-  --player-border-muted: #4a463f;
-  --player-border-accent: #9c3f2f;
-
-  --player-font-serif: "Anton", "Oswald", Georgia, sans-serif;
-  --player-border-radius: 0.375rem;
-  --player-font-weight: 400;
-  --player-font-weight-semibold: 600;
-
-  /* Civil Rights: bold print-like accents and heavy borders */
-  --player-btn-border-selected: #9c3f2f;
-  --player-quiz-border: #35322c;
-  --player-progress-fill: #c9a36b;
+/* --- figure card --- */
+.branching-player [data-slot="figure-encounter"] {
+  border: 1px solid var(--chrome-color);
+  border-top-width: 3px;
+  background: var(--card-tint, transparent);
+  position: relative;
+}
+/* per-theme "key moment" seal — set content via --seal-glyph, hidden by default */
+.branching-player [data-slot="figure-encounter"]::after {
+  content: var(--seal-glyph, none);
+  position: absolute;
+  top: -0.7em;
+  right: 0.9em;
+  width: 2.2em;
+  height: 2.2em;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--chrome-font);
+  transform: rotate(-6deg);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.4);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   5. ANCIENT / CLASSICAL WORLD
-   ───────────────────────────────────────────────────────────────
-   Color palette: Darkened marble and limestone, warm terracotta,
-                  subdued bronze/gold leaf accents, cool stone text.
-   Typography:    "Cinzel" — monumental, architectural, carved-stone
-                  serif. Timeless and weighty.
-   Border/card:   Crisp, formal. Moderate radius that still feels
-                  like stone blocks or temple architecture.
-   Tone:          Monumental, eternal, warm stone. Grand yet
-                  human — the weight and dignity of antiquity.
-   ═══════════════════════════════════════════════════════════════ */
-.branching-player[data-era="classical"] {
-  --player-color-bg: #1e2228;
-  --player-color-bg-alt: #272c34;
-  --player-color-bg-card: #262b32;
-  --player-color-bg-card-muted: #20252c;
-  --player-color-bg-card-figure: #2a2721;   /* warm stone */
-  --player-color-bg-card-decision: #252a31;
-  --player-color-bg-card-inner: #2f343d;
-
-  --player-color-text: #e2d9c8;
-  --player-color-text-prose: #ede4d4;
-  --player-color-text-muted: #9a8f7a;
-  --player-color-accent: #8a4f3a;           /* terracotta */
-  --player-color-accent-2: #c5a36b;         /* bronze / gold leaf */
-
-  --player-border: #464c56;
-  --player-border-muted: #5a616b;
-  --player-border-accent: #8a4f3a;
-
-  --player-font-serif: "Cinzel", Georgia, serif;
-  --player-border-radius: 0.5rem;
-
-  /* Classical: stone-like figure and quiz surfaces */
-  --player-figure-bg: #2d322a;
-  --player-quiz-bg: #2d322a;
-  --player-btn-bg: #23282e;
+/* --- MCQ / debrief (the final quiz block) --- */
+.branching-player [data-slot="mcq"] {
+  border: 1px dashed var(--chrome-color);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   6. INDUSTRIAL REVOLUTION
-   ───────────────────────────────────────────────────────────────
-   Color palette: Soot blacks and heavy steel grays, brass and
-                  copper highlights, off-white linen text.
-   Typography:    "Oswald" (condensed, mechanical) + Georgia.
-                  Feels like cast-iron signage and engineering
-                  drawings.
-   Border/card:   Strong, utilitarian rules. Slightly tighter
-                  radius. Cards read as heavy machinery or ledger.
-   Tone:          Gritty power, smoky, mechanical precision.
-                  Heavy industry rendered with dark elegance.
-   ═══════════════════════════════════════════════════════════════ */
-.branching-player[data-era="industrial"] {
-  --player-color-bg: #131415;
-  --player-color-bg-alt: #1c1e20;
-  --player-color-bg-card: #1f2124;
-  --player-color-bg-card-muted: #191b1e;
-  --player-color-bg-card-figure: #23261f;   /* brass-tinged */
-  --player-color-bg-card-decision: #1d1f22;
-  --player-color-bg-card-inner: #282b2f;
+/* --- choices --- */
+.branching-player [data-slot="choice"] {
+  font-family: var(--body-font);
+  color: var(--body-color);
+  background: var(--choice-bg, rgba(0,0,0,0.025));
+  border: 1px solid var(--chrome-color);
+  border-radius: 2px;
+}
+.branching-player [data-slot="choice"] .marker { font-family: var(--chrome-font); font-weight: 700; margin-right: 0.6em; opacity: 0.85; }
+.branching-player [data-slot="choice"]:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-  --player-color-text: #d2cdc2;
-  --player-color-text-prose: #e0d9cc;
-  --player-color-text-muted: #8c8577;
-  --player-color-accent: #7d5c3a;           /* worked brass */
-  --player-color-accent-2: #6e7780;         /* machined steel */
+/* --- ending states (each theme decorates these via the same hooks) --- */
+.branching-player [data-slot="ending"] {
+  border-top: 3px double var(--ending-color, var(--accent));
+}
+.branching-player [data-slot="ending"] .ending-label {
+  font-family: var(--chrome-font);
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ending-color, var(--accent));
+}
+.branching-player [data-slot="ending"][data-state="broken"]       { --ending-color: #7a2f2a; }
+.branching-player [data-slot="ending"][data-state="indifferent"]  { --ending-color: #6b675f; }
+.branching-player [data-slot="ending"][data-state="triumphant"]   { --ending-color: var(--accent); }
 
-  --player-border: #35383c;
-  --player-border-muted: #484d52;
-  --player-border-accent: #7d5c3a;
+/* Trust-signal contrast on the LIGHT paper ground. The player's JSX
+   uses bright text-emerald-400 / text-red-400 / text-slate-400 (tuned
+   for the old dark theme); on paper they fail AA. Re-ink them to deep
+   period-appropriate shades. Scoped (0,3,0) so they win over Tailwind. */
+.branching-player[data-theme] .text-emerald-400 { color: #2f6b39; }
+.branching-player[data-theme] .text-red-400     { color: #8c2a1f; }
+.branching-player[data-theme] .text-slate-400   { color: #5f5b53; }
 
-  --player-font-serif: "Oswald", Georgia, serif;
-  --player-border-radius: 0.375rem;
-  --player-font-weight: 400;
-  --player-font-weight-semibold: 600;
+/* ============================================================================
+   THEME TOKENS + ERA-LOCKS  (scoped under .branching-player)
+   ============================================================================ */
 
-  /* Industrial: heavy mechanical buttons and strong steel dividers */
-  --player-btn-bg: #23262a;
-  --player-btn-bg-hover: #2a2e33;
-  --player-btn-border: #40464c;
-  --player-divider: #2a2e33;
-  --player-progress-fill: #a88c5a;
+/* 1. broadsheet-sepia — era-lock: NEWSPAPER (masthead + letterpress + drop cap) */
+.branching-player[data-theme="broadsheet-sepia"] {
+  --paper-bg: #efe6d2; --grain-op: 0.13;
+  --body-font: 'IM Fell English', Georgia, serif; --body-color: #2b2118;
+  --chrome-font: 'Playfair Display', Georgia, serif; --chrome-color: #3a2c1a; --accent: #7a2e1f;
+  --choice-bg: rgba(122,46,31,0.05); --card-tint: rgba(122,46,31,0.04);
+}
+.branching-player[data-theme="broadsheet-sepia"] [data-slot="masthead"] {
+  text-align: center;
+  border-top: 3px double var(--chrome-color);
+  border-bottom: 3px double var(--chrome-color);
+  padding: 0.4em 0 0.3em;
+}
+.branching-player[data-theme="broadsheet-sepia"] [data-slot="story-title"] { font-weight: 900; font-size: 2.4rem; letter-spacing: 0.01em; }
+.branching-player[data-theme="broadsheet-sepia"] [data-slot="body"] > p:first-of-type::first-letter {
+  float: left; font-family: var(--chrome-font); font-weight: 900;
+  font-size: 4.4rem; line-height: 0.66; padding: 0.12em 0.18em 0 0; color: var(--accent);
 }
 
-/* Legacy aliases for compatibility with older fixtures / code */
-.branching-player[data-era="ancient-rome"] {
-  --player-color-bg: #1e2228;
-  --player-color-bg-alt: #272c34;
-  --player-color-bg-card: #262b32;
-  --player-color-bg-card-muted: #20252c;
-  --player-color-bg-card-figure: #2a2721;
-  --player-color-text: #e2d9c8;
-  --player-color-text-prose: #ede4d4;
-  --player-color-text-muted: #9a8f7a;
-  --player-color-accent: #8a4f3a;
-  --player-color-accent-2: #c5a36b;
-  --player-border: #464c56;
-  --player-border-muted: #5a616b;
-  --player-border-accent: #8a4f3a;
-  --player-font-serif: "Cinzel", Georgia, serif;
-  --player-border-radius: 0.5rem;
+/* 2. ww1-fieldpost — era-lock: VIOLET "PASSED BY CENSOR" + poster-condensed + khaki. */
+.branching-player[data-theme="ww1-fieldpost"] {
+  --paper-bg: #cbc0a1; --grain-op: 0.22; --grain-blend: multiply;
+  --body-font: 'Special Elite', 'Courier New', monospace; --body-color: #221f15;
+  --chrome-font: 'Oswald', 'Arial Narrow', sans-serif; --chrome-color: #2c281d; --accent: #5b3a8c;
+  --choice-bg: rgba(44,40,29,0.05); --card-tint: rgba(91,58,140,0.05);
+  --texture-extra: radial-gradient(circle at 14% 80%, rgba(70,58,30,0.16) 0, transparent 30%),
+                   radial-gradient(circle at 88% 20%, rgba(60,50,25,0.14) 0, transparent 24%);
+}
+.branching-player[data-theme="ww1-fieldpost"] [data-slot="story-title"] {
+  font-family: var(--chrome-font); font-weight: 700; text-transform: uppercase;
+  font-size: 2rem; letter-spacing: 0.02em; line-height: 0.92;
+}
+.branching-player[data-theme="ww1-fieldpost"] [data-slot="kicker"] { letter-spacing: 0.28em; }
+.branching-player[data-theme="ww1-fieldpost"] [data-slot="censor-stamp"] {
+  display: inline-block;
+  transform: rotate(-9deg);
+  border: 3px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--chrome-font); font-weight: 700; text-transform: uppercase;
+  font-size: 0.7rem; letter-spacing: 0.12em; line-height: 1.05;
+  padding: 0.4em 0.6em; text-align: center;
+  opacity: 0.8; mix-blend-mode: multiply;
 }
 
-.branching-player[data-era="civil-war"] {
-  --player-color-bg: #1a160e;
-  --player-color-bg-alt: #252016;
-  --player-color-bg-card: #2a2319;
-  --player-color-bg-card-muted: #221d16;
-  --player-color-bg-card-figure: #242c1f;
-  --player-color-text: #e6d5b0;
-  --player-color-text-prose: #f0e2c4;
-  --player-color-text-muted: #a08c6b;
-  --player-color-accent: #b37b4b;
-  --player-color-accent-2: #8f6f4a;
-  --player-border: #4d4030;
-  --player-border-muted: #5f5342;
-  --player-border-accent: #b37b4b;
-  --player-font-serif: "Rye", Georgia, serif;
+/* 3. declassified-typewriter — era-lock: TYPEWRITER face (Cold War). */
+.branching-player[data-theme="declassified-typewriter"] {
+  --paper-bg: #e8e4d8; --grain-op: 0.10;
+  --body-font: 'Courier New', Courier, monospace; --body-color: #232019;
+  --chrome-font: 'Courier New', Courier, monospace; --chrome-color: #232019; --accent: #1a1a1a;
+  --choice-bg: rgba(0,0,0,0.03); --card-tint: rgba(0,0,0,0.03);
+}
+.branching-player[data-theme="declassified-typewriter"] [data-slot="story-title"] {
+  text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; font-size: 1.7rem;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   ERA-SPECIFIC CARD FLOURISHES
-   Extra visual character for key themes using the same variables.
-   These enhance border/card styling without touching React code.
-   ═══════════════════════════════════════════════════════════════ */
-
-/* Civil Rights — heavy newsprint department rule across the top of cards */
-.branching-player[data-era="civil-rights"] [class*="rounded-2xl"][class*="border"] {
-  box-shadow: inset 0 5px 0 #111, var(--player-shadow-sm);
+/* 4. parchment-medieval — era-lock: ILLUMINATED VERSAL + rubrication */
+.branching-player[data-theme="parchment-medieval"] {
+  --paper-bg: #e7d7b0; --grain-op: 0.12;
+  --body-font: 'EB Garamond', Georgia, serif; --body-color: #2c1d0e;
+  --chrome-font: 'UnifrakturCook', 'UnifrakturMaguntia', serif; --chrome-color: #3a2410; --accent: #8c1c13;
+  --choice-bg: rgba(140,28,19,0.04); --card-tint: rgba(140,28,19,0.04);
+  --seal-glyph: "\00B6";
+  --texture-extra: radial-gradient(circle at 60% 12%, rgba(140,28,19,0.05) 0, transparent 18%);
+}
+.branching-player[data-theme="parchment-medieval"] [data-slot="story-title"] { font-size: 2.2rem; }
+.branching-player[data-theme="parchment-medieval"] [data-slot="body"] > p:first-of-type::first-letter {
+  float: left; font-family: var(--chrome-font); font-size: 2.6rem; line-height: 1;
+  margin: 0.15em 0.35em 0.05em 0; padding: 0.18em 0.28em; color: var(--accent);
+  background: #cda437; box-shadow: 0 0 0 2px #cda437, inset 0 0 0 2px #8c1c13;
 }
 
-/* Western — subtle leather edge treatment on figure encounters */
-.branching-player[data-era="western"] [class*="bg-"][class*="figure"] {
-  box-shadow: inset 0 0 0 1px rgba(179, 123, 75, 0.15);
+/* 5. classical-marble — era-lock: INCISED Trajan capitals carved in stone */
+.branching-player[data-theme="classical-marble"] {
+  --paper-bg: #dcd6cc; --grain-op: 0.06;
+  --body-font: 'EB Garamond', Georgia, serif; --body-color: #2a2824;
+  --chrome-font: 'Cinzel', Georgia, serif; --chrome-color: #33312b; --accent: #6e5a2a;
+  --choice-bg: rgba(110,90,42,0.05); --card-tint: rgba(110,90,42,0.04);
+  --seal-glyph: "\2609";
+  --texture-extra: linear-gradient(115deg, rgba(0,0,0,0.05) 0, transparent 18%, rgba(255,255,255,0.5) 30%, transparent 46%, rgba(0,0,0,0.045) 62%, transparent 78%);
+  --grain-blend: normal;
+}
+.branching-player[data-theme="classical-marble"] [data-slot="story-title"] {
+  text-transform: uppercase; letter-spacing: 0.16em; font-weight: 700; font-size: 2rem;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.65), 0 -1px 1px rgba(0,0,0,0.4);
 }
 
-/* Cold War — crisp institutional rule + slightly cooler inner cards */
-.branching-player[data-era="cold-war"] [class*="rounded-2xl"][class*="border"] {
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), var(--player-shadow-sm);
+/* 6. expedition-journal — era-lock: RULED notebook + pen ink + coordinate header */
+.branching-player[data-theme="expedition-journal"] {
+  --paper-bg: #e9e4d6; --grain-op: 0.07;
+  --body-font: 'Spectral', Georgia, serif; --body-color: #22303a;
+  --chrome-font: 'Pinyon Script', cursive; --chrome-color: #283a45; --accent: #8a5a2b;
+  --choice-bg: rgba(40,58,69,0.04); --card-tint: rgba(40,58,69,0.04);
+  --texture-extra: repeating-linear-gradient(transparent 0 27px, rgba(40,58,69,0.16) 27px 28px);
+  --grain-blend: normal;
+}
+.branching-player[data-theme="expedition-journal"] [data-slot="story-title"] { font-size: 2.4rem; font-weight: 400; }
+
+/* 7. frontier-leather — era-lock: WOOD-TYPE broadside + tooled leather + kraft */
+.branching-player[data-theme="frontier-leather"] {
+  --paper-bg: #cdbb98; --grain-op: 0.17;
+  --body-font: 'Zilla Slab', 'Rockwell', serif; --body-color: #2c1d12;
+  --chrome-font: 'Rye', 'Rockwell', serif; --chrome-color: #3a2415; --accent: #7a2a1c;
+  --choice-bg: rgba(58,36,21,0.05); --card-tint: rgba(58,36,21,0.05);
+  --seal-glyph: "\2605";
+  --texture-extra: repeating-linear-gradient(92deg, rgba(80,50,25,0.05) 0 3px, transparent 3px 7px);
+  --grain-blend: normal;
+}
+.branching-player[data-theme="frontier-leather"] [data-slot="story-title"] { text-transform: uppercase; font-size: 2.2rem; }
+.branching-player[data-theme="frontier-leather"] [data-slot="masthead"] { text-align: center; border: 3px solid var(--chrome-color); padding: 0.5em 0.7em; }
+
+/* 8. civil-rights-midcentury — era-lock: BOLD news gothic placard + broadcast lower-third + halftone */
+.branching-player[data-theme="civil-rights-midcentury"] {
+  --paper-bg: #e9e7e0; --grain-op: 0.07;
+  --body-font: 'Archivo', system-ui, sans-serif; --body-color: #1c1b19;
+  --chrome-font: 'Anton', Impact, sans-serif; --chrome-color: #1c1b19; --accent: #c0301c;
+  --choice-bg: rgba(0,0,0,0.03); --card-tint: rgba(192,48,28,0.05);
+  --texture-extra: radial-gradient(circle, rgba(0,0,0,0.10) 0.6px, transparent 1.4px);
+  --texture-size: 7px 7px; --grain-blend: normal;
+}
+.branching-player[data-theme="civil-rights-midcentury"] [data-slot="story-title"] {
+  text-transform: uppercase; font-size: 2.4rem; line-height: 0.9; letter-spacing: -0.01em;
+}
+.branching-player[data-theme="civil-rights-midcentury"] [data-slot="kicker"] {
+  display: inline-block; background: var(--accent); color: #fff;
+  padding: 0.3em 0.7em; letter-spacing: 0.12em;
 }
 
-/* Industrial — stronger mechanical bevel on main cards */
-.branching-player[data-era="industrial"] [class*="rounded-2xl"][class*="border"] {
-  box-shadow: inset 0 2px 0 #2a2d32, inset 0 -1px 0 #111, var(--player-shadow-sm);
+/* 9. imperial-chinese-scroll — era-lock: VERTICAL title + vermilion seals + ink-wash */
+.branching-player[data-theme="imperial-chinese-scroll"] {
+  --paper-bg: #efe7d6; --grain-op: 0.06;
+  --body-font: 'Noto Serif', Georgia, serif; --body-color: #241f1a;
+  --chrome-font: 'Noto Serif TC', serif; --chrome-color: #2b2620; --accent: #b3331f;
+  --choice-bg: rgba(179,51,31,0.04); --card-tint: rgba(179,51,31,0.04);
+  --seal-glyph: "\5370";
+  --texture-extra: radial-gradient(120% 90% at -10% 105%, rgba(40,40,40,0.14) 0, transparent 42%);
+  --grain-blend: normal;
+}
+.branching-player[data-theme="imperial-chinese-scroll"] [data-slot="story-title"] {
+  writing-mode: vertical-rl; font-weight: 900; letter-spacing: 0.18em; font-size: 1.8rem;
 }
 
-/* Classical — subtle stone block inset */
-.branching-player[data-era="classical"] [class*="rounded-2xl"][class*="border"] {
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.035), var(--player-shadow-sm);
+/* 10. islamic-golden-age — era-lock: GEOMETRIC illumination + Kufic + shamsa medallion */
+.branching-player[data-theme="islamic-golden-age"] {
+  --paper-bg: #f1e9d6; --grain-op: 0.05;
+  --body-font: 'Amiri', Georgia, serif; --body-color: #241f18;
+  --chrome-font: 'Reem Kufi', sans-serif; --chrome-color: #26456e; --accent: #9a7b1f;
+  --choice-bg: rgba(154,123,31,0.05); --card-tint: rgba(154,123,31,0.05);
+  --seal-glyph: "\06DE";
 }
+.branching-player[data-theme="islamic-golden-age"] [data-slot="unwan"] {
+  border: 2px solid var(--accent);
+  box-shadow: inset 0 0 0 4px var(--paper-bg), inset 0 0 0 6px var(--accent);
+  padding: 0.9em 1em; text-align: center;
+}
+.branching-player[data-theme="islamic-golden-age"] [data-slot="story-title"] { color: var(--accent); }
+
+/* default — intentionally era-neutral, the honest fallback */
+.branching-player[data-theme="default"] {
+  --paper-bg: #f3efe7; --grain-op: 0.05;
+  --body-font: 'Spectral', Georgia, serif; --body-color: #23211d;
+  --chrome-font: 'Spectral', Georgia, serif; --chrome-color: #2a2824; --accent: #6b5d4a;
+  --choice-bg: rgba(0,0,0,0.025); --card-tint: rgba(107,93,74,0.04);
+}
+.branching-player[data-theme="default"] [data-slot="story-title"] { font-size: 1.9rem; }

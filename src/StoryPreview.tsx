@@ -15,6 +15,18 @@ import { useState, useCallback, useMemo } from "react";
 import type { StoryPreview, PreviewFinding } from "../generator/storyPreview";
 import { PageContainer, MainTitle, SectionHeader, Button, BackButton } from "./components/ui";
 import { searchTEKS, type TEKSStandard } from "./lib/teks";
+import { THEME_IDS, THEME_USE_WHEN, resolveTheme, type ThemeId } from "./themes";
+
+/** Humanize a kebab-case ThemeId into a teacher-facing label, e.g.
+ * "ww1-fieldpost" → "Ww1 Fieldpost". Kept tiny — the authoritative
+ * "use when" guidance lives in THEME_USE_WHEN (shown as the option title). */
+function themeLabel(id: ThemeId): string {
+  if (id === "default") return "Default (no strong era match)";
+  return id
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
 
 export interface PreviewApproval {
   topic: string;
@@ -35,9 +47,10 @@ export interface PreviewApproval {
    * encounters (the right default for cast-poor/compressed topics). */
   gumpIntensity: "high" | "off";
   outputLanguage: string;
-  /** Visual theme slug for the branching player (data-era). "auto" means detect from topic at approve time.
-   * Manual selection preferred for first version; stored on the final story and passed to <BranchingPlayer>. */
-  era?: string;
+  /** Resolved period ThemeId for the branching player (data-theme); see src/themes.ts.
+   * Resolved at approve time from the manual pick or the topic/TEKS heuristic.
+   * Stored on the final story and passed to <BranchingPlayer>. */
+  era?: ThemeId;
   preview: StoryPreview;
 }
 
@@ -59,22 +72,6 @@ async function postPreview(body: { topic: string; standard: string; mustCover?: 
   return payload as { data: StoryPreview; findings: PreviewFinding[] };
 }
 
-/** Simple but effective keyword-based detector for visual theme.
- * Used when teacher selects "Auto-detect". Returns a supported data-era slug or "default".
- * Covers the core themes defined in themes.css.
- */
-function detectEraForTopic(topic: string, standard?: string): string {
-  const t = `${topic} ${standard || ""}`.toLowerCase().replace(/[^a-z\s]/g, " ");
-  if (/\b(west|frontier|oregon|chisholm|trail|cowboy|pioneer|gold.?rush|wild.?west|dust.?bowl)\b/.test(t)) return "western";
-  if (/\b(revolution|1776|independence|declaration|founding|texas.?revolution|american.?revolution)\b/.test(t)) return "revolutionary";
-  if (/\b(cold.?war|berlin|ussr|soviet|vietnam|korea|mc.?carthy|sputnik|missile.?crisis)\b/.test(t)) return "cold-war";
-  if (/\b(civil.?rights|mlk|martin.?luther|rosa.?parks|segregation|montgomery|selma|king|parks|march.?on.?washington|black.?history)\b/.test(t)) return "civil-rights";
-  if (/\b(rome|greece|ancient|classical|athens|sparta|caesar|alexander|pharaoh|roman|greek)\b/.test(t)) return "classical";
-  if (/\b(industrial|factory|steam|railroad|assembly.?line|ford|edison|invention|child.?labor|labor.?union)\b/.test(t)) return "industrial";
-  if (/\b(civil.?war|lincoln|gettysburg|slavery|confederate|union|reconstruction|abolition)\b/.test(t)) return "civil-war";
-  return "default";
-}
-
 export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewScreenProps) {
   const [topic, setTopic] = useState("");
   const [teksSearch, setTeksSearch] = useState("");
@@ -90,7 +87,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
   const [outputLanguage, setOutputLanguage] = useState("English");
   // Visual theme for player: 'auto' uses keyword detection on topic+standard at approve time.
   // Manual lets teacher force a specific historical visual identity.
-  const [visualTheme, setVisualTheme] = useState<string>("auto");
+  const [visualTheme, setVisualTheme] = useState<ThemeId | "auto">("auto");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [preview, setPreview] = useState<StoryPreview | null>(null);
   const [error, setError] = useState("");
@@ -166,7 +163,14 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
     if (!preview) return;
     setApproved(true);
     const teksStr = selectedTEKS.map(t => t.code).join(", ");
-    const era = visualTheme === "auto" ? detectEraForTopic(topic.trim(), teksStr) : visualTheme;
+    // Resolution order (themes.ts): manual override > classifier > heuristic.
+    // "auto" leaves the override empty so the topic/TEKS heuristic decides; a
+    // manual pick is passed as the override and always wins.
+    const era = resolveTheme({
+      override: visualTheme === "auto" ? null : visualTheme,
+      topic: topic.trim(),
+      teks: teksStr,
+    });
     onApprove?.({
       topic: topic.trim(),
       standard: teksStr,
@@ -204,7 +208,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
   };
 
   // Visual theme change (manual or switching to/from auto) also marks stale
-  const onVisualThemeChange = (v: string) => {
+  const onVisualThemeChange = (v: ThemeId | "auto") => {
     setVisualTheme(v);
     if (preview) {
       setPreviewStale(true);
@@ -468,25 +472,24 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
           <span className="text-[10px] text-[#8a7f6a] mt-1 block">The story, questions, and summary will be generated in this language (English default).</span>
         </div>
 
-        {/* Visual Theme selector — manual or auto-detect for player data-era styling.
-            Themes (western, revolutionary, etc.) are defined in themes.css and applied in BranchingPlayer. */}
+        {/* Visual Theme selector — manual or auto-detect for player data-theme styling.
+            Period themes are defined in themes.css and rendered via data-slot hooks in BranchingPlayer.
+            The id list + "use when" guidance are the single source of truth in themes.ts. */}
         <div>
           <span className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase block mb-1.5">Visual Theme (Player)</span>
           <select
             value={visualTheme}
-            onChange={(e) => onVisualThemeChange(e.target.value)}
+            onChange={(e) => onVisualThemeChange(e.target.value as ThemeId | "auto")}
             className="w-full bg-[#24211d] border border-[#3a3630] rounded-lg px-4 py-2.5 text-[#e8dcc8] focus:outline-none focus:border-[#c9a36b]/60 transition-colors"
           >
             <option value="auto">Auto-detect from topic (recommended)</option>
-            <option value="default">Default (elegant dark)</option>
-            <option value="western">Western / Old West</option>
-            <option value="revolutionary">Revolutionary Era</option>
-            <option value="cold-war">Cold War</option>
-            <option value="civil-rights">Civil Rights / Mid-20th Century</option>
-            <option value="classical">Ancient / Classical World</option>
-            <option value="industrial">Industrial Revolution</option>
+            {THEME_IDS.map((id) => (
+              <option key={id} value={id} title={THEME_USE_WHEN[id]}>
+                {themeLabel(id)}
+              </option>
+            ))}
           </select>
-          <span className="text-[10px] text-[#8a7f6a] mt-1 block">Sets the colors, typography, borders, and card styling in the student player. Auto uses simple keyword matching on the topic.</span>
+          <span className="text-[10px] text-[#8a7f6a] mt-1 block">Sets the period paper, typography, and ornaments in the student player. Auto matches the era from the topic and TEKS.</span>
         </div>
 
         {/* Preview action */}

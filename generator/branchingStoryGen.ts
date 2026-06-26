@@ -131,7 +131,7 @@ interface BranchingStory {
   protagonist: string; 
   start: string; 
   passages: Passage[]; 
-  era?: string; // visual theme slug for player (e.g. "western", "classical"). Set from inputs.
+  era?: string; // period ThemeId for the player (e.g. "ww1-fieldpost", "classical-marble"). Set from inputs.
   // When GUMP HIGH:
   coreSageQuestions?: Array<{ passageId: string; figure: string; moment: string; question: {question: string; choices: string[]; correctIndex: number; explanation: string} }>;
   finalQuiz?: { title: string; instructions: string; questions: Array<{question: string; choices: string[]; correctIndex: number; explanation: string; context?: string}> };
@@ -179,9 +179,9 @@ export interface BranchingInputs {
    * Default "English". When set to another supported language, all narrative content
    * must be generated directly in that language. */
   outputLanguage?: string;
-  /** Visual era/theme slug chosen manually or auto-detected from topic (e.g. "western", "classical").
-   * Include "era" at top level of output JSON. UI will use it for data-era theming.
-   * Purely visual; story content stays factual. */
+  /** Period ThemeId chosen manually or resolved from topic/TEKS (e.g. "ww1-fieldpost",
+   * "classical-marble"); see src/themes.ts. Include "era" at top level of output JSON;
+   * the player uses it for data-theme styling. Purely visual; story content stays factual. */
   era?: string;
 }
 
@@ -213,7 +213,7 @@ function buildUserMessage(inputs: BranchingInputs, priorErrors?: string[], prior
 
   const era = inputs.era || "default";
   const eraInstruction = era !== "default"
-    ? `\nVISUAL THEME: "${era}" — Include "era": "${era}" as a top-level field in the output JSON. The player uses this (via data-era) to apply period-appropriate colors, fonts, borders, and card styles. Do NOT alter story content or facts for the theme.`
+    ? `\nVISUAL THEME: "${era}" — Include "era": "${era}" as a top-level field in the output JSON. The player uses this (via data-theme) to apply period-appropriate paper, typography, and ornaments. Do NOT alter story content or facts for the theme.`
     : "";
 
   // AUDIENCE — two INDEPENDENT dials, threaded like topic/standard. The semantics

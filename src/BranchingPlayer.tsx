@@ -18,6 +18,7 @@ import {
   type PlayResult,
   type StoryValidation,
 } from "../generator/branchingStory";
+import { isThemeId, type ThemeId } from "./themes";
 
 interface BranchingPlayerProps {
   story: BranchingStory;
@@ -27,7 +28,8 @@ interface BranchingPlayerProps {
   onUnplayable?: (validation: StoryValidation) => void;
   /** Optional return-to-menu affordance (navigation only). */
   onBack?: () => void;
-  /** Era/theme identifier for visual theming (e.g. "default", "civil-war", "medieval", "ancient-rome").
+  /** Period ThemeId for visual theming (e.g. "default", "ww1-fieldpost", "frontier-leather",
+   * "classical-marble"); see src/themes.ts. Applied as data-theme on the player root.
    * Overrides story.era if provided. */
   era?: string;
 }
@@ -45,11 +47,11 @@ function BackLink({ onBack }: { onBack?: () => void }) {
 // crash and never a kid stranded in a dead/looping passage.
 function Unplayable({ onBack, era = 'default' }: { onBack?: () => void; era?: string }) {
   return (
-    <div 
-      data-era={era}
+    <div
+      data-theme={era}
       className="branching-player min-h-screen bg-[var(--player-bg)] bg-[radial-gradient(at_50%_15%,var(--player-bg-radial)_0%,transparent_55%)] text-[var(--player-text)] font-[var(--player-font-serif)] flex items-center justify-center p-4 sm:p-6"
     >
-      <div className="max-w-md w-full text-center space-y-3 border border-[var(--player-border)] bg-[var(--player-bg-card)] rounded-[var(--player-card-radius)] p-4 sm:p-6">
+      <div data-slot="passage" className="max-w-md w-full text-center space-y-3 border border-[var(--player-border)] bg-[var(--player-bg-card)] rounded-[var(--player-card-radius)] p-4 sm:p-6">
         <p className="text-xl font-serif">This story isn&rsquo;t ready to play yet.</p>
         <p className="text-xs sm:text-sm text-[var(--player-text-muted)]">We hit an issue assembling the full story. Please choose a different story from the menu, or ask your teacher to regenerate it.</p>
         <BackLink onBack={onBack} />
@@ -206,7 +208,11 @@ function getIndefiniteArticle(word: string): 'a' | 'an' {
 }
 
 export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, era: eraProp = 'default' }: BranchingPlayerProps) {
-  const era = eraProp || story?.era || 'default';
+  // Normalize to a known ThemeId. Legacy stories may carry old era slugs
+  // (e.g. "western", "cold-war") that no longer match a theme; fall back to
+  // 'default' so the player is always styled rather than rendering bare.
+  const rawEra = eraProp || story?.era;
+  const era: ThemeId = isThemeId(rawEra) ? rawEra : 'default';
   const byId = useMemo(() => passageMap(story), [story]);
   // Validate up front: the player only ever runs a story proven safe start-to-end,
   // so a malformed graph degrades gracefully instead of rendering into a wall.
@@ -441,15 +447,31 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
   const currentEnding = ended && current.endingState ? endingVisuals[current.endingState] : null;
 
   return (
-    <div 
-      data-era={era}
+    <div
+      data-theme={era}
       className="branching-player min-h-screen bg-[var(--player-bg)] bg-[radial-gradient(at_50%_15%,var(--player-bg-radial)_0%,transparent_55%)] text-[var(--player-text)] font-[var(--player-font-serif)] flex items-center justify-center p-4 sm:p-6"
     >
-      <div className="max-w-xl w-full space-y-4 sm:space-y-5 px-1">
-        <h1 className="text-xs uppercase tracking-widest text-[var(--player-text-muted)] text-center">{story.title}</h1>
+      <div data-slot="passage" className="max-w-xl w-full space-y-4 sm:space-y-5 px-1">
+        {/* Story title — rendered as the period masthead (themes.css styles the
+            story-title slot per era). Islamic wraps it in an ʿunwan panel; WWI
+            adds the violet field-censor stamp. */}
+        <div data-slot="masthead">
+          {era === 'islamic-golden-age' ? (
+            <div data-slot="unwan">
+              <h1 data-slot="story-title" className="text-center">{story.title}</h1>
+            </div>
+          ) : (
+            <h1 data-slot="story-title" className="text-center">{story.title}</h1>
+          )}
+          {era === 'ww1-fieldpost' && (
+            <div className="text-center mt-2">
+              <span data-slot="censor-stamp">Passed by<br />Field Censor</span>
+            </div>
+          )}
+        </div>
 
         {/* Clear progress indicator — high-visibility for students */}
-        <div className="text-center -mt-1 mb-1">
+        <div data-slot="tracker" className="text-center -mt-1 mb-1">
           <div className="inline-flex items-baseline gap-1.5 text-xs sm:text-[10px] tracking-[1.5px] text-[var(--player-text-muted)]">
             <span>Passage</span>
             <span className="font-mono text-[var(--player-text-accent)] tabular-nums">{currentStep}</span>
@@ -528,8 +550,10 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
             </div>
           )}
 
-          {/* The story passage prose — key triggers natural re-animation on change */}
-          <div key={currentId} className={`p-4 sm:p-6 transition-all duration-300 ease-out ${hasFigureQuestion ? 'bg-[var(--player-bg-card-muted)]/50' : ''}`}>
+          {/* The story passage prose — key triggers natural re-animation on change.
+              data-slot="body": the period drop-cap / illuminated initial lands on
+              this block's first <p> (the prose). */}
+          <div data-slot="body" key={currentId} className={`p-4 sm:p-6 transition-all duration-300 ease-out ${hasFigureQuestion ? 'bg-[var(--player-bg-card-muted)]/50' : ''}`}>
             {/* Type indicator for visual distinction */}
             {(hasFigureQuestion || hasChoices) && (
               <div className={`mb-3 text-xs uppercase tracking-[2px] flex items-center gap-2 ${hasFigureQuestion ? 'text-[var(--player-text-accent)] font-medium' : 'text-[var(--player-text-accent-2)]'}`}>
@@ -554,6 +578,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
             {/* Speaker button for text-to-speech accessibility */}
             <div className="flex justify-end mb-2">
               <button
+                data-slot="tts"
                 onClick={handleSpeak}
                 className={`inline-flex items-center gap-1.5 text-xs px-3 py-2 min-h-[36px] rounded-md transition-all duration-150 ease-out border ${
                   isSpeaking
@@ -576,7 +601,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
 
         {/* In-story question from historical figure (sage-style trivia, when present on the passage) */}
         {current.question && (
-          <div className="border-2 border-[var(--player-figure-border)] bg-[var(--player-figure-bg)] rounded-[var(--player-card-radius)] p-4 sm:p-5 transition-all duration-300 ease-out player-gentle-reveal">
+          <div data-slot="figure-encounter" className="border-2 border-[var(--player-figure-border)] bg-[var(--player-figure-bg)] rounded-[var(--player-card-radius)] p-4 sm:p-5 transition-all duration-300 ease-out player-gentle-reveal">
             <div className="flex items-center gap-2 mb-2">
               <span className="uppercase text-xs tracking-[2px] text-[var(--player-figure-accent)] font-medium">Historical Figure Encounter</span>
             </div>
@@ -614,8 +639,12 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
 
         {ended ? (
           <>
-            <div className={`text-center pt-1 ${currentEnding ? currentEnding.border : ''}`}>
-              <p className={`text-xs tracking-[3px] uppercase ${currentEnding ? currentEnding.color : 'text-[var(--player-text-muted)]'}`}>
+            <div
+              data-slot="ending"
+              data-state={current.endingState || undefined}
+              className={`text-center pt-1 ${currentEnding ? currentEnding.border : ''}`}
+            >
+              <p className={`ending-label text-xs tracking-[3px] uppercase ${currentEnding ? currentEnding.color : 'text-[var(--player-text-muted)]'}`}>
                 {currentEnding ? `— ${currentEnding.label} —` : "— The End —"}
               </p>
               <div className="h-px w-8 bg-[var(--player-divider)] mx-auto my-2" />
@@ -633,7 +662,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
 
             {/* Final check for understanding / comprehension quiz at the end of playthrough */}
             {story.finalQuiz && (
-              <div className={`mt-5 border-2 border-[var(--player-quiz-border)] bg-[var(--player-quiz-bg)] rounded-[var(--player-card-radius)] p-5 transition-all duration-200 ease-out shadow-sm ${isSubmittingQuiz ? 'opacity-80' : ''}`}>
+              <div data-slot="mcq" className={`mt-5 border-2 border-[var(--player-quiz-border)] bg-[var(--player-quiz-bg)] rounded-[var(--player-card-radius)] p-5 transition-all duration-200 ease-out shadow-sm ${isSubmittingQuiz ? 'opacity-80' : ''}`}>
                 <div className="flex items-center gap-3 mb-3">
                   <span className="text-2xl">🏆</span>
                   <h2 className="font-semibold text-xl text-[var(--player-text-accent)] tracking-tight">{story.finalQuiz.title}</h2>
@@ -805,6 +834,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
               return (
                 <button
                   key={i}
+                  data-slot="choice"
                   onClick={() => choose(i)}
                   disabled={isAdvancing}
                   className={`block w-full text-left px-4 py-4 min-h-[48px] flex items-center rounded-[var(--player-card-radius)] border transition-all duration-150 ease-out text-[var(--player-btn-text)] text-base sm:text-[17px] leading-[1.5] font-medium disabled:opacity-70 touch-manipulation
