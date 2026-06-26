@@ -18,7 +18,7 @@ import {
   type PlayResult,
   type StoryValidation,
 } from "../generator/branchingStory";
-import { isThemeId, type ThemeId } from "./themes";
+import { isThemeId, playerEraForTheme, type ThemeId } from "./themes";
 
 interface BranchingPlayerProps {
   story: BranchingStory;
@@ -45,10 +45,11 @@ function BackLink({ onBack }: { onBack?: () => void }) {
 
 // Graceful fallback for a story a model emitted broken — a clear message, never a
 // crash and never a kid stranded in a dead/looping passage.
-function Unplayable({ onBack, era = 'default' }: { onBack?: () => void; era?: string }) {
+function Unplayable({ onBack, era = 'default' }: { onBack?: () => void; era?: ThemeId }) {
   return (
     <div
       data-theme={era}
+      data-era={playerEraForTheme(era)}
       className="branching-player min-h-screen bg-[var(--player-bg)] bg-[radial-gradient(at_50%_15%,var(--player-bg-radial)_0%,transparent_55%)] text-[var(--player-text)] font-[var(--player-font-serif)] flex items-center justify-center p-4 sm:p-6"
     >
       <div data-slot="passage" className="max-w-md w-full text-center space-y-3 border border-[var(--player-border)] bg-[var(--player-bg-card)] rounded-[var(--player-card-radius)] p-4 sm:p-6">
@@ -213,6 +214,9 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
   // 'default' so the player is always styled rather than rendering bare.
   const rawEra = eraProp || story?.era;
   const era: ThemeId = isThemeId(rawEra) ? rawEra : 'default';
+  // The BOLD per-era player theming keys on data-era with its own slug
+  // vocabulary (western/revolutionary/…), not the ThemeId. Map across.
+  const playerEra = playerEraForTheme(era);
   const byId = useMemo(() => passageMap(story), [story]);
   // Validate up front: the player only ever runs a story proven safe start-to-end,
   // so a malformed graph degrades gracefully instead of rendering into a wall.
@@ -449,6 +453,7 @@ export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, er
   return (
     <div
       data-theme={era}
+      data-era={playerEra}
       className="branching-player min-h-screen bg-[var(--player-bg)] bg-[radial-gradient(at_50%_15%,var(--player-bg-radial)_0%,transparent_55%)] text-[var(--player-text)] font-[var(--player-font-serif)] flex items-center justify-center p-4 sm:p-6"
     >
       <div data-slot="passage" className="max-w-xl w-full space-y-4 sm:space-y-5 px-1">

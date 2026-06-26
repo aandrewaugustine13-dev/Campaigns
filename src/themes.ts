@@ -35,6 +35,45 @@ export function isThemeId(x: unknown): x is ThemeId {
   return typeof x === 'string' && (THEME_IDS as string[]).includes(x);
 }
 
+/* ------------------------------------------------------------------ *
+ * PLAYER ERA SLUGS.
+ * The BranchingPlayer's BOLD per-era theming (the `.branching-player
+ * [data-era="…"]` engine in themes.css) uses its OWN era-slug
+ * vocabulary, distinct from ThemeId. The wrapper must carry a
+ * data-era from THIS list or no per-era block matches and every story
+ * renders the same default dark-leather look. Map ThemeId → slug here;
+ * ThemeIds with no matching era fall back to 'default'.
+ * ------------------------------------------------------------------ */
+
+export type PlayerEra =
+  | 'western'
+  | 'revolutionary'
+  | 'ww1-fieldpost'
+  | 'cold-war'
+  | 'civil-rights'
+  | 'classical'
+  | 'industrial'
+  | 'default';
+
+const THEME_TO_PLAYER_ERA: Record<ThemeId, PlayerEra> = {
+  'frontier-leather': 'western',
+  'broadsheet-sepia': 'revolutionary',
+  'ww1-fieldpost': 'ww1-fieldpost',
+  'declassified-typewriter': 'cold-war',
+  'classical-marble': 'classical',
+  'civil-rights-midcentury': 'civil-rights',
+  'parchment-medieval': 'default',
+  'expedition-journal': 'default',
+  'imperial-chinese-scroll': 'default',
+  'islamic-golden-age': 'default',
+  default: 'default',
+};
+
+/** Resolve a ThemeId to the BOLD player-era slug consumed by data-era. */
+export function playerEraForTheme(theme: ThemeId): PlayerEra {
+  return THEME_TO_PLAYER_ERA[theme] ?? 'default';
+}
+
 /** One-line "use when" per theme — feed these to the classifier prompt. */
 export const THEME_USE_WHEN: Record<ThemeId, string> = {
   'broadsheet-sepia': 'early-modern Anglo-American events, ~1770–1860 (Revolution, 1812, early republic)',

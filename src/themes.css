@@ -1,52 +1,56 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@400;700&family=Special+Elite&family=Rye&family=Cormorant+Garamond:wght@400;500;600&family=MedievalSharp&family=Abril+Fatface&family=Anton&family=Oswald:wght@500;600;700&display=swap');
-/* Period-theme fonts for the branching player (DEV: hot-linked Google Fonts;
-   self-host + subset for production — see src/themes.ts notes). */
-@import url('https://fonts.googleapis.com/css2?family=Amiri:ital@0;1&family=Anton&family=Archivo:wght@400;600&family=EB+Garamond:ital@0;1&family=IM+Fell+English:ital@0;1&family=Noto+Serif&family=Noto+Serif+TC:wght@500;700;900&family=Pinyon+Script&family=Reem+Kufi:wght@500;700&family=Spectral:ital,wght@0,400;0,600;0,700;1,400&family=Zilla+Slab:wght@400;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Cinzel:wght@400;600;700&family=Special+Elite&family=Rye&family=Cormorant+Garamond:wght@400;500;600;700&family=MedievalSharp&family=Abril+Fatface&family=Anton&family=Oswald:wght@400;500;600;700&display=swap');
 
 /* ═══════════════════════════════════════════════════════════════
-   Campaign theme system — Phase 3 (bold per-era theming)
-   ───────────────────────────────────────────────────────────────
-   Each generated campaign sets data-theme="<name>" on its root
-   wrapper. Components consume colors, fonts, and TEXTURES via the
-   CSS variables below and the semantic helper classes at the
-   bottom of this file.
-
-   TWO-LAYER LAW:
-   - DISPLAY layer (titles, headers, action buttons, backgrounds,
-     textures, palette) is BOLD and unmistakably period. The two
-     main levers are --font-display and --texture-page; palette is
-     support. --display-case / --display-tracking let a theme
-     reshape display type (e.g. uppercase condensed gothic).
-   - BODY layer (--font-body — the text a kid actually reads:
-     event text, choices, questions, explanations) stays clean and
-     legible in EVERY theme. Never put a stylized font here.
-
-   --texture-page / --texture-card are FULL background shorthand
-   values (layers may carry their own position/size; the last
-   layer paints the base), consumed via `background:` in the
-   helper classes. :root defaults them to the flat theme color so
-   untextured themes are unchanged.
-
-   :root defines fallback values that match the legacy hardcoded
-   look in VisualNovelEngine / GeneratedCampaign so any component
-   rendered OUTSIDE a data-theme wrapper (Chisholm, Crusades,
-   Silk Road, the campaign menu) stays visually identical.
-
-   Trust-signal colors (success/error) keep a fixed MEANING — green
-   is always "correct", red always "failure" — but each theme picks
-   the SHADE via --color-success / --color-danger so the hue clears
-   WCAG AA on that theme's ground. Light tints on dark grounds
-   (:root), deep inks on light parchment/newsprint grounds.
-
-   CONTRAST LAW: every text token must hit >=4.5:1 against the
-   DARKEST base of whatever ground it can sit on (worst card-texture
-   gradient stop, not the page average). Small HUD text aims higher
-   (>=5:1). This is a kids' product — checked with scripts, not eyes.
-   ═══════════════════════════════════════════════════════════════ */
+ *   Campaign theme system — Phase 4 (BOLD per-era theming)
+ *   ───────────────────────────────────────────────────────────────
+ *   WHY THIS REWRITE EXISTS
+ *   On playthrough, every era read as the same dark-brown elegance.
+ *   Three things were flattening them, all fixed here:
+ *
+ *   1. PERIOD TYPE WAS IN THE WRONG LAYER. Western/Civil-Rights/
+ *      Classical/Industrial set --player-font-serif (the READING
+ *      text) to Rye/Anton/Cinzel/Oswald. At paragraph size those
+ *      just read as "slightly odd letters." Now every era keeps a
+ *      CLEAN serif for reading and deploys its period face BIG, as
+ *      chrome only (mastheads, labels, action buttons) — the way
+ *      ww1-fieldpost already did it.
+ *
+ *   2. NO GROUNDS. Only ww1 had a real page texture; every other era
+ *      was near-black with no surface, so saddle-leather, marble,
+ *      soot and newsprint all rendered as "dark." Now each era has a
+ *      real ground — light paper where the period is paper (western
+ *      kraft, revolutionary/civil-rights newsprint, ww1 khaki),
+ *      authentic dark where the period is dark (cold-war noir,
+ *      classical marble, industrial soot).
+ *
+ *   3. NO SIGNATURE DEVICE. ww1 had the violet PASSED-BY-CENSOR
+ *      stamp; nothing else announced its period. Each era now carries
+ *      one era-lock device (a stamp, seal, rule, ornament, rivets).
+ *
+ *   ww1-fieldpost was the one fully-built era — it is the template
+ *   every other era is now brought up to.
+ *
+ *   TWO-LAYER LAW (unchanged, now enforced everywhere):
+ *   - DISPLAY layer (mastheads, labels, action buttons, grounds,
+ *     textures, devices) is BOLD and unmistakably period.
+ *   - BODY layer (the text a kid actually reads: event prose,
+ *     choices, questions, explanations) stays a clean legible serif
+ *     in EVERY theme. Never a stylized face here.
+ *
+ *   CONTRAST LAW (unchanged): every text token clears >=4.5:1 on the
+ *   darkest stop of any ground it can sit on (small HUD text >=5:1).
+ *   Light-ground eras pair deep inks on paper; dark-ground eras pair
+ *   warm/cool light text on near-black. This is a kids' product.
+ *
+ *   PROOF OF SAFETY for the light-ground inversion: the component
+ *   reads colors ONLY through --player-* / theme vars (Tailwind
+ *   arbitrary values), and ww1-fieldpost has shipped a light khaki
+ *   ground + dark text through this exact path. Flipping other eras
+ *   the same way is the same proven move, not a new risk.
+ *   ═══════════════════════════════════════════════════════════════ */
 
 :root {
-  /* Surfaces — high-contrast dark backgrounds */
+  /* Surfaces — high-contrast dark backgrounds (legacy fallback look) */
   --bg-page: #1a1f2e;
   --bg-card: #2a1d12;
   --bg-card-inner: #0d0d0d;
@@ -60,7 +64,7 @@
   --bg-button-action-hover: #0d0d0d;
   --text-button-action: #ffffff;
 
-  /* Text — high-contrast light colors only */
+  /* Text */
   --text-primary: #ffffff;
   --text-muted: #f0e6d2;
   --text-accent: #ffffff;
@@ -74,24 +78,21 @@
   --bar-track: #0d0d0d;
   --bar-fill: #ffffff;
 
-  /* Trust signals — white for all (no colored text) */
+  /* Trust signals */
   --color-success: #ffffff;
   --color-danger: #ffffff;
 
-  /* Typography — display shape is themable; body stays readable.
-     --body-weight lets thin-stroke body faces (Cormorant Garamond)
-     render at 500 so paragraphs don't read hairline on parchment. */
+  /* Typography — display shape themable; body stays readable. */
   --font-display: Georgia, "Times New Roman", serif;
   --font-body: Georgia, "Times New Roman", serif;
   --body-weight: 400;
   --display-case: none;
   --display-tracking: normal;
 
-  /* Parallax fallback (masthead strip + imageless scene panels) */
   --parallax-fallback:
-    radial-gradient(circle at top, #2a1d12 0%, #0d0d0d 65%);
+  radial-gradient(circle at top, #2a1d12 0%, #0d0d0d 65%);
 
-  /* Dialogue panel — high-contrast dark/light */
+  /* Dialogue panel */
   --dialogue-frame: #0d0d0d;
   --dialogue-bg: #2a1d12;
   --dialogue-border: #f0e6d2;
@@ -105,351 +106,348 @@
   --dialogue-attribution-link-hover: #ffffff;
 }
 
-/* ── DEFAULT theme (generated campaigns) — readability overrides ──
-   Split from :root deliberately: the hand-built campaigns (Chisholm,
-   Crusades, Silk Road) render OUTSIDE any data-theme wrapper and read
-   the :root fallbacks above, which stay byte-identical to the legacy
-   look. Generated campaigns whose theme resolves to "default" get
-   these AA+ text margins (audited per-surface; every text token below
-   was lifted from a 4.5-6:1 pairing to 6-11:1). Surfaces, accents,
-   and fonts keep the dark-leather-and-amber character unchanged. */
 [data-theme="default"] {
   /* Uses high-contrast root values — no overrides needed */
 }
 
+/* ── FRONTIER LEATHER — sun-baked kraft + wood type ──────────────
+ *   Restored to an authentic light kraft ground (was an all-#1a1f2e
+ *   clone). Tooled-leather warmth, barn-red iron, worn brass. */
 [data-theme="frontier-leather"] {
-  --bg-page: #2a1d12;
-  --bg-card: #1a1f2e;
-  --bg-card-inner: #0d0d0d;
+  --bg-page: #c9b693;
+  --bg-card: #d3c19c;
+  --bg-card-inner: #b6a37c;
   --texture-page:
-    radial-gradient(ellipse 70% 45% at 15% 20%, rgba(90, 58, 28, 0.10), transparent 60%),
-    radial-gradient(ellipse 60% 40% at 85% 70%, rgba(80, 50, 24, 0.12), transparent 55%),
-    radial-gradient(ellipse at center, transparent 50%, rgba(62, 40, 18, 0.18) 100%),
-    linear-gradient(180deg, #2a1d12 0%, #1a1f2e 100%);
-  --bg-button-action: #0d0d0d;
-  --bg-button-action-hover: #0d0d0d;
-  --text-button-action: #ffffff;
-  --text-primary: #ffffff;
-  --text-muted: #f0e6d2;
-  --text-accent: #ffffff;
-  --text-accent-2: #f0e6d2;
-  --color-success: #ffffff;
-  --color-danger: #ffffff;
-  --border-card: #f0e6d2;
-  --border-divider: #f0e6d2;
-  --bar-track: #0d0d0d;
-  --bar-fill: #ffffff;
+  radial-gradient(ellipse 70% 45% at 15% 20%, rgba(120, 78, 36, 0.16), transparent 60%),
+  radial-gradient(ellipse 60% 40% at 85% 74%, rgba(96, 60, 26, 0.18), transparent 55%),
+  repeating-linear-gradient(94deg, rgba(86, 54, 26, 0.05) 0 3px, transparent 3px 8px),
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.20'/%3E%3C/svg%3E"),
+  linear-gradient(180deg, #c9b693 0%, #bda985 100%);
+  --texture-card:
+  repeating-linear-gradient(94deg, rgba(86, 54, 26, 0.045) 0 3px, transparent 3px 8px),
+  linear-gradient(180deg, #d3c19c 0%, #c6b389 100%);
+  --bg-button-action: #5a2d1a;
+  --bg-button-action-hover: #44200f;
+  --text-button-action: #f4e9d2;
+  --text-primary: #2f2316;
+  --text-muted: #5a4630;
+  --text-accent: #8a3b1f;
+  --text-accent-2: #7a5326;
+  --color-success: #2f5a2a;
+  --color-danger: #8a2a1c;
+  --border-card: #6f5638;
+  --border-divider: #8a6f48;
+  --bar-track: #b09a72;
+  --bar-fill: #5a2d1a;
   --font-display: "Rye", Georgia, serif;
   --font-body: "Cormorant Garamond", Georgia, serif;
-  --body-weight: 500;
-  --parallax-fallback: linear-gradient(180deg, #2a1d12 0%, #1a1f2e 100%);
-  --dialogue-frame: #0d0d0d;
-  --dialogue-bg: #2a1d12;
-  --dialogue-border: #f0e6d2;
-  --dialogue-text: #ffffff;
-  --dialogue-text-muted: #f0e6d2;
-  --dialogue-accent-bg: #1a1f2e;
-  --dialogue-accent-bg-hover: #0d0d0d;
-  --dialogue-accent-border: #f0e6d2;
-  --dialogue-accent-text: #ffffff;
-  --dialogue-attribution-text: #f0e6d2;
-  --dialogue-attribution-link-hover: #ffffff;
+  --body-weight: 600;
+  --parallax-fallback: linear-gradient(180deg, #c9b693 0%, #bda985 100%);
+  --dialogue-frame: #5a2d1a;
+  --dialogue-bg: #d3c19c;
+  --dialogue-border: #6f5638;
+  --dialogue-text: #2f2316;
+  --dialogue-text-muted: #5a4630;
+  --dialogue-accent-bg: #5a2d1a;
+  --dialogue-accent-bg-hover: #44200f;
+  --dialogue-accent-border: #6f5638;
+  --dialogue-accent-text: #f4e9d2;
+  --dialogue-attribution-text: #5a4630;
+  --dialogue-attribution-link-hover: #8a3b1f;
 }
 
 /* ── BROADSHEET SEPIA — aged 19th-century newspaper ──────────────
-   Display: fat-face Didone (Abril Fatface), the classic broadsheet
-   masthead/poster letter. Ground: laid paper (chain lines + faint
-   foxing dots + vignette). Cards carry heavy top/bottom rules like
-   newspaper section dividers (see flourish block below). Palette is
-   near-monochrome ink-on-cream — real newsprint had no color; the
-   oxidized red lives in --text-accent-2 for small flashes. */
+ *   Fat-face Didone masthead (Abril Fatface) on near-monochrome
+ *   ink-on-cream; the oxidized red lives in small accent flashes. */
 [data-theme="broadsheet-sepia"] {
-  --bg-page: #1a1f2e;
-  --bg-card: #2a1d12;
-  --bg-card-inner: #0d0d0d;
+  --bg-page: #e7ddc4;
+  --bg-card: #ece3ce;
+  --bg-card-inner: #ddd1b3;
   --texture-page:
-    repeating-linear-gradient(0deg, rgba(46, 31, 10, 0.055) 0px, rgba(46, 31, 10, 0.055) 1px, transparent 1px, transparent 24px),
-    radial-gradient(rgba(46, 31, 10, 0.06) 1px, transparent 1.5px) 0 0 / 9px 9px,
-    radial-gradient(ellipse at center, transparent 50%, rgba(46, 31, 10, 0.14) 100%),
-    linear-gradient(180deg, #1a1f2e 0%, #0d0d0d 100%);
+  repeating-linear-gradient(0deg, rgba(46, 31, 10, 0.06) 0px, rgba(46, 31, 10, 0.06) 1px, transparent 1px, transparent 24px),
+  radial-gradient(rgba(46, 31, 10, 0.09) 1px, transparent 1.5px) 0 0 / 9px 9px,
+  radial-gradient(ellipse at center, transparent 50%, rgba(46, 31, 10, 0.12) 100%),
+  linear-gradient(180deg, #e9dfc7 0%, #e2d7bd 100%);
   --texture-card:
-    repeating-linear-gradient(0deg, rgba(46, 31, 10, 0.04) 0px, rgba(46, 31, 10, 0.04) 1px, transparent 1px, transparent 22px),
-    linear-gradient(180deg, #2a1d12 0%, #1a1f2e 100%);
-  --bg-button-action: #0d0d0d;
-  --bg-button-action-hover: #0d0d0d;
-  --text-button-action: #ffffff;
-  --text-primary: #ffffff;
-  --text-muted: #f0e6d2;
-  --text-accent: #ffffff;
-  --text-accent-2: #f0e6d2;
-  --color-success: #ffffff;
-  --color-danger: #ffffff;
-  --border-card: #f0e6d2;
-  --border-divider: #f0e6d2;
-  --bar-track: #0d0d0d;
-  --bar-fill: #ffffff;
+  repeating-linear-gradient(0deg, rgba(46, 31, 10, 0.045) 0px, rgba(46, 31, 10, 0.045) 1px, transparent 1px, transparent 22px),
+  linear-gradient(180deg, #ece3ce 0%, #e5dabf 100%);
+  --bg-button-action: #241a0e;
+  --bg-button-action-hover: #120c06;
+  --text-button-action: #efe6d0;
+  --text-primary: #231a0f;
+  --text-muted: #50412a;
+  --text-accent: #231a0f;
+  --text-accent-2: #7a2e1f;
+  --color-success: #2f5a2a;
+  --color-danger: #8a2a1c;
+  --border-card: #2a1f10;
+  --border-divider: #4a3a22;
+  --bar-track: #cdbf9d;
+  --bar-fill: #231a0f;
   --font-display: "Abril Fatface", "Playfair Display", Georgia, serif;
   --font-body: Georgia, "Times New Roman", serif;
   --parallax-fallback:
-    repeating-linear-gradient(0deg, rgba(46, 31, 10, 0.06) 0px, rgba(46, 31, 10, 0.06) 1px, transparent 1px, transparent 20px),
-    radial-gradient(rgba(46, 31, 10, 0.08) 1px, transparent 1.5px) 0 0 / 8px 8px,
-    linear-gradient(180deg, #2a1d12 0%, #1a1f2e 50%, #0d0d0d 100%);
-  --dialogue-frame: #0d0d0d;
-  --dialogue-bg: #2a1d12;
-  --dialogue-border: #f0e6d2;
-  --dialogue-text: #ffffff;
-  --dialogue-text-muted: #f0e6d2;
-  --dialogue-accent-bg: #1a1f2e;
-  --dialogue-accent-bg-hover: #0d0d0d;
-  --dialogue-accent-border: #f0e6d2;
-  --dialogue-accent-text: #ffffff;
-  --dialogue-attribution-text: #f0e6d2;
-  --dialogue-attribution-link-hover: #ffffff;
+  repeating-linear-gradient(0deg, rgba(46, 31, 10, 0.08) 0px, rgba(46, 31, 10, 0.08) 1px, transparent 1px, transparent 20px),
+  radial-gradient(rgba(46, 31, 10, 0.10) 1px, transparent 1.5px) 0 0 / 8px 8px,
+  linear-gradient(180deg, #e9dfc7 0%, #ddd1b3 100%);
+  --dialogue-frame: #241a0e;
+  --dialogue-bg: #ece3ce;
+  --dialogue-border: #2a1f10;
+  --dialogue-text: #231a0f;
+  --dialogue-text-muted: #50412a;
+  --dialogue-accent-bg: #241a0e;
+  --dialogue-accent-bg-hover: #120c06;
+  --dialogue-accent-border: #2a1f10;
+  --dialogue-accent-text: #efe6d0;
+  --dialogue-attribution-text: #50412a;
+  --dialogue-attribution-link-hover: #7a2e1f;
 }
 
 /* ── PARCHMENT MEDIEVAL — illuminated manuscript ─────────────────
-   Display: MedievalSharp, a READABLE blackletter-pen face (Cinzel is
-   the step-down cousin if a campaign title proves dense on screen).
-   Ground: mottled vellum (uneven hide blotches + heavy edge
-   vignette). Palette: muted-rich manuscript inks — rubric red,
-   lapis lazuli, oak-gall brown — NOT fantasy-game-bright. Cards get
-   a rubricated edge line (flourish block below). */
+ *   Mottled vellum ground, rubric red + lapis + oak-gall inks,
+ *   readable blackletter-pen display (MedievalSharp). */
 [data-theme="parchment-medieval"] {
-  --bg-page: #2a1d12;
-  --bg-card: #1a1f2e;
-  --bg-card-inner: #0d0d0d;
+  --bg-page: #e3d2a9;
+  --bg-card: #e8d8b2;
+  --bg-card-inner: #d6c393;
   --texture-page:
-    radial-gradient(ellipse 80% 50% at 18% 12%, rgba(118, 86, 42, 0.10), transparent 60%),
-    radial-gradient(ellipse 70% 45% at 82% 28%, rgba(105, 76, 38, 0.09), transparent 55%),
-    radial-gradient(ellipse 90% 60% at 38% 78%, rgba(112, 82, 40, 0.11), transparent 60%),
-    radial-gradient(ellipse 60% 40% at 92% 88%, rgba(95, 66, 30, 0.12), transparent 55%),
-    radial-gradient(ellipse at center, transparent 42%, rgba(74, 50, 22, 0.24) 100%),
-    linear-gradient(180deg, #2a1d12 0%, #1a1f2e 100%);
+  radial-gradient(ellipse 80% 50% at 18% 12%, rgba(118, 86, 42, 0.16), transparent 60%),
+  radial-gradient(ellipse 70% 45% at 82% 28%, rgba(105, 76, 38, 0.15), transparent 55%),
+  radial-gradient(ellipse 90% 60% at 38% 78%, rgba(112, 82, 40, 0.16), transparent 60%),
+  radial-gradient(ellipse 60% 40% at 92% 88%, rgba(95, 66, 30, 0.18), transparent 55%),
+  radial-gradient(ellipse at center, transparent 42%, rgba(74, 50, 22, 0.22) 100%),
+  linear-gradient(180deg, #e6d5ac 0%, #ddca9f 100%);
   --texture-card:
-    radial-gradient(ellipse 70% 50% at 28% 22%, rgba(118, 86, 42, 0.09), transparent 55%),
-    radial-gradient(ellipse 60% 45% at 78% 82%, rgba(95, 66, 30, 0.11), transparent 55%),
-    linear-gradient(180deg, #1a1f2e 0%, #0d0d0d 100%);
-  --bg-button-action: #0d0d0d;
-  --bg-button-action-hover: #0d0d0d;
-  --text-button-action: #ffffff;
-  --text-primary: #ffffff;
-  --text-muted: #f0e6d2;
-  --text-accent: #ffffff;
-  --text-accent-2: #f0e6d2;
-  --color-success: #ffffff;
-  --color-danger: #ffffff;
-  --border-card: #f0e6d2;
-  --border-divider: #f0e6d2;
-  --bar-track: #0d0d0d;
-  --bar-fill: #ffffff;
+  radial-gradient(ellipse 70% 50% at 28% 22%, rgba(118, 86, 42, 0.13), transparent 55%),
+  radial-gradient(ellipse 60% 45% at 78% 82%, rgba(95, 66, 30, 0.15), transparent 55%),
+  linear-gradient(180deg, #e8d8b2 0%, #ddca9f 100%);
+  --bg-button-action: #5a1410;
+  --bg-button-action-hover: #420c09;
+  --text-button-action: #f3e6c8;
+  --text-primary: #2c1d0e;
+  --text-muted: #5a4324;
+  --text-accent: #8c1c13;
+  --text-accent-2: #1f3a6b;
+  --color-success: #2f5a2a;
+  --color-danger: #8c1c13;
+  --border-card: #6a3a18;
+  --border-divider: #8a5a2a;
+  --bar-track: #cdb98a;
+  --bar-fill: #8c1c13;
   --font-display: "MedievalSharp", "Cinzel", Georgia, serif;
   --font-body: "Cormorant Garamond", Georgia, serif;
-  --body-weight: 500;
+  --body-weight: 600;
   --parallax-fallback:
-    radial-gradient(ellipse 70% 60% at 25% 30%, rgba(118, 86, 42, 0.12), transparent 60%),
-    radial-gradient(ellipse 60% 50% at 80% 70%, rgba(95, 66, 30, 0.12), transparent 55%),
-    radial-gradient(ellipse at center, transparent 40%, rgba(74, 50, 22, 0.30) 100%),
-    linear-gradient(180deg, #2a1d12 0%, #1a1f2e 100%);
-  --dialogue-frame: #0d0d0d;
-  --dialogue-bg: #2a1d12;
-  --dialogue-border: #f0e6d2;
-  --dialogue-text: #ffffff;
-  --dialogue-text-muted: #f0e6d2;
-  --dialogue-accent-bg: #1a1f2e;
-  --dialogue-accent-bg-hover: #0d0d0d;
-  --dialogue-accent-border: #f0e6d2;
-  --dialogue-accent-text: #ffffff;
-  --dialogue-attribution-text: #f0e6d2;
-  --dialogue-attribution-link-hover: #ffffff;
+  radial-gradient(ellipse 70% 60% at 25% 30%, rgba(118, 86, 42, 0.18), transparent 60%),
+  radial-gradient(ellipse 60% 50% at 80% 70%, rgba(95, 66, 30, 0.18), transparent 55%),
+  radial-gradient(ellipse at center, transparent 40%, rgba(74, 50, 22, 0.26) 100%),
+  linear-gradient(180deg, #e6d5ac 0%, #ddca9f 100%);
+  --dialogue-frame: #5a1410;
+  --dialogue-bg: #e8d8b2;
+  --dialogue-border: #6a3a18;
+  --dialogue-text: #2c1d0e;
+  --dialogue-text-muted: #5a4324;
+  --dialogue-accent-bg: #5a1410;
+  --dialogue-accent-bg-hover: #420c09;
+  --dialogue-accent-border: #6a3a18;
+  --dialogue-accent-text: #f3e6c8;
+  --dialogue-attribution-text: #5a4324;
+  --dialogue-attribution-link-hover: #8c1c13;
 }
 
+/* ── EXPEDITION JOURNAL — ruled field notebook + ink ─────────────
+ *   Ruled cream paper, pen-ink slate, coordinate-margin warmth. */
 [data-theme="expedition-journal"] {
-  --bg-page: #1a1f2e;
-  --bg-card: #2a1d12;
-  --bg-card-inner: #0d0d0d;
+  --bg-page: #e6e0d0;
+  --bg-card: #ece7d8;
+  --bg-card-inner: #dcd5c1;
   --texture-page:
-    repeating-linear-gradient(0deg, rgba(44, 44, 44, 0.045) 0px, rgba(44, 44, 44, 0.045) 1px, transparent 1px, transparent 28px),
-    radial-gradient(ellipse at center, transparent 55%, rgba(44, 44, 44, 0.12) 100%),
-    linear-gradient(180deg, #1a1f2e 0%, #0d0d0d 100%);
-  --bg-button-action: #0d0d0d;
-  --bg-button-action-hover: #0d0d0d;
-  --text-button-action: #ffffff;
-  --text-primary: #ffffff;
-  --text-muted: #f0e6d2;
-  --text-accent: #ffffff;
-  --text-accent-2: #f0e6d2;
-  --color-success: #ffffff;
-  --color-danger: #ffffff;
-  --border-card: #f0e6d2;
-  --border-divider: #f0e6d2;
-  --bar-track: #0d0d0d;
-  --bar-fill: #ffffff;
+  repeating-linear-gradient(0deg, transparent 0 26px, rgba(40, 58, 69, 0.14) 26px 27px),
+  radial-gradient(circle at 80% 90%, rgba(80, 55, 25, 0.12) 0, transparent 14%),
+  radial-gradient(ellipse at center, transparent 55%, rgba(44, 44, 44, 0.10) 100%),
+  linear-gradient(180deg, #e9e3d4 0%, #e2dbca 100%);
+  --texture-card:
+  repeating-linear-gradient(0deg, transparent 0 26px, rgba(40, 58, 69, 0.10) 26px 27px),
+  linear-gradient(180deg, #ece7d8 0%, #e3dccb 100%);
+  --bg-button-action: #283a45;
+  --bg-button-action-hover: #1c2a32;
+  --text-button-action: #eee7d5;
+  --text-primary: #22271f;
+  --text-muted: #51503f;
+  --text-accent: #283a45;
+  --text-accent-2: #8a5a2b;
+  --color-success: #2f5a2a;
+  --color-danger: #8a2a1c;
+  --border-card: #4a4636;
+  --border-divider: #6b6750;
+  --bar-track: #cdc6b0;
+  --bar-fill: #283a45;
   --font-display: "Cormorant Garamond", Georgia, serif;
   --font-body: "Cormorant Garamond", Georgia, serif;
-  --body-weight: 500;
-  --parallax-fallback: linear-gradient(180deg, #1a1f2e 0%, #0d0d0d 100%);
-  --dialogue-frame: #0d0d0d;
-  --dialogue-bg: #2a1d12;
-  --dialogue-border: #f0e6d2;
-  --dialogue-text: #ffffff;
-  --dialogue-text-muted: #f0e6d2;
-  --dialogue-accent-bg: #1a1f2e;
-  --dialogue-accent-bg-hover: #0d0d0d;
-  --dialogue-accent-border: #f0e6d2;
-  --dialogue-accent-text: #ffffff;
-  --dialogue-attribution-text: #f0e6d2;
-  --dialogue-attribution-link-hover: #ffffff;
+  --body-weight: 600;
+  --parallax-fallback: linear-gradient(180deg, #e9e3d4 0%, #dcd5c1 100%);
+  --dialogue-frame: #283a45;
+  --dialogue-bg: #ece7d8;
+  --dialogue-border: #4a4636;
+  --dialogue-text: #22271f;
+  --dialogue-text-muted: #51503f;
+  --dialogue-accent-bg: #283a45;
+  --dialogue-accent-bg-hover: #1c2a32;
+  --dialogue-accent-border: #4a4636;
+  --dialogue-accent-text: #eee7d5;
+  --dialogue-attribution-text: #51503f;
+  --dialogue-attribution-link-hover: #283a45;
 }
 
+/* ── DECLASSIFIED TYPEWRITER — manila file + redaction ───────────
+ *   Manila folder ground, mono typewriter chrome, oxide stamp red. */
 [data-theme="declassified-typewriter"] {
-  --bg-page: #1a1f2e;
-  --bg-card: #2a1d12;
-  --bg-card-inner: #0d0d0d;
+  --bg-page: #d9c79a;
+  --bg-card: #e0cfa4;
+  --bg-card-inner: #ccb985;
   --texture-page:
-    repeating-linear-gradient(0deg, rgba(24, 24, 24, 0.04) 0px, rgba(24, 24, 24, 0.04) 2px, transparent 2px, transparent 4px),
-    linear-gradient(180deg, #1a1f2e 0%, #0d0d0d 100%);
-  --bg-button-action: #0d0d0d;
-  --bg-button-action-hover: #0d0d0d;
-  --text-button-action: #ffffff;
-  --text-primary: #ffffff;
-  --text-muted: #f0e6d2;
-  --text-accent: #ffffff;
-  --text-accent-2: #f0e6d2;
-  --color-success: #ffffff;
-  --color-danger: #ffffff;
-  --border-card: #f0e6d2;
-  --border-divider: #f0e6d2;
-  --bar-track: #0d0d0d;
-  --bar-fill: #ffffff;
-  --font-display: "Special Elite", "Courier Prime", monospace;
-  --font-body: "Cormorant Garamond", Georgia, serif;
-  --body-weight: 500;
-  --parallax-fallback: repeating-linear-gradient(0deg, rgba(24, 24, 24, 0.04) 0px, rgba(24, 24, 24, 0.04) 2px, transparent 2px, transparent 4px), linear-gradient(180deg, #1a1f2e 0%, #0d0d0d 100%);
-  --dialogue-frame: #0d0d0d;
-  --dialogue-bg: #2a1d12;
-  --dialogue-border: #f0e6d2;
-  --dialogue-text: #ffffff;
-  --dialogue-text-muted: #f0e6d2;
-  --dialogue-accent-bg: #1a1f2e;
-  --dialogue-accent-bg-hover: #0d0d0d;
-  --dialogue-accent-border: #f0e6d2;
-  --dialogue-accent-text: #ffffff;
-  --dialogue-attribution-text: #f0e6d2;
-  --dialogue-attribution-link-hover: #ffffff;
+  repeating-linear-gradient(0deg, rgba(40, 30, 14, 0.05) 0px, rgba(40, 30, 14, 0.05) 1px, transparent 1px, transparent 4px),
+  radial-gradient(ellipse at center, transparent 52%, rgba(60, 44, 18, 0.14) 100%),
+  linear-gradient(180deg, #dcca9d 0%, #d3c08f 100%);
+  --texture-card:
+  repeating-linear-gradient(0deg, rgba(40, 30, 14, 0.04) 0px, rgba(40, 30, 14, 0.04) 1px, transparent 1px, transparent 4px),
+  linear-gradient(180deg, #e0cfa4 0%, #d6c393 100%);
+  --bg-button-action: #2a2218;
+  --bg-button-action-hover: #181208;
+  --text-button-action: #ece2c8;
+  --text-primary: #2a2014;
+  --text-muted: #574a32;
+  --text-accent: #8a2a1c;
+  --text-accent-2: #2a2014;
+  --color-success: #2f5a2a;
+  --color-danger: #8a2a1c;
+  --border-card: #5a4a30;
+  --border-divider: #7a6843;
+  --bar-track: #c3b083;
+  --bar-fill: #2a2014;
+  --font-display: "Special Elite", "Courier New", monospace;
+  --font-body: Georgia, "Times New Roman", serif;
+  --parallax-fallback: linear-gradient(180deg, #dcca9d 0%, #ccb985 100%);
+  --dialogue-frame: #2a2218;
+  --dialogue-bg: #e0cfa4;
+  --dialogue-border: #5a4a30;
+  --dialogue-text: #2a2014;
+  --dialogue-text-muted: #574a32;
+  --dialogue-accent-bg: #2a2218;
+  --dialogue-accent-bg-hover: #181208;
+  --dialogue-accent-border: #5a4a30;
+  --dialogue-accent-text: #ece2c8;
+  --dialogue-attribution-text: #574a32;
+  --dialogue-attribution-link-hover: #8a2a1c;
 }
 
+/* ── CLASSICAL MARBLE — incised limestone ────────────────────────
+ *   Warm Parian/limestone ground with vein streaks, terracotta +
+ *   bronze accents, monumental incised Cinzel caps. */
 [data-theme="classical-marble"] {
-  --bg-page: #2a1d12;
-  --bg-card: #1a1f2e;
-  --bg-card-inner: #0d0d0d;
+  --bg-page: #d9d3c6;
+  --bg-card: #e0dacd;
+  --bg-card-inner: #cbc4b4;
   --texture-page:
-    linear-gradient(105deg, transparent 38%, rgba(90, 76, 48, 0.06) 41%, transparent 44%, transparent 68%, rgba(90, 76, 48, 0.05) 71%, transparent 74%),
-    linear-gradient(160deg, transparent 22%, rgba(90, 76, 48, 0.05) 25%, transparent 28%),
-    linear-gradient(180deg, #2a1d12 0%, #1a1f2e 100%);
-  --bg-button-action: #0d0d0d;
-  --bg-button-action-hover: #0d0d0d;
-  --text-button-action: #ffffff;
-  --text-primary: #ffffff;
-  --text-muted: #f0e6d2;
-  --text-accent: #ffffff;
-  --text-accent-2: #f0e6d2;
-  --color-success: #ffffff;
-  --color-danger: #ffffff;
-  --border-card: #f0e6d2;
-  --border-divider: #f0e6d2;
-  --bar-track: #0d0d0d;
-  --bar-fill: #ffffff;
+  linear-gradient(108deg, transparent 36%, rgba(70, 60, 40, 0.10) 40%, transparent 43%, transparent 66%, rgba(70, 60, 40, 0.08) 70%, transparent 73%),
+  linear-gradient(158deg, transparent 20%, rgba(70, 60, 40, 0.08) 24%, transparent 27%),
+  radial-gradient(ellipse at center, transparent 58%, rgba(60, 52, 34, 0.10) 100%),
+  linear-gradient(180deg, #ddd7ca 0%, #d4cdbf 100%);
+  --texture-card:
+  linear-gradient(108deg, transparent 40%, rgba(70, 60, 40, 0.07) 44%, transparent 47%),
+  linear-gradient(180deg, #e0dacd 0%, #d6cfc0 100%);
+  --bg-button-action: #5a2f1f;
+  --bg-button-action-hover: #421f12;
+  --text-button-action: #f1e9d8;
+  --text-primary: #2c2a23;
+  --text-muted: #585444;
+  --text-accent: #8a4f3a;
+  --text-accent-2: #6e5a2a;
+  --color-success: #2f5a2a;
+  --color-danger: #8a2a1c;
+  --border-card: #5c5547;
+  --border-divider: #7c7563;
+  --bar-track: #c6bfae;
+  --bar-fill: #5a2f1f;
   --font-display: "Cinzel", "Trajan Pro", Georgia, serif;
   --font-body: Georgia, "Times New Roman", serif;
+  --display-tracking: 0.08em;
   --parallax-fallback:
-    linear-gradient(180deg, #2a1d12 0%, #1a1f2e 60%, #0d0d0d 100%);
-  --dialogue-frame: #0d0d0d;
-  --dialogue-bg: #2a1d12;
-  --dialogue-border: #f0e6d2;
-  --dialogue-text: #ffffff;
-  --dialogue-text-muted: #f0e6d2;
-  --dialogue-accent-bg: #1a1f2e;
-  --dialogue-accent-bg-hover: #0d0d0d;
-  --dialogue-accent-border: #f0e6d2;
-  --dialogue-accent-text: #ffffff;
-  --dialogue-attribution-text: #f0e6d2;
-  --dialogue-attribution-link-hover: #ffffff;
+  linear-gradient(108deg, transparent 36%, rgba(70, 60, 40, 0.12) 40%, transparent 44%),
+  linear-gradient(180deg, #ddd7ca 0%, #cbc4b4 100%);
+  --dialogue-frame: #5a2f1f;
+  --dialogue-bg: #e0dacd;
+  --dialogue-border: #5c5547;
+  --dialogue-text: #2c2a23;
+  --dialogue-text-muted: #585444;
+  --dialogue-accent-bg: #5a2f1f;
+  --dialogue-accent-bg-hover: #421f12;
+  --dialogue-accent-border: #5c5547;
+  --dialogue-accent-text: #f1e9d8;
+  --dialogue-attribution-text: #585444;
+  --dialogue-attribution-link-hover: #8a4f3a;
 }
 
-/* ── CIVIL RIGHTS MIDCENTURY — 1950s–60s documentary newsprint ───
-   Display: Anton (heavy condensed gothic, the mid-century headline
-   letter), set UPPERCASE — the movement's posters and front pages,
-   not cheerful retro-fifties. Ground: cream newsprint with a
-   halftone dot screen (offset photo printing). Palette: DIGNIFIED
-   high contrast — near-black ink on cream with one restrained
-   oxide red. Borders are hard black rules; cards carry a heavy
-   newspaper department rule on top (flourish block below). */
+/* ── CIVIL RIGHTS MIDCENTURY — documentary newsprint ─────────────
+ *   Cream newsprint + halftone dot screen, Anton uppercase masthead,
+ *   heavy black department rules, one dignified oxide red. */
 [data-theme="civil-rights-midcentury"] {
-  --bg-page: #0d0d0d;
-  --bg-card: #1a1f2e;
-  --bg-card-inner: #0d0d0d;
+  --bg-page: #e4ddcd;
+  --bg-card: #eae3d4;
+  --bg-card-inner: #d8d0bd;
   --texture-page:
-    radial-gradient(rgba(20, 17, 13, 0.055) 1px, transparent 1.3px) 0 0 / 6px 6px,
-    radial-gradient(rgba(20, 17, 13, 0.04) 1px, transparent 1.3px) 3px 3px / 6px 6px,
-    radial-gradient(ellipse at center, transparent 60%, rgba(20, 17, 13, 0.08) 100%),
-    linear-gradient(180deg, #1a1f2e 0%, #0d0d0d 100%);
+  radial-gradient(rgba(20, 17, 13, 0.10) 1px, transparent 1.3px) 0 0 / 6px 6px,
+  radial-gradient(rgba(20, 17, 13, 0.07) 1px, transparent 1.3px) 3px 3px / 6px 6px,
+  radial-gradient(ellipse at center, transparent 60%, rgba(20, 17, 13, 0.07) 100%),
+  linear-gradient(180deg, #e7e0d0 0%, #e0d8c7 100%);
   --texture-card:
-    radial-gradient(rgba(20, 17, 13, 0.04) 1px, transparent 1.3px) 0 0 / 6px 6px,
-    linear-gradient(180deg, #1a1f2e 0%, #0d0d0d 100%);
-  --bg-button-action: #0d0d0d;
-  --bg-button-action-hover: #0d0d0d;
-  --text-button-action: #ffffff;
-  --text-primary: #ffffff;
-  --text-muted: #f0e6d2;
-  --text-accent: #ffffff;
-  --text-accent-2: #ffffff;
-  --color-success: #ffffff;
-  --color-danger: #ffffff;
-  --border-card: #f0e6d2;
-  --border-divider: #f0e6d2;
-  --bar-track: #0d0d0d;
-  --bar-fill: #ffffff;
+  radial-gradient(rgba(20, 17, 13, 0.07) 1px, transparent 1.3px) 0 0 / 6px 6px,
+  linear-gradient(180deg, #eae3d4 0%, #e2dac8 100%);
+  --bg-button-action: #161310;
+  --bg-button-action-hover: #000000;
+  --text-button-action: #f1ead9;
+  --text-primary: #161310;
+  --text-muted: #4a4338;
+  --text-accent: #161310;
+  --text-accent-2: #b03524;
+  --color-success: #2f5a2a;
+  --color-danger: #b03524;
+  --border-card: #161310;
+  --border-divider: #3a352c;
+  --bar-track: #cabf9f;
+  --bar-fill: #161310;
   --font-display: "Anton", "Oswald", "Arial Narrow", Impact, sans-serif;
   --font-body: Georgia, "Times New Roman", serif;
   --display-case: uppercase;
   --display-tracking: 0.03em;
   --parallax-fallback:
-    radial-gradient(rgba(20, 17, 13, 0.07) 1px, transparent 1.3px) 0 0 / 5px 5px,
-    radial-gradient(rgba(20, 17, 13, 0.05) 1px, transparent 1.3px) 2.5px 2.5px / 5px 5px,
-    linear-gradient(180deg, #1a1f2e 0%, #0d0d0d 100%);
-  --dialogue-frame: #0d0d0d;
-  --dialogue-bg: #1a1f2e;
-  --dialogue-border: #f0e6d2;
-  --dialogue-text: #ffffff;
-  --dialogue-text-muted: #f0e6d2;
-  --dialogue-accent-bg: #0d0d0d;
-  --dialogue-accent-bg-hover: #0d0d0d;
-  --dialogue-accent-border: #f0e6d2;
-  --dialogue-accent-text: #ffffff;
-  --dialogue-attribution-text: #f0e6d2;
-  --dialogue-attribution-link-hover: #ffffff;
+  radial-gradient(rgba(20, 17, 13, 0.12) 1px, transparent 1.3px) 0 0 / 5px 5px,
+  radial-gradient(rgba(20, 17, 13, 0.09) 1px, transparent 1.3px) 2.5px 2.5px / 5px 5px,
+  linear-gradient(180deg, #e7e0d0 0%, #d8d0bd 100%);
+  --dialogue-frame: #161310;
+  --dialogue-bg: #eae3d4;
+  --dialogue-border: #161310;
+  --dialogue-text: #161310;
+  --dialogue-text-muted: #4a4338;
+  --dialogue-accent-bg: #161310;
+  --dialogue-accent-bg-hover: #000000;
+  --dialogue-accent-border: #161310;
+  --dialogue-accent-text: #f1ead9;
+  --dialogue-attribution-text: #4a4338;
+  --dialogue-attribution-link-hover: #b03524;
 }
 
 /* ───────────────────────────────────────────────────────────────
-   Semantic helper classes
-   These read the theme variables and are used by components.
-   Layout/spacing/typography sizes stay as Tailwind utilities.
-   Only color/background/border/font-family come from here.
-   !important is used to override Tailwind's default border/text
-   color utilities when mixed (e.g. `border theme-border`).
-   ─────────────────────────────────────────────────────────────── */
+ *   Semantic helper classes (UNCHANGED CONTRACT)
+ *   Only color/background/border/font-family come from here.
+ *   ─────────────────────────────────────────────────────────────── */
 
-/* Page/card grounds use the FULL background shorthand so themes can
-   layer textures; :root defaults the texture vars to the flat color,
-   so untextured themes render exactly as before. */
 .theme-bg-page         { background: var(--texture-page) !important; }
 .theme-bg-card         { background: var(--texture-card) !important; }
 .theme-bg-card-inner   { background-color: var(--bg-card-inner) !important; }
 .theme-bg-track        { background-color: var(--bar-track) !important; }
 .theme-bar-fill        { background-color: var(--bar-fill) !important; }
 
-/* Trust signals — fixed meaning (green=correct, red=failure), theme-
-   picked shade so they clear AA on light grounds too. */
 .theme-success         { color: var(--color-success) !important; }
 .theme-danger          { color: var(--color-danger) !important; }
 
@@ -461,9 +459,6 @@
 .theme-border          { border-color: var(--border-card) !important; }
 .theme-divider         { border-color: var(--border-divider) !important; }
 
-/* Action buttons are DISPLAY-layer: they take the era's display face
-   and case. Labels are short ("Continue", "BEGIN"), so legibility
-   holds; choice/answer text never uses this class. */
 .theme-btn-action {
   background-color: var(--bg-button-action) !important;
   color: var(--text-button-action) !important;
@@ -481,40 +476,38 @@
   letter-spacing: var(--display-tracking);
   text-transform: var(--display-case);
 }
-/* Applied on screen wrappers: weight inherits to plain paragraphs
-   (thin faces render at 500) while Tailwind font-bold etc. on
-   descendants still win. */
 .theme-body-font    { font-family: var(--font-body); font-weight: var(--body-weight); }
 
-/* Parallax fallback — the era masthead strip and the panel shown
-   when no Commons image exists. */
 .theme-parallax {
   background: var(--parallax-fallback);
 }
 
-/* ── Per-era card flourishes ─────────────────────────────────────
-   The texture/flourish details that make a surface unmistakably its
-   period, scoped under data-theme so other themes are untouched. */
+/* ── Per-era card flourishes ([data-theme] engine) ──────────────── */
 
 /* Manuscript: rubricated edge line + aged inner shadow on cards. */
 [data-theme="parchment-medieval"] .theme-bg-card {
   box-shadow:
-    inset 0 0 0 1px rgba(138, 28, 28, 0.30),
-    inset 0 0 22px rgba(96, 64, 32, 0.20);
+  inset 0 0 0 1px rgba(138, 28, 28, 0.45),
+  inset 0 0 26px rgba(96, 64, 32, 0.22);
 }
 
 /* Broadsheet: heavy top+bottom section rules, like column dividers. */
 [data-theme="broadsheet-sepia"] .theme-bg-card {
   box-shadow:
-    inset 0 2px 0 #20150a,
-    inset 0 -2px 0 #20150a,
-    inset 0 5px 0 -4px #20150a,
-    inset 0 -5px 0 -4px #20150a;
+  inset 0 2px 0 #231a0f,
+  inset 0 -2px 0 #231a0f,
+  inset 0 5px 0 -4px #231a0f,
+  inset 0 -5px 0 -4px #231a0f;
 }
 
 /* Midcentury front page: one heavy department rule across the top. */
 [data-theme="civil-rights-midcentury"] .theme-bg-card {
-  box-shadow: inset 0 4px 0 #14110d;
+  box-shadow: inset 0 5px 0 #161310;
+}
+
+/* Marble: crisp incised inset on cards. */
+[data-theme="classical-marble"] .theme-bg-card {
+  box-shadow: inset 0 0 0 1px rgba(60, 52, 34, 0.30);
 }
 
 /* Dialogue panel (VisualNovelEngine) */
@@ -542,384 +535,716 @@ a.theme-dialogue-attribution-link:hover {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   BRANCHING PLAYER — PERIOD THEME SYSTEM (slot-based)
-   ───────────────────────────────────────────────────────────────
-   Merged from the standalone theme-system. The student player renders:
-     <div class="branching-player" data-theme="<ThemeId>">
-       <div data-slot="passage"> … data-slot="story-title" / "body" /
-            "choice" / "figure-encounter" / "ending" … </div>
-     </div>
+ *   BRANCHING PLAYER THEMING (era-aware visual identities)
+ *   The student player renders inside:
+ *     <div class="branching-player" data-era="...">...</div>
+ *   All visuals driven by --player-* variables consumed by the
+ *   component via Tailwind arbitrary values.
+ *   ═══════════════════════════════════════════════════════════════ */
 
-   THE ONE RULE: every theme's era-lock is carried by something OTHER
-   than color (type, ornament, layout, texture). Color alone never
-   locks an era.
+.branching-player {
+  --player-color-primary: #c9a36b;
+  --player-color-secondary: #8a7f6a;
+  --player-color-bg: #18140f;
+  --player-color-bg-alt: #221f1a;
+  --player-color-bg-card: #211e1a;
+  --player-color-bg-card-muted: #1c1915;
+  --player-color-bg-card-figure: #1f2a22;
+  --player-color-bg-card-decision: #211e1a;
+  --player-color-bg-card-inner: #24211d;
+  --player-color-accent: #c9a36b;
+  --player-color-accent-2: #b89d6e;
+  --player-color-text: #c5b8a0;
+  --player-color-text-prose: #e8dcc8;
+  --player-color-text-muted: #8a7f6a;
 
-   Everything is scoped under .branching-player so it can NEVER collide
-   with the generated-campaign [data-theme] blocks above (those drive
-   GeneratedCampaign / VisualNovelEngine — Chisholm, Crusades, Silk Road).
+  --player-bg: var(--player-color-bg);
+  --player-bg-radial: var(--player-color-bg-alt);
+  --player-bg-card: var(--player-color-bg-card);
+  --player-bg-card-muted: var(--player-color-bg-card-muted);
+  --player-bg-card-figure: var(--player-color-bg-card-figure);
+  --player-bg-card-decision: var(--player-color-bg-card-decision);
+  --player-bg-card-inner: var(--player-color-bg-card-inner);
 
-   Scoped [data-slot] rules out-specify Tailwind utility classes
-   ((0,2,0) > (0,1,0)), so the slot styling takes over appearance while
-   the player's layout/touch utilities survive. The --player-* BRIDGE
-   below remaps the legacy variables the player's JSX still reads onto
-   the period tokens, so non-slotted elements adopt the paper palette
-   too. The id list + selection logic live in src/themes.ts.
-   ─────────────────────────────────────────────────────────────── */
+  --player-text: var(--player-color-text);
+  --player-text-prose: var(--player-color-text-prose);
+  --player-text-muted: var(--player-color-text-muted);
+  --player-text-accent: var(--player-color-accent);
+  --player-text-accent-2: var(--player-color-accent-2);
 
-/* ── SHARED ENGINE — themes set variables, not new code ──────────── */
-.branching-player[data-theme] {
-  /* one reusable grain layer; per-theme opacity via --grain-op */
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --player-border: #3a3630;
+  --player-border-muted: #5a5548;
+  --player-border-accent: var(--player-color-accent);
 
-  position: relative;
-  background-color: var(--paper-bg);
-  color: var(--body-color);
-  font-family: var(--body-font);
-  line-height: 1.72;
+  /* TYPOGRAPHY — body face stays clean & readable. Per-era period
+   *     faces are applied only as CHROME by the flourish rules below. */
+  --player-font-family: Georgia, "Times New Roman", serif;
+  --player-font-serif: var(--player-font-family);
+  --player-font-display: var(--player-font-family);
+  --player-display-case: none;
+  --player-display-tracking: 0.04em;
+  --player-font-size-prose: 1.3125rem;
+  --player-font-size-sm: 0.875rem;
+  --player-font-size-xs: 0.75rem;
+  --player-font-weight: 400;
+  --player-font-weight-medium: 500;
+  --player-font-weight-semibold: 600;
 
-  /* ── BRIDGE: legacy --player-* vars → period tokens ───────────────
-     The player's JSX is saturated with bg-[var(--player-*)] arbitrary
-     classes from before this system existed. Remapping them here lets
-     every non-slotted element (page frame, quiz internals, summary
-     boxes, progress bar) adopt the paper palette without rewriting
-     hundreds of classNames. Muted ink is derived so it stays legible
-     on the paper ground. */
-  --player-bg: var(--paper-bg);
-  --player-bg-radial: var(--paper-bg);
-  --player-bg-card: var(--card-tint, transparent);
-  --player-bg-card-muted: var(--card-tint, transparent);
-  --player-bg-card-figure: var(--card-tint, transparent);
-  --player-bg-card-decision: var(--choice-bg, rgba(0,0,0,0.025));
-  --player-bg-card-inner: var(--choice-bg, rgba(0,0,0,0.025));
+  --player-border-width: 1px;
+  --player-border-radius: 1rem;
+  --player-card-padding: 1.5rem;
 
-  --player-text: var(--body-color);
-  --player-text-prose: var(--body-color);
-  --player-text-muted: color-mix(in srgb, var(--body-color) 68%, var(--paper-bg));
-  --player-text-accent: var(--accent);
-  --player-text-accent-2: var(--chrome-color);
+  --player-space-xs: 0.25rem;
+  --player-space-sm: 0.5rem;
+  --player-space-md: 1rem;
+  --player-space-lg: 1.5rem;
 
-  --player-border: color-mix(in srgb, var(--chrome-color) 45%, var(--paper-bg));
-  --player-border-muted: color-mix(in srgb, var(--chrome-color) 60%, var(--paper-bg));
-  --player-border-accent: var(--accent);
+  --player-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.08);
+  --player-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.12), 0 2px 4px -2px rgb(0 0 0 / 0.08);
 
-  --player-font-serif: var(--body-font);
-  --player-card-radius: 2px;
+  --player-card-radius: var(--player-border-radius);
 
-  --player-btn-bg: var(--choice-bg, rgba(0,0,0,0.025));
-  --player-btn-bg-hover: var(--accent);
-  --player-btn-bg-selected: var(--card-tint, transparent);
-  --player-btn-border: var(--chrome-color);
-  --player-btn-border-hover: var(--accent);
-  --player-btn-border-selected: var(--accent);
-  --player-btn-text: var(--body-color);
-  --player-btn-text-muted: var(--body-color);
-  --player-btn-accent: var(--accent);
+  --player-btn-bg: var(--player-bg-card-inner);
+  --player-btn-bg-hover: var(--player-bg-card-muted);
+  --player-btn-bg-selected: var(--player-bg-card-muted);
+  --player-btn-border: var(--player-border);
+  --player-btn-border-hover: var(--player-border-muted);
+  --player-btn-border-selected: var(--player-border-accent);
+  --player-btn-text: var(--player-text-prose);
+  --player-btn-text-muted: var(--player-text-muted);
+  --player-btn-accent: var(--player-text-accent);
 
-  --player-figure-bg: var(--card-tint, transparent);
-  --player-figure-border: var(--chrome-color);
-  --player-figure-accent: var(--accent);
-  --player-figure-accent-2: var(--chrome-color);
+  --player-figure-bg: var(--player-bg-card-figure);
+  --player-figure-border: var(--player-border-accent);
+  --player-figure-accent: var(--player-text-accent);
+  --player-figure-accent-2: var(--player-text-accent-2);
 
-  --player-quiz-bg: var(--card-tint, transparent);
-  --player-quiz-border: var(--chrome-color);
-  --player-quiz-question-bg: var(--choice-bg, rgba(0,0,0,0.025));
-  --player-quiz-option-bg: var(--choice-bg, rgba(0,0,0,0.025));
-  --player-quiz-option-selected-bg: var(--card-tint, transparent);
-  --player-quiz-option-border: var(--chrome-color);
-  --player-quiz-option-border-selected: var(--accent);
-  --player-quiz-label-bg: var(--choice-bg, rgba(0,0,0,0.025));
-  --player-quiz-label-text: var(--accent);
+  --player-quiz-bg: var(--player-bg-card-figure);
+  --player-quiz-border: var(--player-border-accent);
+  --player-quiz-question-bg: var(--player-bg-card-muted);
+  --player-quiz-option-bg: var(--player-bg-card-inner);
+  --player-quiz-option-selected-bg: var(--player-bg-card-muted);
+  --player-quiz-option-border: var(--player-border);
+  --player-quiz-option-border-selected: var(--player-border-accent);
+  --player-quiz-label-bg: var(--player-bg-card-inner);
+  --player-quiz-label-text: var(--player-text-accent);
 
-  --player-progress-track: var(--choice-bg, rgba(0,0,0,0.06));
-  --player-progress-fill: var(--accent);
-  --player-divider: color-mix(in srgb, var(--chrome-color) 45%, var(--paper-bg));
-  --player-divider-muted: color-mix(in srgb, var(--chrome-color) 60%, var(--paper-bg));
+  --player-progress-track: var(--player-bg-card-muted);
+  --player-progress-fill: var(--player-text-accent);
+  --player-divider: var(--player-border);
+  --player-divider-muted: var(--player-border-muted);
 }
 
-/* paper texture: grain + optional theme-specific overlay (--texture-extra) */
-.branching-player [data-slot="passage"] {
-  position: relative;
-  background-color: var(--paper-bg);
-  color: var(--body-color);
-  font-family: var(--body-font);
-  line-height: 1.72;
+/* ── SHARED CHROME ENGINE ────────────────────────────────────────
+ *   Every era gets a deployed masthead + label treatment from these
+ *   base rules; each era only overrides the FACE / device. This is
+ *   what concentrates period type where it lands hardest. */
+.branching-player[data-era] { position: relative; }
+
+.branching-player[data-era] h1 {
+  font-family: var(--player-font-display);
+  text-transform: var(--player-display-case);
+  letter-spacing: var(--player-display-tracking);
+  color: var(--player-text) !important;
 }
-.branching-player [data-slot="passage"]::before {
+.branching-player[data-era] .uppercase {
+  font-family: var(--player-font-display);
+  letter-spacing: var(--player-display-tracking);
+}
+
+/* default — elegant dark leather/ink (base look) */
+.branching-player[data-era="default"] {
+  /* inherits the base above */
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ *   1. WESTERN / OLD WEST — sun-baked kraft broadside
+ *   Light kraft ground + dust foxing, wood-type Rye masthead, a
+ *   branded ★ corner stamp + double wood rule. Body stays clean serif.
+ *   ═══════════════════════════════════════════════════════════════ */
+.branching-player[data-era="western"] {
+  --player-color-bg: #c7b48f;
+  --player-color-bg-alt: #d4c39e;
+  --player-color-bg-card: #d2c098;
+  --player-color-bg-card-muted: #c8b58c;
+  --player-color-bg-card-figure: #cdc596;   /* sage prairie hint */
+  --player-color-bg-card-decision: #d0bd94;
+  --player-color-bg-card-inner: #dccca5;
+
+  --player-color-text: #2e2114;
+  --player-color-text-prose: #241a0f;
+  --player-color-text-muted: #6a5430;
+  --player-color-accent: #8a3b1f;           /* barn-red iron */
+  --player-color-accent-2: #7a5326;         /* worn brass */
+
+  --player-border: #6e5634;
+  --player-border-muted: #8a6f44;
+  --player-border-accent: #8a3b1f;
+
+  --player-font-serif: "Cormorant Garamond", Georgia, serif;
+  --player-font-display: "Rye", Georgia, serif;
+  --player-display-tracking: 0.02em;
+  --player-font-weight: 600;
+  --player-border-radius: 0.5rem;
+
+  --player-btn-bg: #dccca5;
+  --player-btn-bg-hover: #cab788;
+  --player-btn-border: #6e5634;
+  --player-progress-track: #b29a6f;
+  --player-progress-fill: #8a3b1f;
+}
+.branching-player[data-era="western"] {
+  background:
+  radial-gradient(ellipse 64% 42% at 14% 20%, rgba(120, 78, 36, 0.18), transparent 56%),
+  radial-gradient(ellipse 56% 38% at 86% 78%, rgba(96, 60, 26, 0.20), transparent 52%),
+  repeating-linear-gradient(94deg, rgba(86, 54, 26, 0.05) 0 3px, transparent 3px 9px),
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.86' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.20'/%3E%3C/svg%3E"),
+  linear-gradient(180deg, #c9b693 0%, #beaa84 100%);
+  background-blend-mode: multiply, multiply, multiply, multiply, normal;
+}
+.branching-player[data-era="western"] h1 {
+  border-top: 4px double var(--player-text);
+  border-bottom: 4px double var(--player-text);
+  display: inline-block;
+  padding: 0.12em 0.5em 0.18em;
+}
+.branching-player[data-era="western"]::after {
+  content: "★";
+  position: absolute;
+  top: 14px; right: 16px;
+  font-family: Georgia, serif;
+  font-size: 40px;
+  line-height: 1;
+  color: #8a3b1f;
+  border: 3px solid #8a3b1f;
+  width: 60px; height: 60px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  transform: rotate(-8deg);
+  opacity: 0.66;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 5;
+}
+.branching-player[data-era="western"] [class*="rounded"][class*="border"] {
+  box-shadow: inset 0 0 0 1px rgba(138, 59, 31, 0.22), inset 0 3px 0 -1px rgba(46, 33, 20, 0.45);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ *   2. REVOLUTIONARY ERA — colonial broadside
+ *   Cream laid paper, Playfair masthead with twin rules, colonial red
+ *   + aged gilt, a wax-seal device.
+ *   ═══════════════════════════════════════════════════════════════ */
+.branching-player[data-era="revolutionary"] {
+  --player-color-bg: #e6dcc2;
+  --player-color-bg-alt: #ece2c9;
+  --player-color-bg-card: #ebe1c8;
+  --player-color-bg-card-muted: #e2d8bd;
+  --player-color-bg-card-figure: #e8e0c6;
+  --player-color-bg-card-decision: #e9dfc5;
+  --player-color-bg-card-inner: #f0e7d0;
+
+  --player-color-text: #241c12;
+  --player-color-text-prose: #1f1810;
+  --player-color-text-muted: #5a4d36;
+  --player-color-accent: #7a2e22;           /* colonial red */
+  --player-color-accent-2: #9c7b3f;         /* aged gilt */
+
+  --player-border: #5a4a30;
+  --player-border-muted: #7a6843;
+  --player-border-accent: #7a2e22;
+
+  --player-font-serif: Georgia, "Times New Roman", serif;
+  --player-font-display: "Playfair Display", Georgia, serif;
+  --player-display-tracking: 0.01em;
+  --player-border-radius: 0.375rem;
+
+  --player-btn-bg: #f0e7d0;
+  --player-btn-bg-hover: #e2d8bd;
+  --player-btn-border: #5a4a30;
+  --player-progress-track: #cdbf99;
+  --player-progress-fill: #7a2e22;
+}
+.branching-player[data-era="revolutionary"] {
+  background:
+  repeating-linear-gradient(90deg, rgba(60, 46, 22, 0.035) 0 1px, transparent 1px 26px),
+  radial-gradient(rgba(60, 46, 22, 0.06) 1px, transparent 1.5px) 0 0 / 10px 10px,
+  radial-gradient(ellipse at center, transparent 54%, rgba(60, 46, 22, 0.10) 100%),
+  linear-gradient(180deg, #e8deC4 0%, #e0d6bb 100%);
+  background-blend-mode: multiply, multiply, multiply, normal;
+}
+.branching-player[data-era="revolutionary"] h1 {
+  font-weight: 900;
+  border-top: 3px solid var(--player-text);
+  border-bottom: 1px solid var(--player-text);
+  box-shadow: 0 4px 0 -2px var(--player-text);
+  display: inline-block;
+  padding: 0.08em 0.5em 0.16em;
+}
+.branching-player[data-era="revolutionary"]::after {
+  content: "1776";
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 58px; height: 58px;
+  display: grid; place-items: center;
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  color: #7a2e22;
+  background:
+  radial-gradient(circle, transparent 60%, rgba(122,46,34,0.12) 61%),
+  repeating-conic-gradient(#7a2e22 0deg 9deg, transparent 9deg 18deg);
+  border: 2px solid #7a2e22;
+  border-radius: 50%;
+  transform: rotate(-7deg);
+  opacity: 0.78;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 5;
+}
+.branching-player[data-era="revolutionary"] [class*="rounded"][class*="border"] {
+  box-shadow: inset 0 2px 0 #2c2316, var(--player-shadow-sm);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ *   3. COLD WAR — classified noir (stays DARK)
+ *   Cold slate ground + scanlines, typewriter chrome, a red
+ *   CONFIDENTIAL stamp + redaction bar under the masthead.
+ *   ═══════════════════════════════════════════════════════════════ */
+.branching-player[data-era="cold-war"] {
+  --player-color-bg: #0b0e14;
+  --player-color-bg-alt: #161c26;
+  --player-color-bg-card: #18202b;
+  --player-color-bg-card-muted: #131a24;
+  --player-color-bg-card-figure: #1c2530;
+  --player-color-bg-card-decision: #1a222d;
+  --player-color-bg-card-inner: #222c3a;
+
+  --player-color-text: #dce2ec;
+  --player-color-text-prose: #e8edf5;
+  --player-color-text-muted: #8a93a2;
+  --player-color-accent: #5a86b3;           /* steel blue (brighter) */
+  --player-color-accent-2: #b0bccb;
+
+  --player-border: #38404e;
+  --player-border-muted: #4c5666;
+  --player-border-accent: #5a86b3;
+
+  --player-font-serif: Georgia, "Times New Roman", serif;
+  --player-font-display: "Special Elite", "Courier New", monospace;
+  --player-display-tracking: 0.06em;
+  --player-border-radius: 0.375rem;
+
+  --player-btn-bg: #131a24;
+  --player-btn-bg-hover: #1c2530;
+  --player-quiz-question-bg: #18202b;
+  --player-progress-track: #1a222d;
+  --player-progress-fill: #6a96c3;
+}
+.branching-player[data-era="cold-war"] {
+  background:
+  repeating-linear-gradient(0deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 3px),
+  radial-gradient(ellipse 70% 50% at 50% 0%, rgba(74, 106, 138, 0.10), transparent 60%),
+  radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.45) 100%),
+  linear-gradient(180deg, #0d1118 0%, #090c11 100%);
+  background-blend-mode: overlay, screen, multiply, normal;
+}
+.branching-player[data-era="cold-war"] h1 {
+  display: inline-block;
+  padding: 0.1em 0.5em 0.18em;
+  border: 1px solid var(--player-text);
+  box-shadow: 0 6px 0 -3px #b13a2f;   /* redaction-red rule under title */
+}
+.branching-player[data-era="cold-war"]::after {
+  content: "CONFIDENTIAL";
+  position: absolute;
+  top: 18px; right: 14px;
+  max-width: 6.5em;
+  text-align: center;
+  font-family: "Special Elite", "Courier New", monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  font-size: 13px;
+  line-height: 1.15;
+  color: #d0463a;
+  border: 3px solid #d0463a;
+  padding: 6px 9px;
+  transform: rotate(-8deg);
+  opacity: 0.78;
+  pointer-events: none;
+  z-index: 5;
+}
+.branching-player[data-era="cold-war"] [class*="rounded"][class*="border"] {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), inset 0 0 0 1px rgba(90,134,179,0.10), var(--player-shadow-sm);
+}
+@media (max-width: 640px) {
+  .branching-player[data-era="cold-war"]::after { font-size: 10px; padding: 4px 6px; top: 10px; right: 10px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ *   4. CIVIL RIGHTS / MID-20TH CENTURY — documentary front page
+ *   Cream newsprint + halftone screen, Anton uppercase masthead,
+ *   heavy black department rules, one oxide red. (Light ground.)
+ *   ═══════════════════════════════════════════════════════════════ */
+.branching-player[data-era="civil-rights"] {
+  --player-color-bg: #e3dccc;
+  --player-color-bg-alt: #ebe4d4;
+  --player-color-bg-card: #eae3d3;
+  --player-color-bg-card-muted: #e0d9c8;
+  --player-color-bg-card-figure: #e7e0cf;
+  --player-color-bg-card-decision: #e8e1d1;
+  --player-color-bg-card-inner: #f1ebdb;
+
+  --player-color-text: #161310;
+  --player-color-text-prose: #14110d;
+  --player-color-text-muted: #4d463a;
+  --player-color-accent: #a8331f;           /* oxide / blood red */
+  --player-color-accent-2: #161310;         /* ink black */
+
+  --player-border: #161310;
+  --player-border-muted: #4a443a;
+  --player-border-accent: #a8331f;
+
+  --player-font-serif: Georgia, "Times New Roman", serif;
+  --player-font-display: "Anton", "Oswald", "Arial Narrow", Impact, sans-serif;
+  --player-display-case: uppercase;
+  --player-display-tracking: 0.03em;
+  --player-border-radius: 0.25rem;
+
+  --player-btn-bg: #f1ebdb;
+  --player-btn-bg-hover: #e0d9c8;
+  --player-btn-border: #161310;
+  --player-btn-border-selected: #a8331f;
+  --player-quiz-border: #161310;
+  --player-progress-track: #cabf9f;
+  --player-progress-fill: #161310;
+}
+.branching-player[data-era="civil-rights"] {
+  background:
+  radial-gradient(rgba(20, 17, 13, 0.11) 1px, transparent 1.4px) 0 0 / 6px 6px,
+  radial-gradient(rgba(20, 17, 13, 0.08) 1px, transparent 1.4px) 3px 3px / 6px 6px,
+  radial-gradient(ellipse at center, transparent 60%, rgba(20, 17, 13, 0.06) 100%),
+  linear-gradient(180deg, #e6dfcf 0%, #ddd6c4 100%);
+  background-blend-mode: multiply, multiply, multiply, normal;
+}
+.branching-player[data-era="civil-rights"] h1 {
+  font-weight: 400;
+  border-top: 6px solid var(--player-text);
+  border-bottom: 2px solid var(--player-text);
+  display: block;
+  padding: 0.1em 0 0.06em;
+  line-height: 0.96;
+}
+.branching-player[data-era="civil-rights"]::after {
+  content: "FREE PRESS";
+  position: absolute;
+  top: 16px; right: 16px;
+  font-family: "Anton", "Oswald", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 13px;
+  color: #f1ead9;
+  background: #a8331f;
+  padding: 6px 10px 4px;
+  transform: rotate(-3deg);
+  opacity: 0.92;
+  pointer-events: none;
+  z-index: 5;
+}
+.branching-player[data-era="civil-rights"] [class*="rounded"][class*="border"] {
+  box-shadow: inset 0 6px 0 #161310, var(--player-shadow-sm);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ *   5. ANCIENT / CLASSICAL WORLD — incised limestone temple
+ *   Warm marble ground + veining, monumental Cinzel incised caps with
+ *   a carved highlight, a Greek-key (meander) rule device.
+ *   ═══════════════════════════════════════════════════════════════ */
+.branching-player[data-era="classical"] {
+  --player-color-bg: #d8d2c5;
+  --player-color-bg-alt: #e0daccd;
+  --player-color-bg-card: #ddd7ca;
+  --player-color-bg-card-muted: #d2ccbe;
+  --player-color-bg-card-figure: #dcd4c2;   /* warm stone */
+  --player-color-bg-card-decision: #dbd5c8;
+  --player-color-bg-card-inner: #e6e0d3;
+
+  --player-color-text: #2b2922;
+  --player-color-text-prose: #25231d;
+  --player-color-text-muted: #5c5645;
+  --player-color-accent: #8a4f3a;           /* terracotta */
+  --player-color-accent-2: #6e5a2a;         /* bronze / gold leaf */
+
+  --player-border: #5c5547;
+  --player-border-muted: #7a7361;
+  --player-border-accent: #8a4f3a;
+
+  --player-font-serif: Georgia, "Times New Roman", serif;
+  --player-font-display: "Cinzel", "Trajan Pro", Georgia, serif;
+  --player-display-case: uppercase;
+  --player-display-tracking: 0.14em;
+  --player-border-radius: 0.375rem;
+
+  --player-figure-bg: #dcd4c2;
+  --player-quiz-bg: #dcd4c2;
+  --player-btn-bg: #e6e0d3;
+  --player-btn-bg-hover: #d2ccbe;
+  --player-btn-border: #5c5547;
+  --player-progress-track: #c4bdab;
+  --player-progress-fill: #8a4f3a;
+}
+.branching-player[data-era="classical"] {
+  background:
+  linear-gradient(108deg, transparent 34%, rgba(70, 60, 40, 0.11) 39%, transparent 43%, transparent 64%, rgba(70, 60, 40, 0.09) 69%, transparent 73%),
+  linear-gradient(158deg, transparent 18%, rgba(70, 60, 40, 0.08) 23%, transparent 27%),
+  radial-gradient(ellipse at center, transparent 56%, rgba(60, 52, 34, 0.10) 100%),
+  linear-gradient(180deg, #dbd5c8 0%, #d1cbbd 100%);
+  background-blend-mode: multiply, multiply, multiply, normal;
+}
+.branching-player[data-era="classical"] h1 {
+  font-weight: 700;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.7), 0 -1px 1px rgba(0,0,0,0.30);
+  display: inline-block;
+  padding: 0.1em 0 0.2em;
+  border-bottom: 2px solid var(--player-accent, #8a4f3a);
+}
+/* Greek-key meander device, top-right */
+.branching-player[data-era="classical"]::after {
   content: "";
   position: absolute;
-  inset: 0;
+  top: 18px; right: 18px;
+  width: 96px; height: 16px;
+  background:
+  repeating-linear-gradient(90deg, #8a4f3a 0 2px, transparent 2px 14px) 0 0 / 14px 16px,
+  repeating-linear-gradient(0deg, #8a4f3a 0 2px, transparent 2px 8px) 0 0 / 14px 8px;
+  opacity: 0.5;
   pointer-events: none;
-  z-index: 0;
-  background-image: var(--texture-extra, none), var(--grain);
-  background-size: var(--texture-size, auto), 220px 220px;
-  opacity: var(--grain-op, 0.12);
-  mix-blend-mode: var(--grain-blend, multiply);
+  z-index: 5;
 }
-.branching-player [data-slot="passage"] > * { position: relative; z-index: 1; }
+.branching-player[data-era="classical"] [class*="rounded"][class*="border"] {
+  box-shadow: inset 0 0 0 1px rgba(60,52,34,0.22), inset 0 1px 0 rgba(255,255,255,0.5), var(--player-shadow-sm);
+}
 
-/* --- chrome slots (period fonts, ornament, low contrast live here) --- */
-.branching-player [data-slot="kicker"] {
-  font-family: var(--chrome-font);
-  color: var(--accent);
-  font-size: 0.72rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+/* ═══════════════════════════════════════════════════════════════
+ *   6. INDUSTRIAL REVOLUTION — riveted soot & brass (stays DARK)
+ *   Soot steel ground + brushed grain, Oswald condensed chrome,
+ *   corner rivets + a brass rule. Heavy machinery.
+ *   ═══════════════════════════════════════════════════════════════ */
+.branching-player[data-era="industrial"] {
+  --player-color-bg: #121315;
+  --player-color-bg-alt: #1c1e20;
+  --player-color-bg-card: #1f2124;
+  --player-color-bg-card-muted: #191b1e;
+  --player-color-bg-card-figure: #23261f;   /* brass-tinged */
+  --player-color-bg-card-decision: #1d1f22;
+  --player-color-bg-card-inner: #282b2f;
+
+  --player-color-text: #ded6c8;
+  --player-color-text-prose: #e6dfd1;
+  --player-color-text-muted: #8c8577;
+  --player-color-accent: #c08a45;           /* worked brass (brighter) */
+  --player-color-accent-2: #828b94;         /* machined steel */
+
+  --player-border: #393c40;
+  --player-border-muted: #4e545a;
+  --player-border-accent: #c08a45;
+
+  --player-font-serif: Georgia, "Times New Roman", serif;
+  --player-font-display: "Oswald", "Arial Narrow", sans-serif;
+  --player-display-case: uppercase;
+  --player-display-tracking: 0.07em;
+  --player-border-radius: 0.25rem;
+
+  --player-btn-bg: #23262a;
+  --player-btn-bg-hover: #2a2e33;
+  --player-btn-border: #40464c;
+  --player-divider: #2a2e33;
+  --player-progress-track: #1d1f22;
+  --player-progress-fill: #c08a45;
 }
-.branching-player [data-slot="story-title"] {
-  font-family: var(--chrome-font);
-  color: var(--chrome-color);
+.branching-player[data-era="industrial"] {
+  background:
+  repeating-linear-gradient(118deg, rgba(255,255,255,0.022) 0 1px, transparent 1px 5px),
+  radial-gradient(ellipse 60% 44% at 18% 16%, rgba(122, 90, 44, 0.10), transparent 56%),
+  radial-gradient(ellipse at center, transparent 48%, rgba(0,0,0,0.50) 100%),
+  linear-gradient(180deg, #15161a 0%, #0f1012 100%);
+  background-blend-mode: overlay, screen, multiply, normal;
+}
+.branching-player[data-era="industrial"] h1 {
   font-weight: 700;
-  line-height: 1.02;
-}
-.branching-player [data-slot="tracker"] {
-  font-family: var(--body-font);
-  color: var(--chrome-color);
-}
-
-.branching-player [data-slot="tts"] {
-  font-family: var(--chrome-font);
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  border-radius: 2px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-/* --- body slot (the text a struggling reader decodes — keep it readable) --- */
-.branching-player [data-slot="body"] {
-  font-family: var(--body-font);
-  color: var(--body-color);
-}
-
-/* --- figure card --- */
-.branching-player [data-slot="figure-encounter"] {
-  border: 1px solid var(--chrome-color);
-  border-top-width: 3px;
-  background: var(--card-tint, transparent);
-  position: relative;
-}
-/* per-theme "key moment" seal — set content via --seal-glyph, hidden by default */
-.branching-player [data-slot="figure-encounter"]::after {
-  content: var(--seal-glyph, none);
-  position: absolute;
-  top: -0.7em;
-  right: 0.9em;
-  width: 2.2em;
-  height: 2.2em;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
-  font-family: var(--chrome-font);
-  transform: rotate(-6deg);
-  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.4);
-}
-
-/* --- MCQ / debrief (the final quiz block) --- */
-.branching-player [data-slot="mcq"] {
-  border: 1px dashed var(--chrome-color);
-}
-
-/* --- choices --- */
-.branching-player [data-slot="choice"] {
-  font-family: var(--body-font);
-  color: var(--body-color);
-  background: var(--choice-bg, rgba(0,0,0,0.025));
-  border: 1px solid var(--chrome-color);
-  border-radius: 2px;
-}
-.branching-player [data-slot="choice"] .marker { font-family: var(--chrome-font); font-weight: 700; margin-right: 0.6em; opacity: 0.85; }
-.branching-player [data-slot="choice"]:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
-
-/* --- ending states (each theme decorates these via the same hooks) --- */
-.branching-player [data-slot="ending"] {
-  border-top: 3px double var(--ending-color, var(--accent));
-}
-.branching-player [data-slot="ending"] .ending-label {
-  font-family: var(--chrome-font);
-  font-weight: 700;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--ending-color, var(--accent));
-}
-.branching-player [data-slot="ending"][data-state="broken"]       { --ending-color: #7a2f2a; }
-.branching-player [data-slot="ending"][data-state="indifferent"]  { --ending-color: #6b675f; }
-.branching-player [data-slot="ending"][data-state="triumphant"]   { --ending-color: var(--accent); }
-
-/* Trust-signal contrast on the LIGHT paper ground. The player's JSX
-   uses bright text-emerald-400 / text-red-400 / text-slate-400 (tuned
-   for the old dark theme); on paper they fail AA. Re-ink them to deep
-   period-appropriate shades. Scoped (0,3,0) so they win over Tailwind. */
-.branching-player[data-theme] .text-emerald-400 { color: #2f6b39; }
-.branching-player[data-theme] .text-red-400     { color: #8c2a1f; }
-.branching-player[data-theme] .text-slate-400   { color: #5f5b53; }
-
-/* ============================================================================
-   THEME TOKENS + ERA-LOCKS  (scoped under .branching-player)
-   ============================================================================ */
-
-/* 1. broadsheet-sepia — era-lock: NEWSPAPER (masthead + letterpress + drop cap) */
-.branching-player[data-theme="broadsheet-sepia"] {
-  --paper-bg: #efe6d2; --grain-op: 0.13;
-  --body-font: 'IM Fell English', Georgia, serif; --body-color: #2b2118;
-  --chrome-font: 'Playfair Display', Georgia, serif; --chrome-color: #3a2c1a; --accent: #7a2e1f;
-  --choice-bg: rgba(122,46,31,0.05); --card-tint: rgba(122,46,31,0.04);
-}
-.branching-player[data-theme="broadsheet-sepia"] [data-slot="masthead"] {
-  text-align: center;
-  border-top: 3px double var(--chrome-color);
-  border-bottom: 3px double var(--chrome-color);
-  padding: 0.4em 0 0.3em;
-}
-.branching-player[data-theme="broadsheet-sepia"] [data-slot="story-title"] { font-weight: 900; font-size: 2.4rem; letter-spacing: 0.01em; }
-.branching-player[data-theme="broadsheet-sepia"] [data-slot="body"] > p:first-of-type::first-letter {
-  float: left; font-family: var(--chrome-font); font-weight: 900;
-  font-size: 4.4rem; line-height: 0.66; padding: 0.12em 0.18em 0 0; color: var(--accent);
-}
-
-/* 2. ww1-fieldpost — era-lock: VIOLET "PASSED BY CENSOR" + poster-condensed + khaki. */
-.branching-player[data-theme="ww1-fieldpost"] {
-  --paper-bg: #cbc0a1; --grain-op: 0.22; --grain-blend: multiply;
-  --body-font: 'Special Elite', 'Courier New', monospace; --body-color: #221f15;
-  --chrome-font: 'Oswald', 'Arial Narrow', sans-serif; --chrome-color: #2c281d; --accent: #5b3a8c;
-  --choice-bg: rgba(44,40,29,0.05); --card-tint: rgba(91,58,140,0.05);
-  --texture-extra: radial-gradient(circle at 14% 80%, rgba(70,58,30,0.16) 0, transparent 30%),
-                   radial-gradient(circle at 88% 20%, rgba(60,50,25,0.14) 0, transparent 24%);
-}
-.branching-player[data-theme="ww1-fieldpost"] [data-slot="story-title"] {
-  font-family: var(--chrome-font); font-weight: 700; text-transform: uppercase;
-  font-size: 2rem; letter-spacing: 0.02em; line-height: 0.92;
-}
-.branching-player[data-theme="ww1-fieldpost"] [data-slot="kicker"] { letter-spacing: 0.28em; }
-.branching-player[data-theme="ww1-fieldpost"] [data-slot="censor-stamp"] {
   display: inline-block;
+  padding: 0.12em 0.55em 0.18em;
+  border: 2px solid var(--player-border-muted);
+  box-shadow: 0 5px 0 -2px #c08a45;
+}
+.branching-player[data-era="industrial"]::after {
+  content: "";
+  position: absolute;
+  top: 14px; right: 14px;
+  width: 84px; height: 26px;
+  border: 2px solid #6e7780;
+  border-radius: 3px;
+  background:
+  radial-gradient(circle, #c08a45 0 38%, transparent 42%) 7px 7px / 13px 13px no-repeat,
+  radial-gradient(circle, #c08a45 0 38%, transparent 42%) 65px 7px / 13px 13px no-repeat,
+  radial-gradient(circle, #6e7780 0 30%, transparent 34%) 0 0 / 7px 7px;
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: 5;
+}
+.branching-player[data-era="industrial"] [class*="rounded"][class*="border"] {
+  box-shadow: inset 0 2px 0 #2a2d32, inset 0 -1px 0 #0c0c0e, var(--player-shadow-sm);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ *   7. WORLD WAR I — FIELD POST (the original fully-built era)
+ *   Light khaki field paper + mud foxing, poster-condensed Oswald
+ *   masthead, the violet PASSED-BY-CENSOR field stamp.
+ *   ═══════════════════════════════════════════════════════════════ */
+.branching-player[data-era="ww1-fieldpost"] {
+  --player-color-bg: #c4b994;
+  --player-color-bg-alt: #d6ccab;
+  --player-color-bg-card: #cfc4a0;
+  --player-color-bg-card-muted: #c7bb96;
+  --player-color-bg-card-figure: #cdc7a2;
+  --player-color-bg-card-decision: #d1c6a3;
+  --player-color-bg-card-inner: #d9cfb1;
+
+  --player-color-text: #2c2718;
+  --player-color-text-prose: #221d11;
+  --player-color-text-muted: #5a4f36;
+  --player-color-accent: #4a2f72;           /* censor violet */
+  --player-color-accent-2: #5b3a8c;
+
+  --player-border: #6f6346;
+  --player-border-muted: #8a7d5c;
+  --player-border-accent: #5b3a8c;
+
+  --player-font-serif: Georgia, "Times New Roman", serif;
+  --player-font-display: "Oswald", "Arial Narrow", sans-serif;
+  --player-display-tracking: 0.12em;
+  --player-border-radius: 0.375rem;
+
+  --player-btn-bg: #d9cfb1;
+  --player-btn-bg-hover: #c7bb96;
+  --player-btn-border: #6f6346;
+  --player-progress-fill: #5b3a8c;
+  --player-progress-track: #b3a87f;
+}
+.branching-player[data-era="ww1-fieldpost"] {
+  background:
+  radial-gradient(ellipse 60% 40% at 16% 22%, rgba(70, 58, 30, 0.16), transparent 55%),
+  radial-gradient(ellipse 52% 36% at 86% 76%, rgba(60, 50, 24, 0.15), transparent 50%),
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.22'/%3E%3C/svg%3E"),
+  radial-gradient(at 50% 12%, var(--player-bg-radial) 0%, transparent 55%),
+  var(--player-bg);
+  background-blend-mode: multiply, multiply, multiply, normal, normal;
+}
+.branching-player[data-era="ww1-fieldpost"] h1 {
+  font-weight: 700;
+  font-size: 1.5rem;
+  border-bottom: 2px solid var(--player-text);
+  display: inline-block;
+  padding: 0.1em 0.4em 0.2em;
+}
+.branching-player[data-era="ww1-fieldpost"] .uppercase {
+  font-weight: 600;
+}
+.branching-player[data-era="ww1-fieldpost"]::after {
+  content: "PASSED BY CENSOR";
+  position: absolute;
+  top: 16px; right: 16px;
+  max-width: 7em;
+  text-align: center;
+  font-family: "Oswald", "Arial Narrow", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 13px;
+  line-height: 1.15;
+  color: #5b3a8c;
+  border: 3px solid #5b3a8c;
+  padding: 6px 10px;
   transform: rotate(-9deg);
-  border: 3px solid var(--accent);
-  color: var(--accent);
-  font-family: var(--chrome-font); font-weight: 700; text-transform: uppercase;
-  font-size: 0.7rem; letter-spacing: 0.12em; line-height: 1.05;
-  padding: 0.4em 0.6em; text-align: center;
-  opacity: 0.8; mix-blend-mode: multiply;
+  opacity: 0.82;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 5;
+}
+@media (max-width: 640px) {
+  .branching-player[data-era="ww1-fieldpost"]::after {
+    font-size: 10px; padding: 4px 7px; top: 10px; right: 10px;
+  }
 }
 
-/* 3. declassified-typewriter — era-lock: TYPEWRITER face (Cold War). */
-.branching-player[data-theme="declassified-typewriter"] {
-  --paper-bg: #e8e4d8; --grain-op: 0.10;
-  --body-font: 'Courier New', Courier, monospace; --body-color: #232019;
-  --chrome-font: 'Courier New', Courier, monospace; --chrome-color: #232019; --accent: #1a1a1a;
-  --choice-bg: rgba(0,0,0,0.03); --card-tint: rgba(0,0,0,0.03);
+/* ── Legacy aliases for compatibility with older fixtures / code ──
+ *   Point them at the strengthened canonical eras so the bold look
+ *   carries over. */
+.branching-player[data-era="ancient-rome"] {
+  --player-color-bg: #d8d2c5;
+  --player-color-bg-alt: #e0daccd;
+  --player-color-bg-card: #ddd7ca;
+  --player-color-bg-card-muted: #d2ccbe;
+  --player-color-bg-card-figure: #dcd4c2;
+  --player-color-bg-card-decision: #dbd5c8;
+  --player-color-bg-card-inner: #e6e0d3;
+  --player-color-text: #2b2922;
+  --player-color-text-prose: #25231d;
+  --player-color-text-muted: #5c5645;
+  --player-color-accent: #8a4f3a;
+  --player-color-accent-2: #6e5a2a;
+  --player-border: #5c5547;
+  --player-border-muted: #7a7361;
+  --player-border-accent: #8a4f3a;
+  --player-font-serif: Georgia, "Times New Roman", serif;
+  --player-font-display: "Cinzel", Georgia, serif;
+  --player-display-case: uppercase;
+  --player-display-tracking: 0.14em;
+  --player-border-radius: 0.375rem;
 }
-.branching-player[data-theme="declassified-typewriter"] [data-slot="story-title"] {
-  text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; font-size: 1.7rem;
+.branching-player[data-era="ancient-rome"] { background: inherit; }
+
+.branching-player[data-era="civil-war"] {
+  --player-color-bg: #c7b48f;
+  --player-color-bg-alt: #d4c39e;
+  --player-color-bg-card: #d2c098;
+  --player-color-bg-card-muted: #c8b58c;
+  --player-color-bg-card-figure: #cdc596;
+  --player-color-bg-card-decision: #d0bd94;
+  --player-color-bg-card-inner: #dccca5;
+  --player-color-text: #2e2114;
+  --player-color-text-prose: #241a0f;
+  --player-color-text-muted: #6a5430;
+  --player-color-accent: #8a3b1f;
+  --player-color-accent-2: #7a5326;
+  --player-border: #6e5634;
+  --player-border-muted: #8a6f44;
+  --player-border-accent: #8a3b1f;
+  --player-font-serif: "Cormorant Garamond", Georgia, serif;
+  --player-font-display: "Rye", Georgia, serif;
+  --player-font-weight: 600;
 }
 
-/* 4. parchment-medieval — era-lock: ILLUMINATED VERSAL + rubrication */
-.branching-player[data-theme="parchment-medieval"] {
-  --paper-bg: #e7d7b0; --grain-op: 0.12;
-  --body-font: 'EB Garamond', Georgia, serif; --body-color: #2c1d0e;
-  --chrome-font: 'UnifrakturCook', 'UnifrakturMaguntia', serif; --chrome-color: #3a2410; --accent: #8c1c13;
-  --choice-bg: rgba(140,28,19,0.04); --card-tint: rgba(140,28,19,0.04);
-  --seal-glyph: "\00B6";
-  --texture-extra: radial-gradient(circle at 60% 12%, rgba(140,28,19,0.05) 0, transparent 18%);
+/* ═══════════════════════════════════════════════════════════════
+ *   ERA-SPECIFIC CARD FLOURISHES (legacy class-pattern hooks kept)
+ *   Retained for the original Tailwind class shapes so nothing that
+ *   targeted them regresses; the [class*="rounded"][class*="border"]
+ *   rules above are the primary, broader hooks.
+ *   ═══════════════════════════════════════════════════════════════ */
+.branching-player[data-era="civil-rights"] [class*="rounded-2xl"][class*="border"] {
+  box-shadow: inset 0 6px 0 #161310, var(--player-shadow-sm);
 }
-.branching-player[data-theme="parchment-medieval"] [data-slot="story-title"] { font-size: 2.2rem; }
-.branching-player[data-theme="parchment-medieval"] [data-slot="body"] > p:first-of-type::first-letter {
-  float: left; font-family: var(--chrome-font); font-size: 2.6rem; line-height: 1;
-  margin: 0.15em 0.35em 0.05em 0; padding: 0.18em 0.28em; color: var(--accent);
-  background: #cda437; box-shadow: 0 0 0 2px #cda437, inset 0 0 0 2px #8c1c13;
+.branching-player[data-era="western"] [class*="bg-"][class*="figure"] {
+  box-shadow: inset 0 0 0 1px rgba(138, 59, 31, 0.20);
 }
-
-/* 5. classical-marble — era-lock: INCISED Trajan capitals carved in stone */
-.branching-player[data-theme="classical-marble"] {
-  --paper-bg: #dcd6cc; --grain-op: 0.06;
-  --body-font: 'EB Garamond', Georgia, serif; --body-color: #2a2824;
-  --chrome-font: 'Cinzel', Georgia, serif; --chrome-color: #33312b; --accent: #6e5a2a;
-  --choice-bg: rgba(110,90,42,0.05); --card-tint: rgba(110,90,42,0.04);
-  --seal-glyph: "\2609";
-  --texture-extra: linear-gradient(115deg, rgba(0,0,0,0.05) 0, transparent 18%, rgba(255,255,255,0.5) 30%, transparent 46%, rgba(0,0,0,0.045) 62%, transparent 78%);
-  --grain-blend: normal;
+.branching-player[data-era="cold-war"] [class*="rounded-2xl"][class*="border"] {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), var(--player-shadow-sm);
 }
-.branching-player[data-theme="classical-marble"] [data-slot="story-title"] {
-  text-transform: uppercase; letter-spacing: 0.16em; font-weight: 700; font-size: 2rem;
-  text-shadow: 0 1px 0 rgba(255,255,255,0.65), 0 -1px 1px rgba(0,0,0,0.4);
+.branching-player[data-era="industrial"] [class*="rounded-2xl"][class*="border"] {
+  box-shadow: inset 0 2px 0 #2a2d32, inset 0 -1px 0 #0c0c0e, var(--player-shadow-sm);
 }
-
-/* 6. expedition-journal — era-lock: RULED notebook + pen ink + coordinate header */
-.branching-player[data-theme="expedition-journal"] {
-  --paper-bg: #e9e4d6; --grain-op: 0.07;
-  --body-font: 'Spectral', Georgia, serif; --body-color: #22303a;
-  --chrome-font: 'Pinyon Script', cursive; --chrome-color: #283a45; --accent: #8a5a2b;
-  --choice-bg: rgba(40,58,69,0.04); --card-tint: rgba(40,58,69,0.04);
-  --texture-extra: repeating-linear-gradient(transparent 0 27px, rgba(40,58,69,0.16) 27px 28px);
-  --grain-blend: normal;
+.branching-player[data-era="classical"] [class*="rounded-2xl"][class*="border"] {
+  box-shadow: inset 0 0 0 1px rgba(60,52,34,0.22), var(--player-shadow-sm);
 }
-.branching-player[data-theme="expedition-journal"] [data-slot="story-title"] { font-size: 2.4rem; font-weight: 400; }
-
-/* 7. frontier-leather — era-lock: WOOD-TYPE broadside + tooled leather + kraft */
-.branching-player[data-theme="frontier-leather"] {
-  --paper-bg: #cdbb98; --grain-op: 0.17;
-  --body-font: 'Zilla Slab', 'Rockwell', serif; --body-color: #2c1d12;
-  --chrome-font: 'Rye', 'Rockwell', serif; --chrome-color: #3a2415; --accent: #7a2a1c;
-  --choice-bg: rgba(58,36,21,0.05); --card-tint: rgba(58,36,21,0.05);
-  --seal-glyph: "\2605";
-  --texture-extra: repeating-linear-gradient(92deg, rgba(80,50,25,0.05) 0 3px, transparent 3px 7px);
-  --grain-blend: normal;
-}
-.branching-player[data-theme="frontier-leather"] [data-slot="story-title"] { text-transform: uppercase; font-size: 2.2rem; }
-.branching-player[data-theme="frontier-leather"] [data-slot="masthead"] { text-align: center; border: 3px solid var(--chrome-color); padding: 0.5em 0.7em; }
-
-/* 8. civil-rights-midcentury — era-lock: BOLD news gothic placard + broadcast lower-third + halftone */
-.branching-player[data-theme="civil-rights-midcentury"] {
-  --paper-bg: #e9e7e0; --grain-op: 0.07;
-  --body-font: 'Archivo', system-ui, sans-serif; --body-color: #1c1b19;
-  --chrome-font: 'Anton', Impact, sans-serif; --chrome-color: #1c1b19; --accent: #c0301c;
-  --choice-bg: rgba(0,0,0,0.03); --card-tint: rgba(192,48,28,0.05);
-  --texture-extra: radial-gradient(circle, rgba(0,0,0,0.10) 0.6px, transparent 1.4px);
-  --texture-size: 7px 7px; --grain-blend: normal;
-}
-.branching-player[data-theme="civil-rights-midcentury"] [data-slot="story-title"] {
-  text-transform: uppercase; font-size: 2.4rem; line-height: 0.9; letter-spacing: -0.01em;
-}
-.branching-player[data-theme="civil-rights-midcentury"] [data-slot="kicker"] {
-  display: inline-block; background: var(--accent); color: #fff;
-  padding: 0.3em 0.7em; letter-spacing: 0.12em;
-}
-
-/* 9. imperial-chinese-scroll — era-lock: VERTICAL title + vermilion seals + ink-wash */
-.branching-player[data-theme="imperial-chinese-scroll"] {
-  --paper-bg: #efe7d6; --grain-op: 0.06;
-  --body-font: 'Noto Serif', Georgia, serif; --body-color: #241f1a;
-  --chrome-font: 'Noto Serif TC', serif; --chrome-color: #2b2620; --accent: #b3331f;
-  --choice-bg: rgba(179,51,31,0.04); --card-tint: rgba(179,51,31,0.04);
-  --seal-glyph: "\5370";
-  --texture-extra: radial-gradient(120% 90% at -10% 105%, rgba(40,40,40,0.14) 0, transparent 42%);
-  --grain-blend: normal;
-}
-.branching-player[data-theme="imperial-chinese-scroll"] [data-slot="story-title"] {
-  writing-mode: vertical-rl; font-weight: 900; letter-spacing: 0.18em; font-size: 1.8rem;
-}
-
-/* 10. islamic-golden-age — era-lock: GEOMETRIC illumination + Kufic + shamsa medallion */
-.branching-player[data-theme="islamic-golden-age"] {
-  --paper-bg: #f1e9d6; --grain-op: 0.05;
-  --body-font: 'Amiri', Georgia, serif; --body-color: #241f18;
-  --chrome-font: 'Reem Kufi', sans-serif; --chrome-color: #26456e; --accent: #9a7b1f;
-  --choice-bg: rgba(154,123,31,0.05); --card-tint: rgba(154,123,31,0.05);
-  --seal-glyph: "\06DE";
-}
-.branching-player[data-theme="islamic-golden-age"] [data-slot="unwan"] {
-  border: 2px solid var(--accent);
-  box-shadow: inset 0 0 0 4px var(--paper-bg), inset 0 0 0 6px var(--accent);
-  padding: 0.9em 1em; text-align: center;
-}
-.branching-player[data-theme="islamic-golden-age"] [data-slot="story-title"] { color: var(--accent); }
-
-/* default — intentionally era-neutral, the honest fallback */
-.branching-player[data-theme="default"] {
-  --paper-bg: #f3efe7; --grain-op: 0.05;
-  --body-font: 'Spectral', Georgia, serif; --body-color: #23211d;
-  --chrome-font: 'Spectral', Georgia, serif; --chrome-color: #2a2824; --accent: #6b5d4a;
-  --choice-bg: rgba(0,0,0,0.025); --card-tint: rgba(107,93,74,0.04);
-}
-.branching-player[data-theme="default"] [data-slot="story-title"] { font-size: 1.9rem; }
