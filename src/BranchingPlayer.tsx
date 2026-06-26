@@ -13,6 +13,7 @@ import {
   passageMap,
   isEnding,
   validateStory,
+  shuffleStoryQuestions,
   type BranchingStory,
   type ChoiceStep,
   type PlayResult,
@@ -208,7 +209,12 @@ function getIndefiniteArticle(word: string): 'a' | 'an' {
   return 'a';
 }
 
-export default function BranchingPlayer({ story, onEnd, onUnplayable, onBack, era: eraProp = 'default' }: BranchingPlayerProps) {
+export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, onBack, era: eraProp = 'default' }: BranchingPlayerProps) {
+  // Randomize MCQ answer positions on load so the correct choice isn't always
+  // "A". Deterministic + memoized: stable for the life of this story instance,
+  // and every downstream read (encounter MCQ, scoring, final-quiz review) uses
+  // this same normalized story.
+  const story = useMemo(() => shuffleStoryQuestions(rawStory), [rawStory]);
   // Normalize to a known ThemeId. Legacy stories may carry old era slugs
   // (e.g. "western", "cold-war") that no longer match a theme; fall back to
   // 'default' so the player is always styled rather than rendering bare.
