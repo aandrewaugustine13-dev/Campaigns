@@ -10,14 +10,14 @@
 // N attempts. A broken story is NEVER returned — on exhaustion the result is a
 // clear failure (ok:false), not a broken graph.
 //
-// SDK side only (the @anthropic-ai/sdk import). Mirrors storyPlanGen.ts.
+// SDK side only (the @google/genai import). Mirrors storyPlanGen.ts.
 // ════════════════════════════════════════════════════════════════
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { parseModelJson } from "./json.js";
 import { validateStory, type BranchingStory, type BranchingQuestion, type StoryValidation } from "./branchingStory.js";
 import { runFactGate, type FactGateResult } from "./factGate.js";
 
-const MODEL = "claude-opus-4-8"; // the writer that produced the proven stories
+const MODEL = "gemini-3.5-flash"; // the writer that produced the proven stories
 
 // The EXACT craft prompt from the proof — reading level, person+history, real
 // branching, exactly two earned endings, no game machinery. DO NOT redesign.
@@ -313,7 +313,7 @@ export async function generateBranchingStory(
 ): Promise<BranchingGenResult> {
   const maxAttempts = Math.max(1, opts.maxAttempts ?? 3);
   const useFactGate = opts.factGate !== false; // default ON
-  const client = new Anthropic({ apiKey, timeout: 10 * 60_000, maxRetries: 1 });
+  const client = new GoogleGenAI({ apiKey });
 
   let last: BranchingGenResult = {
     ok: false,
@@ -325,15 +325,16 @@ export async function generateBranchingStory(
   let priorFactErrors: string[] = [];
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const stream = client.messages.stream({
+    const response = await client.models.generateContent({
       model: MODEL,
-      max_tokens: 16000,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: buildUserMessage(inputs, attempt > 1 ? priorErrors : undefined, attempt > 1 ? priorFactErrors : undefined) }],
+      contents: buildUserMessage(inputs, attempt > 1 ? priorErrors : undefined, attempt > 1 ? priorFactErrors : undefined),
+      config: {
+        systemInstruction: SYSTEM_PROMPT,
+        maxOutputTokens: 16000,
+        responseMimeType: "application/json",
+      },
     });
-    let raw = "";
-    stream.on("text", (t) => { raw += t; });
-    await stream.finalMessage();
+    const raw = response.text ?? "";
 
     // Parse failure is just another invalid attempt — feed it back and retry.
     let parsed: unknown;

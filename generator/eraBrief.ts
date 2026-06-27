@@ -1,7 +1,7 @@
 // ════════════════════════════════════════════════════════════════
-// ERA BRIEF — Claude grounds the image lane (NOT the story/factGate lanes).
+// ERA BRIEF — Gemini grounds the image lane (NOT the story/factGate lanes).
 //
-// Given {topic, standard}, Claude writes:
+// Given {topic, standard}, Gemini writes:
 //   (a) brief    — a period-anchoring directive for the image generator: the
 //                  exact years/place, what people wore, architecture, technology,
 //                  and an explicit FORBID list (anachronisms + commonly-confused
@@ -12,14 +12,14 @@
 //                  image. The point of the cold test: does the model's own
 //                  checklist name the things that actually go wrong?
 //
-// One call per STORY (not per passage) — cheap. Uses ANTHROPIC_API_KEY. This is a
-// NEW, additive use of Claude in the image lane; it does not touch
+// One call per STORY (not per passage) — cheap. Uses GOOGLE_API_KEY. This is a
+// NEW, additive use of Gemini in the image lane; it does not touch
 // branchingStoryGen / factGate / branchingStory.
 // ════════════════════════════════════════════════════════════════
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { parseModelJson } from "./json.js";
 
-const MODEL = "claude-opus-4-8"; // period accuracy is a knowledge task — use the strong model
+const MODEL = "gemini-3.5-flash"; // period accuracy is a knowledge task — use the strong model
 
 export interface EraBrief {
   brief: string;
@@ -43,12 +43,12 @@ Output ONLY the JSON object.`;
 
 // ── Per-passage Commons queries ──────────────────────────────────────────────
 // The fix for "same image every beat": a constant topic base produced identical
-// queries → identical ranked results. Here Claude turns ONE passage (+ topic/
+// queries → identical ranked results. Here Gemini turns ONE passage (+ topic/
 // standard for period anchoring) into 2–4 SHORT real-noun search queries about
 // what THAT beat is actually depicting — so the queries vary per passage and
 // stay historically anchored. The story is first-person fiction; the model
 // ignores the invented character and extracts the real historical subject.
-const PASSAGE_Q_MODEL = "claude-sonnet-4-6"; // cheap/fast — called lazily per viewed passage
+const PASSAGE_Q_MODEL = "gemini-3.5-flash"; // cheap/fast — called lazily per viewed passage
 
 const PASSAGE_Q_SYSTEM = `You generate Wikimedia Commons image-search queries for a children's history tool. Given a historical TOPIC and STANDARD and ONE passage of a first-person historical STORY, output 2 to 4 SHORT queries (2 to 5 words each) of REAL, searchable historical nouns: the actual people, places, events, battles, objects, or scenes THIS passage depicts, anchored to the correct period and place. The story is fiction with an invented "you" character — IGNORE the character and their name; extract the REAL historical subject the passage portrays. Prefer concrete, period-correct terms an archive or museum would use to label an image. Output ONLY a JSON object, no prose, no markdown.`;
 
@@ -61,16 +61,17 @@ Output JSON: {"queries": ["<2-5 real-noun words>", ...]} — 2 to 4 queries, eac
 }
 
 export async function generatePassageQueries(topic: string, standard: string, passageText: string, apiKey: string): Promise<string[]> {
-  const client = new Anthropic({ apiKey });
-  const stream = client.messages.stream({
+  const client = new GoogleGenAI({ apiKey });
+  const response = await client.models.generateContent({
     model: PASSAGE_Q_MODEL,
-    max_tokens: 400,
-    system: PASSAGE_Q_SYSTEM,
-    messages: [{ role: "user", content: buildPassageQ(topic, standard, passageText) }],
+    contents: buildPassageQ(topic, standard, passageText),
+    config: {
+      systemInstruction: PASSAGE_Q_SYSTEM,
+      maxOutputTokens: 400,
+      responseMimeType: "application/json",
+    },
   });
-  let raw = "";
-  stream.on("text", (t) => { raw += t; });
-  await stream.finalMessage();
+  const raw = response.text ?? "";
 
   const parsed = parseModelJson<{ queries?: unknown }>(raw);
   if (!parsed || !Array.isArray(parsed.queries)) return [];
@@ -81,16 +82,17 @@ export async function generatePassageQueries(topic: string, standard: string, pa
 }
 
 export async function generateEraBrief(topic: string, standard: string, apiKey: string): Promise<EraBrief> {
-  const client = new Anthropic({ apiKey });
-  const stream = client.messages.stream({
+  const client = new GoogleGenAI({ apiKey });
+  const response = await client.models.generateContent({
     model: MODEL,
-    max_tokens: 1500,
-    system: SYSTEM,
-    messages: [{ role: "user", content: buildUser(topic, standard) }],
+    contents: buildUser(topic, standard),
+    config: {
+      systemInstruction: SYSTEM,
+      maxOutputTokens: 1500,
+      responseMimeType: "application/json",
+    },
   });
-  let raw = "";
-  stream.on("text", (t) => { raw += t; });
-  await stream.finalMessage();
+  const raw = response.text ?? "";
 
   const parsed = parseModelJson<Partial<EraBrief>>(raw);
   const brief = typeof parsed?.brief === "string" ? parsed.brief.trim() : "";

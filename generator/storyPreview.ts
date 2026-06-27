@@ -11,6 +11,10 @@
 // storyPlan.ts / storyPlanGen.ts).
 // ════════════════════════════════════════════════════════════════
 
+// Type-only import (erased at build) — keeps this module browser-safe while
+// pinning `theme` to the single source of truth (theme-system/themes.ts).
+import type { ThemeId } from "../theme-system/themes.js";
+
 export interface StoryPreview {
   /** One line: who the story will follow (an ordinary young person in the history). */
   protagonist: string;
@@ -20,6 +24,10 @@ export interface StoryPreview {
    * the story will teach, each something a teacher can eyeball against their
    * standard. */
   coverage: string[];
+  /** The classifier's era pick — ONE strict ThemeId from theme-system/themes.ts,
+   * forced by the Gemini responseSchema enum. Feeds resolveTheme as `classifier`.
+   * Optional so pre-theme previews still type-check. */
+  theme?: ThemeId;
 }
 
 export interface PreviewFinding {

@@ -9,10 +9,10 @@
 // this gate NEVER regenerates. It does what the hand-run 1732
 // correction proved converges:
 //
-//   detect (Opus, quote-or-NONE, internal/external labels)
-//     → correct surgically (Sonnet op-list: exact-string replace +
+//   detect (Gemini, quote-or-NONE, internal/external labels)
+//     → correct surgically (Gemini op-list: exact-string replace +
 //       quiz re-key, applied exact-match-or-drop)
-//     → verify the corrections (Opus, TARGETED), capped at 2 cycles.
+//     → verify the corrections (Gemini, TARGETED), capped at 2 cycles.
 //
 // Re-verify is TARGETED, not a fresh full-dossier scan (changed
 // 2026-06-12, cost): it judges only whether the applied ops resolve
@@ -35,17 +35,17 @@
 //     clean" is asymptotic anyway. The eval harness's post-hoc grader
 //     stays the independent scorekeeper.
 //
-// Model separation: the generator is sonnet; detection/verification is
-// opus — the generator never grades its own homework. The corrector is
-// sonnet, but it acts under the opus grader's explicit corrections
+// Model separation: the generator uses one model; detection/verification
+// uses Gemini — the generator never grades its own homework. The corrector
+// also uses Gemini, acting under the grader's explicit corrections
 // (instruction-following dominates priors; proven by the manual pass).
 // ════════════════════════════════════════════════════════════════
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { parseModelJson } from "./json.js";
 import { validate } from "./validate.js";
 
-const GATE_MODEL = "claude-opus-4-8";      // detect + re-verify (needs real knowledge)
-const CORRECTOR_MODEL = "claude-sonnet-4-6"; // constrained string surgery
+const GATE_MODEL = "gemini-3.5-flash";      // detect + re-verify (needs real knowledge)
+const CORRECTOR_MODEL = "gemini-3.5-flash"; // constrained string surgery
 const MAX_CORRECTION_CYCLES = 2;
 const MIN_FIND_LENGTH = 10; // refuse micro-replacements ("1856") that could mangle unrelated text
 
@@ -316,20 +316,21 @@ function parseLoose<T>(text: string): T {
 
 // One retry on any failure (API error or unparseable output) — a flaky
 // model response must never kill a generation.
-async function callJson<T>(client: Anthropic, model: string, system: string, prompt: string, maxTokens: number, thinking: boolean): Promise<T> {
+async function callJson<T>(client: GoogleGenAI, model: string, system: string, prompt: string, maxTokens: number, thinking: boolean): Promise<T> {
   let lastErr: unknown;
   for (let i = 0; i < 2; i++) {
     try {
-      const stream = client.messages.stream({
+      const response = await client.models.generateContent({
         model,
-        max_tokens: maxTokens,
-        ...(thinking ? { thinking: { type: "adaptive" as const } } : {}),
-        system,
-        messages: [{ role: "user", content: prompt }],
+        contents: prompt,
+        config: {
+          systemInstruction: system,
+          maxOutputTokens: maxTokens,
+          ...(thinking ? { thinkingConfig: { thinkingBudget: 8192 } } : {}),
+          responseMimeType: "application/json",
+        },
       });
-      let text = "";
-      stream.on("text", (t) => { text += t; });
-      await stream.finalMessage();
+      const text = response.text ?? "";
       return parseLoose<T>(text);
     } catch (e) { lastErr = e; }
   }
@@ -337,7 +338,7 @@ async function callJson<T>(client: Anthropic, model: string, system: string, pro
 }
 
 // null = the check itself errored after retry (distinct from "no claims").
-async function factCheck(client: Anthropic, data: any, topic: string): Promise<FactClaim[] | null> {
+async function factCheck(client: GoogleGenAI, data: any, topic: string): Promise<FactClaim[] | null> {
   try {
     const parsed = await callJson<{ claims: FactClaim[] }>(
       client, GATE_MODEL, GATE_SYSTEM, buildGatePrompt(data, topic), 4000, true);
@@ -350,7 +351,7 @@ async function factCheck(client: Anthropic, data: any, topic: string): Promise<F
 }
 
 // ── Targeted re-verify: did the applied ops resolve the flagged
-// claims, and is the replacement text itself accurate? Opus (needs
+// claims, and is the replacement text itself accurate? Gemini (needs
 // real knowledge to judge the corrected facts) but NO thinking and a
 // small prompt — this is claim-by-claim judgment, not open-ended
 // detection. ~2-3K in vs ~9.5K+thinking for a full re-scan, which is
@@ -385,7 +386,7 @@ If every claim is resolved correctly, output {"unresolved": []}.`;
 }
 
 // null = the verify call itself errored after retry.
-async function reVerify(client: Anthropic, claims: FactClaim[], appliedOps: CorrectionOp[], topic: string): Promise<FactClaim[] | null> {
+async function reVerify(client: GoogleGenAI, claims: FactClaim[], appliedOps: CorrectionOp[], topic: string): Promise<FactClaim[] | null> {
   try {
     const parsed = await callJson<{ unresolved: { index: number; why: string }[] }>(
       client, GATE_MODEL, GATE_SYSTEM, buildReVerifyPrompt(claims, appliedOps, topic), 1500, false);
@@ -411,7 +412,7 @@ export async function runFactGate(
   topic: string,
   opts: { validateStructure?: (d: any) => { failed: number } } = {},
 ): Promise<FactGateResult> {
-  const client = new Anthropic({ apiKey, timeout: 10 * 60_000, maxRetries: 1 });
+  const client = new GoogleGenAI({ apiKey });
   // Post-correction structural re-check. Defaults to the CampaignData validator;
   // callers with a different content shape (e.g. the branching passage graph)
   // inject their own, so a clean string-surgery pass is never mis-flagged as a

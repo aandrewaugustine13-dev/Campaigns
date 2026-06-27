@@ -48,9 +48,9 @@ const check = (label: string, ok: boolean, detail = "") => {
 };
 
 async function main() {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    console.error("ANTHROPIC_API_KEY not set (.env.local).");
+    console.error("GEMINI_API_KEY not set (.env.local).");
     process.exit(1);
   }
 

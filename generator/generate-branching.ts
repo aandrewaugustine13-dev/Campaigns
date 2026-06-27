@@ -58,8 +58,8 @@ function wrap(s: string, w: number): string[] {
 }
 
 async function main() {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) { console.error("Set ANTHROPIC_API_KEY in .env.local"); process.exit(1); }
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) { console.error("Set GEMINI_API_KEY in .env.local"); process.exit(1); }
 
   console.log("Generating ONE branching story via the module (validate + re-generate on failure)…\n");
   console.log(`  topic:     ${INPUTS.topic}`);

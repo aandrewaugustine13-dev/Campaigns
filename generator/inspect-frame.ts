@@ -16,9 +16,9 @@ const DEFAULT_STANDARD =
   "TEKS 7.x — The Erie Canal and its role in the economic transformation of New York and the opening of westward trade";
 
 async function main() {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    console.error("Error: ANTHROPIC_API_KEY not set. Put it in .env.local or export it.");
+    console.error("Error: GEMINI_API_KEY not set. Put it in .env.local or export it.");
     process.exit(1);
   }
 

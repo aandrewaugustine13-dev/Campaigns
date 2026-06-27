@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { parseModelJson } from "./json.js";
 import type { FlagDecl, FlagValue } from "./schema.js";
 
@@ -234,7 +234,7 @@ export function validateFaultLine(data: unknown): FaultLineFinding[] {
   return f;
 }
 
-// ── Generation (reuses the same Anthropic plumbing as economy.ts) ─
+// ── Generation (reuses the same GoogleGenAI plumbing as economy.ts) ─
 
 const SYSTEM_PROMPT = `You are a narrative designer for standards-aligned history games. Given a single state standard and the SPECIFIC PERSON whose eyes the player sees through, you identify the ONE MORAL FAULT LINE of that character's story — the single defining choice that most determines WHO this person becomes — and express it as one persistent flag.
 
@@ -296,18 +296,19 @@ export async function generateFaultLine(
   apiKey: string,
   topic?: string,
 ): Promise<GenerateFaultLineResult> {
-  const client = new Anthropic({ apiKey });
+  const client = new GoogleGenAI({ apiKey });
 
-  const stream = client.messages.stream({
-    model: "claude-sonnet-4-6",
-    max_tokens: 2000,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: buildUserMessage(standard, perspective, topic) }],
+  const response = await client.models.generateContent({
+    model: "gemini-3.5-flash",
+    contents: buildUserMessage(standard, perspective, topic),
+    config: {
+      systemInstruction: SYSTEM_PROMPT,
+      maxOutputTokens: 2000,
+      responseMimeType: "application/json",
+    },
   });
 
-  let rawText = "";
-  stream.on("text", (t) => { rawText += t; });
-  await stream.finalMessage();
+  const rawText = response.text ?? "";
 
   const data = parseModelJson<FaultLineSpec>(rawText);
   const findings = validateFaultLine(data);

@@ -23,9 +23,7 @@ const __root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 loadEnv({ path: resolve(__root, ".env.local") });
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const anthropicKey = process.env.ANTHROPIC_API_KEY;
 const geminiKey = process.env.GEMINI_API_KEY;
-if (!anthropicKey) { console.error("ANTHROPIC_API_KEY missing in .env.local"); process.exit(1); }
 if (!geminiKey) { console.error("GEMINI_API_KEY missing in .env.local"); process.exit(1); }
 
 // Cold cases — periods NOT used to tune the prompt. Suffrage/Reconstruction scenes
@@ -58,7 +56,7 @@ const CASES = [
     console.log(`TOPIC: ${c.topic}`);
     console.log("═".repeat(72));
 
-    const eb = await generateEraBrief(c.topic, c.standard, anthropicKey);
+    const eb = await generateEraBrief(c.topic, c.standard, geminiKey);
     console.log("\n--- (a) CLAUDE'S ERA BRIEF (feeds the image prompt) ---\n" + (eb.brief || "(empty)"));
     console.log("\n--- (b) CLAUDE'S TEACHER CHECKLIST (what to verify) ---");
     eb.checklist.forEach((item, i) => console.log(`  ${i + 1}. ${item}`));

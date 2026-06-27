@@ -1,5 +1,5 @@
 interface Env {
-  ANTHROPIC_API_KEY: string;
+  GEMINI_API_KEY: string;
 }
 
 interface RequestBody {
@@ -45,9 +45,9 @@ export const onRequestPost = async (context: any) => {
       );
     }
 
-    const apiKey = env.ANTHROPIC_API_KEY;
+    const apiKey = env.GEMINI_API_KEY;
     if (!apiKey) {
-      console.error('ANTHROPIC_API_KEY environment variable is not set.');
+      console.error('GEMINI_API_KEY environment variable is not set.');
       return new Response(
         JSON.stringify({ error: 'The story service is temporarily unavailable. Please try again in a moment.' }),
         {

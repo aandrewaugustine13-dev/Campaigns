@@ -55,9 +55,9 @@ function parseArgs(argv: string[]): { fixturePath: string; outOverride?: string 
 }
 
 async function main() {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    console.error("Error: ANTHROPIC_API_KEY not set. Put it in .env.local or export it.");
+    console.error("Error: GEMINI_API_KEY not set. Put it in .env.local or export it.");
     process.exit(1);
   }
 
@@ -94,7 +94,7 @@ async function main() {
   console.log(`  Cast:        ${inputs.cast ? `[locked, ${inputs.cast.length} members]` : "(none)"}`);
   console.log(`  Economy:     ${inputs.economy ? `[locked, ${inputs.economy.resources?.length ?? 0} resources]` : "(none)"}`);
   console.log();
-  console.log("  Calling Anthropic API (this may take 30-90 seconds)...");
+  console.log("  Calling Gemini API (this may take 30-90 seconds)...");
   console.log();
 
   const result = await generateCampaign(apiKey, inputs);

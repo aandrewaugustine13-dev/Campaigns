@@ -22,7 +22,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
-  console.error("GEMINI_API_KEY not set in .env.local — add it (separate from ANTHROPIC_API_KEY) to run the slice.");
+  console.error("GEMINI_API_KEY not set in .env.local — add it to run the slice.");
   process.exit(1);
 }
 

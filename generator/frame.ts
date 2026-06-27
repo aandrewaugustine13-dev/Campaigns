@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { parseModelJson } from "./json.js";
 
 // ════════════════════════════════════════════════════════════════
@@ -138,7 +138,7 @@ export function validateFrame(data: unknown): FrameFinding[] {
   return f;
 }
 
-// ── Generation (reuses the same Anthropic plumbing as economy.ts) ───
+// ── Generation (reuses the same GoogleGenAI plumbing as economy.ts) ───
 
 const SYSTEM_PROMPT = `You are an instructional designer for standards-aligned history games in the Oregon Trail tradition. Given a single state standard (e.g. a TEKS code and its description), you PROPOSE the structural FRAME of a campaign built on it — the controlling choices a teacher will later verify before any game is generated.
 
@@ -213,18 +213,19 @@ export async function generateFrame(
   forceType?: CampaignType,
   topic?: string,
 ): Promise<GenerateFrameResult> {
-  const client = new Anthropic({ apiKey });
+  const client = new GoogleGenAI({ apiKey });
 
-  const stream = client.messages.stream({
-    model: "claude-sonnet-4-6",
-    max_tokens: 2000,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: buildUserMessage(standard, forceType, topic) }],
+  const response = await client.models.generateContent({
+    model: "gemini-3.5-flash",
+    contents: buildUserMessage(standard, forceType, topic),
+    config: {
+      systemInstruction: SYSTEM_PROMPT,
+      maxOutputTokens: 2000,
+      responseMimeType: "application/json",
+    },
   });
 
-  let rawText = "";
-  stream.on("text", (t) => { rawText += t; });
-  await stream.finalMessage();
+  const rawText = response.text ?? "";
 
   const data = parseModelJson<ProposedFrame>(rawText);
   const findings = validateFrame(data);

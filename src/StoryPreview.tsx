@@ -164,10 +164,12 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
     setApproved(true);
     const teksStr = selectedTEKS.map(t => t.code).join(", ");
     // Resolution order (themes.ts): manual override > classifier > heuristic.
-    // "auto" leaves the override empty so the topic/TEKS heuristic decides; a
-    // manual pick is passed as the override and always wins.
+    // "auto" leaves the override empty so the model's classifier pick (the
+    // gate's `theme` field) decides, falling back to the topic/TEKS heuristic;
+    // a manual pick is passed as the override and always wins.
     const era = resolveTheme({
       override: visualTheme === "auto" ? null : visualTheme,
+      classifier: preview.theme ?? null,
       topic: topic.trim(),
       teks: teksStr,
     });

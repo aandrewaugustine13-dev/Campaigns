@@ -1,0 +1,383 @@
+/* ============================================================================
+   themes.css — period theme rendering. The stylesheet does 100% of the work.
+   Apply ONE attribute to the passage container: <div data-theme="ww1-fieldpost">
+   Everything below renders from that.
+
+   THE ONE RULE: every theme's era-lock is carried by something OTHER than color
+   (type, ornament, layout, texture). Color alone never locks an era.
+
+   ----------------------------------------------------------------------------
+   SLOT MAP (Stage 0). These hooks are what guarantee consistency. Add the
+   data-slot attributes to the existing markup in BranchingPlayer / StoryPreview
+   — do NOT restructure. If a slot already has a stable class, swap the selector.
+
+     data-slot="passage"          the container data-theme is set on
+     data-slot="kicker"           story eyebrow / chapter line
+     data-slot="story-title"      the title
+     data-slot="masthead"         (broadsheet only) wraps title for double-rules
+     data-slot="censor-stamp"     (ww1 only) the violet stamp element
+     data-slot="unwan"            (islamic only) wraps the header panel
+     data-slot="tracker"          Passage X/Y · Figures · Key moments strip
+     data-slot="figure-encounter" the figure card
+     data-slot="mcq"              MCQ / debrief block
+     data-slot="mcq-option"       one option row (marker auto via ::before list)
+     data-slot="choice"           one choice button
+     data-slot="ending"           ending wrapper; also set data-state="broken|indifferent|triumphant"
+     data-slot="tts"              the Read control
+   ============================================================================ */
+
+/* --- Fonts. DEV ONLY: hot-linking Google Fonts. For production (classroom
+       wifi) self-host woff2 with font-display:swap and subset Noto Serif TC /
+       Reem Kufi to the glyphs used. --------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital@0;1&family=Anton&family=Archivo:wght@400;600&family=Cinzel:wght@500;700&family=EB+Garamond:ital@0;1&family=IM+Fell+English:ital@0;1&family=Noto+Serif&family=Noto+Serif+TC:wght@500;700;900&family=Oswald:wght@500;700&family=Pinyon+Script&family=Playfair+Display:wght@700;900&family=Reem+Kufi:wght@500;700&family=Rye&family=Special+Elite&family=Spectral:ital,wght@0,400;0,600;0,700;1,400&family=Zilla+Slab:wght@400;600;700&display=swap');
+/* Blackletter for parchment chrome only: */
+@import url('https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap');
+
+/* ============================================================================
+   SHARED ENGINE — themes set variables, not new code.
+   ============================================================================ */
+
+:root {
+  /* one reusable grain layer; per-theme opacity via --grain-op */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+[data-slot="passage"],
+[data-theme] {
+  position: relative;
+  background-color: var(--paper-bg);
+  color: var(--body-color);
+  font-family: var(--body-font);
+  /* body must stay legible on the theme's paper — the chrome/body law */
+  line-height: 1.72;
+}
+
+/* paper texture: grain + optional theme-specific overlay (--texture-extra) */
+[data-slot="passage"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: var(--texture-extra, none), var(--grain);
+  background-size: var(--texture-size, auto), 220px 220px;
+  opacity: var(--grain-op, 0.12);
+  mix-blend-mode: var(--grain-blend, multiply);
+}
+[data-slot="passage"] > * { position: relative; z-index: 1; }
+
+/* --- chrome slots (period fonts, ornament, low contrast live here) --- */
+[data-slot="kicker"] {
+  font-family: var(--chrome-font);
+  color: var(--accent);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+[data-slot="story-title"] {
+  font-family: var(--chrome-font);
+  color: var(--chrome-color);
+  font-weight: 700;
+  line-height: 1.02;
+}
+[data-slot="tracker"] {
+  font-family: var(--body-font);
+  color: var(--chrome-color);
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-top: 1px solid var(--chrome-color);
+  padding-top: 0.7em;
+  display: flex;
+  gap: 0.8em;
+  align-items: center;
+  flex-wrap: wrap;
+}
+[data-slot="tracker"] > * { opacity: 0.85; }
+
+[data-slot="tts"] {
+  margin-left: auto;
+  font-family: var(--chrome-font);
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--accent);
+  border-radius: 2px;
+  padding: 0.35em 0.7em;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+/* --- body slot (the text a struggling reader decodes — keep it readable) --- */
+[data-slot="body"] {
+  font-family: var(--body-font);
+  color: var(--body-color);
+  font-size: 1.16rem;
+  line-height: 1.72;
+}
+
+/* --- figure card --- */
+[data-slot="figure-encounter"] {
+  border: 1px solid var(--chrome-color);
+  border-top-width: 3px;
+  background: var(--card-tint, transparent);
+  padding: 0.9em 1em;
+  position: relative;
+  margin: 1.4em 0;
+}
+[data-slot="figure-encounter"] .figure-role,
+[data-slot="figure-encounter"] [data-slot="figure-role"] { font-family: var(--body-font); opacity: 0.65; }
+[data-slot="figure-encounter"] .figure-name,
+[data-slot="figure-encounter"] [data-slot="figure-name"] { font-family: var(--chrome-font); color: var(--chrome-color); }
+
+/* per-theme "key moment" seal — set content via --seal-glyph, hidden by default */
+[data-slot="figure-encounter"]::after {
+  content: var(--seal-glyph, none);
+  position: absolute;
+  top: -0.7em;
+  right: 0.9em;
+  width: 2.2em;
+  height: 2.2em;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--chrome-font);
+  transform: rotate(-6deg);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.4);
+}
+
+/* --- MCQ / debrief --- */
+[data-slot="mcq"] {
+  border: 1px dashed var(--chrome-color);
+  padding: 0.9em 1em;
+  margin: 1.4em 0;
+}
+[data-slot="mcq-option"] { font-family: var(--body-font); color: var(--body-color); display: flex; gap: 0.7em; }
+[data-slot="mcq-option"] > .marker { font-family: var(--chrome-font); font-weight: 700; color: var(--accent); }
+
+/* --- choices --- */
+[data-slot="choice"] {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-family: var(--body-font);
+  color: var(--body-color);
+  background: var(--choice-bg, rgba(0,0,0,0.025));
+  border: 1px solid var(--chrome-color);
+  border-radius: 2px;
+  padding: 0.8em 0.95em;
+  cursor: pointer;
+}
+[data-slot="choice"] .marker { font-family: var(--chrome-font); font-weight: 700; margin-right: 0.6em; opacity: 0.85; }
+[data-slot="choice"]:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* preserve the existing subtle choice-entrance animation */
+@media (prefers-reduced-motion: no-preference) {
+  [data-slot="choice"] { animation: choiceIn 0.45s ease both; }
+  @keyframes choiceIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+}
+
+/* --- ending states (each theme decorates these via the same hooks) --- */
+[data-slot="ending"] {
+  margin-top: 1.6em;
+  border-top: 3px double var(--ending-color, var(--accent));
+  padding-top: 1em;
+  text-align: center;
+}
+[data-slot="ending"] .ending-label,
+[data-slot="ending"] [data-slot="ending-label"] {
+  font-family: var(--chrome-font);
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ending-color, var(--accent));
+  font-size: 0.8rem;
+}
+[data-slot="ending"][data-state="broken"]       { --ending-color: #7a2f2a; }
+[data-slot="ending"][data-state="indifferent"]  { --ending-color: #6b675f; }
+[data-slot="ending"][data-state="triumphant"]   { --ending-color: var(--accent); }
+
+/* ============================================================================
+   THEME TOKENS + ERA-LOCKS
+   ============================================================================ */
+
+/* 1. broadsheet-sepia — era-lock: NEWSPAPER (masthead + letterpress + drop cap) */
+[data-theme="broadsheet-sepia"] {
+  --paper-bg: #efe6d2; --grain-op: 0.13;
+  --body-font: 'IM Fell English', Georgia, serif; --body-color: #2b2118;
+  --chrome-font: 'Playfair Display', Georgia, serif; --chrome-color: #3a2c1a; --accent: #7a2e1f;
+  --choice-bg: rgba(122,46,31,0.05); --card-tint: rgba(122,46,31,0.04);
+}
+[data-theme="broadsheet-sepia"] [data-slot="masthead"] {
+  text-align: center;
+  border-top: 3px double var(--chrome-color);
+  border-bottom: 3px double var(--chrome-color);
+  padding: 0.4em 0 0.3em;
+}
+[data-theme="broadsheet-sepia"] [data-slot="story-title"] { font-weight: 900; font-size: 3.4rem; letter-spacing: 0.01em; }
+/* drop cap with no extra markup — first letter of the first body paragraph */
+[data-theme="broadsheet-sepia"] [data-slot="body"] > p:first-of-type::first-letter {
+  float: left; font-family: var(--chrome-font); font-weight: 900;
+  font-size: 4.4rem; line-height: 0.66; padding: 0.12em 0.18em 0 0; color: var(--accent);
+}
+
+/* 2. ww1-fieldpost — era-lock: VIOLET "PASSED BY CENSOR" + poster-condensed + khaki.
+      Must NOT read as the Cold War manila file. */
+[data-theme="ww1-fieldpost"] {
+  --paper-bg: #cbc0a1; --grain-op: 0.22; --grain-blend: multiply;
+  --body-font: 'Special Elite', 'Courier New', monospace; --body-color: #221f15;
+  --chrome-font: 'Oswald', 'Arial Narrow', sans-serif; --chrome-color: #2c281d; --accent: #5b3a8c;
+  --choice-bg: rgba(44,40,29,0.05); --card-tint: rgba(91,58,140,0.05);
+  --texture-extra: radial-gradient(circle at 14% 80%, rgba(70,58,30,0.16) 0, transparent 30%),
+                   radial-gradient(circle at 88% 20%, rgba(60,50,25,0.14) 0, transparent 24%);
+}
+[data-theme="ww1-fieldpost"] [data-slot="story-title"] {
+  font-family: var(--chrome-font); font-weight: 700; text-transform: uppercase;
+  font-size: 3rem; letter-spacing: 0.02em; line-height: 0.92;
+}
+[data-theme="ww1-fieldpost"] [data-slot="kicker"] { letter-spacing: 0.28em; }
+/* the differentiator from Cold War's black DECLASSIFIED: a VIOLET field-censor stamp */
+[data-theme="ww1-fieldpost"] [data-slot="censor-stamp"] {
+  display: inline-block;
+  transform: rotate(-9deg);
+  border: 3px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--chrome-font); font-weight: 700; text-transform: uppercase;
+  font-size: 0.82rem; letter-spacing: 0.12em; line-height: 1.05;
+  padding: 0.45em 0.7em; text-align: center;
+  opacity: 0.8; mix-blend-mode: multiply;
+}
+
+/* 3. declassified-typewriter — era-lock: TYPEWRITER face (mid-century by nature).
+      The existing Cold War theme; tokens here so the set is complete. */
+[data-theme="declassified-typewriter"] {
+  --paper-bg: #e8e4d8; --grain-op: 0.10;
+  --body-font: 'Courier New', Courier, monospace; --body-color: #232019;
+  --chrome-font: 'Courier New', Courier, monospace; --chrome-color: #232019; --accent: #1a1a1a;
+  --choice-bg: rgba(0,0,0,0.03); --card-tint: rgba(0,0,0,0.03);
+}
+[data-theme="declassified-typewriter"] [data-slot="story-title"] {
+  text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; font-size: 1.7rem;
+}
+[data-theme="declassified-typewriter"] [data-slot="censor-stamp"],
+[data-theme="declassified-typewriter"] [data-slot="story-title"]::after {
+  /* black DECLASSIFIED stamp — deliberately NOT violet, NOT khaki */
+}
+
+/* 4. parchment-medieval — era-lock: ILLUMINATED VERSAL + rubrication (blackletter chrome only) */
+[data-theme="parchment-medieval"] {
+  --paper-bg: #e7d7b0; --grain-op: 0.12;
+  --body-font: 'EB Garamond', Georgia, serif; --body-color: #2c1d0e;
+  --chrome-font: 'UnifrakturCook', 'UnifrakturMaguntia', serif; --chrome-color: #3a2410; --accent: #8c1c13;
+  --choice-bg: rgba(140,28,19,0.04); --card-tint: rgba(140,28,19,0.04);
+  --seal-glyph: "\00B6"; /* rubricated paraph ¶ */
+  --texture-extra: radial-gradient(circle at 60% 12%, rgba(140,28,19,0.05) 0, transparent 18%);
+}
+[data-theme="parchment-medieval"] [data-slot="story-title"] { font-size: 2.9rem; }
+/* illuminated initial: gold ground + red versal, no extra markup */
+[data-theme="parchment-medieval"] [data-slot="body"] > p:first-of-type::first-letter {
+  float: left; font-family: var(--chrome-font); font-size: 2.6rem; line-height: 1;
+  margin: 0.15em 0.35em 0.05em 0; padding: 0.18em 0.28em; color: var(--accent);
+  background: #cda437; box-shadow: 0 0 0 2px #cda437, inset 0 0 0 2px #8c1c13;
+}
+
+/* 5. classical-marble — era-lock: INCISED Trajan capitals carved in stone (NOT paper) */
+[data-theme="classical-marble"] {
+  --paper-bg: #dcd6cc; --grain-op: 0.06;
+  --body-font: 'EB Garamond', Georgia, serif; --body-color: #2a2824;
+  --chrome-font: 'Cinzel', Georgia, serif; --chrome-color: #33312b; --accent: #6e5a2a;
+  --choice-bg: rgba(110,90,42,0.05); --card-tint: rgba(110,90,42,0.04);
+  --seal-glyph: "\2609"; /* ☉ wax-seal device */
+  --texture-extra: linear-gradient(115deg, rgba(0,0,0,0.05) 0, transparent 18%, rgba(255,255,255,0.5) 30%, transparent 46%, rgba(0,0,0,0.045) 62%, transparent 78%);
+  --grain-blend: normal;
+}
+[data-theme="classical-marble"] [data-slot="story-title"] {
+  text-transform: uppercase; letter-spacing: 0.16em; font-weight: 700; font-size: 2.6rem;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.65), 0 -1px 1px rgba(0,0,0,0.4); /* incised */
+}
+
+/* 6. expedition-journal — era-lock: RULED notebook + pen ink + coordinate header */
+[data-theme="expedition-journal"] {
+  --paper-bg: #e9e4d6; --grain-op: 0.07;
+  --body-font: 'Spectral', Georgia, serif; --body-color: #22303a;
+  --chrome-font: 'Pinyon Script', cursive; --chrome-color: #283a45; --accent: #8a5a2b;
+  --choice-bg: rgba(40,58,69,0.04); --card-tint: rgba(40,58,69,0.04);
+  --texture-extra: repeating-linear-gradient(transparent 0 27px, rgba(40,58,69,0.16) 27px 28px);
+  --grain-blend: normal;
+}
+[data-theme="expedition-journal"] [data-slot="story-title"] { font-size: 3rem; font-weight: 400; }
+
+/* 7. frontier-leather — era-lock: WOOD-TYPE broadside + tooled leather + kraft */
+[data-theme="frontier-leather"] {
+  --paper-bg: #cdbb98; --grain-op: 0.17;
+  --body-font: 'Zilla Slab', 'Rockwell', serif; --body-color: #2c1d12;
+  --chrome-font: 'Rye', 'Rockwell', serif; --chrome-color: #3a2415; --accent: #7a2a1c;
+  --choice-bg: rgba(58,36,21,0.05); --card-tint: rgba(58,36,21,0.05);
+  --seal-glyph: "\2605"; /* ★ badge / brand */
+  --texture-extra: repeating-linear-gradient(92deg, rgba(80,50,25,0.05) 0 3px, transparent 3px 7px);
+  --grain-blend: normal;
+}
+[data-theme="frontier-leather"] [data-slot="story-title"] { text-transform: uppercase; font-size: 2.9rem; }
+[data-theme="frontier-leather"] [data-slot="masthead"] { text-align: center; border: 3px solid var(--chrome-color); padding: 0.5em 0.7em; }
+
+/* 8. civil-rights-midcentury — era-lock: BOLD news gothic placard + broadcast lower-third + halftone.
+      Public/broadcast — separates it from the Cold War private typed file. */
+[data-theme="civil-rights-midcentury"] {
+  --paper-bg: #e9e7e0; --grain-op: 0.07;
+  --body-font: 'Archivo', system-ui, sans-serif; --body-color: #1c1b19;
+  --chrome-font: 'Anton', Impact, sans-serif; --chrome-color: #1c1b19; --accent: #c0301c;
+  --choice-bg: rgba(0,0,0,0.03); --card-tint: rgba(192,48,28,0.05);
+  --texture-extra: radial-gradient(circle, rgba(0,0,0,0.10) 0.6px, transparent 1.4px);
+  --texture-size: 7px 7px; --grain-blend: normal;
+}
+[data-theme="civil-rights-midcentury"] [data-slot="story-title"] {
+  text-transform: uppercase; font-size: 3.2rem; line-height: 0.9; letter-spacing: -0.01em;
+}
+/* broadcast lower-third bar for the kicker */
+[data-theme="civil-rights-midcentury"] [data-slot="kicker"] {
+  display: inline-block; background: var(--accent); color: #fff;
+  padding: 0.3em 0.7em; letter-spacing: 0.12em;
+}
+
+/* 9. imperial-chinese-scroll — era-lock: VERTICAL title + vermilion seals + ink-wash */
+[data-theme="imperial-chinese-scroll"] {
+  --paper-bg: #efe7d6; --grain-op: 0.06;
+  --body-font: 'Noto Serif', Georgia, serif; --body-color: #241f1a;
+  --chrome-font: 'Noto Serif TC', serif; --chrome-color: #2b2620; --accent: #b3331f;
+  --choice-bg: rgba(179,51,31,0.04); --card-tint: rgba(179,51,31,0.04);
+  --seal-glyph: "\5370"; /* 印 vermilion seal — VARY the char per passage in markup */
+  --texture-extra: radial-gradient(120% 90% at -10% 105%, rgba(40,40,40,0.14) 0, transparent 42%);
+  --grain-blend: normal;
+}
+[data-theme="imperial-chinese-scroll"] [data-slot="story-title"] {
+  writing-mode: vertical-rl; font-weight: 900; letter-spacing: 0.18em; font-size: 2.1rem;
+}
+/* Chinese-numeral option markers — set .marker text to 一二三四 in markup */
+
+/* 10. islamic-golden-age — era-lock: GEOMETRIC illumination + Kufic + shamsa medallion */
+[data-theme="islamic-golden-age"] {
+  --paper-bg: #f1e9d6; --grain-op: 0.05;
+  --body-font: 'Amiri', Georgia, serif; --body-color: #241f18;
+  --chrome-font: 'Reem Kufi', sans-serif; --chrome-color: #26456e; --accent: #9a7b1f;
+  --choice-bg: rgba(154,123,31,0.05); --card-tint: rgba(154,123,31,0.05);
+  --seal-glyph: "\06DE"; /* ۞ rosette / shamsa marker */
+}
+[data-theme="islamic-golden-age"] [data-slot="unwan"] {
+  border: 2px solid var(--accent);
+  box-shadow: inset 0 0 0 4px var(--paper-bg), inset 0 0 0 6px var(--accent);
+  padding: 0.9em 1em; text-align: center;
+}
+[data-theme="islamic-golden-age"] [data-slot="story-title"] { color: var(--accent); }
+/* gold rosette (۞) option markers — set .marker text to ۞ in markup */
+
+/* default — intentionally era-neutral, the honest fallback */
+[data-theme="default"] {
+  --paper-bg: #f3efe7; --grain-op: 0.05;
+  --body-font: 'Spectral', Georgia, serif; --body-color: #23211d;
+  --chrome-font: 'Spectral', Georgia, serif; --chrome-color: #2a2824; --accent: #6b5d4a;
+  --choice-bg: rgba(0,0,0,0.025); --card-tint: rgba(107,93,74,0.04);
+}
+[data-theme="default"] [data-slot="story-title"] { font-size: 2.4rem; }

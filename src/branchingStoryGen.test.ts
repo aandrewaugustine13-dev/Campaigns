@@ -1,4 +1,4 @@
-// Proves the generateBranchingStory REPAIR loop by EXERCISE (mocked Anthropic
+// Proves the generateBranchingStory REPAIR loop by EXERCISE (mocked Gemini
 // client, scripted output per attempt) — the robustness the live CLI can't
 // guarantee on its own: a model that returns a BROKEN graph must trigger a
 // sighted re-generation, and a story that never validates must NEVER be returned
@@ -8,19 +8,20 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 const h = vi.hoisted(() => ({ userMessages: [] as string[], responses: [] as string[] }));
 
-vi.mock("@anthropic-ai/sdk", () => ({
-  default: class {
-    messages = {
-      stream: (args: { messages: { content: string }[] }) => {
+vi.mock("@google/genai", () => ({
+  GoogleGenAI: class {
+    models = {
+      generateContent: async (args: { contents: string }) => {
         const idx = h.userMessages.length;
-        h.userMessages.push(args.messages[0].content);
+        h.userMessages.push(args.contents);
         const text = h.responses[idx] ?? h.responses[h.responses.length - 1] ?? "{}";
-        return {
-          on(event: string, cb: (t: string) => void) { if (event === "text") cb(text); return this; },
-          finalMessage: async () => ({}),
-        };
+        return { text };
       },
     };
+  },
+  Type: {
+    TYPE_UNSPECIFIED: "TYPE_UNSPECIFIED", STRING: "STRING", NUMBER: "NUMBER",
+    INTEGER: "INTEGER", BOOLEAN: "BOOLEAN", ARRAY: "ARRAY", OBJECT: "OBJECT", NULL: "NULL",
   },
 }));
 
@@ -33,8 +34,8 @@ function validStory(): BranchingStory {
     title: "T", protagonist: "x", start: "p1",
     passages: [
       { id: "p1", text: "Start.", choices: [{ text: "a", next: "e1" }, { text: "b", next: "e2" }] },
-      { id: "e1", text: "End A.", ending: true },
-      { id: "e2", text: "End B.", ending: true },
+      { id: "e1", text: "End A.", ending: true, endingState: "triumphant" },
+      { id: "e2", text: "End B.", ending: true, endingState: "broken" },
     ],
   };
 }
@@ -44,7 +45,7 @@ function brokenStory(): BranchingStory {
     title: "T", protagonist: "x", start: "p1",
     passages: [
       { id: "p1", text: "Start.", choices: [{ text: "a", next: "ghost" }, { text: "b", next: "e2" }] },
-      { id: "e2", text: "End.", ending: true },
+      { id: "e2", text: "End.", ending: true, endingState: "indifferent" },
     ],
   };
 }
@@ -127,8 +128,8 @@ describe("generateBranchingStory — factGate (history) is wired into the loop",
       title: "T", protagonist: "x", start: "p1",
       passages: [
         { id: "p1", text: "Start.", choices: [{ text: "a", next: "e1" }, { text: "b", next: "e2" }] },
-        { id: "e1", text: "End A.", ending: true },
-        { id: "e2", text: "End B.", ending: true },
+        { id: "e1", text: "End A.", ending: true, endingState: "triumphant" },
+        { id: "e2", text: "End B.", ending: true, endingState: "broken" },
       ],
     };
   }
@@ -177,7 +178,9 @@ describe("generateBranchingStory — factGate (history) is wired into the loop",
     expect(res.factGate?.status).toBe("clean");
     expect(res.factGate?.flagged).toBe(0);
     expect(res.factGate?.opsApplied).toBe(0);
-    expect(res.story).toEqual(clean);               // byte-identical content
+    // byte-identical content — factGate touched nothing; the generator's
+    // own outputLanguage stamp is the only addition.
+    expect(res.story).toEqual({ ...clean, outputLanguage: "English" });
   });
 
   it("NEVER ships an uncorrectable fabrication — it re-generates with the HISTORY error fed back", async () => {

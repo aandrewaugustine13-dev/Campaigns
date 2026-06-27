@@ -222,9 +222,9 @@ async function pool<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R>): 
 }
 
 async function main() {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    console.error("ANTHROPIC_API_KEY not set (.env.local).");
+    console.error("GEMINI_API_KEY not set (.env.local).");
     process.exit(1);
   }
   // Optional CLI filter: `npx tsx generator/batch-frontier-probe.ts lowell ellis`

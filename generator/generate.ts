@@ -22,10 +22,10 @@ const INPUTS: GenerateInputs = {
 };
 
 async function main() {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    console.error("Error: ANTHROPIC_API_KEY environment variable not set.");
-    console.error("Set it in .env.local or export it: export ANTHROPIC_API_KEY=sk-...");
+    console.error("Error: GEMINI_API_KEY environment variable not set.");
+    console.error("Set it in .env.local or export it: export GEMINI_API_KEY=...");
     process.exit(1);
   }
 
@@ -41,7 +41,7 @@ async function main() {
   console.log(`  Sages:      ${INPUTS.numSages}`);
   console.log(`  Difficulty: ${INPUTS.difficulty}`);
   console.log();
-  console.log("  Calling Anthropic API (this may take 30-90 seconds)...");
+  console.log("  Calling Gemini API (this may take 30-90 seconds)...");
   console.log();
 
   const result = await generateCampaign(apiKey, INPUTS);

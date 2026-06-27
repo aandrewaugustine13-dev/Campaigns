@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
@@ -579,22 +579,22 @@ export async function generateCampaign(
   // (validate(data)) findings; never the frozen input-spec ones.
   priorErrors?: string[],
 ): Promise<GenerateResult> {
-  // A generated campaign is large; the stream can legitimately run several
-  // minutes. Give it a generous ceiling and a retry so a stalled connection
-  // fails fast and recovers instead of hanging until something upstream gives.
-  const client = new Anthropic({ apiKey, timeout: 15 * 60_000, maxRetries: 1 });
+  // A generated campaign is large and can legitimately take several minutes;
+  // the GoogleGenAI client awaits the full response in one call.
+  const client = new GoogleGenAI({ apiKey });
   const startTime = Date.now();
 
-  const stream = client.messages.stream({
-    model: "claude-sonnet-4-6",
-    max_tokens: 16000,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: buildUserMessage(inputs, priorErrors) }],
+  const response = await client.models.generateContent({
+    model: "gemini-3.5-flash",
+    contents: buildUserMessage(inputs, priorErrors),
+    config: {
+      systemInstruction: SYSTEM_PROMPT,
+      maxOutputTokens: 16000,
+      responseMimeType: "application/json",
+    },
   });
 
-  let rawText = "";
-  stream.on("text", (text) => { rawText += text; });
-  await stream.finalMessage();
+  const rawText = response.text ?? "";
 
   const elapsedSeconds = (Date.now() - startTime) / 1000;
 

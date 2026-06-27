@@ -1,12 +1,12 @@
 // ════════════════════════════════════════════════════════════════
-// Narrative-plan GENERATION (the Anthropic call). Split out from
+// Narrative-plan GENERATION (the Gemini call). Split out from
 // storyPlan.ts so that module stays PURE (types + validator only) and can be
 // imported by the front-end (the teacher's plan-review checklist) without
 // dragging the node SDK into the browser bundle — the same type-only boundary
 // the rest of the Stage-1 studio uses. Server/CLI side only.
 // ════════════════════════════════════════════════════════════════
 
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { parseModelJson } from "./json.js";
 import { validateStoryPlan, type NarrativePlan, type StoryPlanFinding } from "./storyPlan.js";
 
@@ -132,22 +132,22 @@ export async function generateStoryPlan(
   // before it ever reaches the teacher. Default 2.
   opts: { maxRepair?: number } = {},
 ): Promise<GenerateStoryPlanResult> {
-  const client = new Anthropic({ apiKey });
+  const client = new GoogleGenAI({ apiKey });
   const maxRepair = opts.maxRepair ?? 2;
 
   let last!: GenerateStoryPlanResult;
   let priorErrors: string[] = [];
   for (let attempt = 0; attempt <= maxRepair; attempt++) {
-    const stream = client.messages.stream({
-      model: "claude-sonnet-4-6",
-      max_tokens: 4000,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: buildUserMessage(standard, inputs, attempt > 0 ? priorErrors : undefined) }],
+    const response = await client.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: buildUserMessage(standard, inputs, attempt > 0 ? priorErrors : undefined),
+      config: {
+        systemInstruction: SYSTEM_PROMPT,
+        maxOutputTokens: 4000,
+        responseMimeType: "application/json",
+      },
     });
-
-    let rawText = "";
-    stream.on("text", (t) => { rawText += t; });
-    await stream.finalMessage();
+    const rawText = response.text ?? "";
 
     const data = parseModelJson<NarrativePlan>(rawText);
     const findings = validateStoryPlan(data, { requireEndingFragments: inputs.requireEndingFragments });

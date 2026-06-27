@@ -1,11 +1,11 @@
 // ════════════════════════════════════════════════════════════════
-// NARRATIVE-QUIZ GENERATION (the Anthropic call). Split from narrativeQuiz.ts so
+// NARRATIVE-QUIZ GENERATION (the Gemini call). Split from narrativeQuiz.ts so
 // that module stays PURE (types + validator only) and browser-safe. Server/CLI
 // side only. Mirrors storyPlanGen.ts: a sighted self-repair loop that feeds the
 // validation errors back so the bank self-heals before it reaches the campaign.
 // ════════════════════════════════════════════════════════════════
 
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { parseModelJson } from "./json.js";
 import type { NarrativePlan } from "./storyPlan.js";
 import {
@@ -87,23 +87,23 @@ export async function generateNarrativeQuiz(
   inputs: NarrativeQuizInputs,
   opts: { maxRepair?: number } = {},
 ): Promise<GenerateNarrativeQuizResult> {
-  const client = new Anthropic({ apiKey });
+  const client = new GoogleGenAI({ apiKey });
   const maxRepair = opts.maxRepair ?? 2;
   const minQuestions = Math.max(4, (inputs.numQuestions ?? 6) - 1);
 
   let last!: GenerateNarrativeQuizResult;
   let priorErrors: string[] = [];
   for (let attempt = 0; attempt <= maxRepair; attempt++) {
-    const stream = client.messages.stream({
-      model: "claude-sonnet-4-6",
-      max_tokens: 4000,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: buildUserMessage(standard, plan, inputs, attempt > 0 ? priorErrors : undefined) }],
+    const response = await client.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: buildUserMessage(standard, plan, inputs, attempt > 0 ? priorErrors : undefined),
+      config: {
+        systemInstruction: SYSTEM_PROMPT,
+        maxOutputTokens: 4000,
+        responseMimeType: "application/json",
+      },
     });
-
-    let rawText = "";
-    stream.on("text", (t) => { rawText += t; });
-    await stream.finalMessage();
+    const rawText = response.text ?? "";
 
     const data = parseModelJson<NarrativeQuizBundle>(rawText);
     const findings = validateNarrativeQuiz(data, { minQuestions });

@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { parseModelJson } from "./json.js";
 
 // ════════════════════════════════════════════════════════════════
@@ -110,7 +110,7 @@ export function validateCast(data: unknown): CastFinding[] {
   return f;
 }
 
-// ── Generation (reuses the same Anthropic plumbing as economy.ts) ───
+// ── Generation (reuses the same GoogleGenAI plumbing as economy.ts) ───
 
 const SYSTEM_PROMPT = `You are a historical-cast designer for standards-aligned history games in the Oregon Trail tradition. Given a single state standard (e.g. a TEKS code and its description), you propose the CAST of historical figures a "systems"-type campaign built on that standard would need — the real people (and clearly-labeled representative roles) the player encounters. In a systems campaign the player IS the historical process (the expedition, the project), not a named character.
 
@@ -160,18 +160,19 @@ export async function generateCast(
   apiKey: string,
   topic?: string,
 ): Promise<GenerateCastResult> {
-  const client = new Anthropic({ apiKey });
+  const client = new GoogleGenAI({ apiKey });
 
-  const stream = client.messages.stream({
-    model: "claude-sonnet-4-6",
-    max_tokens: 2000,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: buildUserMessage(standard, topic) }],
+  const response = await client.models.generateContent({
+    model: "gemini-3.5-flash",
+    contents: buildUserMessage(standard, topic),
+    config: {
+      systemInstruction: SYSTEM_PROMPT,
+      maxOutputTokens: 2000,
+      responseMimeType: "application/json",
+    },
   });
 
-  let rawText = "";
-  stream.on("text", (t) => { rawText += t; });
-  await stream.finalMessage();
+  const rawText = response.text ?? "";
 
   const data = parseModelJson<ProposedCast>(rawText);
   const findings = validateCast(data);

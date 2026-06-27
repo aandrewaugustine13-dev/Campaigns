@@ -1,5 +1,5 @@
 interface Env {
-  ANTHROPIC_API_KEY?: string;
+  GEMINI_API_KEY?: string;
 }
 
 export const onRequestPost = async (context: any) => {
@@ -38,11 +38,11 @@ export const onRequestPost = async (context: any) => {
       queries.push(`${standardNouns} historical`);
     }
 
-    const anthropicKey = env.ANTHROPIC_API_KEY;
-    if (anthropicKey && text && (topic || standardNouns)) {
+    const geminiKey = env.GEMINI_API_KEY;
+    if (geminiKey && text && (topic || standardNouns)) {
       try {
         const { generatePassageQueries } = await import('../../generator/eraBrief.js');
-        const pq = await generatePassageQueries(topic, standard, text, anthropicKey);
+        const pq = await generatePassageQueries(topic, standard, text, geminiKey);
         for (const q of pq) if (q && q.trim()) {
           queries.push(q.trim());
           if (base && !q.toLowerCase().includes(base.toLowerCase())) {

@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { parseModelJson } from "./json.js";
 
 // ════════════════════════════════════════════════════════════════
@@ -118,7 +118,7 @@ export function validateEconomy(data: unknown): EconomyFinding[] {
   return f;
 }
 
-// ── Generation (reuses the same Anthropic plumbing as core.ts) ───
+// ── Generation (reuses the same GoogleGenAI plumbing as core.ts) ───
 
 const SYSTEM_PROMPT = `You are an instructional systems designer for standards-aligned history games in the Oregon Trail tradition. Given a single state standard (e.g. a TEKS code and its description), you define the ECONOMY and RATING RUBRIC for a "systems"-type campaign — one the player manages across the whole run, where the player IS the historical process (the expedition, the project), not a named character.
 
@@ -165,18 +165,19 @@ export async function generateEconomy(
   apiKey: string,
   topic?: string,
 ): Promise<GenerateEconomyResult> {
-  const client = new Anthropic({ apiKey });
+  const client = new GoogleGenAI({ apiKey });
 
-  const stream = client.messages.stream({
-    model: "claude-sonnet-4-6",
-    max_tokens: 2000,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: buildUserMessage(standard, topic) }],
+  const response = await client.models.generateContent({
+    model: "gemini-3.5-flash",
+    contents: buildUserMessage(standard, topic),
+    config: {
+      systemInstruction: SYSTEM_PROMPT,
+      maxOutputTokens: 2000,
+      responseMimeType: "application/json",
+    },
   });
 
-  let rawText = "";
-  stream.on("text", (t) => { rawText += t; });
-  await stream.finalMessage();
+  const rawText = response.text ?? "";
 
   const data = parseModelJson<SystemsEconomy>(rawText);
   const findings = validateEconomy(data);

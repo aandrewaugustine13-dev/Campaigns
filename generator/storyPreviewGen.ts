@@ -5,11 +5,12 @@
 // the opus that writes the story) that returns a summary + coverage checklist
 // WITHOUT writing the story. SDK side only.
 // ════════════════════════════════════════════════════════════════
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI, Type } from "@google/genai";
 import { parseModelJson } from "./json.js";
 import { validateStoryPreview, type StoryPreview, type PreviewFinding } from "./storyPreview.js";
+import { THEME_IDS, THEME_CLASSIFIER_INSTRUCTION } from "../theme-system/themes.js";
 
-const MODEL = "claude-sonnet-4-6"; // cheap + fast — the gate, not the story (opus)
+const MODEL = "gemini-3.5-flash"; // cheap + fast — the gate, not the story
 
 const SYSTEM_PROMPT = `You help a teacher decide, BEFORE any full story is written, whether a planned branching history story will cover their curriculum standard. You output ONLY a single JSON object — a short PREVIEW, never the story itself. No prose, no markdown, no code fences.
 
@@ -17,15 +18,34 @@ Given a topic, a standard, an optional must-cover note, and optional OUTPUT LANG
 - "protagonist": ONE line naming who the story will follow — an ordinary young person living through this history (a regular kid, not a famous leader).
 - "summary": 2 to 3 plain sentences describing the story's arc and its feel — what the kid lives through and the shape of it. Plain language; this is a teacher's at-a-glance read.
 - "coverage": a CHECKLIST of 8 to 14 SHORT, SPECIFIC items — the concrete historical topics, events, people, places, and facts the story will teach. Each item is something a teacher can check directly against their standard: name the real events/people/terms (not vague themes). If the teacher gave a must-cover note, every item in it MUST appear in this checklist.
+- "theme": ONE theme id chosen per the THEME SELECTION rules below.
 
-All output text (protagonist, summary, coverage items) must be written in the OUTPUT LANGUAGE if provided and not English. Use natural, high-quality phrasing in that language. For English, use English as usual.
+All output text (protagonist, summary, coverage items) must be written in the OUTPUT LANGUAGE if provided and not English. Use natural, high-quality phrasing in that language. For English, use English as usual. The "theme" id is a fixed token from the closed list — it is NOT translated.
 
 Do NOT write the story, scenes, choices, or passages. This is only the preview a teacher approves before the story is generated.
 
 OUTPUT SHAPE (TypeScript for reference — output JSON only):
-interface StoryPreview { protagonist: string; summary: string; coverage: string[]; }
+interface StoryPreview { protagonist: string; summary: string; coverage: string[]; theme: string; }
 
-Output ONLY the JSON object conforming to StoryPreview.`;
+Output ONLY the JSON object conforming to StoryPreview.
+
+THEME SELECTION
+${THEME_CLASSIFIER_INSTRUCTION}`;
+
+// Structured-output schema. The "theme" field is a STRICT enum drawn from the
+// single source of truth (theme-system/themes.ts) — the model physically cannot
+// emit a token outside the closed list, so resolveTheme always gets a valid id.
+const RESPONSE_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    protagonist: { type: Type.STRING },
+    summary: { type: Type.STRING },
+    coverage: { type: Type.ARRAY, items: { type: Type.STRING } },
+    theme: { type: Type.STRING, enum: THEME_IDS as string[] },
+  },
+  required: ["protagonist", "summary", "coverage", "theme"],
+  propertyOrdering: ["protagonist", "summary", "coverage", "theme"],
+};
 
 export interface PreviewInputs {
   topic: string;
@@ -59,16 +79,18 @@ export async function generateStoryPreview(
   inputs: PreviewInputs,
   apiKey: string,
 ): Promise<GenerateStoryPreviewResult> {
-  const client = new Anthropic({ apiKey });
-  const stream = client.messages.stream({
+  const client = new GoogleGenAI({ apiKey });
+  const response = await client.models.generateContent({
     model: MODEL,
-    max_tokens: 1500,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: buildUserMessage(inputs) }],
+    contents: buildUserMessage(inputs),
+    config: {
+      systemInstruction: SYSTEM_PROMPT,
+      maxOutputTokens: 1500,
+      responseMimeType: "application/json",
+      responseSchema: RESPONSE_SCHEMA,
+    },
   });
-  let raw = "";
-  stream.on("text", (t) => { raw += t; });
-  await stream.finalMessage();
+  const raw = response.text ?? "";
 
   const data = parseModelJson<StoryPreview>(raw);
   const findings = validateStoryPreview(data);

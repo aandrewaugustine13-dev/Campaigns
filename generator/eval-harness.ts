@@ -39,7 +39,7 @@ import { execSync } from "child_process";
 import { mkdirSync, readFileSync, writeFileSync, readdirSync, existsSync } from "fs";
 import { resolve, dirname, basename } from "path";
 import { fileURLToPath } from "url";
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI, Models } from "@google/genai";
 import { generateFrame } from "./frame.js";
 import { generatePersonalEconomy } from "./personalEconomy.js";
 import { generateCast } from "./cast.js";
@@ -59,24 +59,25 @@ loadEnv({ path: resolve(__root, ".env.local") });
 
 const EVAL_DIR = resolve(__root, "eval-runs");
 
-// ── Pricing ($ per million tokens; cache write 1.25x input, cache
-// read 0.1x input). The generator runs on sonnet; Tier-2 graders use
-// haiku (cheap) and opus (stronger, factual-accuracy only).
+// ── Pricing ($ per million tokens). After the Gemini migration the
+// generator and BOTH graders run on gemini-3.5-flash, so the former
+// cheap(haiku)/strong(opus) split collapses to one model+price.
+// NOTE: these per-million rates are placeholders for gemini-3.5-flash —
+// confirm against the current Gemini pricing sheet before trusting the
+// dollar figures in a report.
 const PRICING = {
-  model: "claude-sonnet-4-6",
-  inputPerM: 3.0,
-  outputPerM: 15.0,
-  cacheWritePerM: 3.75,
-  cacheReadPerM: 0.3,
+  model: "gemini-3.5-flash",
+  inputPerM: 0.3,
+  outputPerM: 2.5,
+  cacheWritePerM: 0.3,
+  cacheReadPerM: 0.075,
 };
 
-const GRADER_CHEAP = "claude-haiku-4-5";
-const GRADER_STRONG = "claude-opus-4-8";
+const GRADER_CHEAP = "gemini-3.5-flash";
+const GRADER_STRONG = "gemini-3.5-flash";
 
 const MODEL_PRICING: Record<string, { inputPerM: number; outputPerM: number }> = {
-  "claude-sonnet-4-6": { inputPerM: 3.0, outputPerM: 15.0 },
-  "claude-haiku-4-5": { inputPerM: 1.0, outputPerM: 5.0 },
-  "claude-opus-4-8": { inputPerM: 5.0, outputPerM: 25.0 },
+  "gemini-3.5-flash": { inputPerM: 0.3, outputPerM: 2.5 },
 };
 
 function priceFor(model: string): { inputPerM: number; outputPerM: number } {
@@ -86,9 +87,10 @@ function priceFor(model: string): { inputPerM: number; outputPerM: number } {
 
 // ════════════════════════════════════════════════════════════════
 // SDK INSTRUMENTATION — observe token usage without touching the
-// generator. Every generator module calls client.messages.stream();
-// we wrap the Messages prototype so each call's final usage lands in
-// the collector, tagged with whatever stage the harness set.
+// generator. Every generator module calls client.models.generateContent(),
+// which delegates to Models.prototype.generateContentInternal(); we wrap
+// that one prototype method so each call's usageMetadata lands in the
+// collector, tagged with whatever stage the harness set.
 // ════════════════════════════════════════════════════════════════
 interface ApiCallRecord {
   stage: string;
@@ -106,38 +108,29 @@ function recordUsage(stage: string, model: string, usage: any, seconds: number) 
   collector.calls.push({
     stage,
     model: model ?? PRICING.model,
-    inputTokens: usage?.input_tokens ?? 0,
-    outputTokens: usage?.output_tokens ?? 0,
-    cacheWriteTokens: usage?.cache_creation_input_tokens ?? 0,
-    cacheReadTokens: usage?.cache_read_input_tokens ?? 0,
+    inputTokens: usage?.promptTokenCount ?? 0,
+    outputTokens: usage?.candidatesTokenCount ?? 0,
+    // Gemini has no separate cache-WRITE token billing; only cached (read) tokens.
+    cacheWriteTokens: 0,
+    cacheReadTokens: usage?.cachedContentTokenCount ?? 0,
     seconds,
   });
 }
 
 function instrumentSdk() {
-  const MessagesProto = (Anthropic as any).Messages?.prototype;
-  if (!MessagesProto?.stream) {
-    console.warn("⚠ Could not instrument SDK (Messages.prototype.stream missing) — token metrics will be zero.");
+  const ModelsProto = (Models as any)?.prototype;
+  if (!ModelsProto?.generateContentInternal) {
+    console.warn("⚠ Could not instrument SDK (Models.prototype.generateContentInternal missing) — token metrics will be zero.");
     return;
   }
-  const origStream = MessagesProto.stream;
-  MessagesProto.stream = function (...args: any[]) {
+  const orig = ModelsProto.generateContentInternal;
+  ModelsProto.generateContentInternal = function (...args: any[]) {
     const stage = collector.stage;
     const t0 = Date.now();
-    const stream = origStream.apply(this, args);
-    stream.on("finalMessage", (msg: any) => {
-      recordUsage(stage, msg?.model, msg?.usage, (Date.now() - t0) / 1000);
-    });
-    return stream;
-  };
-  const origCreate = MessagesProto.create;
-  MessagesProto.create = function (...args: any[]) {
-    const stage = collector.stage;
-    const t0 = Date.now();
-    const result = origCreate.apply(this, args);
+    const result = orig.apply(this, args);
     if (result && typeof result.then === "function") {
-      result.then((msg: any) => {
-        if (msg?.usage) recordUsage(stage, msg?.model, msg.usage, (Date.now() - t0) / 1000);
+      result.then((resp: any) => {
+        recordUsage(stage, resp?.modelVersion, resp?.usageMetadata, (Date.now() - t0) / 1000);
       }).catch(() => {});
     }
     return result;
@@ -916,7 +909,7 @@ async function runGraders(
   d: any,
   spec: { standard: string; grade: string; topic: string },
 ): Promise<{ dimensions: Partial<Record<DimensionName, DimensionResult>>; records: GraderRecord[] }> {
-  const client = new Anthropic({ apiKey, timeout: 10 * 60_000, maxRetries: 1 });
+  const client = new GoogleGenAI({ apiKey });
   const dimensions: Partial<Record<DimensionName, DimensionResult>> = {};
   const records: GraderRecord[] = [];
 
@@ -925,17 +918,17 @@ async function runGraders(
     collector.stage = `grader:${g.dimension}`;
     try {
       const raw = await withRetry(`grader ${g.dimension}`, async () => {
-        const stream = client.messages.stream({
+        const response = await client.models.generateContent({
           model: g.model,
-          max_tokens: g.maxTokens,
-          ...(g.thinking ? { thinking: { type: "adaptive" as const } } : {}),
-          system: GRADER_SYSTEM,
-          messages: [{ role: "user", content: g.buildPrompt(d, spec) }],
+          contents: g.buildPrompt(d, spec),
+          config: {
+            systemInstruction: GRADER_SYSTEM,
+            maxOutputTokens: g.maxTokens,
+            responseMimeType: "application/json",
+            ...(g.thinking ? { thinkingConfig: { thinkingBudget: 8192 } } : {}),
+          },
         });
-        let text = "";
-        stream.on("text", (t: string) => { text += t; });
-        await stream.finalMessage();
-        return text;
+        return response.text ?? "";
       });
       let parsed: unknown = null;
       try { parsed = parseModelJson(raw); } catch { /* judge() handles null */ }
@@ -1337,8 +1330,8 @@ async function main() {
   // stored findings/data (free, reflects current calibration). Writes a
   // NEW timestamped run (history append-only) with meta.gradedFrom.
   if (args[0] === "grade") {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) { console.error("ANTHROPIC_API_KEY not set (.env.local)."); process.exit(1); }
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) { console.error("GEMINI_API_KEY not set (.env.local)."); process.exit(1); }
     let src = args[1];
     if (!src) {
       const runs = listRuns();
@@ -1409,9 +1402,9 @@ async function main() {
     return;
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    console.error("ANTHROPIC_API_KEY not set (.env.local).");
+    console.error("GEMINI_API_KEY not set (.env.local).");
     process.exit(1);
   }
 

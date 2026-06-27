@@ -37,10 +37,10 @@ const INPUTS: NarrativeInputs = {
 function hr() { console.log("─".repeat(60)); }
 
 async function main() {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    console.error("Error: ANTHROPIC_API_KEY environment variable not set.");
-    console.error("Set it in .env.local or export it: export ANTHROPIC_API_KEY=sk-...");
+    console.error("Error: GEMINI_API_KEY environment variable not set.");
+    console.error("Set it in .env.local or export it: export GEMINI_API_KEY=...");
     process.exit(1);
   }
 

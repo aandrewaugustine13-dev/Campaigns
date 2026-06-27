@@ -16,9 +16,9 @@ const DEFAULT_STANDARD =
   "TEKS 5.1(A), 5.1(B) — Historical significance of the Lewis and Clark Expedition, its role in westward expansion, and its interactions with Native peoples";
 
 async function main() {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    console.error("Error: ANTHROPIC_API_KEY not set. Put it in .env.local or export it.");
+    console.error("Error: GEMINI_API_KEY not set. Put it in .env.local or export it.");
     process.exit(1);
   }
 

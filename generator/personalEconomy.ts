@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { parseModelJson } from "./json.js";
 
 // ════════════════════════════════════════════════════════════════
@@ -122,7 +122,7 @@ export function validatePersonalEconomy(data: unknown): PersonalEconomyFinding[]
   return f;
 }
 
-// ── Generation (reuses the same Anthropic plumbing as economy.ts) ─
+// ── Generation (reuses the same GoogleGenAI plumbing as economy.ts) ─
 
 const SYSTEM_PROMPT = `You are a narrative-systems designer for standards-aligned history games. Given a single state standard and the PERSPECTIVE of one ordinary person living through it, you define a SMALL, CONCRETE, PERSONAL economy — the tangible material stakes that person manages day to day. Think "the Okie family with $20 and a failing truck", not abstract political forces.
 
@@ -180,7 +180,7 @@ export async function generatePersonalEconomy(
   apiKey: string,
   topic?: string,
 ): Promise<GeneratePersonalEconomyResult> {
-  const client = new Anthropic({ apiKey });
+  const client = new GoogleGenAI({ apiKey });
   let last!: GeneratePersonalEconomyResult;
   let priorErrors: string[] = [];
 
@@ -190,16 +190,17 @@ export async function generatePersonalEconomy(
   // powerless to fix a frozen input spec. Prefer recover (re-author with the
   // errors fed back) over refuse (just returning the broken spec).
   for (let attempt = 1; attempt <= MAX_ECONOMY_ATTEMPTS; attempt++) {
-    const stream = client.messages.stream({
-      model: "claude-sonnet-4-6",
-      max_tokens: 2000,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: buildUserMessage(standard, perspective, topic, attempt > 1 ? priorErrors : undefined) }],
+    const response = await client.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: buildUserMessage(standard, perspective, topic, attempt > 1 ? priorErrors : undefined),
+      config: {
+        systemInstruction: SYSTEM_PROMPT,
+        maxOutputTokens: 2000,
+        responseMimeType: "application/json",
+      },
     });
 
-    let rawText = "";
-    stream.on("text", (t) => { rawText += t; });
-    await stream.finalMessage();
+    const rawText = response.text ?? "";
 
     const data = parseModelJson<PersonalEconomy>(rawText);
     const findings = validatePersonalEconomy(data);

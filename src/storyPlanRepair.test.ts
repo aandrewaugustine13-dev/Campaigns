@@ -1,5 +1,5 @@
 // Proves the generateStoryPlan REPAIR loop by EXERCISE (not by analogy): with a
-// mocked Anthropic client we control the model's output per attempt and assert
+// mocked Gemini client we control the model's output per attempt and assert
 // the loop actually retries with feedback and recovers — answering the question
 // the UI tests can't: "does a stake-0 plan get repaired, or burn attempts and
 // fall through?" The real parseModelJson + validateStoryPlan run unmocked.
@@ -9,21 +9,22 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 // Shared, hoisted state the mock reads (vi.mock is hoisted above imports).
 const h = vi.hoisted(() => ({ userMessages: [] as string[], responses: [] as string[] }));
 
-vi.mock("@anthropic-ai/sdk", () => ({
-  default: class {
-    messages = {
-      stream: (args: { messages: { content: string }[] }) => {
+vi.mock("@google/genai", () => ({
+  GoogleGenAI: class {
+    models = {
+      generateContent: async (args: { contents: string }) => {
         // Record the user message for this attempt, then emit the scripted
         // response for this attempt index (last response reused if we run past).
         const idx = h.userMessages.length;
-        h.userMessages.push(args.messages[0].content);
+        h.userMessages.push(args.contents);
         const text = h.responses[idx] ?? h.responses[h.responses.length - 1] ?? "{}";
-        return {
-          on(event: string, cb: (t: string) => void) { if (event === "text") cb(text); return this; },
-          finalMessage: async () => ({}),
-        };
+        return { text };
       },
     };
+  },
+  Type: {
+    TYPE_UNSPECIFIED: "TYPE_UNSPECIFIED", STRING: "STRING", NUMBER: "NUMBER",
+    INTEGER: "INTEGER", BOOLEAN: "BOOLEAN", ARRAY: "ARRAY", OBJECT: "OBJECT", NULL: "NULL",
   },
 }));
 

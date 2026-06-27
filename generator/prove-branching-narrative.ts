@@ -20,7 +20,7 @@ import { config as loadEnv } from "dotenv";
 import { writeFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { parseModelJson } from "./json.js";
 import { validateStory, passageMap, type BranchingStory } from "./branchingStory.js";
 import { SYSTEM_PROMPT } from "./branchingStoryGen.js";
@@ -29,7 +29,7 @@ const __root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 loadEnv({ path: resolve(__root, ".env.local") });
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const MODEL = "claude-opus-4-8"; // the most capable writer — prove the ceiling
+const MODEL = "gemini-3.5-flash"; // the most capable writer — prove the ceiling
 
 
 interface TopicSpec { key: string; label: string; brief: string }
@@ -81,24 +81,25 @@ function wrap(s: string, w: number): string[] {
 }
 
 async function main() {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) { console.error("Set ANTHROPIC_API_KEY in .env.local"); process.exit(1); }
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) { console.error("Set GEMINI_API_KEY in .env.local"); process.exit(1); }
 
   const key = (process.argv[2] || "1812").toLowerCase();
   const topic = TOPICS[key];
   if (!topic) { console.error(`Unknown topic "${key}". Choose: ${Object.keys(TOPICS).join(", ")}`); process.exit(1); }
 
   console.log(`Generating ONE branching narrative — ${topic.label} — with ${MODEL} …\n`);
-  const client = new Anthropic({ apiKey, timeout: 10 * 60_000, maxRetries: 1 });
-  const stream = client.messages.stream({
+  const client = new GoogleGenAI({ apiKey });
+  const response = await client.models.generateContent({
     model: MODEL,
-    max_tokens: 16000,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: `${topic.brief}\n\nWrite the complete branching story now, beginning at "start" with the character's name and home and the moment the history reaches them. Simple words, short sentences, real feeling, real choices that change what happens next, exactly two earned endings. Output ONLY the JSON object conforming to BranchingStory.` }],
+    contents: `${topic.brief}\n\nWrite the complete branching story now, beginning at "start" with the character's name and home and the moment the history reaches them. Simple words, short sentences, real feeling, real choices that change what happens next, exactly two earned endings. Output ONLY the JSON object conforming to BranchingStory.`,
+    config: {
+      systemInstruction: SYSTEM_PROMPT,
+      maxOutputTokens: 16000,
+      responseMimeType: "application/json",
+    },
   });
-  let raw = "";
-  stream.on("text", (t) => { raw += t; });
-  await stream.finalMessage();
+  const raw = response.text ?? "";
 
   const story = parseModelJson<BranchingStory>(raw);
   const outPath = resolve(__dirname, `branching-narrative-${topic.key}.json`);
