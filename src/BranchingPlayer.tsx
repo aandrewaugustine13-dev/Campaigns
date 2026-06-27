@@ -21,6 +21,17 @@ import {
 } from "../generator/branchingStory";
 import { isThemeId, playerEraForTheme, type ThemeId } from "./themes";
 
+/** Per-theme marker glyphs for MCQ options and choice buttons.
+ *  imperial-chinese-scroll → Chinese numerals; islamic-golden-age → ۞;
+ *  others → standard A/B/C letters. */
+const CHINESE_NUMERALS = ['一', '二', '三', '四', '五', '六', '七', '八'];
+const CHINESE_SEAL_CHARS = ['印', '章', '璽', '鑑', '信', '令', '書', '記'];
+function themeMarker(era: ThemeId, index: number): string {
+  if (era === 'imperial-chinese-scroll') return CHINESE_NUMERALS[index] ?? String(index + 1);
+  if (era === 'islamic-golden-age') return '۞';
+  return String.fromCharCode(65 + index); // A, B, C, D…
+}
+
 interface BranchingPlayerProps {
   story: BranchingStory;
   /** Fired once when an ending passage is reached, with the recorded path. */
@@ -462,7 +473,14 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
       data-era={playerEra}
       className="branching-player min-h-screen bg-[var(--player-bg)] bg-[radial-gradient(at_50%_15%,var(--player-bg-radial)_0%,transparent_55%)] text-[var(--player-text)] font-[var(--player-font-serif)] flex items-center justify-center p-4 sm:p-6"
     >
-      <div data-slot="passage" className="max-w-xl w-full space-y-4 sm:space-y-5 px-1">
+      <div data-slot="passage" data-theme={era} className="max-w-xl w-full space-y-4 sm:space-y-5 px-1">
+        {/* Kicker eyebrow — passage type label styled by the period theme */}
+        {(hasFigureQuestion || hasChoices || ended) && (
+          <div data-slot="kicker">
+            {hasFigureQuestion ? 'Figure Encounter' : ended ? 'Ending' : 'Decision Point'}
+          </div>
+        )}
+
         {/* Story title — rendered as the period masthead (themes.css styles the
             story-title slot per era). Islamic wraps it in an ʿunwan panel; WWI
             adds the violet field-censor stamp. */}
@@ -612,21 +630,27 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
 
         {/* In-story question from historical figure (sage-style trivia, when present on the passage) */}
         {current.question && (
-          <div data-slot="figure-encounter" className="border-2 border-[var(--player-figure-border)] bg-[var(--player-figure-bg)] rounded-[var(--player-card-radius)] p-4 sm:p-5 transition-all duration-300 ease-out player-gentle-reveal">
+          <div
+            data-slot="figure-encounter"
+            className="border-2 border-[var(--player-figure-border)] bg-[var(--player-figure-bg)] rounded-[var(--player-card-radius)] p-4 sm:p-5 transition-all duration-300 ease-out player-gentle-reveal"
+            style={era === 'imperial-chinese-scroll' ? { '--seal-glyph': `"${CHINESE_SEAL_CHARS[currentStep % CHINESE_SEAL_CHARS.length]}"` } as React.CSSProperties : undefined}
+          >
             <div className="flex items-center gap-2 mb-2">
-              <span className="uppercase text-xs tracking-[2px] text-[var(--player-figure-accent)] font-medium">Historical Figure Encounter</span>
+              <span data-slot="figure-role" className="uppercase text-xs tracking-[2px] text-[var(--player-figure-accent)] font-medium">Historical Figure Encounter</span>
             </div>
-            <p className="font-medium text-[var(--player-figure-accent-2)] mb-1">A historical figure asks:</p>
+            <p data-slot="figure-name" className="font-medium text-[var(--player-figure-accent-2)] mb-1">A historical figure asks:</p>
             <p className="mt-1 text-base sm:text-lg font-medium text-[var(--player-text-prose)] leading-[1.65]">“{current.question.question}”</p>
             {answeredQuestion === null ? (
-              <div className="mt-4 space-y-3">
+              <div data-slot="mcq" className="mt-4 space-y-3">
                 {current.question.choices.map((c: string, i: number) => (
                   <button
                     key={i}
+                    data-slot="mcq-option"
                     onClick={() => setAnsweredQuestion(i)}
-                    className="block w-full text-left px-4 py-3.5 min-h-[44px] flex items-center rounded-xl border border-[var(--player-btn-border)] bg-[var(--player-btn-bg)] hover:bg-[var(--player-btn-bg-hover)] hover:border-[var(--player-btn-border-hover)] hover:-translate-y-px active:scale-[0.985] transition-all duration-150 ease-out text-[var(--player-btn-text-muted)] text-[15px] sm:text-base font-medium touch-manipulation"
+                    className="block w-full text-left px-4 py-3.5 min-h-[44px] flex items-center gap-3 rounded-xl border border-[var(--player-btn-border)] bg-[var(--player-btn-bg)] hover:bg-[var(--player-btn-bg-hover)] hover:border-[var(--player-btn-border-hover)] hover:-translate-y-px active:scale-[0.985] transition-all duration-150 ease-out text-[var(--player-btn-text-muted)] text-[15px] sm:text-base font-medium touch-manipulation"
                   >
-                    {c}
+                    <span className="marker font-semibold">{themeMarker(era, i)}</span>
+                    <span>{c}</span>
                   </button>
                 ))}
               </div>
@@ -696,6 +720,7 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
                                 <button
                                   key={ci}
                                   type="button"
+                                  data-slot="mcq-option"
                                   onClick={() => setQuizAnswers(prev => ({...prev, [qi]: ci}))}
                                   className={`w-full text-left px-4 py-3.5 min-h-[44px] flex items-center rounded-xl border text-sm sm:text-[15px] transition-all duration-150 ease-out flex items-center gap-3 font-medium touch-manipulation ${
                                     isSel 
@@ -703,8 +728,8 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
                                       : 'border-[var(--player-quiz-option-border)] bg-[var(--player-quiz-option-bg)] hover:bg-[var(--player-btn-bg-hover)] hover:-translate-y-px text-[var(--player-btn-text-muted)] hover:border-[var(--player-btn-border-hover)]'
                                   }`}
                                 >
-                                  <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full border text-xs flex-shrink-0 ${isSel ? 'border-[var(--player-quiz-option-border-selected)] bg-[var(--player-btn-accent)] text-[var(--player-bg-card)]' : 'border-[var(--player-btn-border)] text-[var(--player-btn-text-muted)]'}`}>
-                                    {String.fromCharCode(65 + ci)}
+                                  <span className={`marker inline-flex items-center justify-center w-5 h-5 rounded-full border text-xs flex-shrink-0 ${isSel ? 'border-[var(--player-quiz-option-border-selected)] bg-[var(--player-btn-accent)] text-[var(--player-bg-card)]' : 'border-[var(--player-btn-border)] text-[var(--player-btn-text-muted)]'}`}>
+                                    {themeMarker(era, ci)}
                                   </span>
                                   <span>{c}</span>
                                 </button>
@@ -856,8 +881,11 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
                         : 'border-[var(--player-btn-border)] bg-[var(--player-btn-bg)] hover:bg-[var(--player-btn-bg-hover)] hover:-translate-y-px active:scale-[0.985] active:bg-[var(--player-btn-bg-hover)]'
                     } ${endingHint ? 'pr-3' : ''}`}
                 >
-                  <span className="flex items-center justify-between">
-                    <span>{c.text}</span>
+                  <span className="flex items-center justify-between w-full">
+                    <span className="flex items-center gap-2">
+                      <span className="marker font-semibold opacity-85">{themeMarker(era, i)}</span>
+                      <span>{c.text}</span>
+                    </span>
                     <span className="flex items-center gap-1 ml-2">
                       {isSelected && (
                         <span className="text-[var(--player-btn-accent)] text-sm transition-all duration-150 ease-out">→</span>

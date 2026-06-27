@@ -15,6 +15,7 @@ export type ThemeId =
   | 'civil-rights-midcentury'
   | 'imperial-chinese-scroll'
   | 'islamic-golden-age'
+  | 'depression-fsa'
   | 'default';
 
 export const THEME_IDS: ThemeId[] = [
@@ -28,6 +29,7 @@ export const THEME_IDS: ThemeId[] = [
   'civil-rights-midcentury',
   'imperial-chinese-scroll',
   'islamic-golden-age',
+  'depression-fsa',
   'default',
 ];
 
@@ -53,6 +55,7 @@ export type PlayerEra =
   | 'civil-rights'
   | 'classical'
   | 'industrial'
+  | 'dustbowl'
   | 'default';
 
 const THEME_TO_PLAYER_ERA: Record<ThemeId, PlayerEra> = {
@@ -66,6 +69,7 @@ const THEME_TO_PLAYER_ERA: Record<ThemeId, PlayerEra> = {
   'expedition-journal': 'default',
   'imperial-chinese-scroll': 'default',
   'islamic-golden-age': 'default',
+  'depression-fsa': 'dustbowl',
   default: 'default',
 };
 
@@ -86,6 +90,7 @@ export const THEME_USE_WHEN: Record<ThemeId, string> = {
   'civil-rights-midcentury': 'the US civil rights era, ~1955–1968',
   'imperial-chinese-scroll': 'Tang or Song dynasty China / the Silk Road',
   'islamic-golden-age': 'the Abbasid Islamic Golden Age (Baghdad, House of Wisdom, Crusades from the Muslim side)',
+  'depression-fsa': '1930s Dust Bowl, the Great Depression, FSA documentary America',
   default: 'anything with no strong era/region match — a correct, non-failure answer',
 };
 
@@ -107,6 +112,7 @@ const RULES: Rule[] = [
   { id: 'civil-rights-midcentury', kw: /\b(civil rights|segregation|jim crow|montgomery|selma|march on washington|mlk|martin luther king|rosa parks|freedom rider|195[5-9]|196[0-8]|desegregat)\b/i },
   { id: 'imperial-chinese-scroll', kw: /\b(tang dynasty|song dynasty|silk road|imperial china|dynast|confuci|great wall|forbidden|literati|6\d\d|7\d\d|8\d\d|9\d\d|10\d\d|11\d\d|12\d\d)\b/i },
   { id: 'islamic-golden-age', kw: /\b(abbasid|golden age of islam|house of wisdom|baghdad|caliphate|al-?khwarizmi|avicenna|ibn |75\d|8\d\d|9\d\d|10\d\d|11\d\d|125\d)\b/i },
+  { id: 'depression-fsa', kw: /\b(dust bowl|dustbowl|great depression|okies?|fsa|farm security|wpa|new deal|grapes of wrath|sharecropp|193\d)\b/i },
 ];
 
 export function detectEraForTopic(topic: string, teks?: string): ThemeId {

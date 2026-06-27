@@ -1,4 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Cinzel:wght@400;600;700&family=Special+Elite&family=Rye&family=Cormorant+Garamond:wght@400;500;600;700&family=MedievalSharp&family=Abril+Fatface&family=Anton&family=Oswald:wght@400;500;600;700&display=swap');
+/* Period theme slot-rendering fonts (DEV: hot-linked; production: self-host woff2) */
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital@0;1&family=Archivo:wght@400;600&family=EB+Garamond:ital@0;1&family=IM+Fell+English:ital@0;1&family=Noto+Serif&family=Noto+Serif+TC:wght@500;700;900&family=Pinyon+Script&family=Reem+Kufi:wght@500;700&family=Spectral:ital,wght@0,400;0,600;0,700;1,400&family=Zilla+Slab:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap');
 
 /* ═══════════════════════════════════════════════════════════════
  *   Campaign theme system — Phase 4 (BOLD per-era theming)
@@ -435,6 +438,28 @@
   --dialogue-accent-text: #f1ead9;
   --dialogue-attribution-text: #4a4338;
   --dialogue-attribution-link-hover: #b03524;
+}
+
+/* ── DEPRESSION FSA — 1930s Dust Bowl / FSA documentary / WPA ─────
+ *   Sun-bleached dust paper, weathered ink, faded WPA brick-red
+ *   action, faded work-blue secondary, Oswald condensed display.
+ *   Palette lifted verbatim from the Dust Bowl Claude Design mockup. */
+[data-theme="depression-fsa"] {
+  --bg-page: #d6c8a8;
+  --bg-card: #c6b58f;
+  --bg-card-inner: rgba(232, 223, 199, 0.88);
+  --bg-button-action: #8a3b22;
+  --bg-button-action-hover: #a14a2b;
+  --text-button-action: #f3e9d2;
+  --text-primary: #2c2418;
+  --text-muted: #6b5d44;
+  --text-accent: #8a3b22;
+  --text-accent-2: #3e5266;
+  --border-card: #9a8862;
+  --border-divider: #b8a884;
+  --font-display: "Oswald", "Archivo Narrow", Georgia, sans-serif;
+  --font-body: Georgia, "Times New Roman", serif;
+  --parallax-fallback: linear-gradient(180deg, #d9cca7 0%, #cdbb8f 40%, #b39c6c 72%, #8f7a4f 100%);
 }
 
 /* ───────────────────────────────────────────────────────────────
@@ -1099,6 +1124,43 @@ a.theme-dialogue-attribution-link:hover {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+ *   6b. DUST BOWL — 1930s FSA documentary (pale dust paper)
+ *   Sun-bleached paper ground, faded WPA brick-red + work-blue
+ *   accents, condensed Oswald headers. The Great Depression.
+ *   ═══════════════════════════════════════════════════════════════ */
+.branching-player[data-era="dustbowl"] {
+  --player-color-bg: #d6c8a8;
+  --player-color-bg-alt: #cabb96;
+  --player-color-bg-card: #c6b58f;
+  --player-color-bg-card-muted: #bda884;
+  --player-color-bg-card-figure: #c2b48d;
+  --player-color-bg-card-decision: #c8b88f;
+  --player-color-bg-card-inner: #e3dac6;
+
+  --player-color-text: #2c2418;
+  --player-color-text-prose: #211b11;
+  --player-color-text-muted: #6b5c40;
+  --player-color-accent: #8a3b22;   /* faded WPA brick-red */
+  --player-color-accent-2: #3e5266; /* faded work-blue */
+
+  --player-border: #9a8862;
+  --player-border-muted: #b8a884;
+  --player-border-accent: #8a3b22;
+
+  --player-font-serif: "Roboto Slab", Georgia, serif;
+  --player-font-display: "Oswald", "Archivo Narrow", Georgia, sans-serif;
+  --player-display-case: uppercase;
+  --player-display-tracking: 0.04em;
+  --player-border-radius: 0.25rem;
+
+  --player-btn-bg: #e3dac6;
+  --player-btn-bg-hover: #d2c4a4;
+  --player-btn-border: #9a8862;
+  --player-progress-track: #b6a47e;
+  --player-progress-fill: #8a3b22;
+}
+
+/* ═══════════════════════════════════════════════════════════════
  *   7. WORLD WAR I — FIELD POST (the original fully-built era)
  *   Light khaki field paper + mud foxing, poster-condensed Oswald
  *   masthead, the violet PASSED-BY-CENSOR field stamp.
@@ -1270,7 +1332,8 @@ a.theme-dialogue-attribution-link:hover {
 .branching-player[data-era="civil-rights"],
 .branching-player[data-era="classical"],
 .branching-player[data-era="industrial"],
-.branching-player[data-era="ww1-fieldpost"] {
+.branching-player[data-era="ww1-fieldpost"],
+.branching-player[data-era="dustbowl"] {
   --player-success: #2f6b3a;
   --player-success-border: rgba(47,107,58,.5);
   --player-success-bg: rgba(47,107,58,.10);
@@ -1281,3 +1344,316 @@ a.theme-dialogue-attribution-link:hover {
   --player-neutral-border: rgba(95,90,78,.5);
   --player-neutral-bg: rgba(95,90,78,.09);
 }
+
+/* ============================================================================
+   PERIOD THEME SLOT RENDERING ENGINE
+   ============================================================================
+   Merged from theme-system/themes.css. The stylesheet renders every theme from
+   one data-theme attribute on the passage container. The SLOT MAP hooks:
+
+     data-slot="passage"          the container data-theme is set on
+     data-slot="kicker"           story eyebrow / chapter line
+     data-slot="story-title"      the title
+     data-slot="masthead"         (broadsheet only) wraps title for double-rules
+     data-slot="censor-stamp"     (ww1 only) the violet stamp element
+     data-slot="unwan"            (islamic only) wraps the header panel
+     data-slot="tracker"          Passage X/Y · Figures · Key moments strip
+     data-slot="figure-encounter" the figure card
+     data-slot="mcq"              MCQ / debrief block
+     data-slot="mcq-option"       one option row (marker auto via .marker)
+     data-slot="choice"           one choice button
+     data-slot="ending"           ending wrapper; also set data-state
+     data-slot="tts"              the Read control
+   ============================================================================ */
+
+/* --- grain layer variable ------------------------------------------------- */
+:root {
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* --- shared passage engine (themes set variables, not new code) ----------- */
+[data-slot="passage"][data-theme] {
+  position: relative;
+  background-color: var(--paper-bg);
+  color: var(--body-color);
+  font-family: var(--body-font);
+  line-height: 1.72;
+}
+
+/* paper texture: grain + optional theme-specific overlay */
+[data-slot="passage"][data-theme]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: var(--texture-extra, none), var(--grain);
+  background-size: var(--texture-size, auto), 220px 220px;
+  opacity: var(--grain-op, 0.12);
+  mix-blend-mode: var(--grain-blend, multiply);
+  border-radius: inherit;
+}
+[data-slot="passage"][data-theme] > * { position: relative; z-index: 1; }
+
+/* --- chrome slots --------------------------------------------------------- */
+[data-slot="passage"][data-theme] [data-slot="kicker"] {
+  font-family: var(--chrome-font);
+  color: var(--accent);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+[data-slot="passage"][data-theme] [data-slot="story-title"] {
+  font-family: var(--chrome-font);
+  color: var(--chrome-color);
+  font-weight: 700;
+  line-height: 1.02;
+}
+[data-slot="passage"][data-theme] [data-slot="tracker"] {
+  font-family: var(--body-font);
+  color: var(--chrome-color);
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+[data-slot="passage"][data-theme] [data-slot="tts"] {
+  font-family: var(--chrome-font);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* --- body slot ------------------------------------------------------------ */
+[data-slot="passage"][data-theme] [data-slot="body"] {
+  font-family: var(--body-font);
+  color: var(--body-color);
+}
+
+/* --- figure card ---------------------------------------------------------- */
+[data-slot="passage"][data-theme] [data-slot="figure-encounter"] {
+  border-color: var(--chrome-color);
+  border-top-width: 3px;
+  background: var(--card-tint, transparent);
+}
+[data-slot="passage"][data-theme] [data-slot="figure-encounter"] [data-slot="figure-role"] { font-family: var(--body-font); opacity: 0.65; }
+[data-slot="passage"][data-theme] [data-slot="figure-encounter"] [data-slot="figure-name"] { font-family: var(--chrome-font); color: var(--chrome-color); }
+
+/* per-theme seal — set content via --seal-glyph */
+[data-slot="passage"][data-theme] [data-slot="figure-encounter"]::after {
+  content: var(--seal-glyph, none);
+  position: absolute;
+  top: -0.7em;
+  right: 0.9em;
+  width: 2.2em;
+  height: 2.2em;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--chrome-font);
+  transform: rotate(-6deg);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.4);
+}
+
+/* --- MCQ / debrief -------------------------------------------------------- */
+[data-slot="passage"][data-theme] [data-slot="mcq"] {
+  border-color: var(--chrome-color);
+}
+[data-slot="passage"][data-theme] [data-slot="mcq-option"] { font-family: var(--body-font); color: var(--body-color); }
+[data-slot="passage"][data-theme] [data-slot="mcq-option"] > .marker { font-family: var(--chrome-font); font-weight: 700; color: var(--accent); }
+
+/* --- choices -------------------------------------------------------------- */
+[data-slot="passage"][data-theme] [data-slot="choice"] {
+  font-family: var(--body-font);
+  color: var(--body-color);
+  background: var(--choice-bg, rgba(0,0,0,0.025));
+  border-color: var(--chrome-color);
+}
+[data-slot="passage"][data-theme] [data-slot="choice"] .marker { font-family: var(--chrome-font); font-weight: 700; opacity: 0.85; }
+[data-slot="passage"][data-theme] [data-slot="choice"]:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* --- ending states -------------------------------------------------------- */
+[data-slot="passage"][data-theme] [data-slot="ending"] {
+  border-top: 3px double var(--ending-color, var(--accent));
+}
+[data-slot="passage"][data-theme] [data-slot="ending"] .ending-label {
+  font-family: var(--chrome-font);
+  color: var(--ending-color, var(--accent));
+}
+[data-slot="passage"][data-theme] [data-slot="ending"][data-state="broken"]       { --ending-color: #7a2f2a; }
+[data-slot="passage"][data-theme] [data-slot="ending"][data-state="indifferent"]  { --ending-color: #6b675f; }
+[data-slot="passage"][data-theme] [data-slot="ending"][data-state="triumphant"]   { --ending-color: var(--accent); }
+
+/* ============================================================================
+   PERIOD THEME TOKENS + ERA-LOCKS
+   ============================================================================ */
+
+/* 1. broadsheet-sepia — era-lock: NEWSPAPER (masthead + letterpress + drop cap) */
+[data-slot="passage"][data-theme="broadsheet-sepia"] {
+  --paper-bg: #efe6d2; --grain-op: 0.13;
+  --body-font: 'IM Fell English', Georgia, serif; --body-color: #2b2118;
+  --chrome-font: 'Playfair Display', Georgia, serif; --chrome-color: #3a2c1a; --accent: #7a2e1f;
+  --choice-bg: rgba(122,46,31,0.05); --card-tint: rgba(122,46,31,0.04);
+}
+[data-slot="passage"][data-theme="broadsheet-sepia"] [data-slot="masthead"] {
+  text-align: center;
+  border-top: 3px double var(--chrome-color);
+  border-bottom: 3px double var(--chrome-color);
+  padding: 0.4em 0 0.3em;
+}
+[data-slot="passage"][data-theme="broadsheet-sepia"] [data-slot="story-title"] { font-weight: 900; font-size: 3.4rem; letter-spacing: 0.01em; }
+/* drop cap — first letter of the first body paragraph */
+[data-slot="passage"][data-theme="broadsheet-sepia"] [data-slot="body"] > p:first-of-type::first-letter {
+  float: left; font-family: var(--chrome-font); font-weight: 900;
+  font-size: 4.4rem; line-height: 0.66; padding: 0.12em 0.18em 0 0; color: var(--accent);
+}
+
+/* 2. ww1-fieldpost — era-lock: VIOLET "PASSED BY CENSOR" + poster-condensed + khaki */
+[data-slot="passage"][data-theme="ww1-fieldpost"] {
+  --paper-bg: #cbc0a1; --grain-op: 0.22; --grain-blend: multiply;
+  --body-font: 'Special Elite', 'Courier New', monospace; --body-color: #221f15;
+  --chrome-font: 'Oswald', 'Arial Narrow', sans-serif; --chrome-color: #2c281d; --accent: #5b3a8c;
+  --choice-bg: rgba(44,40,29,0.05); --card-tint: rgba(91,58,140,0.05);
+  --texture-extra: radial-gradient(circle at 14% 80%, rgba(70,58,30,0.16) 0, transparent 30%),
+                   radial-gradient(circle at 88% 20%, rgba(60,50,25,0.14) 0, transparent 24%);
+}
+[data-slot="passage"][data-theme="ww1-fieldpost"] [data-slot="story-title"] {
+  font-family: var(--chrome-font); font-weight: 700; text-transform: uppercase;
+  font-size: 3rem; letter-spacing: 0.02em; line-height: 0.92;
+}
+[data-slot="passage"][data-theme="ww1-fieldpost"] [data-slot="kicker"] { letter-spacing: 0.28em; }
+/* the differentiator from Cold War: a VIOLET field-censor stamp */
+[data-slot="passage"][data-theme="ww1-fieldpost"] [data-slot="censor-stamp"] {
+  display: inline-block;
+  transform: rotate(-9deg);
+  border: 3px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--chrome-font); font-weight: 700; text-transform: uppercase;
+  font-size: 0.82rem; letter-spacing: 0.12em; line-height: 1.05;
+  padding: 0.45em 0.7em; text-align: center;
+  opacity: 0.8; mix-blend-mode: multiply;
+}
+
+/* 3. declassified-typewriter — era-lock: TYPEWRITER face */
+[data-slot="passage"][data-theme="declassified-typewriter"] {
+  --paper-bg: #e8e4d8; --grain-op: 0.10;
+  --body-font: 'Courier New', Courier, monospace; --body-color: #232019;
+  --chrome-font: 'Courier New', Courier, monospace; --chrome-color: #232019; --accent: #1a1a1a;
+  --choice-bg: rgba(0,0,0,0.03); --card-tint: rgba(0,0,0,0.03);
+}
+[data-slot="passage"][data-theme="declassified-typewriter"] [data-slot="story-title"] {
+  text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; font-size: 1.7rem;
+}
+
+/* 4. parchment-medieval — era-lock: ILLUMINATED VERSAL + rubrication */
+[data-slot="passage"][data-theme="parchment-medieval"] {
+  --paper-bg: #e7d7b0; --grain-op: 0.12;
+  --body-font: 'EB Garamond', Georgia, serif; --body-color: #2c1d0e;
+  --chrome-font: 'UnifrakturCook', 'UnifrakturMaguntia', serif; --chrome-color: #3a2410; --accent: #8c1c13;
+  --choice-bg: rgba(140,28,19,0.04); --card-tint: rgba(140,28,19,0.04);
+  --seal-glyph: "\00B6"; /* rubricated paraph ¶ */
+  --texture-extra: radial-gradient(circle at 60% 12%, rgba(140,28,19,0.05) 0, transparent 18%);
+}
+[data-slot="passage"][data-theme="parchment-medieval"] [data-slot="story-title"] { font-size: 2.9rem; }
+/* illuminated initial */
+[data-slot="passage"][data-theme="parchment-medieval"] [data-slot="body"] > p:first-of-type::first-letter {
+  float: left; font-family: var(--chrome-font); font-size: 2.6rem; line-height: 1;
+  margin: 0.15em 0.35em 0.05em 0; padding: 0.18em 0.28em; color: var(--accent);
+  background: #cda437; box-shadow: 0 0 0 2px #cda437, inset 0 0 0 2px #8c1c13;
+}
+
+/* 5. classical-marble — era-lock: INCISED Trajan capitals */
+[data-slot="passage"][data-theme="classical-marble"] {
+  --paper-bg: #dcd6cc; --grain-op: 0.06;
+  --body-font: 'EB Garamond', Georgia, serif; --body-color: #2a2824;
+  --chrome-font: 'Cinzel', Georgia, serif; --chrome-color: #33312b; --accent: #6e5a2a;
+  --choice-bg: rgba(110,90,42,0.05); --card-tint: rgba(110,90,42,0.04);
+  --seal-glyph: "\2609"; /* ☉ wax-seal device */
+  --texture-extra: linear-gradient(115deg, rgba(0,0,0,0.05) 0, transparent 18%, rgba(255,255,255,0.5) 30%, transparent 46%, rgba(0,0,0,0.045) 62%, transparent 78%);
+  --grain-blend: normal;
+}
+[data-slot="passage"][data-theme="classical-marble"] [data-slot="story-title"] {
+  text-transform: uppercase; letter-spacing: 0.16em; font-weight: 700; font-size: 2.6rem;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.65), 0 -1px 1px rgba(0,0,0,0.4); /* incised */
+}
+
+/* 6. expedition-journal — era-lock: RULED notebook + pen ink */
+[data-slot="passage"][data-theme="expedition-journal"] {
+  --paper-bg: #e9e4d6; --grain-op: 0.07;
+  --body-font: 'Spectral', Georgia, serif; --body-color: #22303a;
+  --chrome-font: 'Pinyon Script', cursive; --chrome-color: #283a45; --accent: #8a5a2b;
+  --choice-bg: rgba(40,58,69,0.04); --card-tint: rgba(40,58,69,0.04);
+  --texture-extra: repeating-linear-gradient(transparent 0 27px, rgba(40,58,69,0.16) 27px 28px);
+  --grain-blend: normal;
+}
+[data-slot="passage"][data-theme="expedition-journal"] [data-slot="story-title"] { font-size: 3rem; font-weight: 400; }
+
+/* 7. frontier-leather — era-lock: WOOD-TYPE broadside + tooled leather */
+[data-slot="passage"][data-theme="frontier-leather"] {
+  --paper-bg: #cdbb98; --grain-op: 0.17;
+  --body-font: 'Zilla Slab', 'Rockwell', serif; --body-color: #2c1d12;
+  --chrome-font: 'Rye', 'Rockwell', serif; --chrome-color: #3a2415; --accent: #7a2a1c;
+  --choice-bg: rgba(58,36,21,0.05); --card-tint: rgba(58,36,21,0.05);
+  --seal-glyph: "\2605"; /* ★ badge / brand */
+  --texture-extra: repeating-linear-gradient(92deg, rgba(80,50,25,0.05) 0 3px, transparent 3px 7px);
+  --grain-blend: normal;
+}
+[data-slot="passage"][data-theme="frontier-leather"] [data-slot="story-title"] { text-transform: uppercase; font-size: 2.9rem; }
+[data-slot="passage"][data-theme="frontier-leather"] [data-slot="masthead"] { text-align: center; border: 3px solid var(--chrome-color); padding: 0.5em 0.7em; }
+
+/* 8. civil-rights-midcentury — era-lock: BOLD news gothic placard + halftone */
+[data-slot="passage"][data-theme="civil-rights-midcentury"] {
+  --paper-bg: #e9e7e0; --grain-op: 0.07;
+  --body-font: 'Archivo', system-ui, sans-serif; --body-color: #1c1b19;
+  --chrome-font: 'Anton', Impact, sans-serif; --chrome-color: #1c1b19; --accent: #c0301c;
+  --choice-bg: rgba(0,0,0,0.03); --card-tint: rgba(192,48,28,0.05);
+  --texture-extra: radial-gradient(circle, rgba(0,0,0,0.10) 0.6px, transparent 1.4px);
+  --texture-size: 7px 7px; --grain-blend: normal;
+}
+[data-slot="passage"][data-theme="civil-rights-midcentury"] [data-slot="story-title"] {
+  text-transform: uppercase; font-size: 3.2rem; line-height: 0.9; letter-spacing: -0.01em;
+}
+/* broadcast lower-third bar for the kicker */
+[data-slot="passage"][data-theme="civil-rights-midcentury"] [data-slot="kicker"] {
+  display: inline-block; background: var(--accent); color: #fff;
+  padding: 0.3em 0.7em; letter-spacing: 0.12em;
+}
+
+/* 9. imperial-chinese-scroll — era-lock: VERTICAL title + vermilion seals */
+[data-slot="passage"][data-theme="imperial-chinese-scroll"] {
+  --paper-bg: #efe7d6; --grain-op: 0.06;
+  --body-font: 'Noto Serif', Georgia, serif; --body-color: #241f1a;
+  --chrome-font: 'Noto Serif TC', serif; --chrome-color: #2b2620; --accent: #b3331f;
+  --choice-bg: rgba(179,51,31,0.04); --card-tint: rgba(179,51,31,0.04);
+  --seal-glyph: "\5370"; /* 印 vermilion seal — varied per passage in markup */
+  --texture-extra: radial-gradient(120% 90% at -10% 105%, rgba(40,40,40,0.14) 0, transparent 42%);
+  --grain-blend: normal;
+}
+[data-slot="passage"][data-theme="imperial-chinese-scroll"] [data-slot="story-title"] {
+  writing-mode: vertical-rl; font-weight: 900; letter-spacing: 0.18em; font-size: 2.1rem;
+}
+
+/* 10. islamic-golden-age — era-lock: GEOMETRIC illumination + Kufic + shamsa */
+[data-slot="passage"][data-theme="islamic-golden-age"] {
+  --paper-bg: #f1e9d6; --grain-op: 0.05;
+  --body-font: 'Amiri', Georgia, serif; --body-color: #241f18;
+  --chrome-font: 'Reem Kufi', sans-serif; --chrome-color: #26456e; --accent: #9a7b1f;
+  --choice-bg: rgba(154,123,31,0.05); --card-tint: rgba(154,123,31,0.05);
+  --seal-glyph: "\06DE"; /* ۞ rosette / shamsa marker */
+}
+[data-slot="passage"][data-theme="islamic-golden-age"] [data-slot="unwan"] {
+  border: 2px solid var(--accent);
+  box-shadow: inset 0 0 0 4px var(--paper-bg), inset 0 0 0 6px var(--accent);
+  padding: 0.9em 1em; text-align: center;
+}
+[data-slot="passage"][data-theme="islamic-golden-age"] [data-slot="story-title"] { color: var(--accent); }
+
+/* default — intentionally era-neutral, the honest fallback */
+[data-slot="passage"][data-theme="default"] {
+  --paper-bg: #f3efe7; --grain-op: 0.05;
+  --body-font: 'Spectral', Georgia, serif; --body-color: #23211d;
+  --chrome-font: 'Spectral', Georgia, serif; --chrome-color: #2a2824; --accent: #6b5d4a;
+  --choice-bg: rgba(0,0,0,0.025); --card-tint: rgba(107,93,74,0.04);
+}
+[data-slot="passage"][data-theme="default"] [data-slot="story-title"] { font-size: 2.4rem; }
