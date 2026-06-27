@@ -1248,3 +1248,36 @@ a.theme-dialogue-attribution-link:hover {
 .branching-player[data-era="classical"] [class*="rounded-2xl"][class*="border"] {
   box-shadow: inset 0 0 0 1px rgba(60,52,34,0.22), var(--player-shadow-sm);
 }
+
+/* ── Theme-driven trust signals (endings · quiz · answer feedback) ──
+   Defaults reproduce the legacy emerald/red/slate on the dark grounds;
+   the light period themes override them so green/red stay AA-legible
+   on parchment, khaki, manila, and newsprint. */
+.branching-player {
+  --player-success: #34d399;
+  --player-success-border: rgba(5,150,105,.55);
+  --player-success-bg: rgba(6,78,59,.20);
+  --player-danger: #f87171;
+  --player-danger-border: rgba(185,28,28,.55);
+  --player-danger-bg: rgba(127,29,29,.20);
+  --player-neutral: #94a3b8;
+  --player-neutral-border: rgba(71,85,105,.55);
+  --player-neutral-bg: rgba(15,23,42,.22);
+}
+.branching-player[data-era="western"],
+.branching-player[data-era="revolutionary"],
+.branching-player[data-era="cold-war"],
+.branching-player[data-era="civil-rights"],
+.branching-player[data-era="classical"],
+.branching-player[data-era="industrial"],
+.branching-player[data-era="ww1-fieldpost"] {
+  --player-success: #2f6b3a;
+  --player-success-border: rgba(47,107,58,.5);
+  --player-success-bg: rgba(47,107,58,.10);
+  --player-danger: #9a3324;
+  --player-danger-border: rgba(154,51,36,.5);
+  --player-danger-bg: rgba(154,51,36,.09);
+  --player-neutral: #5f5a4e;
+  --player-neutral-border: rgba(95,90,78,.5);
+  --player-neutral-bg: rgba(95,90,78,.09);
+}

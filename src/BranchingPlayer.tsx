@@ -433,23 +433,23 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
   const endingVisuals = {
     broken: {
       label: "Broken",
-      color: "text-red-400",
-      border: "border-red-700/60",
-      bg: "bg-red-950/20",
+      color: "text-[var(--player-danger)]",
+      border: "border-[color:var(--player-danger-border)]",
+      bg: "bg-[var(--player-danger-bg)]",
       description: "You survived, but the journey took a heavy toll. Something vital was lost or broken within you."
     },
     indifferent: {
       label: "Indifferent",
-      color: "text-slate-400",
-      border: "border-slate-600/60",
-      bg: "bg-slate-900/20",
+      color: "text-[var(--player-neutral)]",
+      border: "border-[color:var(--player-neutral-border)]",
+      bg: "bg-[var(--player-neutral-bg)]",
       description: "You made it through unscathed in spirit. The events passed over you, leaving little mark."
     },
     triumphant: {
       label: "Triumphant",
-      color: "text-emerald-400",
-      border: "border-emerald-600/60",
-      bg: "bg-emerald-950/20",
+      color: "text-[var(--player-success)]",
+      border: "border-[color:var(--player-success-border)]",
+      bg: "bg-[var(--player-success-bg)]",
       description: "You came through changed for the better. The costs were real, but you hold onto something meaningful."
     }
   };
@@ -633,7 +633,7 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
             ) : (
               <div className="mt-3 text-sm transition-all duration-200 ease-out">
                 <p className="text-[var(--player-text-muted)]">Your answer: <strong className="text-[var(--player-text-prose)]">{current.question.choices[answeredQuestion]}</strong></p>
-                <p className={answeredQuestion === current.question.correctIndex ? "text-emerald-400 font-semibold mt-1" : "text-red-400 font-semibold mt-1"}>
+                <p className={answeredQuestion === current.question.correctIndex ? "text-[var(--player-success)] font-semibold mt-1" : "text-[var(--player-danger)] font-semibold mt-1"}>
                   {answeredQuestion === current.question.correctIndex ? "Correct!" : "Not quite."}
                 </p>
                 <p className="mt-1 text-[var(--player-text-muted)]">{current.question.explanation}</p>
@@ -735,8 +735,8 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
                     <div className="text-center pb-2">
                       <div className="text-[10px] uppercase tracking-[2px] text-[var(--player-text-accent-2)] mb-1">Quiz Complete</div>
                       {quizScore && (
-                        <div className={`inline-flex items-center gap-3 bg-[var(--player-quiz-question-bg)] border border-[var(--player-quiz-border)]/30 rounded-2xl px-6 py-2 transition-all duration-300 ${quizScore.percent >= 90 ? 'player-high-score ring-1 ring-emerald-400/20 border-emerald-400/30' : ''}`}>
-                          <div className={`text-3xl font-semibold tabular-nums ${quizScore.percent >= 90 ? 'text-emerald-400' : 'text-[var(--player-text-accent)]'}`}>{quizScore.percent}%</div>
+                        <div className={`inline-flex items-center gap-3 bg-[var(--player-quiz-question-bg)] border border-[var(--player-quiz-border)]/30 rounded-2xl px-6 py-2 transition-all duration-300 ${quizScore.percent >= 90 ? 'player-high-score ring-1 ring-[color:var(--player-success-border)] border-[color:var(--player-success-border)]' : ''}`}>
+                          <div className={`text-3xl font-semibold tabular-nums ${quizScore.percent >= 90 ? 'text-[var(--player-success)]' : 'text-[var(--player-text-accent)]'}`}>{quizScore.percent}%</div>
                           <div className="text-left text-[10px] leading-tight">
                             <div className="text-[var(--player-text-prose)]">{quizScore.correct} / {quizScore.total} correct</div>
                           </div>
@@ -751,14 +751,14 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
                         <div 
                           key={qi} 
                           className={`rounded-xl border p-4 transition-all duration-200 ease-out ${correct 
-                            ? 'border-emerald-700/50 bg-emerald-900/10' 
-                            : 'border-red-700/50 bg-red-900/10'
+                            ? 'border-[color:var(--player-success-border)] bg-[var(--player-success-bg)]'
+                            : 'border-[color:var(--player-danger-border)] bg-[var(--player-danger-bg)]'
                           }`}
                         >
                           <p className="text-[var(--player-text-prose)] font-medium mb-2"><strong>Q{qi + 1}: </strong>{q.question}</p>
                           
                           <div className="space-y-1 text-[13px]">
-                            <div className={`flex items-start gap-2 ${correct ? 'text-emerald-400' : 'text-red-400'}`}>
+                            <div className={`flex items-start gap-2 ${correct ? 'text-[var(--player-success)]' : 'text-[var(--player-danger)]'}`}>
                               <span className="font-mono mt-0.5">You:</span> 
                               <strong className="text-[var(--player-text-prose)]">{q.choices[userAns]}</strong> 
                               <span>{correct ? "✓" : "✗"}</span>
@@ -803,7 +803,7 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
                   {history.length > 0 && (
                     <div className="text-[10px] text-[var(--player-text-muted)] mt-0.5">Shaped by the choices you made along the way.</div>
                   )}
-                  <p className={quizScore.percent >= 90 ? "text-emerald-400 font-semibold text-lg tracking-tight" : "text-[var(--player-text-muted)] text-base"}>
+                  <p className={quizScore.percent >= 90 ? "text-[var(--player-success)] font-semibold text-lg tracking-tight" : "text-[var(--player-text-muted)] text-base"}>
                     {quizScore.percent >= 90 
                       ? `Excellent work! You scored ${quizScore.percent}%.` 
                       : `You scored ${quizScore.percent}%.`}
