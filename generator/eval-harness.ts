@@ -59,25 +59,26 @@ loadEnv({ path: resolve(__root, ".env.local") });
 
 const EVAL_DIR = resolve(__root, "eval-runs");
 
-// ── Pricing ($ per million tokens). After the Gemini migration the
-// generator and BOTH graders run on gemini-3.5-flash, so the former
-// cheap(haiku)/strong(opus) split collapses to one model+price.
-// NOTE: these per-million rates are placeholders for gemini-3.5-flash —
-// confirm against the current Gemini pricing sheet before trusting the
-// dollar figures in a report.
+// ── Pricing ($ per million tokens). The generator runs on gemini-3.5-flash;
+// the Tier-2 two-tier grader split is preserved post-migration: cheap =
+// gemini-3.5-flash, strong (factual-accuracy only) = gemini-3.1-pro-preview.
+// flash rates are confirmed; pro-preview rates are a PLACEHOLDER — confirm
+// against the current Gemini pricing sheet before trusting the dollar figures.
 const PRICING = {
   model: "gemini-3.5-flash",
-  inputPerM: 0.3,
-  outputPerM: 2.5,
-  cacheWritePerM: 0.3,
-  cacheReadPerM: 0.075,
+  inputPerM: 1.5,
+  outputPerM: 9.0,
+  cacheWritePerM: 1.5,
+  cacheReadPerM: 0.375,
 };
 
 const GRADER_CHEAP = "gemini-3.5-flash";
-const GRADER_STRONG = "gemini-3.5-flash";
+const GRADER_STRONG = "gemini-3.1-pro-preview";
 
 const MODEL_PRICING: Record<string, { inputPerM: number; outputPerM: number }> = {
-  "gemini-3.5-flash": { inputPerM: 0.3, outputPerM: 2.5 },
+  "gemini-3.5-flash": { inputPerM: 1.5, outputPerM: 9.0 },
+  // PLACEHOLDER — confirm gemini-3.1-pro-preview pricing before trusting costs.
+  "gemini-3.1-pro-preview": { inputPerM: 1.5, outputPerM: 9.0 },
 };
 
 function priceFor(model: string): { inputPerM: number; outputPerM: number } {

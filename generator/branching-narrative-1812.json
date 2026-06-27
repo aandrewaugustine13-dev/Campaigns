@@ -257,11 +257,13 @@
     },
     {
       "id": "nation-ending",
+      "endingState": "triumphant",
       "text": "But something has changed. You feel it in the men around you, in the way they stand. They beat back the greatest army on earth at Baltimore. They saved their city. The little, shaky country you marched off to serve feels different now. It feels like a real nation. You think of Samuel, of the old soldier, of the flag in the dawn. You walk home as a different boy. Behind you, the morning is bright, and the flag is still flying.",
       "ending": true
     },
     {
       "id": "home-ending",
+      "endingState": "indifferent",
       "text": "You walk the long road back to the corn farm. Your boots are worn through. Your hat is gone. Your mother sees you coming up the lane and drops her basket and runs. She holds you so tight you can't breathe. \"You came home,\" she says into your shoulder. \"You came home.\" The corn is tall and green in the summer sun. You are home, and you are not the same boy who left.",
       "ending": true
     }

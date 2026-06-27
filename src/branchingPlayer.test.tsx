@@ -11,8 +11,8 @@
 //
 // Run with:  npm run test:branching-player
 // ════════════════════════════════════════════════════════════════
-import { describe, it, expect } from "vitest";
-import { render, fireEvent, cleanup } from "@testing-library/react";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { render, fireEvent, cleanup, act } from "@testing-library/react";
 import BranchingPlayer from "./BranchingPlayer";
 import suffrage from "../generator/branching-narrative-suffrage.json";
 import reconstruction from "../generator/branching-narrative-reconstruction.json";
@@ -51,9 +51,15 @@ function play(story: BranchingStory, byId: Map<string, any>, path: string[]): { 
   for (let k = 0; k < path.length - 1; k++) {
     const cur = byId.get(path[k])!;
     const choice = cur.choices!.find((c: any) => c.next === path[k + 1])!;
-    const btn = getAllByRole("button").find((b) => (b.textContent ?? "").trim() === choice.text.trim());
+    // Choice buttons render a decorative per-theme marker glyph BEFORE the
+    // choice text, so match on the text suffix (anchored — no substring
+    // collisions) rather than exact equality.
+    const btn = getAllByRole("button").find((b) => (b.textContent ?? "").trim().endsWith(choice.text.trim()));
     if (!btn) throw new Error(`no choice button "${choice.text}" at "${path[k]}"`);
     fireEvent.click(btn);
+    // The player advances after a ~200ms "page turn" setTimeout; flush it so
+    // the next passage (and, on the last step, the onEnd effect) is in the DOM.
+    act(() => { vi.advanceTimersByTime(250); });
   }
   const endText = byId.get(path[path.length - 1])!.text.slice(0, 40);
   const domShowsEnding = (container.textContent ?? "").includes(endText);
@@ -86,8 +92,8 @@ describe("branching player — robust to broken generator output", () => {
     title: "Stray", protagonist: "x", start: "p1",
     passages: [
       { id: "p1", text: "Start.", choices: [{ text: "finish", next: "end" }] },
-      { id: "end", text: "Done.", ending: true },
-      { id: "stray", text: "Nobody reaches me.", ending: true }, // unreachable, but harmless
+      { id: "end", text: "Done.", ending: true, endingState: "triumphant" },
+      { id: "stray", text: "Nobody reaches me.", ending: true, endingState: "indifferent" }, // unreachable, but harmless
     ],
   };
 
@@ -133,6 +139,11 @@ describe("branching player — robust to broken generator output", () => {
 
 // ── B. Every real generated story plays clean to BOTH endings ──
 describe("branching player — plays all three real generated stories", () => {
+  // play() drives the player through its 200ms page-turn setTimeout; fake
+  // timers let us flush each transition synchronously between clicks.
+  beforeEach(() => { vi.useFakeTimers(); });
+  afterEach(() => { vi.useRealTimers(); });
+
   for (const [name, story] of Object.entries(REAL_STORIES)) {
     it(`${name}: validates playable and reaches BOTH endings with different histories`, () => {
       const v = validateStory(story);

@@ -377,11 +377,13 @@
     },
     {
       "id": "ending-voter",
+      "endingState": "triumphant",
       "text": "You mark your ballot. Your hand is sure. You think of the cold gate at Occoquan, of the tube and the chains, of Alice's calm eyes through the bars of the wagon. You fold the paper and slide it into the box, and it makes the smallest sound. No one cheers. Outside, your mother is waiting in the autumn sun. She votes for the first time at sixty years old, then takes your arm. \"We did it,\" she says. And you did. You did not wait for it. You won it.",
       "ending": true
     },
     {
       "id": "ending-watcher",
+      "endingState": "indifferent",
       "text": "You went home, all those years ago, and you let the others carry it. You were safe. Now you stand in the polling line beside the women who marched and starved and bled, and you mark your ballot with the rest. The right is yours too; the law does not ask who fought for it. But as you slide the paper in, you feel the weight of all you watched from the window. The vote in your hand is real — and so is the knowing that braver hands than yours made it possible. You will spend your life grateful to them, and you will tell their story to every girl you meet.",
       "ending": true
     }

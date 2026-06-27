@@ -291,11 +291,13 @@
     },
     {
       "id": "reunion-ending",
+      "endingState": "triumphant",
       "text": "\"Mama,\" you said. The word came out broken. She pulled you into her arms and held on like the years could not take you again. She smelled of woodsmoke. She hummed the song you half remembered, and now you knew it was hers. You were poor. You had no land, no money, no certain place to sleep tonight. But you had this. You had each other, and you were free, and no one could sell either of you ever again. The road ahead was long and unsure. You faced it together.",
       "ending": true
     },
     {
       "id": "teach-ending",
+      "endingState": "indifferent",
       "text": "You never did find your mother. The notices went out year after year, and no answer ever came. That grief lived in you, quiet, like a stone in a pocket. But each morning children filled your little school, and you watched their faces light when the marks turned into words. Reading had been forbidden once. Now you handed it to them like bread. You were poor and the danger never fully left. Yet you were planting something. One of these children might vote one day. Might own land. Might be safe. You could not see that far ahead. You only knew you were free, and you were building toward it, and that was enough to keep going.",
       "ending": true
     }
