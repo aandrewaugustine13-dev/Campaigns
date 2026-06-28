@@ -77,6 +77,14 @@ export async function generatePassageQueries(topic: string, standard: string, pa
       systemInstruction: PASSAGE_Q_SYSTEM,
       maxOutputTokens: 400,
       responseMimeType: "application/json",
+      // gemini-3.5-flash is a THINKING model. With thinking on, its default
+      // reasoning consumed the entire 400-token budget (thoughtsTokenCount ~382,
+      // finishReason MAX_TOKENS) and truncated the output to "{", so
+      // parseModelJson threw and the lane silently fell back to topic-only
+      // queries — no entity/portrait queries ever reached the search. This is
+      // pure entity extraction, not a reasoning task: disable thinking so the
+      // full budget goes to the JSON.
+      thinkingConfig: { thinkingBudget: 0 },
     },
   });
   const raw = response.text ?? "";
