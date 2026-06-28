@@ -16,3 +16,5 @@ __pycache__/
 generator/output*.json
 generator/pinned-campaign-output.json
 /erie.json
+.dev.vars
+.wrangler/
