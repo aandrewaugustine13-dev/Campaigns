@@ -405,11 +405,22 @@ async function searchPortraitPdFallback(sageName: string): Promise<PortraitResul
 }
 
 // Event/backdrop license filter — looser than isPublicDomain. Accepts PD,
-// CC0, CC-BY, CC-BY-SA. Every accepted image still gets attribution rendered.
+// CC0, CC-BY, CC-BY-SA, and the PD-equivalent institutional tags (LoC / Flickr
+// Commons "No restrictions", CC Public Domain Mark) that isPublicDomain admits
+// but this gate was silently dropping. Every accepted image still gets
+// attribution rendered. SAGE-PORTRAIT PATH IS UNAFFECTED — it uses isPublicDomain.
 // TODO: revisit if a teacher-editing workflow lets users modify and export
 // these images — CC-BY-SA share-alike would apply at that point.
 function isAcceptableForEventImage(meta: Record<string, ExtMetadataField>): boolean {
   const license = (meta.LicenseShortName?.value ?? "").trim().toLowerCase();
+  const usage = (meta.UsageTerms?.value ?? "").trim().toLowerCase();
+
+  // PD-equivalent institutional tags. These can carry an empty/odd
+  // LicenseShortName, so they're checked first (before the empty-license bail)
+  // and also read UsageTerms — mirroring isPublicDomain's PD-equivalent admission.
+  if (license === "no restrictions" || usage === "no known copyright restrictions") return true;
+  if (license.startsWith("pdm") || usage.includes("public domain mark")) return true;
+
   if (!license) return false;
   if (license.startsWith("public domain") || license.startsWith("pd") || license === "cc0") return true;
   if (license.startsWith("cc by")) return true; // covers CC BY 2.0/2.5/3.0/4.0 and CC BY-SA variants
