@@ -57,6 +57,10 @@ export const onRequestPost = async (context: any) => {
       queries.push(`${standardNouns} historical`);
     }
 
+    // Passage-query (Gemini) lane. Logged at every outcome so it can never fail
+    // silently again: a successful run reports the query count, a thrown call and
+    // a missing-key skip each say so explicitly — all three end up as either the
+    // entity-noun queries or the topic-only fallback, and the log says which.
     const geminiKey = env.GEMINI_API_KEY;
     if (geminiKey && text && (topic || standardNouns)) {
       try {
@@ -68,9 +72,12 @@ export const onRequestPost = async (context: any) => {
             queries.push(`${q.trim()} ${base}`);
           }
         }
-      } catch {
-        console.warn('[branching-images] passage-query generation failed; using topic fallback');
+        console.log(`[branching-images] passage queries succeeded (${pq.length}) — Gemini lane active`);
+      } catch (e) {
+        console.warn(`[branching-images] passage-query generation FAILED (${e instanceof Error ? e.message : String(e)}) — falling back to topic-only queries`);
       }
+    } else if (!geminiKey) {
+      console.warn('[branching-images] GEMINI_API_KEY not set — passage-query lane SKIPPED, using topic-only queries');
     }
 
     const anchor = base || standardNouns;
