@@ -5,12 +5,21 @@
 // the opus that writes the story) that returns a summary + coverage checklist
 // WITHOUT writing the story. SDK side only.
 // ════════════════════════════════════════════════════════════════
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, HarmCategory, HarmBlockThreshold } from "@google/genai";
 import { parseModelJson } from "./json.js";
 import { validateStoryPreview, type StoryPreview, type PreviewFinding } from "./storyPreview.js";
 import { THEME_IDS, THEME_CLASSIFIER_INSTRUCTION } from "../theme-system/themes.js";
 
 const MODEL = "gemini-3.5-flash"; // cheap + fast — the gate, not the story
+
+// Same relaxation as the story writer: a preview for combat-heavy topics (the
+// War of 1812, etc.) can trip Gemini's default DANGEROUS_CONTENT / HARASSMENT
+// filters. Relax those two to BLOCK_ONLY_HIGH so the gate doesn't block before
+// the teacher ever sees a preview. Other categories keep their defaults.
+const SAFETY_SETTINGS = [
+  { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+  { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+];
 
 const SYSTEM_PROMPT = `You help a teacher decide, BEFORE any full story is written, whether a planned branching history story will cover their curriculum standard. You output ONLY a single JSON object — a short PREVIEW, never the story itself. No prose, no markdown, no code fences.
 
@@ -88,8 +97,24 @@ export async function generateStoryPreview(
       maxOutputTokens: 1500,
       responseMimeType: "application/json",
       responseSchema: RESPONSE_SCHEMA,
+      safetySettings: SAFETY_SETTINGS,
     },
   });
+
+  // Detect a safety block (prompt-level blockReason or candidate finishReason)
+  // before parsing — otherwise an empty body surfaces as an opaque parse error.
+  // Log a specific warning and throw a clear, teacher-facing message; the route
+  // handler's catch turns it into a clean 500 response instead of a crash.
+  const blockReason = response.promptFeedback?.blockReason;
+  const finishReason = response.candidates?.[0]?.finishReason as string | undefined;
+  if (blockReason || finishReason === "SAFETY" || finishReason === "PROHIBITED_CONTENT") {
+    console.warn(
+      `[story-preview] generation BLOCKED by Gemini safety filters ` +
+      `(promptFeedback.blockReason=${blockReason ?? "none"}, finishReason=${finishReason ?? "none"})`
+    );
+    throw new Error("The preview was blocked by the content safety filter. Try rephrasing the topic or lowering the content maturity.");
+  }
+
   const raw = response.text ?? "";
 
   const data = parseModelJson<StoryPreview>(raw);

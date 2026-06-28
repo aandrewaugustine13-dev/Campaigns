@@ -12,12 +12,23 @@
 //
 // SDK side only (the @google/genai import). Mirrors storyPlanGen.ts.
 // ════════════════════════════════════════════════════════════════
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, HarmCategory, HarmBlockThreshold } from "@google/genai";
 import { parseModelJson } from "./json.js";
 import { validateStory, type BranchingStory, type BranchingQuestion, type StoryValidation } from "./branchingStory.js";
 import { runFactGate, type FactGateResult } from "./factGate.js";
 
 const MODEL = "gemini-3.5-flash"; // the writer that produced the proven stories
+
+// Honest historical combat (the War of 1812, etc.) routinely trips Gemini's
+// default DANGEROUS_CONTENT / HARASSMENT filters and blocks the whole response.
+// This is a curriculum tool depicting documented history, so we relax those two
+// categories to BLOCK_ONLY_HIGH (still blocking genuinely extreme content). The
+// other categories keep their defaults; the maturity prompt already forbids
+// gratuitous gore.
+const SAFETY_SETTINGS = [
+  { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+  { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+];
 
 // The EXACT craft prompt from the proof — reading level, person+history, real
 // branching, exactly two earned endings, no game machinery. DO NOT redesign.
@@ -332,8 +343,34 @@ export async function generateBranchingStory(
         systemInstruction: SYSTEM_PROMPT,
         maxOutputTokens: 16000,
         responseMimeType: "application/json",
+        safetySettings: SAFETY_SETTINGS,
       },
     });
+
+    // A safety block returns NO usable text (response.text is empty), which would
+    // otherwise surface as a confusing "did not parse as JSON" retry. Detect it
+    // explicitly — both the prompt-level block (promptFeedback.blockReason, no
+    // candidates) and the response-level block (candidate finishReason) — and log
+    // a clear warning instead of crashing or masquerading as a parse failure.
+    const blockReason = response.promptFeedback?.blockReason;
+    const finishReason = response.candidates?.[0]?.finishReason as string | undefined;
+    if (blockReason || finishReason === "SAFETY" || finishReason === "PROHIBITED_CONTENT") {
+      console.warn(
+        `[branching] attempt ${attempt}/${maxAttempts}: generation BLOCKED by Gemini safety filters ` +
+        `(promptFeedback.blockReason=${blockReason ?? "none"}, finishReason=${finishReason ?? "none"}) — ` +
+        `historical violence likely tripped a filter even with lowered thresholds`
+      );
+      const validation: StoryValidation = {
+        findings: [{ level: "error", code: "root", message: `model response blocked by content safety filter (${blockReason ?? finishReason})` }],
+        playable: false,
+      };
+      last = { ok: false, validation, attempts: attempt, raw: "" };
+      // Plain regeneration on retry — no graph/fact feedback to feed back here.
+      priorErrors = [];
+      priorFactErrors = [];
+      continue;
+    }
+
     const raw = response.text ?? "";
 
     // Parse failure is just another invalid attempt — feed it back and retry.
