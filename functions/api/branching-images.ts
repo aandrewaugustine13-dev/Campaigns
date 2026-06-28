@@ -24,8 +24,27 @@ export const onRequestPost = async (context: any) => {
       });
     }
 
-    // Broader queries: topic/era first, plus specific nouns from passage
-    const queries: string[] = [];
+    // Up to 3 caller-supplied query variations from the generator, ordered
+    // most→least specific (e.g. [0]=specific entity, [1]=setting, [2]=broad
+    // historical era). These take priority over the derived fallbacks below.
+    const explicitQueries: string[] = Array.isArray(body?.queries)
+      ? body.queries
+          .filter((q: unknown): q is string => typeof q === 'string' && q.trim().length >= 3)
+          .map((q: string) => q.trim())
+          .slice(0, 3)
+      : [];
+
+    // URLs already displayed earlier in THIS campaign session (the endpoint is
+    // stateless per-request, so the client sends what it has already shown).
+    // Seeding `seen` with these makes every result unique across the session.
+    const excludeUrls: string[] = Array.isArray(body?.excludeUrls)
+      ? body.excludeUrls.filter((u: unknown): u is string => typeof u === 'string' && u.length > 0)
+      : [];
+
+    // Ordered query list: explicit generator variations first, then the derived
+    // topic/era/place fallbacks. Duplicates are harmless — runQuery skips strings
+    // it has already searched.
+    const queries: string[] = [...explicitQueries];
 
     if (base) {
       queries.push(base);
@@ -65,22 +84,36 @@ export const onRequestPost = async (context: any) => {
       }
     }
 
+    // The broad historical-era fallback fired when the primary specific query is
+    // thin: the 3rd explicit variation if given, else a derived era-level query.
+    const broadEraQuery =
+      (explicitQueries.length === 3 ? explicitQueries[2] : '') ||
+      (base ? `${base} historical` : '') ||
+      standardNouns ||
+      '';
+
     const { searchCommonsFileRanked, searchViaArticlePageimage } = await import('../../generator/wikimedia.js');
 
-    const seen = new Set();
+    const trimLabel = (q: string) => (q.length > 55 ? q.slice(0, 52) + '...' : q);
+
+    // Dedup spans the whole session: pre-load the URLs the client already showed.
+    const seen = new Set<string>(excludeUrls);
+    const ran = new Set<string>(); // query strings already searched this request
     let images: any[] = [];
 
-    for (const q of queries) {
-      if (!q || q.length < 3) continue;
+    // Search one query, appending only results not already seen this session.
+    // Returns the number of NEW unique images it contributed.
+    const runQuery = async (q: string): Promise<number> => {
+      if (!q || q.length < 3 || ran.has(q)) return 0;
+      ran.add(q);
+      let added = 0;
 
       try {
         const lead = await searchViaArticlePageimage(q);
         if (lead && !seen.has(lead.thumbUrl)) {
           seen.add(lead.thumbUrl);
-          images.push({
-            ...lead,
-            label: q.length > 55 ? q.slice(0, 52) + '...' : q,
-          });
+          images.push({ ...lead, label: trimLabel(q) });
+          added++;
         }
       } catch {}
 
@@ -88,30 +121,32 @@ export const onRequestPost = async (context: any) => {
       for (const img of pool) {
         if (!seen.has(img.thumbUrl)) {
           seen.add(img.thumbUrl);
-          images.push({
-            ...img,
-            label: q.length > 55 ? q.slice(0, 52) + '...' : q,
-          });
+          images.push({ ...img, label: trimLabel(q) });
+          added++;
         }
       }
+      return added;
+    };
 
-      if (images.length >= 15) break;
+    // 1) Primary specific query.
+    const primaryAdded = queries.length ? await runQuery(queries[0]) : 0;
+
+    // 2) Thin primary (<4 unique) → escalate to the broad historical-era fallback.
+    if (primaryAdded < 4 && broadEraQuery) {
+      await runQuery(broadEraQuery);
     }
 
-    if (images.length === 0 && base) {
-      try {
-        const lead = await searchViaArticlePageimage(base);
-        if (lead && !seen.has(lead.thumbUrl)) {
-          seen.add(lead.thumbUrl);
-          images.push({ ...lead, label: base });
-        }
-      } catch {}
-      const pool = await searchCommonsFileRanked(base, null);
-      for (const img of pool) {
-        if (!seen.has(img.thumbUrl)) {
-          seen.add(img.thumbUrl);
-          images.push({ ...img, label: base });
-        }
+    // 3) Exhaust the remaining variations/fallbacks for breadth (deduped).
+    for (const q of queries.slice(1)) {
+      if (images.length >= 15) break;
+      await runQuery(q);
+    }
+
+    // Last-ditch safety net when everything above came back empty.
+    if (images.length === 0) {
+      for (const q of [base, standardNouns, broadEraQuery]) {
+        if (q) await runQuery(q);
+        if (images.length > 0) break;
       }
     }
 

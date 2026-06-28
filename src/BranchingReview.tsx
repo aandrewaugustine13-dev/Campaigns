@@ -12,6 +12,9 @@ async function searchHistoricalImages(params: {
   topic?: string;
   standard?: string;
   passageText: string;
+  /** thumbUrls already shown in this session — the server skips them so each
+   * passage's candidates stay unique across the whole campaign. */
+  excludeUrls?: string[];
 }): Promise<Array<{ thumbUrl: string; label: string; sourceUrl?: string; artist?: string; license?: string }>> {
   try {
     const res = await fetch('/api/branching-images', {
@@ -25,6 +28,7 @@ async function searchHistoricalImages(params: {
         topic: params.topic,
         standard: params.standard,
         text: params.passageText,
+        excludeUrls: params.excludeUrls || [],
       }),
     });
     if (!res.ok) return [];
@@ -66,6 +70,7 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
   const [imageCandidates, setImageCandidates] = useState<Record<string, any[]>>({});
   const [loadingImages, setLoadingImages] = useState<Record<string, boolean>>({});
   const fetchedRef = useRef(new Set<string>()); // avoids re-fetching the same passage
+  const shownUrlsRef = useRef(new Set<string>()); // every Commons thumbUrl shown this session (cross-passage dedup)
   const [imageReloadKey, setImageReloadKey] = useState(0); // bump to force re-search on "search again"
   const [genLoading, setGenLoading] = useState(false); // a Gemini illustration is in flight for the selected passage
   const [genError, setGenError] = useState("");
@@ -178,7 +183,11 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
           topic,
           standard,
           passageText: selected?.text || "",
+          excludeUrls: Array.from(shownUrlsRef.current),
         });
+        // Record what we just showed so later passages (and "Search again")
+        // pull fresh, unique images instead of repeating these.
+        for (const c of cands) if (c.thumbUrl) shownUrlsRef.current.add(c.thumbUrl);
         setImageCandidates((prev) => ({ ...prev, [selectedId]: cands }));
       } catch {
         setImageCandidates((prev) => ({ ...prev, [selectedId]: [] }));
