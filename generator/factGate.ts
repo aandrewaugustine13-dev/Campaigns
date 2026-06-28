@@ -40,7 +40,7 @@
 // also uses Gemini, acting under the grader's explicit corrections
 // (instruction-following dominates priors; proven by the manual pass).
 // ════════════════════════════════════════════════════════════════
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, HarmCategory, HarmBlockThreshold } from "@google/genai";
 import { parseModelJson } from "./json.js";
 import { validate } from "./validate.js";
 
@@ -48,6 +48,15 @@ const GATE_MODEL = "gemini-3.5-flash";      // detect + re-verify (needs real kn
 const CORRECTOR_MODEL = "gemini-3.5-flash"; // constrained string surgery
 const MAX_CORRECTION_CYCLES = 2;
 const MIN_FIND_LENGTH = 10; // refuse micro-replacements ("1856") that could mangle unrelated text
+
+// The gate reads the SAME combat-heavy content the story writer produced, so it
+// hits the same default DANGEROUS_CONTENT / HARASSMENT filters. Mirror the
+// writer/preview relaxation (BLOCK_ONLY_HIGH) so the fact-check can actually run
+// on these topics instead of erroring out and shipping the story unchecked.
+const SAFETY_SETTINGS = [
+  { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+  { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+];
 
 export interface FactClaim {
   quote: string;
@@ -328,8 +337,24 @@ async function callJson<T>(client: GoogleGenAI, model: string, system: string, p
           maxOutputTokens: maxTokens,
           ...(thinking ? { thinkingConfig: { thinkingBudget: 8192 } } : {}),
           responseMimeType: "application/json",
+          safetySettings: SAFETY_SETTINGS,
         },
       });
+
+      // A safety block returns no usable text; without this it would surface as
+      // an opaque "No parseable JSON" error and, after the retry, a generic
+      // gate-error. Detect it explicitly and log a specific warning so a blocked
+      // fact-check is visible in the logs.
+      const blockReason = response.promptFeedback?.blockReason;
+      const finishReason = response.candidates?.[0]?.finishReason as string | undefined;
+      if (blockReason || finishReason === "SAFETY" || finishReason === "PROHIBITED_CONTENT") {
+        console.warn(
+          `[fact-gate] ${model} call BLOCKED by Gemini safety filters ` +
+          `(promptFeedback.blockReason=${blockReason ?? "none"}, finishReason=${finishReason ?? "none"})`
+        );
+        throw new Error(`fact-gate response blocked by content safety filter (${blockReason ?? finishReason})`);
+      }
+
       const text = response.text ?? "";
       return parseLoose<T>(text);
     } catch (e) { lastErr = e; }
