@@ -1437,6 +1437,20 @@ a.theme-dialogue-attribution-link:hover {
 }
 [data-slot="passage"][data-theme] [data-slot="figure-encounter"] [data-slot="figure-role"] { font-family: var(--body-font); opacity: 0.65; }
 [data-slot="passage"][data-theme] [data-slot="figure-encounter"] [data-slot="figure-name"] { font-family: var(--chrome-font); color: var(--chrome-color); }
+/* Inside the BranchingPlayer, the systems-skin paints this card with
+   --card-tint over the light --paper-bg, which washes out the player's
+   cream question text. Restore the player's own dark figure surface +
+   border so it reads as a dark inset panel like the prose card above. */
+.branching-player [data-slot="figure-encounter"] {
+  background: var(--player-figure-bg) !important;
+  border-color: var(--player-figure-border) !important;
+}
+/* …and the "A historical figure asks:" label: the slot rule above forces
+   it to --chrome-color (dark ink for light paper), invisible on the dark
+   figure surface. Keep the player's own accent token. */
+.branching-player [data-slot="figure-encounter"] [data-slot="figure-name"] {
+  color: var(--player-figure-accent-2) !important;
+}
 
 /* per-theme seal — set content via --seal-glyph */
 [data-slot="passage"][data-theme] [data-slot="figure-encounter"]::after {
@@ -1464,8 +1478,8 @@ a.theme-dialogue-attribution-link:hover {
 [data-slot="passage"][data-theme] [data-slot="mcq-option"] > .marker { font-family: var(--chrome-font); font-weight: 700; color: var(--accent); }
 /* Inside the BranchingPlayer, mcq-option colors come from --player-* vars
    applied via Tailwind classes; don't override them with slot --body-color. */
-.branching-player [data-slot="mcq-option"] { color: var(--player-btn-text, inherit); }
-.branching-player [data-slot="mcq-option"] > .marker { color: var(--player-btn-accent, var(--accent)); }
+.branching-player [data-slot="mcq-option"] { color: var(--player-btn-text, var(--player-text-prose)) !important; }
+.branching-player [data-slot="mcq-option"] > .marker { color: var(--player-btn-accent, var(--player-text-accent)) !important; }
 
 /* --- choices -------------------------------------------------------------- */
 [data-slot="passage"][data-theme] [data-slot="choice"] {
@@ -1481,9 +1495,13 @@ a.theme-dialogue-attribution-link:hover {
    rule above sets color: var(--body-color) which is a dark ink
    designed for light paper—but the player's choice buttons use dark
    --player-btn-bg backgrounds, making the dark ink invisible.
-   This override ensures the player's own contrast-safe text wins. */
+   This override ensures the player's own contrast-safe text AND its dark
+   button surface win (the slot rule also repaints the bg light via
+   --choice-bg, which would wash out the cream text). */
 .branching-player [data-slot="choice"] {
   color: var(--player-btn-text, var(--player-text-prose)) !important;
+  background: var(--player-btn-bg) !important;
+  border-color: var(--player-btn-border) !important;
 }
 .branching-player [data-slot="choice"] .marker {
   color: var(--player-btn-accent, var(--player-text-accent)) !important;
@@ -1491,6 +1509,7 @@ a.theme-dialogue-attribution-link:hover {
 }
 .branching-player [data-slot="choice"]:hover {
   color: #fff !important;
+  background: var(--player-btn-bg-hover) !important;
 }
 
 /* --- ending states -------------------------------------------------------- */
