@@ -1462,6 +1462,10 @@ a.theme-dialogue-attribution-link:hover {
 }
 [data-slot="passage"][data-theme] [data-slot="mcq-option"] { font-family: var(--body-font); color: var(--body-color); }
 [data-slot="passage"][data-theme] [data-slot="mcq-option"] > .marker { font-family: var(--chrome-font); font-weight: 700; color: var(--accent); }
+/* Inside the BranchingPlayer, mcq-option colors come from --player-* vars
+   applied via Tailwind classes; don't override them with slot --body-color. */
+.branching-player [data-slot="mcq-option"] { color: var(--player-btn-text, inherit); }
+.branching-player [data-slot="mcq-option"] > .marker { color: var(--player-btn-accent, var(--accent)); }
 
 /* --- choices -------------------------------------------------------------- */
 [data-slot="passage"][data-theme] [data-slot="choice"] {
@@ -1472,6 +1476,22 @@ a.theme-dialogue-attribution-link:hover {
 }
 [data-slot="passage"][data-theme] [data-slot="choice"] .marker { font-family: var(--chrome-font); font-weight: 700; opacity: 0.85; }
 [data-slot="passage"][data-theme] [data-slot="choice"]:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+/* Inside the BranchingPlayer, choice button text colors come from
+   --player-btn-text (a high-contrast token set per era). The slot
+   rule above sets color: var(--body-color) which is a dark ink
+   designed for light paper—but the player's choice buttons use dark
+   --player-btn-bg backgrounds, making the dark ink invisible.
+   This override ensures the player's own contrast-safe text wins. */
+.branching-player [data-slot="choice"] {
+  color: var(--player-btn-text, var(--player-text-prose)) !important;
+}
+.branching-player [data-slot="choice"] .marker {
+  color: var(--player-btn-accent, var(--player-text-accent)) !important;
+  opacity: 1;
+}
+.branching-player [data-slot="choice"]:hover {
+  color: #fff !important;
+}
 
 /* --- ending states -------------------------------------------------------- */
 [data-slot="passage"][data-theme] [data-slot="ending"] {
