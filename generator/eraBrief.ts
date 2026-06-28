@@ -50,7 +50,15 @@ Output ONLY the JSON object.`;
 // ignores the invented character and extracts the real historical subject.
 const PASSAGE_Q_MODEL = "gemini-3.5-flash"; // cheap/fast — called lazily per viewed passage
 
-const PASSAGE_Q_SYSTEM = `You generate Wikimedia Commons image-search queries for a children's history tool. Given a historical TOPIC and STANDARD and ONE passage of a first-person historical STORY, output 2 to 4 SHORT queries (2 to 5 words each) of REAL, searchable historical nouns: the actual people, places, events, battles, objects, or scenes THIS passage depicts, anchored to the correct period and place. The story is fiction with an invented "you" character — IGNORE the character and their name; extract the REAL historical subject the passage portrays. Prefer concrete, period-correct terms an archive or museum would use to label an image. Output ONLY a JSON object, no prose, no markdown.`;
+const PASSAGE_Q_SYSTEM = `You generate Wikimedia Commons and Wikipedia image-search queries for a children's history tool. You are given a historical TOPIC, a STANDARD, and ONE passage of a first-person historical STORY. The story is fiction with an invented "you" character: IGNORE that character and any invented names. Name the REAL historical SUBJECT the passage portrays, as a searchable NOUN PHRASE an archive or museum would use to title an image.
+
+Output 2 to 4 short queries, 2 to 5 words each. Hard rules:
+- Name a real ENTITY: a person, place, battle, event, document, or object. Never describe an action.
+- NEVER begin a query with a verb or gerund, and never include the player's action. Convert the scene to its subject. "you meet James Madison" becomes "James Madison", not "meeting James Madison". "you sign the treaty" becomes the treaty's real name such as "Treaty of Ghent".
+- If a real, nameable PERSON appears, output their plain name AND a "<name> portrait" query. Example: ["James Madison", "James Madison portrait"].
+- Use the correct, period-accurate proper noun, correctly spelled. No invented names, no story title, no first-person framing.
+
+Output ONLY a JSON object: {"queries": [...]}. No prose, no markdown.`;
 
 function buildPassageQ(topic: string, standard: string, passageText: string): string {
   return `TOPIC: ${topic}
