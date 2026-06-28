@@ -41,35 +41,27 @@ export const onRequestPost = async (context: any) => {
       ? body.excludeUrls.filter((u: unknown): u is string => typeof u === 'string' && u.length > 0)
       : [];
 
-    // Ordered query list: explicit generator variations first, then the derived
-    // topic/era/place fallbacks. Duplicates are harmless — runQuery skips strings
-    // it has already searched.
-    const queries: string[] = [...explicitQueries];
+    // ENTITY-FIRST query order. The most specific queries run before the generic
+    // topic so a passage's real subject (a figure, a portrait, a named place)
+    // surfaces instead of being crowded out of the 15-result cap by generic
+    // "<topic>" hits. The topic queries STAY in the list as a backstop, just
+    // AFTER the specifics, so a passage whose narrow entity query returns nothing
+    // still gets a generic period image. This reorders the INPUT only — the loop,
+    // the primary/broad-era selection, the dedupe-by-thumbUrl, and the 15-cap are
+    // all unchanged, as is the final bare-topic fallback at the end.
 
-    if (base) {
-      queries.push(base);
-      queries.push(`${base} historical`);
-      queries.push(`${base} painting`);
-      queries.push(`${base} historical image`);
-    }
-    if (standardNouns && standardNouns.toLowerCase() !== base.toLowerCase()) {
-      queries.push(standardNouns);
-      queries.push(`${standardNouns} historical`);
-    }
-
-    // Passage-query (Gemini) lane. Logged at every outcome so it can never fail
-    // silently again: a successful run reports the query count, a thrown call and
-    // a missing-key skip each say so explicitly — all three end up as either the
-    // entity-noun queries or the topic-only fallback, and the log says which.
+    // (specific) Gemini passage queries — entity + "<name> portrait". Logged at
+    // every outcome so the lane can never fail silently again.
+    const passageQueries: string[] = [];
     const geminiKey = env.GEMINI_API_KEY;
     if (geminiKey && text && (topic || standardNouns)) {
       try {
         const { generatePassageQueries } = await import('../../generator/eraBrief.js');
         const pq = await generatePassageQueries(topic, standard, text, geminiKey);
         for (const q of pq) if (q && q.trim()) {
-          queries.push(q.trim());
+          passageQueries.push(q.trim());
           if (base && !q.toLowerCase().includes(base.toLowerCase())) {
-            queries.push(`${q.trim()} ${base}`);
+            passageQueries.push(`${q.trim()} ${base}`);
           }
         }
         console.log(`[branching-images] passage queries succeeded (${pq.length}) — Gemini lane active`);
@@ -80,16 +72,40 @@ export const onRequestPost = async (context: any) => {
       console.warn('[branching-images] GEMINI_API_KEY not set — passage-query lane SKIPPED, using topic-only queries');
     }
 
+    // (specific) A real place named in the passage (Fort/Battle/Siege/Port/Harbor X).
+    const placeQueries: string[] = [];
     const anchor = base || standardNouns;
     if (text && anchor) {
       const locMatch = text.match(/\b(Fort|Battle of|Siege of|Port of|Harbor)\s+([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,2})/);
       if (locMatch) {
         const place = `${locMatch[1]} ${locMatch[2]}`.trim();
-        queries.push(place);
-        queries.push(`${place} ${anchor}`);
-        if (base) queries.push(`${place} ${base}`);
+        placeQueries.push(place);
+        placeQueries.push(`${place} ${anchor}`);
+        if (base) placeQueries.push(`${place} ${base}`);
       }
     }
+
+    // (backstop) Generic topic + standard queries — kept, but AFTER the specifics.
+    const topicQueries: string[] = [];
+    if (base) {
+      topicQueries.push(base);
+      topicQueries.push(`${base} historical`);
+      topicQueries.push(`${base} painting`);
+      topicQueries.push(`${base} historical image`);
+    }
+    if (standardNouns && standardNouns.toLowerCase() !== base.toLowerCase()) {
+      topicQueries.push(standardNouns);
+      topicQueries.push(`${standardNouns} historical`);
+    }
+
+    // Assemble entity-first: explicit → passage entity/portrait → place → topic.
+    // Duplicates are harmless — runQuery skips strings it has already searched.
+    const queries: string[] = [
+      ...explicitQueries,
+      ...passageQueries,
+      ...placeQueries,
+      ...topicQueries,
+    ];
 
     // The broad historical-era fallback fired when the primary specific query is
     // thin: the 3rd explicit variation if given, else a derived era-level query.
