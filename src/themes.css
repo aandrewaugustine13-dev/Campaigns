@@ -670,7 +670,11 @@ a.theme-dialogue-attribution-link:hover {
   font-family: var(--player-font-display);
   text-transform: var(--player-display-case);
   letter-spacing: var(--player-display-tracking);
-  color: var(--player-text) !important;
+  /* NB: do NOT force --player-text here. The masthead always sits on the
+     systems-skin's LIGHT --paper-bg page, so a dark-bg player token renders
+     light-on-light (≈1:1) on the dark eras (default group, cold-war). Let
+     the skin's own story-title --chrome-color (the dark ink designed for
+     that page) win. (islamic's gold title is re-darkened below.) */
 }
 .branching-player[data-era] .uppercase {
   font-family: var(--player-font-display);
@@ -1429,6 +1433,13 @@ a.theme-dialogue-attribution-link:hover {
 .branching-player [data-slot="tts"] {
   color: var(--player-text) !important;
   border-color: var(--player-btn-border) !important;
+}
+/* islamic-golden-age masthead: the skin titles it in --accent gold, which
+   only reaches ≈3.3:1 on the cream page (fails AA). In the player, use the
+   era's dark --chrome-color ink instead — the unwan's gold frame already
+   carries the period accent. */
+.branching-player [data-theme="islamic-golden-age"] [data-slot="story-title"] {
+  color: var(--chrome-color) !important;
 }
 
 /* --- body slot ------------------------------------------------------------ */
