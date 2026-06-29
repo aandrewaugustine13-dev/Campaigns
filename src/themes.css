@@ -1434,13 +1434,9 @@ a.theme-dialogue-attribution-link:hover {
   color: var(--player-text) !important;
   border-color: var(--player-btn-border) !important;
 }
-/* islamic-golden-age masthead: the skin titles it in --accent gold, which
-   only reaches ≈3.3:1 on the cream page (fails AA). In the player, use the
-   era's dark --chrome-color ink instead — the unwan's gold frame already
-   carries the period accent. */
-.branching-player [data-theme="islamic-golden-age"] [data-slot="story-title"] {
-  color: var(--chrome-color) !important;
-}
+/* (islamic-golden-age's title is handled by the per-era gild block below —
+   it gets a dark ochre emboss on the cream inside its unwan frame, which
+   supersedes last task's flat --chrome-color stopgap.) */
 
 /* GILDED MASTHEAD — the blackletter Crusade title (parchment-medieval, which
    renders on the DARK player era "default"). The masthead normally sits on the
@@ -1470,6 +1466,141 @@ a.theme-dialogue-attribution-link:hover {
     drop-shadow(0 1px 0 rgba(255, 244, 214, 0.35))
     drop-shadow(0 2px 2px rgba(0, 0, 0, 0.6))
     drop-shadow(0 6px 14px rgba(0, 0, 0, 0.55));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ *   BOLD GILDED MASTHEADS — every era, its OWN period identity.
+ *   Same gloss+depth TECHNIQUE as Crusade (gradient clipped to the
+ *   glyphs + layered drop-shadows), but each era brings its own heavy
+ *   DISPLAY FACE and a gradient RAMP derived from its own palette.
+ *   Two physics, because every masthead sits on the skin's LIGHT paper:
+ *     • DARK-card eras get a dark period PLATE → a LIGHT gloss ramp.
+ *     • LIGHT-card eras stay on paper → a DARK emboss ramp (the "gloss"
+ *       is the lighter TOP stop, kept ≥AA; depth comes from shadows).
+ *   Scoped to exact [data-era][data-theme] pairs (0,3,1) so the gild
+ *   beats the skin's story-title font (0,3,0) AND never blanket-applies
+ *   text-fill-color:transparent to a non-gilded title. Fallback color is
+ *   a solid mid-stop so it degrades sanely without background-clip:text.
+ *   All faces are already @imported at the top of this file.
+ *   ═══════════════════════════════════════════════════════════════ */
+
+/* — per-era recipe variables — */
+.branching-player[data-era="western"][data-theme="frontier-leather"] {
+  --mh-font: "Rye", Georgia, serif; --mh-weight: 400;
+  --mh-grad: linear-gradient(180deg, #7e351b 0%, #6e2c14 45%, #46190a 100%);
+  --mh-fallback: #6e2c14;                          /* rust wood-type */
+}
+.branching-player[data-era="revolutionary"][data-theme="broadsheet-sepia"] {
+  --mh-font: "Playfair Display", Georgia, serif; --mh-weight: 900;
+  --mh-grad: linear-gradient(180deg, #7a2e22 0%, #4e1a12 45%, #2a0e08 100%);
+  --mh-fallback: #4e1a12;                          /* colonial red-black Didone */
+}
+.branching-player[data-era="ww1-fieldpost"][data-theme="ww1-fieldpost"] {
+  --mh-font: "Oswald", "Arial Narrow", sans-serif; --mh-weight: 700;
+  --mh-grad: linear-gradient(180deg, #4a2f72 0%, #341f56 45%, #1e1240 100%);
+  --mh-fallback: #341f56;                          /* censor-ink violet stencil */
+}
+.branching-player[data-era="civil-rights"][data-theme="civil-rights-midcentury"] {
+  --mh-font: "Anton", Impact, sans-serif; --mh-weight: 400;
+  --mh-grad: linear-gradient(180deg, #3a2724 0%, #211a16 45%, #141110 100%);
+  --mh-fallback: #211a16;                          /* march-poster black */
+}
+.branching-player[data-era="classical"][data-theme="classical-marble"] {
+  --mh-font: "Cinzel", "Trajan Pro", Georgia, serif; --mh-weight: 700;
+  --mh-grad: linear-gradient(180deg, #6e5230 0%, #4e3a20 45%, #2b2014 100%);
+  --mh-fallback: #4e3a20;                          /* incised bronze on marble */
+}
+.branching-player[data-era="dustbowl"][data-theme="depression-fsa"] {
+  --mh-font: "Zilla Slab", "Rockwell", Georgia, serif; --mh-weight: 700;
+  --mh-grad: linear-gradient(180deg, #7a3420 0%, #5a2414 45%, #3e1810 100%);
+  --mh-fallback: #5a2414;                          /* WPA slab, rust-sepia */
+}
+.branching-player[data-era="default"][data-theme="islamic-golden-age"] {
+  --mh-font: "Reem Kufi", "Amiri", Georgia, sans-serif; --mh-weight: 700;
+  --mh-grad: linear-gradient(180deg, #7c5e10 0%, #6a500e 45%, #463207 100%);
+  --mh-fallback: #6a500e;                          /* dark ochre-gold inside unwan */
+}
+.branching-player[data-era="default"][data-theme="default"] {
+  --mh-font: "Playfair Display", Georgia, serif; --mh-weight: 700;
+  --mh-grad: linear-gradient(180deg, #5a4f3c 0%, #41382a 45%, #2e271d 100%);
+  --mh-fallback: #41382a;                          /* restrained taupe */
+}
+.branching-player[data-era="default"][data-theme="expedition-journal"] {
+  --mh-font: "Cinzel", "Trajan Pro", Georgia, serif; --mh-weight: 700;
+  --mh-grad: linear-gradient(180deg, #ead6b0 0%, #c89a58 50%, #9a6a30 100%);
+  --mh-fallback: #c89a58;                          /* engraved brass-sienna */
+  --mh-plate: radial-gradient(120% 140% at 50% 0%, #2a2014 0%, #1a130b 100%);
+  --mh-plate-border: #6e5a2a;
+}
+.branching-player[data-era="default"][data-theme="imperial-chinese-scroll"] {
+  --mh-font: "Noto Serif TC", Georgia, serif; --mh-weight: 900;
+  --mh-grad: linear-gradient(180deg, #b3331f 0%, #8a1e12 45%, #5a1208 100%);
+  --mh-fallback: #8a1e12;                          /* dark vermilion; the skin renders
+     this title VERTICALLY (scroll lock), so it stays an emboss on paper — a plate
+     would wrap the tall vertical text in a giant box. */
+}
+.branching-player[data-era="cold-war"][data-theme="declassified-typewriter"] {
+  --mh-font: "Special Elite", "Courier New", monospace; --mh-weight: 400;
+  --mh-grad: linear-gradient(180deg, #dfe6ef 0%, #9fb1c4 50%, #5e7488 100%);
+  --mh-fallback: #9fb1c4;                          /* brushed-steel, not gold */
+  --mh-plate: radial-gradient(120% 140% at 50% 0%, #1a2230 0%, #0b1018 100%);
+  --mh-plate-border: #4a5a6e;
+}
+
+/* — shared TECHNIQUE: LIGHT-card eras (dark emboss ramp on the paper) — */
+.branching-player[data-era="western"][data-theme="frontier-leather"] h1,
+.branching-player[data-era="revolutionary"][data-theme="broadsheet-sepia"] h1,
+.branching-player[data-era="ww1-fieldpost"][data-theme="ww1-fieldpost"] h1,
+.branching-player[data-era="civil-rights"][data-theme="civil-rights-midcentury"] h1,
+.branching-player[data-era="classical"][data-theme="classical-marble"] h1,
+.branching-player[data-era="dustbowl"][data-theme="depression-fsa"] h1,
+.branching-player[data-era="default"][data-theme="islamic-golden-age"] h1,
+.branching-player[data-era="default"][data-theme="imperial-chinese-scroll"] h1,
+.branching-player[data-era="default"][data-theme="default"] h1 {
+  font-family: var(--mh-font);
+  font-weight: var(--mh-weight);
+  background: var(--mh-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--mh-fallback);
+  text-shadow: none;
+  filter:
+    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.5))
+    drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35))
+    drop-shadow(0 3px 6px rgba(0, 0, 0, 0.18));
+}
+
+/* — shared TECHNIQUE: DARK-card eras (bright gloss ramp on a dark plate) — */
+.branching-player[data-era="default"][data-theme="expedition-journal"] h1,
+.branching-player[data-era="cold-war"][data-theme="declassified-typewriter"] h1 {
+  font-family: var(--mh-font);
+  font-weight: var(--mh-weight);
+  background: var(--mh-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--mh-fallback);
+  text-shadow: none;
+  filter:
+    drop-shadow(0 1px 0 rgba(255, 244, 214, 0.35))
+    drop-shadow(0 2px 2px rgba(0, 0, 0, 0.6))
+    drop-shadow(0 6px 14px rgba(0, 0, 0, 0.55));
+}
+.branching-player[data-era="default"][data-theme="expedition-journal"] [data-slot="masthead"],
+.branching-player[data-era="cold-war"][data-theme="declassified-typewriter"] [data-slot="masthead"] {
+  background: var(--mh-plate);
+  border: 1px solid var(--mh-plate-border, #6e5a2a);
+  border-radius: 8px;
+  padding: 0.5em 1em 0.65em;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 244, 214, 0.12);
+}
+/* cold-war's era h1 carries a light border + red rule meant for light paper;
+   on the steel plate they double up, so clear them and let the plate frame. */
+.branching-player[data-era="cold-war"][data-theme="declassified-typewriter"] h1 {
+  border: none;
+  box-shadow: none;
+  padding: 0;
 }
 
 /* --- body slot ------------------------------------------------------------ */
