@@ -1422,6 +1422,14 @@ a.theme-dialogue-attribution-link:hover {
   color: var(--accent);
   border-color: var(--accent);
 }
+/* Inside the BranchingPlayer, the skin's --accent (tuned for light paper)
+   lands the Read button on the player's DARK prose card — burgundy/ink on
+   dark = illegible (≈1.2–2.3:1). Restore the player's own text/border
+   tokens, which read against the dark card across every era. */
+.branching-player [data-slot="tts"] {
+  color: var(--player-text) !important;
+  border-color: var(--player-btn-border) !important;
+}
 
 /* --- body slot ------------------------------------------------------------ */
 [data-slot="passage"][data-theme] [data-slot="body"] {
