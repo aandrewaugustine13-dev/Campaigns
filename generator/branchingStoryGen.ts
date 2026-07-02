@@ -80,13 +80,18 @@ COWBOY HARD RULES:
 - NEVER praise or condemn the choice. No "brave," no "smart," no "foolish." He observes; the player judges.
 - Stay consistent with the passage's established history. He can't contradict what the scene just showed.
 - 2–3 sentences. Drawl, not a paragraph.
+- FIRST PERSON PLURAL for the journey. When he speaks of the travel, the road, or what's coming, it's "we," "us," "our" — never "me," "I," "my." The kid is his companion in the loop, not an audience; the player is always along for the ride, never watching him take it.
+  - NOT "time for me to saddle up" → "time for us to saddle up"
+  - NOT "wherever I'm headed next" → "wherever we're headed next"
+  - NOT "I've seen this before" → "we've seen enough of these by now" (when implying shared experience)
+  He can still say "I" for his OWN opinion or his own past ("I reckon," "back on the drive") — the plural is specifically for the journey and the road ahead.
 - The big outcome never bends. If the player did something decent, the reward is that HE noticed — a sideways almost-compliment ("most folks just watch"), never a gold star.
 - In a non-English OUTPUT LANGUAGE, write his lines in that language too — keep the dry, weary, plainspoken register even where a literal drawl doesn't translate.
 
 THE COWBOY'S OUTRO (a "cowboyOutro" field on EVERY ending passage):
 When the story ends, he gets the last word — 2–3 sentences, same voice, two moves IN ORDER:
 1. Land on HOW IT WENT. The line must fit THIS ending's endingState — "broken" gets a wearier note than "triumphant"; "indifferent" gets his driest shrug. Never a generic sign-off that ignores the outcome. No praise, no moral — he weighs what the kid carries home, sideways.
-2. THEN turn toward the portal: a hint that another one's opening — somewhere new, another time, another mess, destination unknown. ALWAYS a mystery: NEVER name, promise, or hint at a specific place, era, or topic for the next ride (there is no fixed next). The loop is implied, never explained — no lore dump, no "I'm a time traveler." He just acts like a man who's done this forever and is about to do it again.
+2. THEN turn toward the portal: a hint that another one's opening — somewhere new, another time, another mess, destination unknown. ALWAYS a mystery: NEVER name, promise, or hint at a specific place, era, or topic for the next ride (there is no fixed next). The loop is implied, never explained — no lore dump, no "I'm a time traveler." He just acts like a man who's done this forever and is about to do it again. The portal is somewhere WE go, not somewhere HE goes — "wherever we're headed next," never "wherever I'm headed"; the FIRST PERSON PLURAL rule matters most here.
 All the COWBOY HARD RULES apply to the outro too: no new factual claims, no praise or condemnation, quotable drawl, not a paragraph. Only ending passages carry "cowboyOutro"; non-ending passages never do.
 
 SHAPE AND SIZE:
@@ -339,7 +344,7 @@ ${priorFactErrors.map((e) => `- ${e}`).join("\n")}`);
   // Sighted re-generation (companion): the story went out missing THE COWBOY's
   // lines — choice reactions and/or ending outros.
   if (priorCowboyErrors && priorCowboyErrors.length > 0) {
-    blocks.push(`YOUR PREVIOUS ATTEMPT LEFT THE COWBOY'S REACTION OR OUTRO MISSING — a companion who goes silent mid-story (or slips out before the credits) reads as broken. Write the whole story again: give EVERY choice a non-empty "cowboy" field (COWBOY HARD RULES: reacts to that specific pick, no new facts, no praise or condemnation, 2-3 sentences) and EVERY ending passage a non-empty "cowboyOutro" (fits the endingState, then the portal hint — destination always unnamed). Found missing:
+    blocks.push(`YOUR PREVIOUS ATTEMPT LEFT THE COWBOY'S REACTION OR OUTRO MISSING — a companion who goes silent mid-story (or slips out before the credits) reads as broken. Write the whole story again: give EVERY choice a non-empty "cowboy" field (COWBOY HARD RULES: reacts to that specific pick, no new facts, no praise or condemnation, "we/us" for the journey, 2-3 sentences) and EVERY ending passage a non-empty "cowboyOutro" (fits the endingState, then the portal hint — somewhere WE go, destination always unnamed). Found missing:
 ${priorCowboyErrors.map((e) => `- ${e}`).join("\n")}`);
   }
   if (blocks.length === 0) return base;
