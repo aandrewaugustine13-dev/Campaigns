@@ -598,12 +598,22 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
                 Shows on the passage that pick led to, endings included (the
                 final choice deserves his line too). */}
             {recentChoice?.cowboy && (
-              <div data-slot="cowboy" key={`cowboy-${currentId}`} className="mb-3 border-l-2 border-[var(--player-border-accent)] bg-[var(--player-bg-card-muted)]/60 rounded-r-lg pl-3 pr-3 py-2">
-                <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[2px] text-[var(--player-text-accent-2)]">
-                  <span className="text-sm leading-none" aria-hidden="true">🤠</span>
-                  <span>The Cowboy</span>
+              <div data-slot="cowboy" key={`cowboy-${currentId}`} className="mb-3 flex items-start gap-3 border-l-2 border-[var(--player-border-accent)] bg-[var(--player-bg-card-muted)]/60 rounded-r-lg pl-3 pr-3 py-2">
+                {/* PLACEHOLDER portrait — one fixed image for all eras, hardcoded
+                    on purpose (NOT the per-era asset pipeline). Source art is a
+                    wide landscape with the face right-of-center; object-position
+                    frames it in the round crop. Decorative: the label names him. */}
+                <img
+                  src="/branching/cowboy-placeholder.png"
+                  alt=""
+                  aria-hidden="true"
+                  className="w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 rounded-full object-cover border border-[var(--player-border-accent)]"
+                  style={{ objectPosition: '62% 28%' }}
+                />
+                <div>
+                  <div className="text-[10px] uppercase tracking-[2px] text-[var(--player-text-accent-2)]">The Cowboy</div>
+                  <p className="mt-1 text-sm italic leading-[1.6] text-[var(--player-text-prose)]">{recentChoice.cowboy}</p>
                 </div>
-                <p className="mt-1 text-sm italic leading-[1.6] text-[var(--player-text-prose)]">{recentChoice.cowboy}</p>
               </div>
             )}
 
