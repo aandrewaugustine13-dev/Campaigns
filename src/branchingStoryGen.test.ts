@@ -23,17 +23,27 @@ vi.mock("@google/genai", () => ({
     TYPE_UNSPECIFIED: "TYPE_UNSPECIFIED", STRING: "STRING", NUMBER: "NUMBER",
     INTEGER: "INTEGER", BOOLEAN: "BOOLEAN", ARRAY: "ARRAY", OBJECT: "OBJECT", NULL: "NULL",
   },
+  // Module-level SAFETY_SETTINGS in branchingStoryGen/factGate read these enums at import time.
+  HarmCategory: {
+    HARM_CATEGORY_DANGEROUS_CONTENT: "HARM_CATEGORY_DANGEROUS_CONTENT",
+    HARM_CATEGORY_HARASSMENT: "HARM_CATEGORY_HARASSMENT",
+  },
+  HarmBlockThreshold: { BLOCK_ONLY_HIGH: "BLOCK_ONLY_HIGH" },
 }));
 
 import { generateBranchingStory } from "../generator/branchingStoryGen";
 import { validateStory, type BranchingStory } from "../generator/branchingStory";
 
-// A minimal VALID story: start forks to two endings — playable, two endings, no traps.
+// A minimal VALID story: start forks to two endings — playable, two endings, no
+// traps, and every choice carries its cowboy line (the generator enforces that).
 function validStory(): BranchingStory {
   return {
     title: "T", protagonist: "x", start: "p1",
     passages: [
-      { id: "p1", text: "Start.", choices: [{ text: "a", next: "e1" }, { text: "b", next: "e2" }] },
+      { id: "p1", text: "Start.", choices: [
+        { text: "a", next: "e1", cowboy: "Reckon you had to." },
+        { text: "b", next: "e2", cowboy: "Seen that pick before." },
+      ] },
       { id: "e1", text: "End A.", ending: true, endingState: "triumphant" },
       { id: "e2", text: "End B.", ending: true, endingState: "broken" },
     ],
@@ -44,7 +54,10 @@ function brokenStory(): BranchingStory {
   return {
     title: "T", protagonist: "x", start: "p1",
     passages: [
-      { id: "p1", text: "Start.", choices: [{ text: "a", next: "ghost" }, { text: "b", next: "e2" }] },
+      { id: "p1", text: "Start.", choices: [
+        { text: "a", next: "ghost", cowboy: "Off you go, then." },
+        { text: "b", next: "e2", cowboy: "Quiet road. Suits some." },
+      ] },
       { id: "e2", text: "End.", ending: true, endingState: "indifferent" },
     ],
   };
@@ -106,6 +119,23 @@ describe("generateBranchingStory — robustness (repair loop, exercised)", () =>
     expect(res.ok).toBe(true);
   });
 
+  it("re-generates when a choice is missing its COWBOY line (sighted companion feedback, not a graph error)", async () => {
+    const mute = validStory();
+    delete (mute.passages[0].choices![0] as any).cowboy;
+    h.responses = [JSON.stringify(mute), JSON.stringify(validStory())];
+
+    const res = await generateBranchingStory({ topic: "t", standard: "s" }, "key", { factGate: false });
+
+    expect(h.userMessages.length).toBe(2);
+    expect(h.userMessages[1]).toMatch(/COWBOY'S REACTION/);
+    expect(h.userMessages[1]).toContain(`passage "p1", choice 1`);
+    expect(h.userMessages[1]).not.toMatch(/UNPLAYABLE STORY GRAPH/);
+    expect(res.ok).toBe(true);
+    expect(res.attempts).toBe(2);
+    // The shipped story has a line on EVERY choice.
+    for (const p of res.story!.passages) for (const c of p.choices ?? []) expect(c.cowboy?.trim()).toBeTruthy();
+  });
+
   it("threads the teacher's mustCover note into the prompt", async () => {
     h.responses = [JSON.stringify(validStory())];
     await generateBranchingStory({ topic: "t", standard: "s", mustCover: "SHOW_THE_CHALK_MARKS" }, "key", { factGate: false });
@@ -127,7 +157,10 @@ describe("generateBranchingStory — factGate (history) is wired into the loop",
     return {
       title: "T", protagonist: "x", start: "p1",
       passages: [
-        { id: "p1", text: "Start.", choices: [{ text: "a", next: "e1" }, { text: "b", next: "e2" }] },
+        { id: "p1", text: "Start.", choices: [
+          { text: "a", next: "e1", cowboy: "Reckon you had to." },
+          { text: "b", next: "e2", cowboy: "Seen that pick before." },
+        ] },
         { id: "e1", text: "End A.", ending: true, endingState: "triumphant" },
         { id: "e2", text: "End B.", ending: true, endingState: "broken" },
       ],

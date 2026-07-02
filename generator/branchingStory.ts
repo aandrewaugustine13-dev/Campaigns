@@ -14,6 +14,12 @@ export interface BranchingChoice {
   text: string;
   /** The id of the passage this choice leads to. */
   next: string;
+  /** THE COWBOY's reaction to picking THIS option — the time-looped companion
+   * voice (2–3 drawled sentences). Shown on the NEXT passage after the pick.
+   * Reacts to the specific choice, teaches sideways, introduces no new facts,
+   * never praises or condemns. Optional in the type (legacy stories predate
+   * him); the generator enforces presence on every new story. */
+  cowboy?: string;
 }
 
 /** A multiple-choice "sage-style" question triggered at a major historical figure encounter or turning point.
@@ -209,7 +215,7 @@ export interface StoryFinding {
   level: "error" | "warn";
   code: "root" | "passages" | "start" | "no-start" | "dup-id" | "dead-end"
       | "dangling-next" | "unreachable" | "trap-no-ending" | "no-ending" | "shape"
-      | "fact-gate" | "ending-state";
+      | "fact-gate" | "ending-state" | "cowboy";
   message: string;
 }
 

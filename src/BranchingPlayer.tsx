@@ -282,8 +282,8 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
   const [isSpeaking, setIsSpeaking] = useState(false);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-  // Track recent choice for consequence feedback
-  const [recentChoice, setRecentChoice] = useState<{text: string, lean?: "broken" | "indifferent" | "triumphant"} | null>(null);
+  // Track recent choice for consequence feedback + the cowboy's reaction to it
+  const [recentChoice, setRecentChoice] = useState<{text: string, lean?: "broken" | "indifferent" | "triumphant", cowboy?: string} | null>(null);
 
   const current = byId.get(currentId);
 
@@ -350,7 +350,7 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
     if (!c || !byId.has(c.next) || isAdvancing) return; // defensive + prevent double
     const nextP = byId.get(c.next);
     const lean = nextP?.endingState || getReachableEnding(c.next);
-    setRecentChoice({ text: c.text, lean: lean || undefined });
+    setRecentChoice({ text: c.text, lean: lean || undefined, cowboy: c.cowboy?.trim() || undefined });
     setSelectedChoiceIndex(choiceIndex);
     setIsAdvancing(true);
     // Small delay + visual feedback for smoother "page turn" feel between passages
@@ -594,8 +594,21 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
               </div>
             )}
 
-            {/* Brief consequence hint from recent choice */}
-            {!ended && recentChoice && (
+            {/* THE COWBOY — the companion's reaction to the pick just made.
+                Shows on the passage that pick led to, endings included (the
+                final choice deserves his line too). */}
+            {recentChoice?.cowboy && (
+              <div data-slot="cowboy" key={`cowboy-${currentId}`} className="mb-3 border-l-2 border-[var(--player-border-accent)] bg-[var(--player-bg-card-muted)]/60 rounded-r-lg pl-3 pr-3 py-2">
+                <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[2px] text-[var(--player-text-accent-2)]">
+                  <span className="text-sm leading-none" aria-hidden="true">🤠</span>
+                  <span>The Cowboy</span>
+                </div>
+                <p className="mt-1 text-sm italic leading-[1.6] text-[var(--player-text-prose)]">{recentChoice.cowboy}</p>
+              </div>
+            )}
+
+            {/* Brief consequence hint from recent choice (legacy stories without cowboy lines) */}
+            {!ended && recentChoice && !recentChoice.cowboy && (
               <div className="mb-2 text-xs text-[var(--player-text-muted)] italic border-l-2 border-[var(--player-border-muted)] pl-2">
                 Because you chose this...
                 {recentChoice.lean && (

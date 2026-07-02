@@ -137,6 +137,63 @@ describe("branching player — robust to broken generator output", () => {
   });
 });
 
+// ── THE COWBOY — companion reaction to the SPECIFIC pick, on the next passage ──
+describe("branching player — the cowboy companion voice", () => {
+  beforeEach(() => { vi.useFakeTimers(); });
+  afterEach(() => { vi.useRealTimers(); cleanup(); });
+
+  const story: BranchingStory = {
+    title: "Cowboy", protagonist: "x", start: "p1",
+    passages: [
+      { id: "p1", text: "Tetzel preaches in the square.", choices: [
+        { text: "confront him", next: "p2", cowboy: "Yellin' at one friar. Hundred more behind him." },
+        { text: "walk away", next: "p2", cowboy: "Kept your head down. Most do." },
+      ] },
+      { id: "p2", text: "The square empties.", choices: [
+        { text: "go home", next: "end", cowboy: "Home's still there. That's somethin'." },
+      ] },
+      { id: "end", text: "It is over.", ending: true, endingState: "indifferent" },
+    ],
+  };
+
+  it("shows HIS reaction to the pick made (never the other option's), endings included", () => {
+    const { container, getAllByRole } = render(<BranchingPlayer story={story} />);
+    // Silent until the first pick — no companion box on the opening passage.
+    expect(container.textContent).not.toContain("The Cowboy");
+
+    const confront = getAllByRole("button").find((b) => (b.textContent ?? "").trim().endsWith("confront him"))!;
+    fireEvent.click(confront);
+    act(() => { vi.advanceTimersByTime(250); });
+    expect(container.textContent).toContain("The Cowboy");
+    expect(container.textContent).toContain("Yellin' at one friar");
+    expect(container.textContent).not.toContain("Kept your head down"); // the road not taken stays silent
+
+    // The final pick's line still lands on the ENDING passage.
+    const home = getAllByRole("button").find((b) => (b.textContent ?? "").trim().endsWith("go home"))!;
+    fireEvent.click(home);
+    act(() => { vi.advanceTimersByTime(250); });
+    expect(container.textContent).toContain("Home's still there");
+    expect(container.textContent).toContain("It is over.");
+  });
+
+  it("legacy stories without cowboy lines keep the old consequence hint (no empty companion box)", () => {
+    const legacy: BranchingStory = {
+      title: "Legacy", protagonist: "x", start: "p1",
+      passages: [
+        { id: "p1", text: "Start.", choices: [{ text: "onward", next: "mid" }] },
+        { id: "mid", text: "Middle.", choices: [{ text: "finish", next: "end" }] },
+        { id: "end", text: "Done.", ending: true, endingState: "triumphant" },
+      ],
+    };
+    const { container, getAllByRole } = render(<BranchingPlayer story={legacy} />);
+    const btn = getAllByRole("button").find((b) => (b.textContent ?? "").trim().endsWith("onward"))!;
+    fireEvent.click(btn);
+    act(() => { vi.advanceTimersByTime(250); });
+    expect(container.textContent).not.toContain("The Cowboy");
+    expect(container.textContent).toContain("Because you chose this...");
+  });
+});
+
 // ── B. Every real generated story plays clean to BOTH endings ──
 describe("branching player — plays all three real generated stories", () => {
   // play() drives the player through its 200ms page-turn setTimeout; fake

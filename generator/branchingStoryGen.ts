@@ -44,7 +44,7 @@ VOICE (the AUDIENCE block in the instructions sets sentence style and how mature
 
 LANGUAGE:
 - OUTPUT LANGUAGE will be specified in the user message (defaults to English).
-- Generate ALL human-readable content (passages/text, protagonist, title, question texts/choices/explanations, finalQuiz title/instructions/questions/choices/explanations) directly in the target language.
+- Generate ALL human-readable content (passages/text, protagonist, title, cowboy reaction lines, question texts/choices/explanations, finalQuiz title/instructions/questions/choices/explanations) directly in the target language.
 - Use fluent, natural, culturally appropriate high-quality prose in that language, respecting the prose register and content maturity.
 - JSON structure and keys stay in English. Only the *content values* switch language.
 - For English: no change from current behavior.
@@ -65,6 +65,23 @@ BRANCHING — STANCE, not route:
   - "triumphant": they come through changed but whole — the cost was real, but they hold onto something worth holding.
   - "indifferent": they survive by keeping their head down and coasting — they pass through without it costing them, or teaching them, much.
   - "broken": they survive, but pay a heavy price — something in them or their world is lost for good.
+
+THE COWBOY (companion voice — a "cowboy" field on EVERY choice):
+A cattle-hand who wandered into a time-loop portal on a drive and has been stuck for a very long time — long enough to read everything and watch this exact history play out ten thousand times. He knows how it ends. He can't change it, neither can the player, and he's made his peace with that. The kid riding his wavelength is the first unpredictable thing he's had in an age, and it's the only reason the loop's bearable. He doesn't say any of this. It's just under everything he says.
+
+Voice: dry Texas drawl, well-read underneath but never shows off. Weary, wry, occasionally exasperated — the exasperation is the tell that he actually cares. Think the Stranger in The Big Lebowski: fatalist, warm, never grabs the wheel.
+
+For EVERY choice, write a "cowboy" field — his reaction to THAT specific pick.
+
+COWBOY HARD RULES:
+- React to the CHOICE the player made, not the scene in general. The line should only make sense because they picked THIS option.
+- Teach SIDEWAYS. Never state the lesson. Show him seeing a consequence the player didn't, and let the player infer the point. Good (kid confronts Tetzel): "Yellin' at one friar. Hundred more behind him, and a Pope behind them." — never says "it was systemic," makes them see it.
+- NO new factual claims — no dates, names, or events not already in the passage. He interprets what's there; he never introduces facts. (This keeps him honest without a fact-check.)
+- NEVER praise or condemn the choice. No "brave," no "smart," no "foolish." He observes; the player judges.
+- Stay consistent with the passage's established history. He can't contradict what the scene just showed.
+- 2–3 sentences. Drawl, not a paragraph.
+- The big outcome never bends. If the player did something decent, the reward is that HE noticed — a sideways almost-compliment ("most folks just watch"), never a gold star.
+- In a non-English OUTPUT LANGUAGE, write his lines in that language too — keep the dry, weary, plainspoken register even where a literal drawl doesn't translate.
 
 SHAPE AND SIZE:
 - The story's SCOPE is set in the instructions below ("span" or "depth") — it governs the length and the shape; follow it.
@@ -135,7 +152,7 @@ FINAL QUIZ / EXAM:
 This brings back the legacy "sage questions asked by figures during the story + final comprehension check at the end" experience, now adapted to the branching engine and pulling from both encounters and the teacher's selected TEKS.
 
 OUTPUT SHAPE (TypeScript for reference — output JSON only):
-interface Choice { text: string; next: string; }   // next = the id of the passage this choice leads to
+interface Choice { text: string; next: string; cowboy: string; }   // next = the id of the passage this choice leads to; cowboy = THE COWBOY's 2–3 sentence reaction to picking THIS option (see THE COWBOY rules) — REQUIRED on every choice
 interface Passage { id: string; text: string; choices?: Choice[]; ending?: boolean; endingState?: "broken" | "indifferent" | "triumphant"; question?: { question: string; choices: string[]; correctIndex: number; explanation: string }; }  // "question" ONLY on sage-style figure-encounter passages when GUMP HIGH; these are distinct moments
 interface BranchingStory { 
   title: string; 
@@ -148,7 +165,7 @@ interface BranchingStory {
   finalQuiz?: { title: string; instructions: string; questions: Array<{question: string; choices: string[]; correctIndex: number; explanation: string; context?: string}> };
 }
 
-RULES: ids are short kebab-case and unique. "start" is the id of the first passage. EVERY choice's "next" must be the id of a real passage in the list. Every passage either has 2-3 choices OR ending:true (never both, never neither). EVERY ending passage has an "endingState" of "broken", "indifferent", or "triumphant" — never death; the protagonist always survives to the aftermath. All three states are reachable from start. No passage is unreachable from start. "question" appears ONLY on sage figure-encounter passages (GUMP HIGH). Include coreSageQuestions and finalQuiz at top level for reliable coverage and end assessment. Output ONLY the JSON object conforming to BranchingStory.`;
+RULES: ids are short kebab-case and unique. "start" is the id of the first passage. EVERY choice's "next" must be the id of a real passage in the list. EVERY choice carries a non-empty "cowboy" line obeying the COWBOY HARD RULES (reacts to that specific pick, no new facts, no praise or condemnation, 2-3 sentences). Every passage either has 2-3 choices OR ending:true (never both, never neither). EVERY ending passage has an "endingState" of "broken", "indifferent", or "triumphant" — never death; the protagonist always survives to the aftermath. All three states are reachable from start. No passage is unreachable from start. "question" appears ONLY on sage figure-encounter passages (GUMP HIGH). Include coreSageQuestions and finalQuiz at top level for reliable coverage and end assessment. Output ONLY the JSON object conforming to BranchingStory.`;
 
 export interface BranchingInputs {
   /** What the story is about (authoritative). */
@@ -212,7 +229,7 @@ export interface BranchingGenResult {
   factGate?: FactGateResult;
 }
 
-function buildUserMessage(inputs: BranchingInputs, priorErrors?: string[], priorFactErrors?: string[]): string {
+function buildUserMessage(inputs: BranchingInputs, priorErrors?: string[], priorFactErrors?: string[], priorCowboyErrors?: string[]): string {
   const mustCover = inputs.mustCover && inputs.mustCover.trim()
     ? `\nMUST COVER (the teacher's required content — weave these naturally into the story, never as a list): ${inputs.mustCover.trim()}`
     : "";
@@ -313,6 +330,11 @@ ${priorErrors.map((e) => `- ${e}`).join("\n")}`);
     blocks.push(`YOUR PREVIOUS ATTEMPT CONTAINED HISTORICAL ERRORS — false or invented facts. A kids' history tool must never teach a wrong fact. Write the whole story again and keep EVERY historical detail (dates, numbers, named real people, places, events, causes) accurate; weave the corrected facts in naturally. Errors found:
 ${priorFactErrors.map((e) => `- ${e}`).join("\n")}`);
   }
+  // Sighted re-generation (companion): choices went out without THE COWBOY's line.
+  if (priorCowboyErrors && priorCowboyErrors.length > 0) {
+    blocks.push(`YOUR PREVIOUS ATTEMPT LEFT CHOICES WITHOUT THE COWBOY'S REACTION — a companion who goes silent mid-story reads as broken. Write the whole story again and give EVERY choice a non-empty "cowboy" field obeying the COWBOY HARD RULES (reacts to that specific pick, no new facts, no praise or condemnation, 2-3 sentences). Choices found without one:
+${priorCowboyErrors.map((e) => `- ${e}`).join("\n")}`);
+  }
   if (blocks.length === 0) return base;
   return `${base}\n\n${blocks.join("\n\n")}`;
 }
@@ -334,14 +356,17 @@ export async function generateBranchingStory(
   };
   let priorErrors: string[] = [];
   let priorFactErrors: string[] = [];
+  let priorCowboyErrors: string[] = [];
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const response = await client.models.generateContent({
       model: MODEL,
-      contents: buildUserMessage(inputs, attempt > 1 ? priorErrors : undefined, attempt > 1 ? priorFactErrors : undefined),
+      contents: buildUserMessage(inputs, attempt > 1 ? priorErrors : undefined, attempt > 1 ? priorFactErrors : undefined, attempt > 1 ? priorCowboyErrors : undefined),
       config: {
         systemInstruction: SYSTEM_PROMPT,
-        maxOutputTokens: 16000,
+        // 2–3 cowboy sentences on every choice add real bulk to a 30–50 passage
+        // story; a truncated JSON surfaces as a wasteful parse-fail retry.
+        maxOutputTokens: 24000,
         responseMimeType: "application/json",
         safetySettings: SAFETY_SETTINGS,
       },
@@ -368,6 +393,7 @@ export async function generateBranchingStory(
       // Plain regeneration on retry — no graph/fact feedback to feed back here.
       priorErrors = [];
       priorFactErrors = [];
+      priorCowboyErrors = [];
       continue;
     }
 
@@ -384,6 +410,8 @@ export async function generateBranchingStory(
       };
       last = { ok: false, validation, attempts: attempt, raw };
       priorErrors = ["the output did not parse as JSON — return ONLY the single JSON object, nothing else"];
+      priorFactErrors = [];
+      priorCowboyErrors = [];
       console.warn(`[branching] attempt ${attempt}/${maxAttempts}: parse failed — retrying`);
       continue;
     }
@@ -391,6 +419,32 @@ export async function generateBranchingStory(
     const validation = validateStory(parsed);
     if (validation.playable) {
       const story = parsed as BranchingStory;
+
+      // THE COWBOY reacts to EVERY choice — a companion who goes silent
+      // mid-story reads as broken. His craft rules (sideways teaching, no new
+      // facts) can't be machine-checked, but PRESENCE can, so it's enforced
+      // like a graph error: sighted feedback + re-generation, before spending
+      // anything on the fact gate.
+      const muteChoices = story.passages.flatMap((p) =>
+        (p.choices ?? []).flatMap((c, i) =>
+          c?.cowboy && c.cowboy.trim()
+            ? []
+            : [`passage "${p.id}", choice ${i + 1} ("${(c?.text ?? "").slice(0, 60)}")`]
+        )
+      );
+      if (muteChoices.length > 0) {
+        const cowboyValidation: StoryValidation = {
+          findings: muteChoices.map((m) => ({ level: "error" as const, code: "cowboy" as const, message: `${m}: missing its "cowboy" line` })),
+          playable: false,
+        };
+        last = { ok: false, validation: cowboyValidation, attempts: attempt, raw };
+        priorErrors = [];
+        priorFactErrors = [];
+        priorCowboyErrors = muteChoices;
+        console.warn(`[branching] attempt ${attempt}/${maxAttempts}: ${muteChoices.length} choice(s) missing a cowboy line — re-generating`);
+        continue;
+      }
+
       story.outputLanguage = inputs.outputLanguage || "English";
       if (inputs.era) {
         story.era = inputs.era;
@@ -472,6 +526,7 @@ export async function generateBranchingStory(
       // Feed the exact historical errors back and re-generate.
       last = { ok: false, validation, attempts: attempt, raw, factGate: gate };
       priorErrors = [];
+      priorCowboyErrors = [];
       priorFactErrors = gate.residual.map((c) => `"${c.quote}" — ${c.why} (correct: ${c.correct})`);
       console.warn(`[branching] attempt ${attempt}/${maxAttempts}: ${gate.residual.length} uncorrected historical error(s) — re-generating`);
       continue;
@@ -481,6 +536,7 @@ export async function generateBranchingStory(
     last = { ok: false, validation, attempts: attempt, raw };
     priorErrors = validation.findings.filter((f) => f.level === "error").map((f) => `[${f.code}] ${f.message}`);
     priorFactErrors = [];
+    priorCowboyErrors = [];
     console.warn(`[branching] attempt ${attempt}/${maxAttempts}: ${priorErrors.length} validation error(s) — re-generating:`);
     for (const e of priorErrors) console.warn(`[branching]    ✗ ${e}`);
   }
