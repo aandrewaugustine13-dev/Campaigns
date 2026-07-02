@@ -35,7 +35,8 @@ import { generateBranchingStory } from "../generator/branchingStoryGen";
 import { validateStory, type BranchingStory } from "../generator/branchingStory";
 
 // A minimal VALID story: start forks to two endings — playable, two endings, no
-// traps, and every choice carries its cowboy line (the generator enforces that).
+// traps, every choice carries its cowboy line, and every ending its cowboyOutro
+// (the generator enforces both).
 function validStory(): BranchingStory {
   return {
     title: "T", protagonist: "x", start: "p1",
@@ -44,8 +45,8 @@ function validStory(): BranchingStory {
         { text: "a", next: "e1", cowboy: "Reckon you had to." },
         { text: "b", next: "e2", cowboy: "Seen that pick before." },
       ] },
-      { id: "e1", text: "End A.", ending: true, endingState: "triumphant" },
-      { id: "e2", text: "End B.", ending: true, endingState: "broken" },
+      { id: "e1", text: "End A.", ending: true, endingState: "triumphant", cowboyOutro: "Held together, mostly. Door's hummin' again." },
+      { id: "e2", text: "End B.", ending: true, endingState: "broken", cowboyOutro: "Some rides cost. Another one's openin'." },
     ],
   };
 }
@@ -58,7 +59,7 @@ function brokenStory(): BranchingStory {
         { text: "a", next: "ghost", cowboy: "Off you go, then." },
         { text: "b", next: "e2", cowboy: "Quiet road. Suits some." },
       ] },
-      { id: "e2", text: "End.", ending: true, endingState: "indifferent" },
+      { id: "e2", text: "End.", ending: true, endingState: "indifferent", cowboyOutro: "Passed through clean. Saddle up." },
     ],
   };
 }
@@ -136,6 +137,22 @@ describe("generateBranchingStory — robustness (repair loop, exercised)", () =>
     for (const p of res.story!.passages) for (const c of p.choices ?? []) expect(c.cowboy?.trim()).toBeTruthy();
   });
 
+  it("re-generates when an ENDING is missing its cowboyOutro (same sighted companion feedback)", async () => {
+    const mute = validStory();
+    delete (mute.passages[1] as any).cowboyOutro;
+    h.responses = [JSON.stringify(mute), JSON.stringify(validStory())];
+
+    const res = await generateBranchingStory({ topic: "t", standard: "s" }, "key", { factGate: false });
+
+    expect(h.userMessages.length).toBe(2);
+    expect(h.userMessages[1]).toMatch(/cowboyOutro/);
+    expect(h.userMessages[1]).toContain(`ending passage "e1"`);
+    expect(res.ok).toBe(true);
+    expect(res.attempts).toBe(2);
+    // The shipped story closes EVERY ending with his outro.
+    for (const p of res.story!.passages) if (p.ending) expect(p.cowboyOutro?.trim()).toBeTruthy();
+  });
+
   it("threads the teacher's mustCover note into the prompt", async () => {
     h.responses = [JSON.stringify(validStory())];
     await generateBranchingStory({ topic: "t", standard: "s", mustCover: "SHOW_THE_CHALK_MARKS" }, "key", { factGate: false });
@@ -161,8 +178,8 @@ describe("generateBranchingStory — factGate (history) is wired into the loop",
           { text: "a", next: "e1", cowboy: "Reckon you had to." },
           { text: "b", next: "e2", cowboy: "Seen that pick before." },
         ] },
-        { id: "e1", text: "End A.", ending: true, endingState: "triumphant" },
-        { id: "e2", text: "End B.", ending: true, endingState: "broken" },
+        { id: "e1", text: "End A.", ending: true, endingState: "triumphant", cowboyOutro: "Held together, mostly. Door's hummin' again." },
+        { id: "e2", text: "End B.", ending: true, endingState: "broken", cowboyOutro: "Some rides cost. Another one's openin'." },
       ],
     };
   }

@@ -59,6 +59,14 @@ export interface BranchingPassage {
    * is "high" and the protagonist meets a real famous figure). Exactly one per
    * encounter; non-encounter passages carry none. */
   question?: BranchingQuestion;
+  /** THE COWBOY's closing word — ENDING passages only. Lands on how this
+   * specific ending went (fits the endingState), then turns toward the next
+   * portal opening: somewhere new, destination always a mystery — never a
+   * named or promised next campaign. Same voice rules as his choice
+   * reactions; the loop is implied, never explained. Optional in the type
+   * (legacy stories predate him); the generator enforces presence on every
+   * new story's endings. */
+  cowboyOutro?: string;
 }
 
 export interface BranchingStory {

@@ -14,7 +14,7 @@
 // ════════════════════════════════════════════════════════════════
 import { GoogleGenAI, HarmCategory, HarmBlockThreshold } from "@google/genai";
 import { parseModelJson } from "./json.js";
-import { validateStory, type BranchingStory, type BranchingQuestion, type StoryValidation } from "./branchingStory.js";
+import { validateStory, isEnding, type BranchingStory, type BranchingQuestion, type StoryValidation } from "./branchingStory.js";
 import { runFactGate, type FactGateResult } from "./factGate.js";
 
 const MODEL = "gemini-3.5-flash"; // the writer that produced the proven stories
@@ -82,6 +82,12 @@ COWBOY HARD RULES:
 - 2–3 sentences. Drawl, not a paragraph.
 - The big outcome never bends. If the player did something decent, the reward is that HE noticed — a sideways almost-compliment ("most folks just watch"), never a gold star.
 - In a non-English OUTPUT LANGUAGE, write his lines in that language too — keep the dry, weary, plainspoken register even where a literal drawl doesn't translate.
+
+THE COWBOY'S OUTRO (a "cowboyOutro" field on EVERY ending passage):
+When the story ends, he gets the last word — 2–3 sentences, same voice, two moves IN ORDER:
+1. Land on HOW IT WENT. The line must fit THIS ending's endingState — "broken" gets a wearier note than "triumphant"; "indifferent" gets his driest shrug. Never a generic sign-off that ignores the outcome. No praise, no moral — he weighs what the kid carries home, sideways.
+2. THEN turn toward the portal: a hint that another one's opening — somewhere new, another time, another mess, destination unknown. ALWAYS a mystery: NEVER name, promise, or hint at a specific place, era, or topic for the next ride (there is no fixed next). The loop is implied, never explained — no lore dump, no "I'm a time traveler." He just acts like a man who's done this forever and is about to do it again.
+All the COWBOY HARD RULES apply to the outro too: no new factual claims, no praise or condemnation, quotable drawl, not a paragraph. Only ending passages carry "cowboyOutro"; non-ending passages never do.
 
 SHAPE AND SIZE:
 - The story's SCOPE is set in the instructions below ("span" or "depth") — it governs the length and the shape; follow it.
@@ -153,7 +159,7 @@ This brings back the legacy "sage questions asked by figures during the story + 
 
 OUTPUT SHAPE (TypeScript for reference — output JSON only):
 interface Choice { text: string; next: string; cowboy: string; }   // next = the id of the passage this choice leads to; cowboy = THE COWBOY's 2–3 sentence reaction to picking THIS option (see THE COWBOY rules) — REQUIRED on every choice
-interface Passage { id: string; text: string; choices?: Choice[]; ending?: boolean; endingState?: "broken" | "indifferent" | "triumphant"; question?: { question: string; choices: string[]; correctIndex: number; explanation: string }; }  // "question" ONLY on sage-style figure-encounter passages when GUMP HIGH; these are distinct moments
+interface Passage { id: string; text: string; choices?: Choice[]; ending?: boolean; endingState?: "broken" | "indifferent" | "triumphant"; cowboyOutro?: string; question?: { question: string; choices: string[]; correctIndex: number; explanation: string }; }  // "question" ONLY on sage-style figure-encounter passages when GUMP HIGH; "cowboyOutro" REQUIRED on every ending passage (see THE COWBOY'S OUTRO) and forbidden elsewhere
 interface BranchingStory { 
   title: string; 
   protagonist: string; 
@@ -165,7 +171,7 @@ interface BranchingStory {
   finalQuiz?: { title: string; instructions: string; questions: Array<{question: string; choices: string[]; correctIndex: number; explanation: string; context?: string}> };
 }
 
-RULES: ids are short kebab-case and unique. "start" is the id of the first passage. EVERY choice's "next" must be the id of a real passage in the list. EVERY choice carries a non-empty "cowboy" line obeying the COWBOY HARD RULES (reacts to that specific pick, no new facts, no praise or condemnation, 2-3 sentences). Every passage either has 2-3 choices OR ending:true (never both, never neither). EVERY ending passage has an "endingState" of "broken", "indifferent", or "triumphant" — never death; the protagonist always survives to the aftermath. All three states are reachable from start. No passage is unreachable from start. "question" appears ONLY on sage figure-encounter passages (GUMP HIGH). Include coreSageQuestions and finalQuiz at top level for reliable coverage and end assessment. Output ONLY the JSON object conforming to BranchingStory.`;
+RULES: ids are short kebab-case and unique. "start" is the id of the first passage. EVERY choice's "next" must be the id of a real passage in the list. EVERY choice carries a non-empty "cowboy" line obeying the COWBOY HARD RULES (reacts to that specific pick, no new facts, no praise or condemnation, 2-3 sentences). EVERY ending passage carries a non-empty "cowboyOutro" line obeying THE COWBOY'S OUTRO rules (fits the endingState, then the portal hint — destination always unnamed). Every passage either has 2-3 choices OR ending:true (never both, never neither). EVERY ending passage has an "endingState" of "broken", "indifferent", or "triumphant" — never death; the protagonist always survives to the aftermath. All three states are reachable from start. No passage is unreachable from start. "question" appears ONLY on sage figure-encounter passages (GUMP HIGH). Include coreSageQuestions and finalQuiz at top level for reliable coverage and end assessment. Output ONLY the JSON object conforming to BranchingStory.`;
 
 export interface BranchingInputs {
   /** What the story is about (authoritative). */
@@ -330,9 +336,10 @@ ${priorErrors.map((e) => `- ${e}`).join("\n")}`);
     blocks.push(`YOUR PREVIOUS ATTEMPT CONTAINED HISTORICAL ERRORS — false or invented facts. A kids' history tool must never teach a wrong fact. Write the whole story again and keep EVERY historical detail (dates, numbers, named real people, places, events, causes) accurate; weave the corrected facts in naturally. Errors found:
 ${priorFactErrors.map((e) => `- ${e}`).join("\n")}`);
   }
-  // Sighted re-generation (companion): choices went out without THE COWBOY's line.
+  // Sighted re-generation (companion): the story went out missing THE COWBOY's
+  // lines — choice reactions and/or ending outros.
   if (priorCowboyErrors && priorCowboyErrors.length > 0) {
-    blocks.push(`YOUR PREVIOUS ATTEMPT LEFT CHOICES WITHOUT THE COWBOY'S REACTION — a companion who goes silent mid-story reads as broken. Write the whole story again and give EVERY choice a non-empty "cowboy" field obeying the COWBOY HARD RULES (reacts to that specific pick, no new facts, no praise or condemnation, 2-3 sentences). Choices found without one:
+    blocks.push(`YOUR PREVIOUS ATTEMPT LEFT THE COWBOY'S REACTION OR OUTRO MISSING — a companion who goes silent mid-story (or slips out before the credits) reads as broken. Write the whole story again: give EVERY choice a non-empty "cowboy" field (COWBOY HARD RULES: reacts to that specific pick, no new facts, no praise or condemnation, 2-3 sentences) and EVERY ending passage a non-empty "cowboyOutro" (fits the endingState, then the portal hint — destination always unnamed). Found missing:
 ${priorCowboyErrors.map((e) => `- ${e}`).join("\n")}`);
   }
   if (blocks.length === 0) return base;
@@ -420,21 +427,25 @@ export async function generateBranchingStory(
     if (validation.playable) {
       const story = parsed as BranchingStory;
 
-      // THE COWBOY reacts to EVERY choice — a companion who goes silent
-      // mid-story reads as broken. His craft rules (sideways teaching, no new
-      // facts) can't be machine-checked, but PRESENCE can, so it's enforced
-      // like a graph error: sighted feedback + re-generation, before spending
+      // THE COWBOY reacts to EVERY choice and closes EVERY ending — a
+      // companion who goes silent mid-story (or slips out before the credits)
+      // reads as broken. His craft rules (sideways teaching, no new facts)
+      // can't be machine-checked, but PRESENCE can, so it's enforced like a
+      // graph error: sighted feedback + re-generation, before spending
       // anything on the fact gate.
-      const muteChoices = story.passages.flatMap((p) =>
-        (p.choices ?? []).flatMap((c, i) =>
+      const muteChoices = story.passages.flatMap((p) => [
+        ...(p.choices ?? []).flatMap((c, i) =>
           c?.cowboy && c.cowboy.trim()
             ? []
-            : [`passage "${p.id}", choice ${i + 1} ("${(c?.text ?? "").slice(0, 60)}")`]
-        )
-      );
+            : [`passage "${p.id}", choice ${i + 1} ("${(c?.text ?? "").slice(0, 60)}") is missing its "cowboy" reaction`]
+        ),
+        ...(isEnding(p) && !(p.cowboyOutro && p.cowboyOutro.trim())
+          ? [`ending passage "${p.id}" is missing its "cowboyOutro" closing line`]
+          : []),
+      ]);
       if (muteChoices.length > 0) {
         const cowboyValidation: StoryValidation = {
-          findings: muteChoices.map((m) => ({ level: "error" as const, code: "cowboy" as const, message: `${m}: missing its "cowboy" line` })),
+          findings: muteChoices.map((m) => ({ level: "error" as const, code: "cowboy" as const, message: m })),
           playable: false,
         };
         last = { ok: false, validation: cowboyValidation, attempts: attempt, raw };

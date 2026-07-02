@@ -792,6 +792,24 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
               </div>
             )}
 
+            {/* THE COWBOY'S OUTRO — his last word on how it went, and the
+                portal turning over again. Same styling as his reactions. */}
+            {current.cowboyOutro?.trim() && (
+              <div data-slot="cowboy-outro" className="mb-4 flex items-start gap-3 border-l-2 border-[var(--player-border-accent)] bg-[var(--player-bg-card-muted)]/60 rounded-r-lg pl-3 pr-3 py-2 player-gentle-reveal">
+                <img
+                  src="/branching/cowboy-placeholder.png"
+                  alt=""
+                  aria-hidden="true"
+                  className="w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 rounded-full object-cover border border-[var(--player-border-accent)]"
+                  style={{ objectPosition: '62% 28%' }}
+                />
+                <div>
+                  <div className="text-[10px] uppercase tracking-[2px] text-[var(--player-text-accent-2)]">The Cowboy</div>
+                  <p className="mt-1 text-sm italic leading-[1.6] text-[var(--player-text-prose)]">{current.cowboyOutro}</p>
+                </div>
+              </div>
+            )}
+
             {/* Final check for understanding / comprehension quiz at the end of playthrough */}
             {story.finalQuiz && (
               <div data-slot="mcq" className={`mt-5 border-2 border-[var(--player-quiz-border)] bg-[var(--player-quiz-bg)] rounded-[var(--player-card-radius)] p-5 transition-all duration-200 ease-out shadow-sm ${isSubmittingQuiz ? 'opacity-80' : ''}`}>

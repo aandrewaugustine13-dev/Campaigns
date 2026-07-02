@@ -152,7 +152,7 @@ describe("branching player — the cowboy companion voice", () => {
       { id: "p2", text: "The square empties.", choices: [
         { text: "go home", next: "end", cowboy: "Home's still there. That's somethin'." },
       ] },
-      { id: "end", text: "It is over.", ending: true, endingState: "indifferent" },
+      { id: "end", text: "It is over.", ending: true, endingState: "indifferent", cowboyOutro: "Passed through without it stickin'. Well — hear that hum? Somewhere else needs walkin'." },
     ],
   };
 
@@ -168,12 +168,15 @@ describe("branching player — the cowboy companion voice", () => {
     expect(container.textContent).toContain("Yellin' at one friar");
     expect(container.textContent).not.toContain("Kept your head down"); // the road not taken stays silent
 
-    // The final pick's line still lands on the ENDING passage.
+    // The final pick's line still lands on the ENDING passage — and the OUTRO
+    // (his closing word + portal hint) shows there too, but nowhere earlier.
+    expect(container.textContent).not.toContain("Somewhere else needs walkin'");
     const home = getAllByRole("button").find((b) => (b.textContent ?? "").trim().endsWith("go home"))!;
     fireEvent.click(home);
     act(() => { vi.advanceTimersByTime(250); });
     expect(container.textContent).toContain("Home's still there");
     expect(container.textContent).toContain("It is over.");
+    expect(container.textContent).toContain("Somewhere else needs walkin'");
   });
 
   it("legacy stories without cowboy lines keep the old consequence hint (no empty companion box)", () => {
