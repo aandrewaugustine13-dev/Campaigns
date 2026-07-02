@@ -13,7 +13,7 @@
 // ════════════════════════════════════════════════════════════════
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, fireEvent, cleanup, act } from "@testing-library/react";
-import BranchingPlayer, { recordedAttemptScore, finalRecordedScore } from "./BranchingPlayer";
+import BranchingPlayer, { recordedAttemptScore, finalRecordedScore, COWBOY_DISPLAY_NAME } from "./BranchingPlayer";
 import suffrage from "../generator/branching-narrative-suffrage.json";
 import reconstruction from "../generator/branching-narrative-reconstruction.json";
 import war1812 from "../generator/branching-narrative-1812.json";
@@ -159,12 +159,12 @@ describe("branching player — the cowboy companion voice", () => {
   it("shows HIS reaction to the pick made (never the other option's), endings included", () => {
     const { container, getAllByRole } = render(<BranchingPlayer story={story} />);
     // Silent until the first pick — no companion box on the opening passage.
-    expect(container.textContent).not.toContain("The Cowboy");
+    expect(container.textContent).not.toContain(COWBOY_DISPLAY_NAME);
 
     const confront = getAllByRole("button").find((b) => (b.textContent ?? "").trim().endsWith("confront him"))!;
     fireEvent.click(confront);
     act(() => { vi.advanceTimersByTime(250); });
-    expect(container.textContent).toContain("The Cowboy");
+    expect(container.textContent).toContain(COWBOY_DISPLAY_NAME);
     expect(container.textContent).toContain("Yellin' at one friar");
     expect(container.textContent).not.toContain("Kept your head down"); // the road not taken stays silent
 
@@ -192,7 +192,7 @@ describe("branching player — the cowboy companion voice", () => {
     const btn = getAllByRole("button").find((b) => (b.textContent ?? "").trim().endsWith("onward"))!;
     fireEvent.click(btn);
     act(() => { vi.advanceTimersByTime(250); });
-    expect(container.textContent).not.toContain("The Cowboy");
+    expect(container.textContent).not.toContain(COWBOY_DISPLAY_NAME);
     expect(container.textContent).toContain("Because you chose this...");
   });
 });

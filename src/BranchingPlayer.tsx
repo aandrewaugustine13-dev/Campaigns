@@ -21,6 +21,11 @@ import {
 } from "../generator/branchingStory";
 import { isThemeId, playerEraForTheme, type ThemeId } from "./themes";
 
+/** The companion's DISPLAY NAME — a placeholder, swappable here and nowhere
+ *  else. Label only: the `cowboy`/`cowboyOutro` schema fields, data-slots, and
+ *  code identifiers keep their names regardless of what he's called on screen. */
+export const COWBOY_DISPLAY_NAME = "Tex";
+
 /** Per-theme marker glyphs for MCQ options and choice buttons.
  *  imperial-chinese-scroll → Chinese numerals; islamic-golden-age → ۞;
  *  others → standard A/B/C letters. */
@@ -676,7 +681,7 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
                   style={{ objectPosition: '62% 28%' }}
                 />
                 <div>
-                  <div className="text-[10px] uppercase tracking-[2px] text-[var(--player-text-accent-2)]">The Cowboy</div>
+                  <div className="text-[10px] uppercase tracking-[2px] text-[var(--player-text-accent-2)]">{COWBOY_DISPLAY_NAME}</div>
                   <p className="mt-1 text-sm italic leading-[1.6] text-[var(--player-text-prose)]">{recentChoice.cowboy}</p>
                 </div>
               </div>
@@ -804,7 +809,7 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
                   style={{ objectPosition: '62% 28%' }}
                 />
                 <div>
-                  <div className="text-[10px] uppercase tracking-[2px] text-[var(--player-text-accent-2)]">The Cowboy</div>
+                  <div className="text-[10px] uppercase tracking-[2px] text-[var(--player-text-accent-2)]">{COWBOY_DISPLAY_NAME}</div>
                   <p className="mt-1 text-sm italic leading-[1.6] text-[var(--player-text-prose)]">{current.cowboyOutro}</p>
                 </div>
               </div>
