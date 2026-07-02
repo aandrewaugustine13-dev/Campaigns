@@ -220,6 +220,51 @@ function getIndefiniteArticle(word: string): 'a' | 'an' {
   return 'a';
 }
 
+// ── Final-quiz attempt rules ──────────────────────────────────────
+// Max 2 attempts total (first + ONE retake). The retake's score is capped at
+// 90; attempt 1 is never capped. The recorded FINAL score is the best attempt
+// AFTER the cap. Attempts persist per quiz (localStorage) so the lock and the
+// best-of survive re-renders and reloads — a refresh must not grant attempt 3.
+export const MAX_QUIZ_ATTEMPTS = 2;
+export const RETAKE_SCORE_CAP = 90;
+
+/** The score RECORDED for an attempt: attempt 1 uncapped; the retake capped at 90. */
+export function recordedAttemptScore(attemptNumber: number, rawPercent: number): number {
+  return attemptNumber >= 2 ? Math.min(rawPercent, RETAKE_SCORE_CAP) : rawPercent;
+}
+
+/** Final recorded score = BEST attempt (the cap was applied at record time). */
+export function finalRecordedScore(attempts: number[]): number | null {
+  return attempts.length ? Math.max(...attempts) : null;
+}
+
+function quizStorageKey(story: BranchingStory): string | null {
+  if (!story.finalQuiz?.questions?.length) return null;
+  // Title + question count identifies the quiz well enough for the lock.
+  return `branching-quiz-attempts:${story.title}:${story.finalQuiz.questions.length}`;
+}
+
+function loadQuizAttempts(key: string | null): number[] {
+  if (!key || typeof window === 'undefined' || !window.localStorage) return [];
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(key) ?? '[]');
+    return Array.isArray(parsed)
+      ? parsed.filter((n): n is number => typeof n === 'number').slice(0, MAX_QUIZ_ATTEMPTS)
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveQuizAttempts(key: string | null, attempts: number[]): void {
+  if (!key || typeof window === 'undefined' || !window.localStorage) return;
+  try {
+    window.localStorage.setItem(key, JSON.stringify(attempts));
+  } catch {
+    // Storage blocked/full — the in-memory state still enforces the lock this session.
+  }
+}
+
 export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, onBack, era: eraProp = 'default' }: BranchingPlayerProps) {
   // Randomize MCQ answer positions on load so the correct choice isn't always
   // "A". Deterministic + memoized: stable for the life of this story instance,
@@ -264,12 +309,30 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
   // onEnd / onUnplayable fire exactly once per playthrough (a ref survives re-renders).
   const firedRef = useRef(false);
 
-  // For in-story sage/figure questions
+  // For in-story sage/figure questions. answeredQuestion is the RECORDED answer
+  // for the current passage — null means unanswered, and unanswered GATES the
+  // story choices (BUG 1). feedbackHidden only collapses the feedback panel;
+  // it must never clear the recorded answer or the gate would re-lock.
   const [answeredQuestion, setAnsweredQuestion] = useState<number | null>(null);
+  const [feedbackHidden, setFeedbackHidden] = useState(false);
 
   // For final comprehension check / quiz at end
   const [quizAnswers, setQuizAnswers] = useState<Record<number, number>>({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
+
+  // Recorded attempt scores for THIS quiz (attempt-2 cap already applied),
+  // loaded from / persisted to localStorage so the 2-attempt lock and the
+  // best-of survive re-renders and reloads.
+  const quizKey = useMemo(() => quizStorageKey(story), [story]);
+  const [quizAttempts, setQuizAttempts] = useState<number[]>(() => loadQuizAttempts(quizKey));
+  useEffect(() => {
+    setQuizAttempts(loadQuizAttempts(quizKey));
+  }, [quizKey]);
+  const attemptsUsed = quizAttempts.length;
+  const quizLocked = attemptsUsed >= MAX_QUIZ_ATTEMPTS;
+  const bestScore = finalRecordedScore(quizAttempts);
+  // The score recorded for the most recent submission (shown after submit).
+  const lastRecordedScore = attemptsUsed > 0 ? quizAttempts[attemptsUsed - 1] : null;
 
   // Polish: micro loading state for smoother passage changes and quiz submit
   const [isAdvancing, setIsAdvancing] = useState(false);
@@ -340,12 +403,11 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
     return generateStorySummary(story, history, currentId, lang);
   }, [quizSubmitted, story, history, currentId]);
 
-  useEffect(() => {
-    setAnsweredQuestion(null);
-  }, [currentId]);
-
   const choose = useCallback((choiceIndex: number) => {
     const p = byId.get(currentId);
+    // BUG-1 gate: a figure question must be ANSWERED before the story advances.
+    // The buttons are also disabled, but this is the hard stop.
+    if (p?.question && answeredQuestion === null) return;
     const c = p?.choices?.[choiceIndex];
     if (!c || !byId.has(c.next) || isAdvancing) return; // defensive + prevent double
     const nextP = byId.get(c.next);
@@ -360,7 +422,7 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
       setIsAdvancing(false);
       setSelectedChoiceIndex(null);
     }, 200); // slightly longer to show feedback
-  }, [byId, currentId, isAdvancing]);
+  }, [byId, currentId, isAdvancing, answeredQuestion]);
 
   // Text-to-speech handler using Web Speech API
   const handleSpeak = useCallback(() => {
@@ -400,9 +462,10 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
     setIsSpeaking(true);
   }, [current, isSpeaking]);
 
-  // Stop speech when leaving the passage or unmounting
+  // Per-passage reset (answer gate + feedback collapse) and stop speech on leave
   useEffect(() => {
     setAnsweredQuestion(null);
+    setFeedbackHidden(false);
 
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel();
@@ -439,6 +502,8 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
   // Determine passage type for visual distinction
   const hasFigureQuestion = !!current.question;
   const hasChoices = !ended && (current.choices?.length ?? 0) > 0;
+  // BUG-1: the figure question GATES the story — choices unlock only once answered.
+  const choicesLocked = hasFigureQuestion && answeredQuestion === null;
 
   // Ending visuals for the three distinct endings
   const endingVisuals = {
@@ -677,6 +742,15 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
                   </button>
                 ))}
               </div>
+            ) : feedbackHidden ? (
+              // Collapsed feedback — the answer stays RECORDED (the gate stays open);
+              // clearing it here would re-lock the story choices below.
+              <button
+                onClick={() => setFeedbackHidden(false)}
+                className="mt-3 px-2 py-1 text-sm text-[var(--player-text-accent-2)] underline hover:text-[var(--player-text-accent)] transition-all duration-150 ease-out min-h-[32px]"
+              >
+                Show feedback
+              </button>
             ) : (
               <div className="mt-3 text-sm transition-all duration-200 ease-out">
                 <p className="text-[var(--player-text-muted)]">Your answer: <strong className="text-[var(--player-text-prose)]">{current.question.choices[answeredQuestion]}</strong></p>
@@ -685,7 +759,7 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
                 </p>
                 <p className="mt-1 text-[var(--player-text-muted)]">{current.question.explanation}</p>
                 <button
-                  onClick={() => setAnsweredQuestion(null)}
+                  onClick={() => setFeedbackHidden(true)}
                   className="mt-2 px-2 py-1 text-sm text-[var(--player-text-accent-2)] underline hover:text-[var(--player-text-accent)] transition-all duration-150 ease-out min-h-[32px]"
                 >
                   Hide feedback
@@ -726,8 +800,27 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
                   <h2 className="font-semibold text-xl text-[var(--player-text-accent)] tracking-tight">{story.finalQuiz.title}</h2>
                 </div>
                 <p className="text-sm mb-5 text-[var(--player-text-muted)] leading-relaxed">{story.finalQuiz.instructions}</p>
-                {!quizSubmitted ? (
+                {!quizSubmitted && quizLocked ? (
+                  // Both attempts used (possibly in an earlier session — attempts
+                  // persist per quiz). The quiz is LOCKED: no form, no third try.
+                  <div className="text-center py-4 space-y-2 player-gentle-reveal">
+                    <div className="text-[10px] uppercase tracking-[2px] text-[var(--player-text-accent-2)]">Quiz Locked</div>
+                    <p className="text-sm text-[var(--player-text-muted)]">You have used both attempts on this quiz.</p>
+                    {bestScore !== null && (
+                      <div className="inline-flex items-baseline gap-2 bg-[var(--player-quiz-question-bg)] border border-[var(--player-quiz-border)]/30 rounded-2xl px-6 py-2">
+                        <span className="text-3xl font-semibold tabular-nums text-[var(--player-text-accent)]">{bestScore}%</span>
+                        <span className="text-[10px] text-[var(--player-text-muted)]">final recorded score</span>
+                      </div>
+                    )}
+                  </div>
+                ) : !quizSubmitted ? (
                   <div className="space-y-4">
+                    <div className="text-center text-[10px] uppercase tracking-[2px] text-[var(--player-text-muted)]">
+                      Attempt {attemptsUsed + 1} of {MAX_QUIZ_ATTEMPTS}
+                      {attemptsUsed + 1 === MAX_QUIZ_ATTEMPTS && (
+                        <span className="block mt-0.5 normal-case tracking-normal">Final attempt — a retake scores at most {RETAKE_SCORE_CAP}%.</span>
+                      )}
+                    </div>
                     {story.finalQuiz.questions.map((q: any, qi: number) => {
                       const selected = quizAnswers[qi];
                       return (
@@ -762,31 +855,46 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
                         </div>
                       );
                     })}
-                    <button 
+                    <button
                       onClick={() => {
+                        if (quizLocked) return; // hard stop: both attempts already used
                         setIsSubmittingQuiz(true);
+                        const questions = story.finalQuiz!.questions;
+                        const correct = questions.reduce((acc: number, q: any, idx: number) => acc + (quizAnswers[idx] === q.correctIndex ? 1 : 0), 0);
+                        const rawPercent = Math.round((correct / questions.length) * 100);
+                        // Record this attempt: attempt 1 uncapped, the retake capped at 90.
+                        const recorded = recordedAttemptScore(attemptsUsed + 1, rawPercent);
                         // Pleasant micro-delay for feedback — makes submit feel deliberate & processed
                         setTimeout(() => {
+                          const nextAttempts = [...quizAttempts, recorded];
+                          setQuizAttempts(nextAttempts);
+                          saveQuizAttempts(quizKey, nextAttempts);
                           setQuizSubmitted(true);
                           setIsSubmittingQuiz(false);
                         }, 320);
-                      }} 
+                      }}
                       className="mt-3 w-full px-6 py-3.5 min-h-[48px] flex items-center justify-center bg-[var(--player-btn-bg-hover)] hover:bg-[var(--player-btn-bg)] hover:-translate-y-px active:bg-[var(--player-btn-bg)] text-[var(--player-btn-text)] rounded-[var(--player-card-radius)] border-2 border-[var(--player-btn-border-selected)]/50 text-base font-semibold tracking-wide transition-all duration-150 ease-out disabled:opacity-50 touch-manipulation"
-                      disabled={Object.keys(quizAnswers).length < (story.finalQuiz.questions?.length || 0) || isSubmittingQuiz}
+                      disabled={Object.keys(quizAnswers).length < (story.finalQuiz.questions?.length || 0) || isSubmittingQuiz || quizLocked}
                     >
                       {isSubmittingQuiz ? "Checking your answers…" : "Submit Final Answers"}
                     </button>
                   </div>
                 ) : (
                   <div className="space-y-4 text-sm player-gentle-reveal">
-                    {/* Results header */}
+                    {/* Results header — shows the RECORDED score for this attempt
+                        (the retake is capped at 90 even if the raw score was higher) */}
                     <div className="text-center pb-2">
-                      <div className="text-[10px] uppercase tracking-[2px] text-[var(--player-text-accent-2)] mb-1">Quiz Complete</div>
-                      {quizScore && (
-                        <div className={`inline-flex items-center gap-3 bg-[var(--player-quiz-question-bg)] border border-[var(--player-quiz-border)]/30 rounded-2xl px-6 py-2 transition-all duration-300 ${quizScore.percent >= 90 ? 'player-high-score ring-1 ring-[color:var(--player-success-border)] border-[color:var(--player-success-border)]' : ''}`}>
-                          <div className={`text-3xl font-semibold tabular-nums ${quizScore.percent >= 90 ? 'text-[var(--player-success)]' : 'text-[var(--player-text-accent)]'}`}>{quizScore.percent}%</div>
+                      <div className="text-[10px] uppercase tracking-[2px] text-[var(--player-text-accent-2)] mb-1">
+                        Quiz Complete — Attempt {attemptsUsed} of {MAX_QUIZ_ATTEMPTS}
+                      </div>
+                      {quizScore && lastRecordedScore !== null && (
+                        <div className={`inline-flex items-center gap-3 bg-[var(--player-quiz-question-bg)] border border-[var(--player-quiz-border)]/30 rounded-2xl px-6 py-2 transition-all duration-300 ${lastRecordedScore >= 90 ? 'player-high-score ring-1 ring-[color:var(--player-success-border)] border-[color:var(--player-success-border)]' : ''}`}>
+                          <div className={`text-3xl font-semibold tabular-nums ${lastRecordedScore >= 90 ? 'text-[var(--player-success)]' : 'text-[var(--player-text-accent)]'}`}>{lastRecordedScore}%</div>
                           <div className="text-left text-[10px] leading-tight">
                             <div className="text-[var(--player-text-prose)]">{quizScore.correct} / {quizScore.total} correct</div>
+                            {lastRecordedScore < quizScore.percent && (
+                              <div className="text-[var(--player-text-muted)]">scored {quizScore.percent}% — retake capped at {RETAKE_SCORE_CAP}%</div>
+                            )}
                           </div>
                         </div>
                       )}
@@ -851,17 +959,19 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
                   {history.length > 0 && (
                     <div className="text-[10px] text-[var(--player-text-muted)] mt-0.5">Shaped by the choices you made along the way.</div>
                   )}
-                  <p className={quizScore.percent >= 90 ? "text-[var(--player-success)] font-semibold text-lg tracking-tight" : "text-[var(--player-text-muted)] text-base"}>
-                    {quizScore.percent >= 90 
-                      ? `Excellent work! You scored ${quizScore.percent}%.` 
-                      : `You scored ${quizScore.percent}%.`}
+                  <p className={(bestScore ?? 0) >= 90 ? "text-[var(--player-success)] font-semibold text-lg tracking-tight" : "text-[var(--player-text-muted)] text-base"}>
+                    {(bestScore ?? 0) >= 90
+                      ? `Excellent work! Final recorded score: ${bestScore}%.`
+                      : `Final recorded score: ${bestScore}% — best of ${attemptsUsed} attempt${attemptsUsed === 1 ? '' : 's'}.`}
                   </p>
                   <p className="mt-1 text-[10px] text-[var(--player-text-muted)]">
-                    {quizScore.percent >= 90 
-                      ? "You have a strong understanding of the key events and figures." 
+                    {(bestScore ?? 0) >= 90
+                      ? "You have a strong understanding of the key events and figures."
                       : "Review the summary and consider what you might do differently."}
                   </p>
-                  {quizScore.percent < 90 && (
+                  {/* ONE retake only, and only when the best score still isn't 90+.
+                      After both attempts the quiz is locked — no third try. */}
+                  {!quizLocked && (bestScore ?? 0) < 90 ? (
                     <button
                       onClick={() => {
                         setQuizAnswers({});
@@ -869,9 +979,11 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
                       }}
                       className="mt-3 px-6 py-2.5 min-h-[40px] rounded-2xl border border-[var(--player-border-accent)] bg-[var(--player-bg-card-muted)] hover:bg-[var(--player-bg-card-inner)] hover:-translate-y-px text-[var(--player-text-prose)] text-sm tracking-wide transition-all duration-150 ease-out"
                     >
-                      Retake the Final Quiz
+                      Retake the Final Quiz (final attempt — scores at most {RETAKE_SCORE_CAP}%)
                     </button>
-                  )}
+                  ) : quizLocked ? (
+                    <p className="mt-3 text-[10px] uppercase tracking-[2px] text-[var(--player-text-muted)]">No attempts remaining — quiz locked</p>
+                  ) : null}
                 </div>
               </div>
             )}
@@ -884,7 +996,13 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
                 Make your choice
               </div>
             )}
-            <div className={`space-y-3 pt-1 transition-all duration-200 ease-out ${isAdvancing ? 'opacity-70 pointer-events-none' : ''} ${!hasFigureQuestion ? 'border border-[var(--player-divider-muted)] rounded-[var(--player-card-radius)] p-2 bg-[var(--player-bg-card-muted)]' : ''}`}>
+            {/* Trivia gate notice — the story is locked until the question is answered */}
+            {choicesLocked && (
+              <div className="text-xs uppercase tracking-[2px] text-[var(--player-figure-accent)] font-medium mb-1 flex items-center gap-1.5">
+                Answer the question above to continue
+              </div>
+            )}
+            <div className={`space-y-3 pt-1 transition-all duration-200 ease-out ${isAdvancing ? 'opacity-70 pointer-events-none' : ''} ${choicesLocked ? 'opacity-50' : ''} ${!hasFigureQuestion ? 'border border-[var(--player-divider-muted)] rounded-[var(--player-card-radius)] p-2 bg-[var(--player-bg-card-muted)]' : ''}`}>
               {(current.choices ?? []).map((c, i) => {
               const isSelected = selectedChoiceIndex === i;
               const leadsToEnding = getReachableEnding(c.next);
@@ -895,7 +1013,7 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
                   key={i}
                   data-slot="choice"
                   onClick={() => choose(i)}
-                  disabled={isAdvancing}
+                  disabled={isAdvancing || choicesLocked}
                   className={`block w-full text-left px-4 py-4 min-h-[48px] flex items-center rounded-[var(--player-card-radius)] border transition-all duration-150 ease-out text-[var(--player-btn-text)] text-base sm:text-[17px] leading-[1.5] font-medium disabled:opacity-70 touch-manipulation
                     ${isSelected
                       ? 'border-[var(--player-btn-border-selected)] bg-[var(--player-btn-bg-selected)] scale-[1.02] shadow-sm player-choice-confirm'

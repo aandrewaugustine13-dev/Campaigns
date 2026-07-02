@@ -13,7 +13,7 @@
 // ════════════════════════════════════════════════════════════════
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, fireEvent, cleanup, act } from "@testing-library/react";
-import BranchingPlayer from "./BranchingPlayer";
+import BranchingPlayer, { recordedAttemptScore, finalRecordedScore } from "./BranchingPlayer";
 import suffrage from "../generator/branching-narrative-suffrage.json";
 import reconstruction from "../generator/branching-narrative-reconstruction.json";
 import war1812 from "../generator/branching-narrative-1812.json";
@@ -191,6 +191,168 @@ describe("branching player — the cowboy companion voice", () => {
     act(() => { vi.advanceTimersByTime(250); });
     expect(container.textContent).not.toContain("The Cowboy");
     expect(container.textContent).toContain("Because you chose this...");
+  });
+});
+
+// ── TRIVIA GATE — a figure question BLOCKS story choices until answered ──
+describe("branching player — trivia gates advancement", () => {
+  beforeEach(() => { vi.useFakeTimers(); });
+  afterEach(() => { vi.useRealTimers(); cleanup(); });
+
+  const gateStory: BranchingStory = {
+    title: "Gate", protagonist: "x", start: "q1",
+    passages: [
+      {
+        id: "q1", text: "The general turns to you.",
+        question: { question: "Who commands here?", choices: ["Meade", "Lee", "Grant", "Davis"], correctIndex: 0, explanation: "Meade commanded." },
+        choices: [{ text: "step forward", next: "end" }],
+      },
+      { id: "end", text: "It is done.", ending: true, endingState: "triumphant" },
+    ],
+  };
+
+  it("cannot advance past an unanswered question; answering unlocks the choice", () => {
+    const { container, getAllByRole } = render(<BranchingPlayer story={gateStory} />);
+    expect(container.textContent).toContain("Answer the question above to continue");
+
+    // Clicking the story choice BEFORE answering does nothing — still on q1.
+    const choiceBtn = () => getAllByRole("button").find((b) => (b.textContent ?? "").trim().endsWith("step forward"))!;
+    expect((choiceBtn() as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(choiceBtn());
+    act(() => { vi.advanceTimersByTime(300); });
+    expect(container.textContent).toContain("The general turns to you.");
+    expect(container.textContent).not.toContain("It is done.");
+
+    // Answer the question (any option counts as answered — feedback teaches).
+    const mcq = getAllByRole("button").find((b) => (b.textContent ?? "").trim().endsWith("Lee"))!;
+    fireEvent.click(mcq);
+    expect(container.textContent).not.toContain("Answer the question above to continue");
+
+    // "Hide feedback" collapses the panel but must NOT re-lock the gate.
+    const hide = getAllByRole("button").find((b) => (b.textContent ?? "").trim() === "Hide feedback")!;
+    fireEvent.click(hide);
+    expect((choiceBtn() as HTMLButtonElement).disabled).toBe(false);
+
+    // Now the choice advances.
+    fireEvent.click(choiceBtn());
+    act(() => { vi.advanceTimersByTime(300); });
+    expect(container.textContent).toContain("It is done.");
+  });
+});
+
+// ── FINAL QUIZ — 2 attempts max, retake capped at 90, best-of recorded ──
+// This project's happy-dom pin has NO window.localStorage (the component
+// degrades gracefully without it); install a real in-memory Storage so the
+// persistence behavior is exercised rather than silently skipped.
+function installMemoryStorage(): void {
+  if (window.localStorage) { window.localStorage.clear(); return; }
+  const store = new Map<string, string>();
+  Object.defineProperty(window, "localStorage", {
+    configurable: true,
+    value: {
+      getItem: (k: string) => (store.has(k) ? store.get(k)! : null),
+      setItem: (k: string, v: string) => { store.set(k, String(v)); },
+      removeItem: (k: string) => { store.delete(k); },
+      clear: () => { store.clear(); },
+    },
+  });
+}
+
+describe("branching player — final quiz attempt rules", () => {
+  beforeEach(() => { vi.useFakeTimers(); installMemoryStorage(); });
+  afterEach(() => { vi.useRealTimers(); cleanup(); });
+
+  it("best-of with the attempt-2 cap matches the spec examples", () => {
+    // attempt1=80, attempt2=95→capped 90 → final 90
+    expect(finalRecordedScore([80, recordedAttemptScore(2, 95)])).toBe(90);
+    // attempt1=80, attempt2=60 → final 80
+    expect(finalRecordedScore([80, recordedAttemptScore(2, 60)])).toBe(80);
+    // attempt1=100 → final 100 (attempt 1 is never capped)
+    expect(finalRecordedScore([recordedAttemptScore(1, 100)])).toBe(100);
+    expect(recordedAttemptScore(1, 95)).toBe(95);
+  });
+
+  function quizStory(title: string): BranchingStory {
+    return {
+      title, protagonist: "x", start: "p1",
+      passages: [
+        { id: "p1", text: "Start here.", choices: [{ text: "finish", next: "end" }] },
+        { id: "end", text: "The end.", ending: true, endingState: "triumphant" },
+      ],
+      finalQuiz: {
+        title: "Final Check",
+        instructions: "Answer the question.",
+        questions: [
+          { question: "Q one?", choices: ["Correcto", "Wrongo", "Nope", "Nah"], correctIndex: 0, explanation: "It is Correcto." },
+        ],
+      },
+    };
+  }
+
+  function playToQuiz(utils: ReturnType<typeof render>) {
+    const btn = utils.getAllByRole("button").find((b) => (b.textContent ?? "").trim().endsWith("finish"))!;
+    fireEvent.click(btn);
+    act(() => { vi.advanceTimersByTime(300); });
+  }
+  function answerAndSubmit(utils: ReturnType<typeof render>, answerText: string) {
+    const opt = utils.getAllByRole("button").find((b) => (b.textContent ?? "").trim().endsWith(answerText))!;
+    fireEvent.click(opt);
+    const submit = utils.getAllByRole("button").find((b) => (b.textContent ?? "").includes("Submit Final Answers"))!;
+    fireEvent.click(submit);
+    act(() => { vi.advanceTimersByTime(400); });
+  }
+
+  it("caps the retake at 90, locks after 2 attempts, and shows the best score", () => {
+    const utils = render(<BranchingPlayer story={quizStory("Cap Lock")} />);
+    playToQuiz(utils);
+    expect(utils.container.textContent).toContain("Attempt 1 of 2");
+
+    // Attempt 1: wrong → 0%. A retake is offered (one only).
+    answerAndSubmit(utils, "Wrongo");
+    expect(utils.container.textContent).toContain("Attempt 1 of 2");
+    expect(utils.container.textContent).toContain("0%");
+    const retake = utils.getAllByRole("button").find((b) => (b.textContent ?? "").includes("Retake the Final Quiz"))!;
+    expect(retake).toBeTruthy();
+
+    // Attempt 2: perfect raw score → RECORDED as 90 (capped), quiz locks.
+    fireEvent.click(retake);
+    expect(utils.container.textContent).toContain("Attempt 2 of 2");
+    expect(utils.container.textContent).toContain("Final attempt");
+    answerAndSubmit(utils, "Correcto");
+    expect(utils.container.textContent).toContain("90%");
+    expect(utils.container.textContent).toContain("retake capped at 90%");
+    expect(utils.container.textContent).toContain("Final recorded score: 90%");
+
+    // A 3rd attempt is impossible: no retake button, lock notice shown.
+    expect(utils.getAllByRole("button").some((b) => (b.textContent ?? "").includes("Retake the Final Quiz"))).toBe(false);
+    expect(utils.container.textContent?.toLowerCase()).toContain("no attempts remaining");
+  });
+
+  it("a 90+ first attempt is NOT capped and gets no retake", () => {
+    const utils = render(<BranchingPlayer story={quizStory("First Try")} />);
+    playToQuiz(utils);
+    answerAndSubmit(utils, "Correcto");
+    expect(utils.container.textContent).toContain("100%");
+    expect(utils.container.textContent).toContain("Final recorded score: 100%");
+    expect(utils.getAllByRole("button").some((b) => (b.textContent ?? "").includes("Retake the Final Quiz"))).toBe(false);
+  });
+
+  it("the lock PERSISTS across a remount — a replay cannot grant attempt 3", () => {
+    const first = render(<BranchingPlayer story={quizStory("Persist")} />);
+    playToQuiz(first);
+    answerAndSubmit(first, "Wrongo");
+    fireEvent.click(first.getAllByRole("button").find((b) => (b.textContent ?? "").includes("Retake the Final Quiz"))!);
+    answerAndSubmit(first, "Wrongo");
+    expect(first.container.textContent?.toLowerCase()).toContain("no attempts remaining");
+    first.unmount();
+    cleanup();
+
+    // Fresh mount, replay to the ending: the quiz is locked, no form, best shown.
+    const second = render(<BranchingPlayer story={quizStory("Persist")} />);
+    playToQuiz(second);
+    expect(second.container.textContent).toContain("Quiz Locked");
+    expect(second.container.textContent).toContain("final recorded score");
+    expect(second.getAllByRole("button").some((b) => (b.textContent ?? "").includes("Submit Final Answers"))).toBe(false);
   });
 });
 
