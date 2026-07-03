@@ -1,0 +1,28 @@
+<!doctype html>
+<!-- ATTEMPTS VIEWER — dead-simple read path for the persistence foundation.
+     /attempts.html            → most recent attempts across all campaigns
+     /attempts.html?campaign=<uuid> → that campaign's attempts
+     A rough table to WATCH SCORES LAND, not a product surface. -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Attempts — Campaigns</title>
+    <style>
+      body { font-family: ui-monospace, monospace; background: #1a1815; color: #e8e0d0; padding: 2rem; }
+      h1 { font-size: 1.1rem; }
+      table { border-collapse: collapse; margin-top: 1rem; width: 100%; max-width: 960px; }
+      th, td { border: 1px solid #4a4438; padding: 6px 10px; text-align: left; font-size: 0.85rem; }
+      th { background: #2a2620; text-transform: uppercase; letter-spacing: 1px; font-size: 0.7rem; }
+      td.num { text-align: right; font-variant-numeric: tabular-nums; }
+      .muted { color: #9a9080; font-size: 0.8rem; }
+      code { background: #2a2620; padding: 1px 5px; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <h1>Attempts</h1>
+    <p class="muted" id="scope"></p>
+    <div id="out">Loading…</div>
+    <script type="module" src="/src/attemptsView.ts"></script>
+  </body>
+</html>

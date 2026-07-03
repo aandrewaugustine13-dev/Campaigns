@@ -602,5 +602,15 @@ function generatorApiPlugin(): Plugin {
 
 export default defineConfig({
   plugins: [react(), generatorApiPlugin()],
-  base: '/'
+  base: '/',
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        // Dead-simple ATTEMPTS read view (persistence foundation) — dev serves
+        // it automatically; this makes the production build include it too.
+        attempts: resolve(__dirname, 'attempts.html'),
+      },
+    },
+  },
 })

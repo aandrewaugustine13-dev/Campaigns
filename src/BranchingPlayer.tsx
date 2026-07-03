@@ -20,6 +20,7 @@ import {
   type StoryValidation,
 } from "../generator/branchingStory";
 import { isThemeId, playerEraForTheme, type ThemeId } from "./themes";
+import { recordAttempt, getStudentId, getStoredStudentName, storeStudentName, storyFingerprint } from "./lib/attempts";
 
 /** The companion's DISPLAY NAME — a placeholder, swappable here and nowhere
  *  else. Label only: the `cowboy`/`cowboyOutro` schema fields, data-slots, and
@@ -49,6 +50,11 @@ interface BranchingPlayerProps {
    * "classical-marble"); see src/themes.ts. Applied as data-theme on the player root.
    * Overrides story.era if provided. */
   era?: string;
+  /** Persistence identity for ATTEMPT records (the save/library layer will
+   * supply these once campaigns are persisted). When absent, a deterministic
+   * fingerprint of the frozen cartridge is used so scores land today. */
+  campaignId?: string;
+  campaignVersion?: number;
 }
 
 function BackLink({ onBack }: { onBack?: () => void }) {
@@ -270,7 +276,7 @@ function saveQuizAttempts(key: string | null, attempts: number[]): void {
   }
 }
 
-export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, onBack, era: eraProp = 'default' }: BranchingPlayerProps) {
+export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, onBack, era: eraProp = 'default', campaignId, campaignVersion }: BranchingPlayerProps) {
   // Randomize MCQ answer positions on load so the correct choice isn't always
   // "A". Deterministic + memoized: stable for the life of this story instance,
   // and every downstream read (encounter MCQ, scoring, final-quiz review) uses
@@ -338,6 +344,10 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
   const bestScore = finalRecordedScore(quizAttempts);
   // The score recorded for the most recent submission (shown after submit).
   const lastRecordedScore = attemptsUsed > 0 ? quizAttempts[attemptsUsed - 1] : null;
+
+  // ATTEMPT persistence identity. The name is a display label the kid types —
+  // the KEY is the minted studentId; nothing ever matches on the name.
+  const [studentName, setStudentName] = useState(getStoredStudentName);
 
   // Polish: micro loading state for smoother passage changes and quiz submit
   const [isAdvancing, setIsAdvancing] = useState(false);
@@ -844,6 +854,18 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
                         <span className="block mt-0.5 normal-case tracking-normal">Final attempt — a retake scores at most {RETAKE_SCORE_CAP}%.</span>
                       )}
                     </div>
+                    {/* Display label only — the attempt is keyed on a minted id, never this text */}
+                    <label className="block text-sm text-[var(--player-text-muted)]">
+                      <span className="block mb-1 text-[10px] uppercase tracking-[2px]">Your name (shown to your teacher)</span>
+                      <input
+                        type="text"
+                        value={studentName}
+                        maxLength={60}
+                        onChange={(e) => { setStudentName(e.target.value); storeStudentName(e.target.value); }}
+                        placeholder="First name"
+                        className="w-full px-3 py-2 rounded-xl border border-[var(--player-btn-border)] bg-[var(--player-btn-bg)] text-[var(--player-text-prose)] text-sm"
+                      />
+                    </label>
                     {story.finalQuiz.questions.map((q: any, qi: number) => {
                       const selected = quizAnswers[qi];
                       return (
@@ -894,6 +916,18 @@ export default function BranchingPlayer({ story: rawStory, onEnd, onUnplayable, 
                           saveQuizAttempts(quizKey, nextAttempts);
                           setQuizSubmitted(true);
                           setIsSubmittingQuiz(false);
+                          // Persist the ATTEMPT record (separate from the frozen
+                          // cartridge, stamped with the version played). Fire and
+                          // forget — persistence never blocks or breaks the quiz.
+                          void recordAttempt({
+                            studentId: getStudentId(),
+                            studentName: studentName.trim(),
+                            campaignId: campaignId ?? storyFingerprint(story),
+                            campaignVersion: campaignVersion ?? 1,
+                            attemptNumber: nextAttempts.length,
+                            score: recorded,
+                            bestScore: finalRecordedScore(nextAttempts) ?? recorded,
+                          });
                         }, 320);
                       }}
                       className="mt-3 w-full px-6 py-3.5 min-h-[48px] flex items-center justify-center bg-[var(--player-btn-bg-hover)] hover:bg-[var(--player-btn-bg)] hover:-translate-y-px active:bg-[var(--player-btn-bg)] text-[var(--player-btn-text)] rounded-[var(--player-card-radius)] border-2 border-[var(--player-btn-border-selected)]/50 text-base font-semibold tracking-wide transition-all duration-150 ease-out disabled:opacity-50 touch-manipulation"
