@@ -15,6 +15,8 @@
 // can never mistake an AI's guess at the past for a real period source.
 // ════════════════════════════════════════════════════════════════
 
+import { eraStyleFragment } from "../theme-system/eraStyleTokens.js";
+
 // gemini-2.5-flash-image ("Nano Banana") — the cheapest current image model
 // (~$0.039/image at 1K, generateContent endpoint). Verified Jun 2026; pricing
 // and model names move — re-check before relying on the number.
@@ -35,6 +37,10 @@ export interface IllustrationInputs {
    * replaces the old hardcoded "children's / nothing frightening" language.
    * Defaults to "mature". */
   contentMaturity?: string;
+  /** The campaign's declared era ThemeId (story.era) — picks the per-era visual
+   * style token (theme-system/eraStyleTokens.ts). Unknown/absent falls back to
+   * the house baseline; never a failure. */
+  themeId?: string;
 }
 
 export interface IllustrationResult {
@@ -48,16 +54,18 @@ export interface IllustrationResult {
   ms: number;
 }
 
-// PURE + exported so the exact prompt is reproducible/inspectable. A fixed style
-// directive (consistency across a whole story) + a hard period-accuracy clause
-// (the only automated nudge against anachronism — the teacher's eye is the real
-// guard) + the scene.
+// PURE + exported so the exact prompt is reproducible/inspectable. A per-era
+// style directive (consistency across a whole story — composed from the era
+// style tokens, house baseline when the era has no token) + a hard
+// period-accuracy clause (the only automated nudge against anachronism — the
+// teacher's eye is the real guard) + the scene.
 export function buildImagePrompt(inputs: IllustrationInputs): string {
   const era = inputs.era?.trim() || `the historical period and place of: ${inputs.topic}`;
   const maturity = inputs.contentMaturity?.trim() || "mature";
+  const style = eraStyleFragment(inputs.themeId);
   return `A single illustration for a history lesson about ${inputs.topic}.
 
-STYLE (keep consistent across the whole story): warm, painterly storybook illustration; muted historical color palette; natural lighting. No text, words, captions, letters, or numbers anywhere in the image.
+STYLE (keep consistent across the whole story): ${style}. No text, words, captions, letters, or numbers anywhere in the image.
 
 CONTENT MATURITY (${maturity}): depict the scene HONESTLY for this audience — do not sanitize the hardship, fear, or danger of the real history. Do not add gratuitous gore, but do not soften the moment into something false.
 

@@ -52,6 +52,7 @@ export const onRequestPost = async (context: any) => {
               scene,
               era: item?.era ? String(item.era) : undefined,
               contentMaturity: item?.contentMaturity ? String(item.contentMaturity) : undefined,
+              themeId: item?.themeId ? String(item.themeId) : undefined,
             },
             apiKey
           );

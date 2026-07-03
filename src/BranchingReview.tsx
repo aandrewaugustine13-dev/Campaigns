@@ -98,7 +98,7 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
       const res = await fetch("/api/branching-image-gen", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic: story.title, scene: selected.text }),
+        body: JSON.stringify({ topic: story.title, scene: selected.text, themeId: story.era }),
       });
       const data = await res.json();
       if (!data?.image) { setGenError(data?.error || "AI illustration generation didn't succeed. The text passage is complete — try again or use text only."); return; }
@@ -127,7 +127,7 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
           const res = await fetch("/api/branching-image-gen", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ topic: story.title, scene: p.text }),
+            body: JSON.stringify({ topic: story.title, scene: p.text, themeId: story.era }),
           });
           const data = await res.json();
           if (data?.image) {
