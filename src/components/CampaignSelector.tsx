@@ -1,92 +1,180 @@
 import React from "react";
-import { BookOpen, Sparkles } from "lucide-react";
-import { PageContainer, MainTitle, SectionHeader, Button } from "./ui";
+import {
+  BookOpen,
+  Sparkles,
+  Layers,
+  Map,
+  Compass,
+  Swords,
+  ChevronRight,
+} from "lucide-react";
+import { studio, StudioBadge } from "./studio";
 
 interface CampaignSelectorProps {
   onSelect?: (key: string) => void;
 }
 
+/** Menu row for legacy / demo entries — same weight language as studio SelectableCards. */
+function MenuRow({
+  title,
+  description,
+  onClick,
+  icon: Icon,
+  badge,
+}: {
+  title: string;
+  description: string;
+  onClick: () => void;
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "group w-full text-left rounded-xl border border-stone-200 bg-white p-4",
+        "shadow-sm shadow-stone-200/40 transition-all duration-150",
+        "hover:border-stone-300 hover:shadow-md hover:shadow-stone-200/50",
+        "focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-500/15",
+        "active:scale-[0.99]",
+      ].join(" ")}
+    >
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-600 ring-1 ring-stone-200/80 group-hover:bg-stone-50">
+          <Icon className="h-5 w-5" aria-hidden={true} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-base font-bold text-stone-900 tracking-tight">{title}</span>
+            {badge && <StudioBadge tone="neutral">{badge}</StudioBadge>}
+          </div>
+          <p className="mt-0.5 text-sm font-medium text-stone-600 leading-snug">{description}</p>
+        </div>
+        <ChevronRight
+          className="h-5 w-5 shrink-0 text-stone-300 group-hover:text-stone-500 transition-colors"
+          aria-hidden
+        />
+      </div>
+    </button>
+  );
+}
+
 export const CampaignSelector: React.FC<CampaignSelectorProps> = ({ onSelect }) => {
   const handleSelect = (key: string) => {
-    if (onSelect) {
-      onSelect(key);
-    }
+    if (onSelect) onSelect(key);
   };
 
   return (
-    <PageContainer>
-      <MainTitle>CAMPAIGNS</MainTitle>
+    <div className={`${studio.page} ${studio.font} flex flex-col min-h-screen`}>
+      <div className="flex-1 flex flex-col items-center justify-center px-5 sm:px-6 py-12 sm:py-16">
+        <div className="w-full max-w-md space-y-8">
+          {/* Brand header */}
+          <div className="text-center space-y-3">
+            <p className="text-xs font-bold uppercase tracking-wider text-indigo-700">
+              Educational history
+            </p>
+            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-stone-900">
+              Campaigns
+            </h1>
+            <p className="text-base font-medium text-stone-600 leading-relaxed max-w-sm mx-auto">
+              Build interactive first-person history stories for your students — or try a classic campaign demo.
+            </p>
+          </div>
 
-      <div className="flex flex-col">
-        {/* PRODUCT — first-person narrative (the real game) */}
-        <SectionHeader className="mb-2.5">First-Person Narrative</SectionHeader>
+          {/* Primary product */}
+          <div className="space-y-2.5">
+            <p className="text-xs font-bold uppercase tracking-wider text-stone-500 px-0.5">
+              First-person narrative
+            </p>
 
-        {/* Light, elevated CTA — stands out from the dark PoC shell */}
-        <button
-          type="button"
-          onClick={() => handleSelect("create-story")}
-          className="group w-full rounded-2xl text-left mb-6 p-[1px] bg-gradient-to-br from-indigo-400/80 via-indigo-500 to-violet-600 shadow-[0_12px_32px_-8px_rgba(79,70,229,0.45)] transition-all active:scale-[0.985] hover:shadow-[0_16px_40px_-8px_rgba(79,70,229,0.55)] focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400/30"
-        >
-          <div className="rounded-[15px] bg-white px-5 py-5">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100">
-                <BookOpen className="h-5 w-5" aria-hidden />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-base font-bold text-stone-900 tracking-tight">
-                    Create a First-Person Story
-                  </span>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-indigo-700 ring-1 ring-indigo-100">
-                    <Sparkles className="h-3 w-3" aria-hidden />
-                    Product
-                  </span>
+            <button
+              type="button"
+              onClick={() => handleSelect("create-story")}
+              className={[
+                "group w-full rounded-2xl text-left p-[1.5px]",
+                "bg-gradient-to-br from-indigo-400 via-indigo-500 to-violet-600",
+                "shadow-[0_12px_32px_-8px_rgba(79,70,229,0.4)]",
+                "transition-all active:scale-[0.985]",
+                "hover:shadow-[0_16px_40px_-8px_rgba(79,70,229,0.5)]",
+                "focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400/30",
+              ].join(" ")}
+            >
+              <div className="rounded-[14px] bg-white px-5 py-5">
+                <div className="flex items-start gap-3.5">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100">
+                    <BookOpen className="h-5 w-5" aria-hidden />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-lg font-bold text-stone-900 tracking-tight">
+                        Create a First-Person Story
+                      </span>
+                      <StudioBadge tone="indigo">
+                        <span className="inline-flex items-center gap-1">
+                          <Sparkles className="h-3 w-3" aria-hidden />
+                          Product
+                        </span>
+                      </StudioBadge>
+                    </div>
+                    <p className="mt-1.5 text-sm font-medium text-stone-600 leading-snug">
+                      Generate a choose-your-path history story aligned to your TEKS standards
+                    </p>
+                  </div>
+                  <ChevronRight
+                    className="h-5 w-5 shrink-0 text-indigo-300 group-hover:text-indigo-500 transition-colors mt-1"
+                    aria-hidden
+                  />
                 </div>
-                <p className="mt-1 text-sm font-medium text-stone-600 leading-snug">
-                  Generate a choose-your-path history story for students
-                </p>
               </div>
+            </button>
+          </div>
+
+          {/* Legacy / demos */}
+          <div className="space-y-2.5">
+            <div className="px-0.5">
+              <p className="text-xs font-bold uppercase tracking-wider text-stone-500">
+                Legacy &amp; demos
+              </p>
+              <p className="text-sm font-medium text-stone-500 mt-1 leading-snug">
+                Proof-of-concept campaigns and the systems generator — not the main product path.
+              </p>
+            </div>
+
+            <div className="space-y-2.5">
+              <MenuRow
+                icon={Layers}
+                title="Create a Campaign"
+                description="Systems-mode generator (legacy)"
+                badge="Legacy"
+                onClick={() => handleSelect("create-campaign")}
+              />
+              <MenuRow
+                icon={Map}
+                title="Chisholm Trail — 1867"
+                description="San Antonio to Abilene"
+                onClick={() => handleSelect("chisholm")}
+              />
+              <MenuRow
+                icon={Compass}
+                title="Silk Road — 130 BCE"
+                description="Chang'an to Constantinople"
+                onClick={() => handleSelect("silkroad")}
+              />
+              <MenuRow
+                icon={Swords}
+                title="Third Crusade — 1190"
+                description="Warwick to Jerusalem"
+                onClick={() => handleSelect("crusades")}
+              />
             </div>
           </div>
-        </button>
 
-        {/* LEGACY & DEMOS SECTION — proof of concept only */}
-        <SectionHeader className="mb-2.5 mt-1">Legacy &amp; Demos</SectionHeader>
-        <p className="text-[10px] text-[#8a7f6a] mb-3 -mt-1 leading-snug">
-          Proof-of-concept campaigns and the systems generator. Not the main product path.
-        </p>
-
-        <Button
-          variant="secondary"
-          label="+ Create a Campaign"
-          description="Systems-mode generator (legacy)"
-          onClick={() => handleSelect("create-campaign")}
-          className="mb-3"
-        />
-
-        <Button
-          variant="warm"
-          label="Chisholm Trail — 1867"
-          description="San Antonio to Abilene"
-          onClick={() => handleSelect("chisholm")}
-          className="mb-3"
-        />
-
-        <Button
-          variant="alternative"
-          label="Silk Road — 130 BCE"
-          description="Chang'an to Constantinople"
-          onClick={() => handleSelect("silkroad")}
-          className="mb-3"
-        />
-
-        <Button
-          variant="danger"
-          label="Third Crusade — 1190"
-          description="Warwick to Jerusalem"
-          onClick={() => handleSelect("crusades")}
-        />
+          <p className="text-center text-xs font-medium text-stone-400 pt-2">
+            Built for classrooms · historically grounded · standards-aligned
+          </p>
+        </div>
       </div>
-    </PageContainer>
+    </div>
   );
 };
