@@ -44,6 +44,7 @@
 .studio-ui {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #FBF7F2;
 }
 .studio-ui .text-\[10px\],
 .studio-ui .text-\[11px\] { font-size: 0.75rem !important; line-height: 1.15rem !important; font-weight: 600; }

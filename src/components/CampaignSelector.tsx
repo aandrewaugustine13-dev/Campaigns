@@ -71,14 +71,14 @@ export const CampaignSelector: React.FC<CampaignSelectorProps> = ({ onSelect }) 
         <div className="w-full max-w-md space-y-8">
           {/* Brand header */}
           <div className="text-center space-y-3">
-            <p className="text-xs font-bold uppercase tracking-wider text-indigo-700">
+            <p className="text-xs font-bold tracking-wide text-violet-700">
               Educational history
             </p>
             <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-stone-900">
               Campaigns
             </h1>
             <p className="text-base font-medium text-stone-600 leading-relaxed max-w-sm mx-auto">
-              Build interactive first-person history stories for your students — or try a classic campaign demo.
+              Build interactive first-person history stories your students will actually want to finish — or try a classic demo.
             </p>
           </div>
 
@@ -93,16 +93,16 @@ export const CampaignSelector: React.FC<CampaignSelectorProps> = ({ onSelect }) 
               onClick={() => handleSelect("create-story")}
               className={[
                 "group w-full rounded-2xl text-left p-[1.5px]",
-                "bg-gradient-to-br from-indigo-400 via-indigo-500 to-violet-600",
-                "shadow-[0_12px_32px_-8px_rgba(79,70,229,0.4)]",
+                "bg-gradient-to-br from-violet-500 via-violet-600 to-amber-600/80",
+                "shadow-[0_12px_32px_-8px_rgba(91,33,182,0.35)]",
                 "transition-all active:scale-[0.985]",
-                "hover:shadow-[0_16px_40px_-8px_rgba(79,70,229,0.5)]",
-                "focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400/30",
+                "hover:shadow-[0_16px_40px_-8px_rgba(91,33,182,0.45)]",
+                "focus:outline-none focus-visible:ring-4 focus-visible:ring-violet-400/30",
               ].join(" ")}
             >
               <div className="rounded-[14px] bg-white px-5 py-5">
                 <div className="flex items-start gap-3.5">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-700">
                     <BookOpen className="h-5 w-5" aria-hidden />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -122,7 +122,7 @@ export const CampaignSelector: React.FC<CampaignSelectorProps> = ({ onSelect }) 
                     </p>
                   </div>
                   <ChevronRight
-                    className="h-5 w-5 shrink-0 text-indigo-300 group-hover:text-indigo-500 transition-colors mt-1"
+                    className="h-5 w-5 shrink-0 text-violet-300 group-hover:text-violet-600 transition-colors mt-1"
                     aria-hidden
                   />
                 </div>

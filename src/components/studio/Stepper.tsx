@@ -15,8 +15,8 @@ interface StepperProps {
 }
 
 /**
- * Horizontal progress indicator for multi-step teacher wizards.
- * Accessible: each step is a list item; current step is announced via aria-current.
+ * Warm, inviting progress indicator for multi-step teacher wizards.
+ * Active step feels alive; upcoming steps stay calm (not bureaucratic gray).
  */
 export function Stepper({ steps, currentIndex, className = "" }: StepperProps) {
   return (
@@ -35,18 +35,27 @@ export function Stepper({ steps, currentIndex, className = "" }: StepperProps) {
             >
               <div className="flex flex-col items-center gap-1.5 min-w-0">
                 <div className="relative flex items-center justify-center">
+                  {current && (
+                    <motion.span
+                      className="absolute inset-0 rounded-full bg-violet-400/25"
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1.45, opacity: 1 }}
+                      transition={{ duration: 0.4 }}
+                      aria-hidden
+                    />
+                  )}
                   <motion.div
                     layout
                     className={[
-                      "flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-colors",
+                      "relative flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold transition-colors",
                       complete
-                        ? "bg-indigo-600 text-white shadow-sm shadow-indigo-200"
+                        ? "bg-violet-700 text-white shadow-md shadow-violet-900/20"
                         : current
-                          ? "bg-white text-indigo-700 ring-2 ring-indigo-600 shadow-sm"
-                          : "bg-stone-100 text-stone-500 ring-1 ring-stone-200",
+                          ? "bg-gradient-to-br from-violet-600 to-violet-800 text-white shadow-lg shadow-violet-900/25"
+                          : "bg-white text-stone-400 shadow-sm shadow-stone-900/5 ring-1 ring-stone-900/[0.06]",
                     ].join(" ")}
                     initial={false}
-                    animate={current ? { scale: 1.05 } : { scale: 1 }}
+                    animate={current ? { scale: 1.06 } : { scale: 1 }}
                     transition={{ type: "spring", stiffness: 400, damping: 28 }}
                   >
                     {complete ? (
@@ -58,9 +67,12 @@ export function Stepper({ steps, currentIndex, className = "" }: StepperProps) {
                 </div>
                 <span
                   className={[
-                    "hidden sm:block text-xs font-bold tracking-wide truncate max-w-[5.5rem] text-center",
-                    complete || current ? "text-stone-900" : "text-stone-500",
-                    current ? "font-extrabold" : "",
+                    "hidden sm:block text-xs tracking-wide truncate max-w-[5.5rem] text-center",
+                    current
+                      ? "font-extrabold text-violet-900"
+                      : complete
+                        ? "font-bold text-stone-700"
+                        : "font-semibold text-stone-400",
                   ].join(" ")}
                 >
                   {step.shortLabel ?? step.label}
@@ -69,20 +81,19 @@ export function Stepper({ steps, currentIndex, className = "" }: StepperProps) {
 
               {i < steps.length - 1 && (
                 <div
-                  className="mx-2 sm:mx-3 h-0.5 flex-1 rounded-full bg-stone-200 overflow-hidden min-w-[1.25rem]"
+                  className="mx-2 sm:mx-3 h-1 flex-1 rounded-full bg-stone-200/70 overflow-hidden min-w-[1.25rem]"
                   aria-hidden
                 >
                   <motion.div
-                    className="h-full bg-indigo-500 origin-left"
+                    className="h-full bg-gradient-to-r from-violet-500 to-violet-600 origin-left rounded-full"
                     initial={false}
                     animate={{ scaleX: complete ? 1 : 0 }}
-                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                     style={{ width: "100%" }}
                   />
                 </div>
               )}
 
-              {/* Screen-reader-only upcoming status */}
               {upcoming && <span className="sr-only">Upcoming: {step.label}</span>}
               {complete && <span className="sr-only">Completed: {step.label}</span>}
             </li>

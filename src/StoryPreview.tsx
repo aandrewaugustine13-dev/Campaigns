@@ -14,8 +14,22 @@
 // UI: light SaaS studio shell (shared with CreateBranching generating/error).
 // ════════════════════════════════════════════════════════════════
 import { useState, useCallback, useMemo } from "react";
-import { AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Check, Sparkles, AlertCircle } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Sparkles,
+  AlertCircle,
+  BookOpen,
+  Map,
+  Focus,
+  Users,
+  UserRound,
+  Search,
+  Feather,
+  type LucideIcon,
+} from "lucide-react";
 import type { StoryPreview, PreviewFinding } from "../generator/storyPreview";
 import { searchTEKS, type TEKSStandard } from "./lib/teks";
 import { THEME_IDS, THEME_USE_WHEN, resolveTheme, type ThemeId } from "./themes";
@@ -31,10 +45,59 @@ import {
   StudioSelect,
   StudioButton,
   SelectableCard,
-  RadioDot,
   StudioSpinner,
   StudioHeader,
+  studio,
 } from "./components/studio";
+
+/** Warm choice tile for Story Shape / Reading experience — icon + feeling, not insurance radio. */
+function FeelingChoice({
+  selected,
+  onClick,
+  title,
+  feeling,
+  icon: Icon,
+  "aria-label": ariaLabel,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  title: string;
+  feeling: string;
+  icon: LucideIcon;
+  "aria-label"?: string;
+}) {
+  return (
+    <SelectableCard selected={selected} onClick={onClick} aria-label={ariaLabel ?? title}>
+      <div className="flex items-start gap-3.5">
+        <div
+          className={[
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors",
+            selected
+              ? "bg-violet-600 text-white shadow-md shadow-violet-900/20"
+              : "bg-[#F3EDE5] text-stone-600",
+          ].join(" ")}
+        >
+          <Icon className="h-5 w-5" aria-hidden />
+        </div>
+        <div className="min-w-0 flex-1 pt-0.5">
+          <div className="flex items-center gap-2">
+            <span className="text-base font-bold text-stone-900">{title}</span>
+            {selected && (
+              <motion.span
+                initial={{ scale: 0.6, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="flex h-5 w-5 items-center justify-center rounded-full bg-violet-600 text-white"
+              >
+                <Check className="h-3 w-3" strokeWidth={3} aria-hidden />
+              </motion.span>
+            )}
+          </div>
+          <p className="mt-1 text-sm font-medium text-stone-600 leading-snug">{feeling}</p>
+        </div>
+      </div>
+    </SelectableCard>
+  );
+}
 
 /** Humanize a kebab-case ThemeId into a teacher-facing label, e.g.
  * "ww1-fieldpost" → "Ww1 Fieldpost". Kept tiny — the authoritative
@@ -255,17 +318,17 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
               <button
                 type="button"
                 onClick={onBack}
-                className="inline-flex items-center gap-1.5 text-xs font-medium text-stone-500 hover:text-stone-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/30 rounded-md px-1 py-0.5 -ml-1"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-stone-500 hover:text-violet-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/30 rounded-md px-1 py-0.5 -ml-1"
               >
                 <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
-                Campaigns
+                Home
               </button>
             ) : (
               <span />
             )}
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-stone-400">
-              <Sparkles className="h-3.5 w-3.5 text-indigo-500" aria-hidden />
-              First-person story
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-violet-700/80">
+              <Sparkles className="h-3.5 w-3.5 text-violet-600" aria-hidden />
+              Crafting a story
             </span>
           </div>
           <Stepper steps={PREVIEW_STEPS} currentIndex={stepIndex} />
@@ -273,36 +336,48 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
       }
     >
       <AnimatePresence mode="wait">
-        <StudioPanel key="preview-form" className="space-y-6">
+        <StudioPanel key="preview-form" className="space-y-8">
           <StudioHeader
-            eyebrow="Create a first-person narrative"
-            title="Design the story"
-            description="Describe the history, align TEKS, choose shape and tone, then preview the arc. Preview is fast — re-run freely while you iterate."
+            eyebrow="For your classroom"
+            title="Where will students step into history?"
+            description="Pick a moment, connect it to your standards, and shape how the story feels. You can tweak and re-preview anytime — nothing is locked in yet."
           />
 
-          {/* 1. Topic & Focus */}
-          <StudioCard className="space-y-5">
+          {/* ── 1. Topic: creative starting point ── */}
+          <StudioCard className={`space-y-4 ${studio.cardHover}`}>
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800">
+                <BookOpen className="h-5 w-5" aria-hidden />
+              </div>
+              <div>
+                <StudioCardTitle className="!mb-0.5 !text-base !text-stone-900">What chapter of history?</StudioCardTitle>
+                <p className="text-sm font-medium text-stone-500 leading-snug">
+                  Name the moment you want students to live through — not a textbook title, a world they can stand inside.
+                </p>
+              </div>
+            </div>
+            <StudioInput
+              id="topic"
+              value={topic}
+              onChange={(e) => onEdit(setTopic)(e.target.value)}
+              placeholder="Try: the Dust Bowl, the March on Washington, the Texas Revolution…"
+              autoComplete="off"
+              aria-label="Historical topic"
+            />
+          </StudioCard>
+
+          {/* ── 2. TEKS: helpful, exploratory ── */}
+          <StudioCard className={`space-y-5 ${studio.cardHover}`}>
             <div>
-              <StudioCardTitle>1 · Topic & focus</StudioCardTitle>
-              <p className="text-xs text-stone-500 mb-3">What historical moment or event should students live through?</p>
-              <Field label="Topic" htmlFor="topic" required>
-                <StudioInput
-                  id="topic"
-                  value={topic}
-                  onChange={(e) => onEdit(setTopic)(e.target.value)}
-                  placeholder="e.g. the Dust Bowl, the March on Washington, the Texas Revolution"
-                  autoComplete="off"
-                />
-              </Field>
+              <StudioCardTitle className="!text-base !text-stone-900">Connect to your standards</StudioCardTitle>
+              <p className="text-sm font-medium text-stone-500 mt-0.5">
+                Search for the TEKS this story should teach. Add as many as you need — we&apos;ll weave them into the narrative.
+              </p>
             </div>
 
-            {/* 2. TEKS Alignment */}
             <div>
-              <StudioCardTitle>2 · TEKS alignment</StudioCardTitle>
-              <p className="text-xs text-stone-500 mb-3">Select the exact standards this story must address. You can add several.</p>
-
-              <div className="flex flex-wrap items-center gap-1.5 mb-2">
-                <span className="text-[11px] font-medium text-stone-400 mr-1">Grade:</span>
+              <p className="text-sm font-bold text-stone-700 mb-2">Grade level</p>
+              <div className="flex flex-wrap gap-2">
                 {["All", "6", "7", "8", "High School"].map((grade) => {
                   const isActive = selectedGrades.includes(grade);
                   const label = grade === "All" ? "All grades" : grade + (grade !== "High School" ? "th" : "");
@@ -312,11 +387,11 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
                       type="button"
                       onClick={() => toggleGrade(grade)}
                       className={[
-                        "text-[11px] px-2.5 py-1 rounded-full border font-medium transition-all",
-                        "focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/30",
+                        "text-sm px-3.5 py-1.5 rounded-full font-bold transition-all",
+                        "focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/30",
                         isActive
-                          ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
-                          : "bg-white border-stone-200 text-stone-600 hover:border-stone-300",
+                          ? "bg-violet-700 text-white shadow-md shadow-violet-900/15"
+                          : "bg-[#F3EDE5] text-stone-600 hover:bg-[#EBE4D9] hover:text-stone-800",
                       ].join(" ")}
                     >
                       {label}
@@ -324,28 +399,37 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
                   );
                 })}
               </div>
+            </div>
 
-              <StudioInput
-                value={teksSearch}
-                onChange={(e) => setTeksSearch(e.target.value)}
-                placeholder="Search keywords (e.g. washington, revolution, constitution, civil war)"
-                aria-label="Search TEKS standards"
-              />
+            <div>
+              <p className="text-sm font-bold text-stone-700 mb-2">Find standards</p>
+              <div className="relative">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 pointer-events-none" aria-hidden />
+                <StudioInput
+                  value={teksSearch}
+                  onChange={(e) => setTeksSearch(e.target.value)}
+                  placeholder="Type a person, event, or idea — e.g. constitution, civil rights…"
+                  aria-label="Search TEKS standards"
+                  className="!pl-10"
+                />
+              </div>
 
               {selectedTEKS.length > 0 && (
-                <div className="mt-2.5">
-                  <div className="text-[11px] font-medium text-stone-400 mb-1.5">Selected ({selectedTEKS.length}):</div>
-                  <div className="flex flex-wrap gap-1.5">
+                <div className="mt-3">
+                  <div className="text-sm font-bold text-stone-600 mb-2">
+                    In this story ({selectedTEKS.length})
+                  </div>
+                  <div className="flex flex-wrap gap-2">
                     {selectedTEKS.map((t) => (
                       <span
                         key={t.code}
-                        className="inline-flex items-center gap-1.5 bg-indigo-50 border border-indigo-100 text-xs px-2.5 py-1 rounded-full text-stone-700"
+                        className="inline-flex items-center gap-1.5 bg-violet-100 text-violet-900 text-sm px-3 py-1.5 rounded-full font-semibold shadow-sm shadow-violet-900/5"
                       >
-                        <span className="font-mono text-indigo-700 font-medium">{t.code}</span>
+                        <span className="font-mono text-violet-800">{t.code}</span>
                         <button
                           type="button"
                           onClick={() => removeTEKS(t.code)}
-                          className="text-stone-400 hover:text-rose-600 leading-none rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40"
+                          className="text-violet-500 hover:text-rose-600 leading-none rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40 ml-0.5"
                           title="Remove"
                           aria-label={`Remove ${t.code}`}
                         >
@@ -358,10 +442,10 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
               )}
 
               {teksSearch.trim() && (
-                <div className="mt-2 max-h-48 overflow-auto border border-stone-200 bg-white rounded-xl shadow-sm p-1 text-sm">
+                <div className="mt-2 max-h-48 overflow-auto rounded-2xl bg-white p-1.5 shadow-lg shadow-stone-900/8 ring-1 ring-stone-900/[0.05]">
                   {teksMatches.length === 0 ? (
-                    <div className="px-3 py-2 text-xs text-stone-500">
-                      No matching standards found. Try broader keywords such as &quot;civil rights&quot;, &quot;revolution&quot;, or a key figure&apos;s name.
+                    <div className="px-3 py-3 text-sm text-stone-500">
+                      Nothing matched yet. Try a broader word — like &quot;revolution,&quot; &quot;civil rights,&quot; or a figure&apos;s name.
                     </div>
                   ) : (
                     teksMatches.map((t) => (
@@ -369,155 +453,149 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
                         key={t.code}
                         type="button"
                         onClick={() => addTEKS(t)}
-                        className="w-full text-left px-3 py-2 hover:bg-stone-50 cursor-pointer flex justify-between items-start gap-2 rounded-lg text-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/20"
+                        className="w-full text-left px-3 py-2.5 hover:bg-violet-50 cursor-pointer flex justify-between items-start gap-2 rounded-xl text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/20"
                         title={t.description}
                       >
                         <div className="min-w-0">
-                          <span className="font-mono text-indigo-600 font-medium">{t.code}</span>{" "}
-                          <span className="text-stone-600">{t.description}</span>
+                          <span className="font-mono font-bold text-violet-700">{t.code}</span>{" "}
+                          <span className="text-stone-600 font-medium">{t.description}</span>
                         </div>
-                        <span className="text-indigo-600 text-[11px] font-bold flex-shrink-0">+ Add</span>
+                        <span className="text-violet-700 text-sm font-bold flex-shrink-0">Add</span>
                       </button>
                     ))
                   )}
                 </div>
               )}
               {!teksSearch.trim() && selectedTEKS.length === 0 && (
-                <p className="text-[12px] text-stone-400 mt-1.5">Search by topic or person and add the standards this story must cover.</p>
+                <p className="text-sm text-stone-400 mt-2">Start typing to explore standards that fit your topic.</p>
               )}
             </div>
 
-            <Field
-              label="Must cover (optional)"
-              htmlFor="must-cover"
-              hint="Specific ideas or scenes you want guaranteed in the story."
-            >
-              <StudioTextarea
-                id="must-cover"
-                value={mustCover}
-                onChange={(e) => onEdit(setMustCover)(e.target.value)}
-                rows={2}
-                placeholder="e.g. show why families left their farms, and the trip to California"
-              />
-            </Field>
-          </StudioCard>
-
-          {/* 3. Story Shape */}
-          <StudioCard className="space-y-4">
-            <div>
-              <StudioCardTitle>3 · Story shape</StudioCardTitle>
-              <p className="text-xs text-stone-500">How broad should the story feel, and should students meet real famous figures?</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">Story breadth</span>
-                {([
-                  { value: "span" as const, title: "Span", desc: "Travels across a movement, war, or long journey. Broader arc with multiple locations or phases." },
-                  { value: "depth" as const, title: "Depth", desc: "Stays inside one powerful moment or short time. Rich branches in a tight frame." },
-                ]).map((opt) => (
-                  <SelectableCard
-                    key={opt.value}
-                    selected={scope === opt.value}
-                    onClick={() => onEdit(setScope)(opt.value)}
-                    aria-label={opt.title}
-                  >
-                    <div className="flex items-start gap-3">
-                      <RadioDot selected={scope === opt.value} />
-                      <div>
-                        <div className="text-sm font-bold text-stone-900">{opt.title}</div>
-                        <div className="text-[12px] text-stone-500 leading-snug mt-0.5">{opt.desc}</div>
-                      </div>
-                    </div>
-                  </SelectableCard>
-                ))}
-              </div>
-              <div className="space-y-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">Famous figure encounters</span>
-                {([
-                  { value: "off" as const, title: "Off (recommended for many topics)", desc: "No forced meetings. Students experience events through ordinary people. Clean for focused or lesser-known stories." },
-                  { value: "high" as const, title: "High — meet the real figures", desc: "The protagonist crosses paths with marquee historical figures at turning points." },
-                ]).map((opt) => (
-                  <SelectableCard
-                    key={opt.value}
-                    selected={gumpIntensity === opt.value}
-                    onClick={() => onEdit(setGumpIntensity)(opt.value)}
-                    aria-label={opt.title}
-                  >
-                    <div className="flex items-start gap-3">
-                      <RadioDot selected={gumpIntensity === opt.value} />
-                      <div>
-                        <div className="text-sm font-bold text-stone-900">{opt.title}</div>
-                        <div className="text-[12px] text-stone-500 leading-snug mt-0.5">{opt.desc}</div>
-                      </div>
-                    </div>
-                  </SelectableCard>
-                ))}
-              </div>
+            <div className="pt-1">
+              <Field
+                label="Moments you care about most"
+                htmlFor="must-cover"
+                hint="Optional — scenes or ideas you want the story to include, in plain language."
+              >
+                <StudioTextarea
+                  id="must-cover"
+                  value={mustCover}
+                  onChange={(e) => onEdit(setMustCover)(e.target.value)}
+                  rows={2}
+                  placeholder="e.g. why families left the farms, and the long road to California"
+                />
+              </Field>
             </div>
           </StudioCard>
 
-          {/* 4. Reading experience */}
-          <StudioCard className="space-y-4">
-            <div>
-              <StudioCardTitle>4 · Reading experience</StudioCardTitle>
-              <p className="text-xs text-stone-500">How honestly should the story portray hard realities, and how accessible should the language be?</p>
+          {/* ── 3. Story Shape: creative heart ── */}
+          <motion.div
+            layout
+            className="rounded-2xl bg-gradient-to-br from-violet-100/80 via-amber-50/50 to-[#FBF7F2] p-5 sm:p-6 shadow-[0_8px_32px_-8px_rgba(91,33,182,0.12)] ring-1 ring-violet-900/[0.06] space-y-6"
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white shadow-md shadow-violet-900/20">
+                <Sparkles className="h-5 w-5" aria-hidden />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-stone-900 tracking-tight">Shape the experience</h2>
+                <p className="text-sm font-medium text-stone-600 mt-0.5 leading-snug">
+                  This is the creative heart of the story — how far students travel, and who they might meet along the way.
+                </p>
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">Content maturity</span>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-2.5">
+                <p className="text-sm font-bold text-violet-900/80 px-0.5">How far does the journey go?</p>
+                <FeelingChoice
+                  selected={scope === "span"}
+                  onClick={() => onEdit(setScope)("span")}
+                  title="Across the arc"
+                  feeling="Students move through a movement, war, or long journey — many places, many phases. The big picture comes alive."
+                  icon={Map}
+                />
+                <FeelingChoice
+                  selected={scope === "depth"}
+                  onClick={() => onEdit(setScope)("depth")}
+                  title="One powerful moment"
+                  feeling="Stay inside a single day or decision. Branches go deep — every choice feels close and consequential."
+                  icon={Focus}
+                />
+              </div>
+              <div className="space-y-2.5">
+                <p className="text-sm font-bold text-violet-900/80 px-0.5">Who might they meet?</p>
+                <FeelingChoice
+                  selected={gumpIntensity === "off"}
+                  onClick={() => onEdit(setGumpIntensity)("off")}
+                  title="Ordinary people"
+                  feeling="Live the history through neighbors, workers, and everyday participants. Intimate and grounded — often the right fit."
+                  icon={UserRound}
+                />
+                <FeelingChoice
+                  selected={gumpIntensity === "high"}
+                  onClick={() => onEdit(setGumpIntensity)("high")}
+                  title="Meet the famous figures"
+                  feeling="Improbable, memorable encounters with marquee leaders and turning points — high drama, high stakes."
+                  icon={Users}
+                />
+              </div>
+            </div>
+          </motion.div>
+
+          {/* ── 4. Reading experience ── */}
+          <StudioCard className={`space-y-5 ${studio.cardHover}`}>
+            <div>
+              <StudioCardTitle className="!text-base !text-stone-900">How should it read?</StudioCardTitle>
+              <p className="text-sm font-medium text-stone-500 mt-0.5">
+                Match the honesty and the language to your students — two separate dials, not one compromise.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-2.5">
+                <p className="text-sm font-bold text-stone-700 px-0.5">Honesty about hard history</p>
                 {([
-                  { value: "mature", title: "Mature", desc: "Direct and honest about fear, violence, death, and moral complexity." },
-                  { value: "moderate", title: "Moderate", desc: "Balanced honesty — difficult truths are present but softened where appropriate." },
-                  { value: "gentle", title: "Gentle", desc: "Softer portrayal suitable for younger or more sensitive readers." },
+                  { value: "mature", title: "Fully honest", feeling: "Fear, violence, and moral complexity are named clearly — trusted with the truth." },
+                  { value: "moderate", title: "Balanced", feeling: "Difficult truths stay present, with some softening for the age group." },
+                  { value: "gentle", title: "Gentler", feeling: "Softer framing for younger or more sensitive readers, without erasing the stakes." },
                 ]).map((opt) => (
-                  <SelectableCard
+                  <FeelingChoice
                     key={opt.value}
                     selected={contentMaturity === opt.value}
                     onClick={() => onEdit(setContentMaturity)(opt.value)}
-                    aria-label={opt.title}
-                  >
-                    <div className="flex items-start gap-3">
-                      <RadioDot selected={contentMaturity === opt.value} />
-                      <div>
-                        <div className="text-sm font-bold text-stone-900">{opt.title}</div>
-                        <div className="text-[12px] text-stone-500 leading-snug mt-0.5">{opt.desc}</div>
-                      </div>
-                    </div>
-                  </SelectableCard>
+                    title={opt.title}
+                    feeling={opt.feeling}
+                    icon={Feather}
+                  />
                 ))}
               </div>
-              <div className="space-y-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">Prose register</span>
+              <div className="space-y-2.5">
+                <p className="text-sm font-bold text-stone-700 px-0.5">Language style</p>
                 {([
-                  { value: "direct", title: "Direct", desc: "Short sentences, plain concrete words. Best for broad access and bilingual support." },
-                  { value: "balanced", title: "Balanced", desc: "Mix of sentence lengths with clear but descriptive language." },
-                  { value: "literary", title: "Literary", desc: "Richer vocabulary and varied sentences for stronger readers." },
+                  { value: "direct", title: "Clear & direct", feeling: "Short sentences, everyday words. Widest access — great for mixed reading levels." },
+                  { value: "balanced", title: "Balanced prose", feeling: "A mix of sentence lengths; clear but still descriptive." },
+                  { value: "literary", title: "Richer prose", feeling: "More vocabulary and rhythm — rewarding for stronger readers." },
                 ]).map((opt) => (
-                  <SelectableCard
+                  <FeelingChoice
                     key={opt.value}
                     selected={proseRegister === opt.value}
                     onClick={() => onEdit(setProseRegister)(opt.value)}
-                    aria-label={opt.title}
-                  >
-                    <div className="flex items-start gap-3">
-                      <RadioDot selected={proseRegister === opt.value} />
-                      <div>
-                        <div className="text-sm font-bold text-stone-900">{opt.title}</div>
-                        <div className="text-[12px] text-stone-500 leading-snug mt-0.5">{opt.desc}</div>
-                      </div>
-                    </div>
-                  </SelectableCard>
+                    title={opt.title}
+                    feeling={opt.feeling}
+                    icon={BookOpen}
+                  />
                 ))}
               </div>
             </div>
           </StudioCard>
 
-          {/* Language + visual theme */}
-          <StudioCard className="space-y-5">
+          {/* ── Language + visual theme (quieter settings) ── */}
+          <StudioCard className="space-y-5 !bg-[#F8F4EE]/80 !shadow-none ring-1 ring-stone-900/[0.04]">
+            <p className="text-sm font-bold text-stone-700">Finishing touches</p>
             <Field
-              label="Output language"
+              label="Language for the story"
               htmlFor="output-language"
-              hint="The story, questions, and summary will be generated in this language."
+              hint="Passages, questions, and the summary will all be written in this language."
             >
               <StudioSelect
                 id="output-language"
@@ -531,16 +609,16 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
             </Field>
 
             <Field
-              label="Visual theme (player)"
+              label="Look & feel in the player"
               htmlFor="visual-theme"
-              hint="Sets period paper, typography, and ornaments in the student player. Auto matches the era from the topic and TEKS."
+              hint="Paper, type, and ornaments students see while reading. Auto usually nails the era."
             >
               <StudioSelect
                 id="visual-theme"
                 value={visualTheme}
                 onChange={(e) => onVisualThemeChange(e.target.value as ThemeId | "auto")}
               >
-                <option value="auto">Auto-detect from topic (recommended)</option>
+                <option value="auto">Choose for me from the topic</option>
                 {THEME_IDS.map((id) => (
                   <option key={id} value={id} title={THEME_USE_WHEN[id]}>
                     {themeLabel(id)}
@@ -551,7 +629,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
           </StudioCard>
 
           {/* Preview action */}
-          <div className="space-y-2">
+          <div className="space-y-3 pt-1">
             <StudioButton
               size="lg"
               fullWidth
@@ -560,100 +638,106 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
               loading={status === "loading"}
             >
               {status === "loading"
-                ? "Previewing…"
+                ? "Sketching your outline…"
                 : preview
-                  ? (previewStale ? "Update preview with changes" : "Re-preview")
-                  : "Preview story arc"}
+                  ? (previewStale ? "Refresh the preview" : "Preview again")
+                  : "See a quick preview"}
               {status !== "loading" && <ArrowRight className="h-4 w-4" aria-hidden />}
             </StudioButton>
             {status === "loading" && (
-              <p className="text-xs text-indigo-600 text-center font-medium">
-                Generating a fast outline and TEKS coverage check…
+              <p className="text-sm text-violet-700 text-center font-semibold">
+                Building a short outline and checking your standards — hang tight.
               </p>
             )}
             {!canPreview && status !== "loading" && (
-              <p className="text-xs text-stone-400 text-center">
-                Add a topic and at least one TEKS standard to preview.
+              <p className="text-sm text-stone-500 text-center font-medium">
+                Add a topic and at least one standard, then we can preview.
               </p>
             )}
           </div>
 
           {status === "error" && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3.5 space-y-1">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" aria-hidden />
+            <div className="rounded-2xl bg-rose-50 px-4 py-4 shadow-sm">
+              <div className="flex items-start gap-2.5">
+                <AlertCircle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" aria-hidden />
                 <div>
-                  <p className="text-sm font-medium text-rose-800">We couldn&apos;t generate a preview right now.</p>
-                  <p className="text-xs text-rose-700/80 mt-1">
-                    This is often temporary, or an unusually narrow topic/TEKS combination.
+                  <p className="text-sm font-bold text-rose-900">We couldn&apos;t sketch a preview just now.</p>
+                  <p className="text-sm text-rose-800/80 mt-1 font-medium">
+                    Often temporary — or the topic/standards pair is very narrow. Try again in a moment, or widen the search a bit.
                   </p>
-                  <p className="text-xs text-rose-600/70 mt-1.5 font-mono break-words">Details: {error}</p>
+                  <p className="text-xs text-rose-600/70 mt-2 font-mono break-words">Details: {error}</p>
                 </div>
               </div>
             </div>
           )}
 
           {preview && (
-            <StudioCard accent className="space-y-5 !p-6">
-              {(status === "loading" || previewStale) && (
-                <div className="text-xs bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 text-amber-800">
-                  {status === "loading"
-                    ? "Updating preview for your current inputs…"
-                    : "Inputs changed — update the preview before approving."}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <StudioCard accent className="space-y-5 !p-6">
+                {(status === "loading" || previewStale) && (
+                  <div className="text-sm font-semibold bg-amber-50 rounded-xl px-3.5 py-2.5 text-amber-900">
+                    {status === "loading"
+                      ? "Updating the preview with your latest choices…"
+                      : "You changed something — refresh the preview before approving."}
+                  </div>
+                )}
+
+                <div>
+                  <p className="text-sm font-bold text-violet-800 mb-1">Students will walk as</p>
+                  <p className="text-xl font-bold text-stone-900 leading-snug">{preview.protagonist}</p>
                 </div>
-              )}
 
-              <div>
-                <StudioCardTitle>The story will follow</StudioCardTitle>
-                <p className="text-lg font-bold text-stone-900">{preview.protagonist}</p>
-              </div>
-
-              <div>
-                <StudioCardTitle>Summary</StudioCardTitle>
-                <p className="text-sm text-stone-700 leading-relaxed">{preview.summary}</p>
-              </div>
-
-              <div>
-                <StudioCardTitle>Covers (check against your standard)</StudioCardTitle>
-                <ul className="space-y-2">
-                  {preview.coverage.map((c, i) => (
-                    <li key={i} className="text-sm text-stone-700 flex gap-2.5 items-start">
-                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
-                        <Check className="h-3 w-3" strokeWidth={2.5} aria-hidden />
-                      </span>
-                      <span className="leading-relaxed">{c}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {approved ? (
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-                  Approved. Generating the full interactive story (branches, encounters, and quiz). This takes about a minute.
+                <div>
+                  <p className="text-sm font-bold text-violet-800 mb-1">The arc in a nutshell</p>
+                  <p className="text-base font-medium text-stone-700 leading-relaxed">{preview.summary}</p>
                 </div>
-              ) : (
-                <div className="space-y-2 pt-1">
-                  <StudioButton
-                    size="lg"
-                    fullWidth
-                    onClick={approve}
-                    disabled={previewStale || status === "loading"}
-                  >
-                    Approve & generate
-                    <ArrowRight className="h-4 w-4" aria-hidden />
-                  </StudioButton>
-                  <p className="text-xs text-stone-500 text-center leading-relaxed">
-                    Not right? Edit any field above — the preview stays visible — then click &quot;Update preview with changes.&quot;
-                  </p>
+
+                <div>
+                  <p className="text-sm font-bold text-violet-800 mb-2">What this story covers</p>
+                  <ul className="space-y-2.5">
+                    {preview.coverage.map((c, i) => (
+                      <li key={i} className="text-sm font-medium text-stone-700 flex gap-2.5 items-start">
+                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                          <Check className="h-3 w-3" strokeWidth={2.5} aria-hidden />
+                        </span>
+                        <span className="leading-relaxed">{c}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              )}
-            </StudioCard>
+
+                {approved ? (
+                  <div className="rounded-xl bg-emerald-50 px-4 py-3.5 text-sm font-semibold text-emerald-900">
+                    You&apos;re in. Writing the full interactive story now — branches, encounters, and a short quiz. About a minute.
+                  </div>
+                ) : (
+                  <div className="space-y-2.5 pt-1">
+                    <StudioButton
+                      size="lg"
+                      fullWidth
+                      onClick={approve}
+                      disabled={previewStale || status === "loading"}
+                    >
+                      Looks good — write the full story
+                      <ArrowRight className="h-4 w-4" aria-hidden />
+                    </StudioButton>
+                    <p className="text-sm text-stone-500 text-center font-medium leading-relaxed">
+                      Not quite right? Edit anything above, then refresh the preview. Your last outline stays visible so you can compare.
+                    </p>
+                  </div>
+                )}
+              </StudioCard>
+            </motion.div>
           )}
 
           {status === "loading" && !preview && (
             <StudioSpinner
-              label="Building a story outline…"
-              sublabel="Checking TEKS coverage against your selected standards"
+              label="Sketching a story outline…"
+              sublabel="Checking how your standards show up in the arc"
             />
           )}
         </StudioPanel>

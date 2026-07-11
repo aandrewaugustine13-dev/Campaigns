@@ -7,23 +7,28 @@ import { motion, type HTMLMotionProps } from "framer-motion";
 import { Loader2 } from "lucide-react";
 
 // ── Shared class tokens ──────────────────────────────────────────
-// Typography is intentionally HEAVY for teacher readability: medium default
-// weight (inherited), bold headings/labels, slightly larger form text.
-// `.studio-ui` in index.css also bumps the type scale one step.
+// Warm educational studio: cream surfaces, soft elevation (not thin borders),
+// readable weight, and a living indigo-violet accent. `.studio-ui` bumps type.
 export const studio = {
-  page: "studio-ui min-h-screen bg-[#F7F6F3] text-stone-900 antialiased",
-  // System UI stack + medium weight so body copy reads bold without per-node markup
+  // Warm cream undertone — not cool gray enterprise
+  page: "studio-ui min-h-screen bg-[#FBF7F2] text-stone-900 antialiased",
   font: "font-sans font-medium",
-  card: "bg-white rounded-xl border border-stone-200/90 shadow-sm shadow-stone-200/40",
-  cardHover: "hover:border-stone-300 hover:shadow-md hover:shadow-stone-200/50 transition-all duration-200",
+  // Soft elevation over outlines — premium, not bureaucratic
+  card:
+    "bg-white/95 rounded-2xl shadow-[0_4px_24px_-4px_rgba(62,44,28,0.08),0_1px_3px_rgba(62,44,28,0.04)] " +
+    "ring-1 ring-stone-900/[0.04]",
+  cardHover:
+    "hover:shadow-[0_8px_32px_-6px_rgba(62,44,28,0.12),0_2px_6px_rgba(62,44,28,0.05)] " +
+    "hover:-translate-y-px transition-all duration-200",
   input:
-    "w-full rounded-lg border border-stone-200 bg-white px-3.5 py-3 text-base font-semibold text-stone-900 " +
-    "placeholder:text-stone-400 placeholder:font-medium " +
-    "shadow-sm shadow-stone-100/80 transition-all duration-150 " +
-    "hover:border-stone-300 " +
-    "focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10",
-  label: "block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1.5",
-  help: "mt-1.5 text-sm font-medium leading-relaxed text-stone-600",
+    "w-full rounded-xl border-0 bg-[#F8F4EE] px-4 py-3.5 text-base font-semibold text-stone-900 " +
+    "placeholder:text-stone-400/90 placeholder:font-medium " +
+    "shadow-inner shadow-stone-900/[0.03] transition-all duration-150 " +
+    "hover:bg-[#F3EDE5] " +
+    "focus:outline-none focus:bg-white focus:ring-4 focus:ring-violet-500/15 focus:shadow-[0_0_0_1.5px_rgba(109,40,217,0.35)]",
+  // Sentence case feel — not ALL-CAPS compliance labels
+  label: "block text-sm font-bold text-stone-700 mb-1.5 tracking-tight",
+  help: "mt-1.5 text-sm font-medium leading-relaxed text-stone-500",
   title: "text-2xl sm:text-3xl font-bold tracking-tight text-stone-900",
   subtitle: "text-base font-medium text-stone-600 leading-relaxed",
 } as const;
@@ -41,12 +46,12 @@ export function StudioShell({
   return (
     <div className={`${studio.page} ${studio.font} flex flex-col h-screen overflow-hidden`}>
       {header && (
-        <header className="shrink-0 border-b border-stone-200/80 bg-white/80 backdrop-blur-md sticky top-0 z-20">
+        <header className="shrink-0 border-b border-amber-900/[0.06] bg-[#FBF7F2]/90 backdrop-blur-md sticky top-0 z-20">
           <div className="max-w-2xl mx-auto px-5 sm:px-6 py-4">{header}</div>
         </header>
       )}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto px-5 sm:px-6 py-8 pb-16">{children}</div>
+        <div className="max-w-2xl mx-auto px-5 sm:px-6 py-8 sm:py-10 pb-20">{children}</div>
       </div>
       {footer}
     </div>
@@ -93,7 +98,7 @@ export function StudioCard({
       className={[
         studio.card,
         "p-4 sm:p-5",
-        accent ? "ring-1 ring-indigo-100 bg-gradient-to-br from-white to-indigo-50/40" : "",
+        accent ? "bg-gradient-to-br from-white via-violet-50/40 to-amber-50/30" : "",
         className,
       ].join(" ")}
       {...props}
@@ -105,7 +110,7 @@ export function StudioCard({
 
 export function StudioCardTitle({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <h2 className={`text-xs font-bold uppercase tracking-wider text-indigo-700 mb-2 ${className}`}>
+    <h2 className={`text-sm font-bold tracking-tight text-violet-800 mb-1.5 ${className}`}>
       {children}
     </h2>
   );
@@ -180,13 +185,13 @@ const btnBase =
 
 const btnVariants: Record<BtnVariant, string> = {
   primary:
-    "bg-indigo-600 text-white shadow-sm shadow-indigo-200/80 hover:bg-indigo-500 " +
-    "focus-visible:ring-indigo-500/25",
+    "bg-violet-700 text-white shadow-md shadow-violet-900/15 hover:bg-violet-600 " +
+    "focus-visible:ring-violet-500/30",
   secondary:
-    "bg-white text-stone-800 border border-stone-200 shadow-sm hover:bg-stone-50 hover:border-stone-300 " +
-    "focus-visible:ring-stone-400/20",
+    "bg-white text-stone-800 shadow-sm shadow-stone-900/5 ring-1 ring-stone-900/[0.06] " +
+    "hover:bg-[#FBF7F2] hover:shadow-md focus-visible:ring-violet-500/20",
   ghost:
-    "bg-transparent text-stone-600 hover:text-stone-900 hover:bg-stone-100/80 " +
+    "bg-transparent text-stone-600 hover:text-stone-900 hover:bg-amber-900/[0.04] " +
     "focus-visible:ring-stone-400/15",
   danger:
     "bg-rose-600 text-white shadow-sm hover:bg-rose-500 focus-visible:ring-rose-500/25",
@@ -258,11 +263,11 @@ export function SelectableCard({
       whileHover={disabled ? undefined : { y: -1 }}
       whileTap={disabled ? undefined : { scale: 0.995 }}
       className={[
-        "w-full text-left rounded-xl border p-3.5 sm:p-4 transition-all duration-150",
-        "focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-500/15",
+        "w-full text-left rounded-2xl p-4 sm:p-4.5 transition-all duration-200",
+        "focus:outline-none focus-visible:ring-4 focus-visible:ring-violet-500/20",
         selected
-          ? "bg-indigo-50/70 border-indigo-300 shadow-sm shadow-indigo-100 ring-1 ring-indigo-200/60"
-          : "bg-white border-stone-200 hover:border-stone-300 hover:shadow-sm",
+          ? "bg-gradient-to-br from-violet-50 to-amber-50/40 shadow-md shadow-violet-900/10 ring-2 ring-violet-500/50"
+          : "bg-white/80 shadow-sm shadow-stone-900/[0.04] ring-1 ring-stone-900/[0.05] hover:shadow-md hover:ring-stone-900/[0.08]",
         disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
         className,
       ].join(" ")}
@@ -277,7 +282,7 @@ export function RadioDot({ selected }: { selected: boolean }) {
     <span
       className={[
         "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
-        selected ? "border-indigo-600 bg-indigo-600" : "border-stone-300 bg-white",
+        selected ? "border-violet-600 bg-violet-600" : "border-stone-300 bg-white",
       ].join(" ")}
       aria-hidden
     >
@@ -295,10 +300,10 @@ export function StudioBadge({
   tone?: "neutral" | "indigo" | "emerald" | "amber" | "rose";
 }) {
   const tones: Record<string, string> = {
-    neutral: "bg-stone-100 text-stone-600 ring-stone-200/80",
-    indigo: "bg-indigo-50 text-indigo-700 ring-indigo-100",
-    emerald: "bg-emerald-50 text-emerald-700 ring-emerald-100",
-    amber: "bg-amber-50 text-amber-800 ring-amber-100",
+    neutral: "bg-stone-100/90 text-stone-700 ring-stone-200/60",
+    indigo: "bg-violet-100 text-violet-800 ring-violet-200/70",
+    emerald: "bg-emerald-50 text-emerald-800 ring-emerald-100",
+    amber: "bg-amber-50 text-amber-900 ring-amber-100",
     rose: "bg-rose-50 text-rose-700 ring-rose-100",
   };
   return (
@@ -316,7 +321,7 @@ export function StudioSpinner({ label, sublabel }: { label: string; sublabel?: s
     <div className="flex flex-col items-center gap-4 py-10" role="status" aria-live="polite">
       <div className="relative">
         <div className="h-12 w-12 rounded-full border-[3px] border-stone-200" />
-        <div className="absolute inset-0 h-12 w-12 rounded-full border-[3px] border-transparent border-t-indigo-600 animate-spin" />
+        <div className="absolute inset-0 h-12 w-12 rounded-full border-[3px] border-transparent border-t-violet-600 animate-spin" />
       </div>
       <div className="text-center space-y-1 max-w-sm">
         <p className="text-base font-bold text-stone-900">{label}</p>
@@ -339,7 +344,7 @@ export function StudioHeader({
   return (
     <div className="space-y-2 text-center sm:text-left">
       {eyebrow && (
-        <p className="text-xs font-bold uppercase tracking-wider text-indigo-700">{eyebrow}</p>
+        <p className="text-xs font-bold tracking-wide text-violet-700">{eyebrow}</p>
       )}
       <h1 className={studio.title}>{title}</h1>
       {description && <p className={studio.subtitle}>{description}</p>}
