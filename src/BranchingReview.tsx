@@ -55,13 +55,16 @@ interface BranchingReviewProps {
   /** Teacher-visible warnings carried from generation (e.g. the history could
    * not be fact-checked). Shown as a banner the teacher sees before publishing. */
   notices?: string[];
-  onConfirm: (edited: BranchingStory) => void;
+  /** Receives the validated story with the teacher's image choices applied —
+   * text is never modified here (the graph is validated at generation time). */
+  onConfirm: (curated: BranchingStory) => void;
   onBack?: () => void;
 }
 
 export default function BranchingReview({ story, topic, standard, notices = [], onConfirm, onBack }: BranchingReviewProps) {
-  // Work on a deep copy so we never mutate the generated original
-  const [edited, setEdited] = useState<BranchingStory>(() =>
+  // Story text is read-only in review — only image choices are teacher-editable.
+  // Deep copy so image curation never mutates the generated original.
+  const [curated, setCurated] = useState<BranchingStory>(() =>
     JSON.parse(JSON.stringify(story))
   );
   const [selectedId, setSelectedId] = useState<string>(story.start);
@@ -77,13 +80,11 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
   // Batch AI generation for remaining passages without images
   const [batchGenLoading, setBatchGenLoading] = useState(false);
   const [batchGenProgress, setBatchGenProgress] = useState({ done: 0, total: 0 });
-  // Two pages: "text" = read/edit prose (truth-checking, factGate notices live here);
-  // "images" = curate Commons/AI images (text read-only). dirtyText tracks passages
-  // edited since the last lock, so ONLY those re-fetch when re-entering page 2.
+  // Two pages: "text" = read prose (truth-checking, factGate notices live here);
+  // "images" = curate Commons/AI images. Text is read-only on both.
   const [page, setPage] = useState<"text" | "images">("text");
-  const [dirtyText, setDirtyText] = useState<Set<string>>(() => new Set());
 
-  const selected = edited.passages.find((p) => p.id === selectedId) || edited.passages[0];
+  const selected = curated.passages.find((p) => p.id === selectedId) || curated.passages[0];
   const hasImage = !!selected?.image?.thumbUrl;
 
   // AI illustration (Gemini) — a SECOND candidate SOURCE feeding the SAME picker.
@@ -113,7 +114,7 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
   // Batch generate AI images for all passages that currently have none selected.
   // Does not touch passages that already have a (manually or previously) chosen image.
   const autoGenerateAIImages = async () => {
-    const targets = edited.passages.filter((p) => !p.image?.thumbUrl);
+    const targets = curated.passages.filter((p) => !p.image?.thumbUrl);
     if (targets.length === 0) return;
 
     setBatchGenLoading(true);
@@ -133,7 +134,7 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
           if (data?.image) {
             const img = data.image;
             // Auto-select for this passage
-            setEdited((prev) => ({
+            setCurated((prev) => ({
               ...prev,
               passages: prev.passages.map((pp) =>
                 pp.id === p.id
@@ -198,35 +199,8 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
     load();
   }, [page, selectedId, selected?.text, topic, standard, imageReloadKey]); // reloadKey forces re-search
 
-  const updateText = (id: string, text: string) => {
-    setDirtyText((prev) => new Set(prev).add(id)); // mark for image re-fetch on next lock
-    setEdited((prev) => ({
-      ...prev,
-      passages: prev.passages.map((p) =>
-        p.id === id ? { ...p, text } : p
-      ),
-    }));
-  };
-
-  // PAGE 1 → PAGE 2: freeze text, advance. Invalidate the image cache for ONLY
-  // the passages whose text changed since the last lock, so re-entering page 2
-  // lazily re-fetches just those (the per-passage fetchedRef + candidate cache
-  // make this surgical; the fetch logic itself is untouched).
-  const lockAndContinue = () => {
-    if (dirtyText.size > 0) {
-      dirtyText.forEach((id) => fetchedRef.current.delete(id));
-      setImageCandidates((prev) => {
-        const c = { ...prev };
-        dirtyText.forEach((id) => { delete c[id]; });
-        return c;
-      });
-      setDirtyText(new Set());
-    }
-    setPage("images");
-  };
-
   const setPassageImage = (id: string, img: { thumbUrl: string; label?: string; sourceUrl?: string; artist?: string; license?: string } | null) => {
-    setEdited((prev) => ({
+    setCurated((prev) => ({
       ...prev,
       passages: prev.passages.map((p) =>
         p.id === id
@@ -251,8 +225,8 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
   };
 
   // Simple order for teacher view (as-provided + start first if possible)
-  const displayPassages: BranchingPassage[] = [...edited.passages];
-  const startIdx = displayPassages.findIndex((p) => p.id === edited.start);
+  const displayPassages: BranchingPassage[] = [...curated.passages];
+  const startIdx = displayPassages.findIndex((p) => p.id === curated.start);
   if (startIdx > 0) {
     const startP = displayPassages.splice(startIdx, 1)[0];
     displayPassages.unshift(startP);
@@ -260,13 +234,13 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
 
   const selectedIdx = displayPassages.findIndex((p) => p.id === selected?.id);
 
-  const chosenCount = edited.passages.filter((p) => p.image?.thumbUrl).length;
+  const chosenCount = curated.passages.filter((p) => p.image?.thumbUrl).length;
 
   // Shared left list — both pages select the same passage.
   const passageList = (
     <div className="w-80 border-r border-[#3a3630] overflow-y-auto p-4 bg-[#211e1a]">
       <SectionHeader className="text-left mb-2 px-1 tracking-[3px]">
-        Passages (click to {page === "text" ? "read & edit" : "curate"})
+        Passages (click to {page === "text" ? "read" : "curate"})
       </SectionHeader>
       <div className="space-y-1">
         {displayPassages.map((p, i) => {
@@ -322,11 +296,11 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
               <div className="max-w-6xl mx-auto flex items-center justify-between">
                 <div>
                   <SectionHeader className="text-left mb-0.5 tracking-[3px]">1 · Review text</SectionHeader>
-                  <p className="text-xs text-[#8a7f6a]">{edited.title} — {edited.passages.length} passages · read &amp; edit every passage for truth</p>
+                  <p className="text-xs text-[#8a7f6a]">{curated.title} — {curated.passages.length} passages · read every passage for truth</p>
                 </div>
                 <div className="flex gap-2">
                   {onBack && <BackButton onClick={onBack} label="← Back to form" className="text-xs" />}
-                  <Button variant="primary" label="Lock &amp; continue to images →" onClick={lockAndContinue} className="text-sm py-1.5" />
+                  <Button variant="primary" label="Continue to images →" onClick={() => setPage("images")} className="text-sm py-1.5" />
                 </div>
               </div>
             </div>
@@ -346,14 +320,9 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
                       )}
                       <div className="text-xs text-[#8a7f6a]">{selectedIdx + 1} / {displayPassages.length}</div>
                     </div>
-                    <label className="block text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase mb-1.5">Passage text (editable)</label>
-                    <textarea
-                      value={selected.text}
-                      onChange={(e) => updateText(selected.id, e.target.value)}
-                      className="w-full bg-[#24211d] border border-[#3a3630] rounded-xl p-4 text-[#e8dcc8] text-base leading-relaxed font-serif min-h-[160px] focus:outline-none focus:border-[#c9a36b]/60"
-                      placeholder="Passage prose..."
-                    />
-                    <div className="mt-6 text-xs text-[#8a7f6a]">Read each passage for historical truth. When the text is right, “Lock &amp; continue to images.”</div>
+                    <div className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase mb-1.5">Passage text (locked)</div>
+                    <p className="w-full bg-[#24211d] border border-[#3a3630] rounded-xl p-4 text-[#e8dcc8] text-base leading-relaxed font-serif min-h-[160px] whitespace-pre-line">{selected.text}</p>
+                    <div className="mt-6 text-xs text-[#8a7f6a]">Read each passage for historical truth. Text was validated at generation time and can't be edited here — when you're ready, continue to images.</div>
                   </div>
                 )}
               </div>
@@ -368,10 +337,10 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
               <div className="max-w-6xl mx-auto flex items-center justify-between">
                 <div>
                   <SectionHeader className="text-left mb-0.5 tracking-[3px]">2 · Curate images</SectionHeader>
-                  <p className="text-xs text-[#8a7f6a]">{edited.title} — {chosenCount} of {edited.passages.length} passages with images · text is locked</p>
+                  <p className="text-xs text-[#8a7f6a]">{curated.title} — {chosenCount} of {curated.passages.length} passages with images · text is locked</p>
                 </div>
                 <div className="flex gap-2">
-                  {chosenCount < edited.passages.length && (
+                  {chosenCount < curated.passages.length && (
                     <Button
                       variant="secondary"
                       label={batchGenLoading ? `Auto-generating AI... (${batchGenProgress.done}/${batchGenProgress.total})` : "Auto-generate AI images for remaining passages"}
@@ -380,8 +349,8 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
                       className="text-sm py-1.5"
                     />
                   )}
-                  <Button variant="secondary" label="← Back to text editing" onClick={() => setPage("text")} className="text-sm py-1.5" />
-                  <Button variant="warm" label="Save &amp; Play this version →" onClick={() => onConfirm(edited)} className="text-sm py-1.5" />
+                  <Button variant="secondary" label="← Back to text" onClick={() => setPage("text")} className="text-sm py-1.5" />
+                  <Button variant="warm" label="Save &amp; Play this version →" onClick={() => onConfirm(curated)} className="text-sm py-1.5" />
                 </div>
               </div>
             </div>
