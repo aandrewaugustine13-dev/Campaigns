@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { AnimatePresence } from "framer-motion";
+import { ArrowLeft, ArrowRight, Sparkles, AlertCircle, BookOpen, Users, Scale } from "lucide-react";
 import type { CampaignData } from "../generator/schema";
 import type { ProposedFrame, PlayerPerspective, CampaignType } from "../generator/frame";
 import type { SystemsEconomy } from "../generator/economy";
@@ -8,12 +10,35 @@ import type { PersonalEconomy } from "../generator/personalEconomy";
 import type { NarrativePlan } from "../generator/storyPlan";
 import { generateCampaignJob } from "./generateClient";
 import StoryPlanReview from "./StoryPlanReview";
+import {
+  Stepper,
+  type StepDef,
+  StudioShell,
+  StudioPanel,
+  StudioCard,
+  StudioCardTitle,
+  Field,
+  StudioInput,
+  StudioTextarea,
+  StudioSelect,
+  StudioButton,
+  SelectableCard,
+  RadioDot,
+  StudioBadge,
+  StudioSpinner,
+  StudioHeader,
+  SegmentedControl,
+  DetailRow,
+} from "./components/studio";
 
 // ═══════════════════════════════════════════════════════════════
 // Stage 1 Studio — the teacher-facing flow that turns a single TEKS
 // standard into a verified, playable campaign. It runs the four Stage-1
 // proposers (frame → perspective → economy + cast) as screens the teacher
 // reviews and chooses from, then locks those inputs into full generation.
+//
+// UI: light SaaS setup shell (warm off-white, indigo accent). All generation
+// logic below is unchanged from the original studio flow.
 // ═══════════════════════════════════════════════════════════════
 
 type Step = "input" | "frame" | "build" | "plan" | "generating" | "error";
@@ -37,6 +62,26 @@ const TYPE_OPTIONS: { type: CampaignType; label: string; subtitle: string }[] = 
   { type: "systems", label: "Run the system", subtitle: "resources and constraints" },
 ];
 
+/** Wizard steps shown in the progress indicator (excludes generating/error). */
+const WIZARD_STEPS: StepDef[] = [
+  { id: "input", label: "Basics", shortLabel: "Basics" },
+  { id: "frame", label: "Structure", shortLabel: "Structure" },
+  { id: "build", label: "Review", shortLabel: "Review" },
+  { id: "plan", label: "Story arc", shortLabel: "Story arc" },
+];
+
+function wizardIndex(step: Step): number {
+  const map: Partial<Record<Step, number>> = {
+    input: 0,
+    frame: 1,
+    build: 2,
+    plan: 3,
+    generating: 3,
+    error: 0,
+  };
+  return map[step] ?? 0;
+}
+
 async function postJson<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, {
     method: "POST",
@@ -55,26 +100,6 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
     throw new Error(payload.error);
   }
   return payload;
-}
-
-function Badge({ children, tone }: { children: React.ReactNode; tone: "amber" | "indigo" }) {
-  const cls = tone === "amber"
-    ? "bg-amber-900/50 text-amber-300 border-amber-700"
-    : "bg-indigo-900/50 text-indigo-300 border-indigo-700";
-  return (
-    <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border ${cls}`}>
-      {children}
-    </span>
-  );
-}
-
-function Spinner({ label }: { label: string }) {
-  return (
-    <div className="flex flex-col items-center gap-3 py-8">
-      <div className="w-10 h-10 border-4 border-amber-700 border-t-amber-400 rounded-full animate-spin" />
-      <p className="text-stone-400 text-sm">{label}</p>
-    </div>
-  );
 }
 
 export default function Stage1Studio({
@@ -300,254 +325,327 @@ export default function Stage1Studio({
     }
   };
 
-  const shell = (children: React.ReactNode) => (
-    <div className="h-screen bg-stone-900 text-stone-100 flex flex-col overflow-hidden" style={{ fontFamily: "'Georgia', serif" }}>
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto p-6 space-y-5">{children}</div>
-      </div>
-    </div>
+  // Shared chrome: header with stepper (hidden on terminal generating/error
+  // states so those screens feel like full-page moments).
+  const showStepper = step !== "generating" && step !== "error" && step !== "plan";
+  const shell = (children: React.ReactNode, opts?: { bare?: boolean }) => (
+    <StudioShell
+      header={
+        opts?.bare ? undefined : (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={onBack}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-stone-500 hover:text-stone-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/30 rounded-md px-1 py-0.5 -ml-1"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+                Campaigns
+              </button>
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-stone-400">
+                <Sparkles className="h-3.5 w-3.5 text-indigo-500" aria-hidden />
+                Guided setup
+              </span>
+            </div>
+            {showStepper && (
+              <Stepper steps={WIZARD_STEPS} currentIndex={wizardIndex(step)} />
+            )}
+          </div>
+        )
+      }
+    >
+      <AnimatePresence mode="wait">{children}</AnimatePresence>
+    </StudioShell>
   );
 
   // ── Generating ──
   if (step === "generating") {
     return shell(
-      <div className="text-center space-y-6 pt-16">
-        <h1 className="text-2xl font-bold text-amber-400">Building Your Campaign…</h1>
-        <Spinner label={`${elapsed}s — assembling events, sages, trivia, and map from your locked inputs`} />
-        <p className="text-stone-600 text-xs">This usually takes 3–5 minutes. You can leave this tab open; it keeps working in the background.</p>
-      </div>,
+      <StudioPanel key="generating">
+        <div className="pt-6 sm:pt-12">
+          <StudioCard className="text-center !py-12">
+            <StudioSpinner
+              label="Building your campaign…"
+              sublabel={`${elapsed}s elapsed · assembling events, sages, trivia, and map from your locked inputs`}
+            />
+            <p className="text-xs text-stone-400 mt-2 max-w-sm mx-auto leading-relaxed">
+              This usually takes 3–5 minutes. Leave this tab open — it keeps working in the background.
+            </p>
+            <div className="mt-6 mx-auto max-w-xs">
+              <div className="h-1.5 rounded-full bg-stone-100 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-indigo-500/80 transition-all duration-1000 ease-out"
+                  style={{ width: `${Math.min(92, 8 + elapsed * 1.4)}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-stone-400 mt-2">Progress is estimated — generation finishes when the content is ready.</p>
+            </div>
+          </StudioCard>
+        </div>
+      </StudioPanel>,
+      { bare: true },
     );
   }
 
   // ── Error ──
   if (step === "error") {
     return shell(
-      <div className="text-center space-y-4 pt-16">
-        <h1 className="text-2xl font-bold text-amber-400">We couldn't build the campaign</h1>
-        <div className="bg-red-950/40 border border-red-800 rounded p-3 text-left">
-          <p className="text-red-300 text-sm break-words">{errorMsg || "A temporary problem occurred during generation."}</p>
-          <p className="text-red-300/70 text-xs mt-2">Try again shortly or adjust your inputs.</p>
+      <StudioPanel key="error">
+        <div className="pt-6 sm:pt-12 max-w-md mx-auto">
+          <StudioCard className="text-center space-y-4 !py-10">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-50 ring-1 ring-rose-100">
+              <AlertCircle className="h-6 w-6 text-rose-600" aria-hidden />
+            </div>
+            <div className="space-y-1">
+              <h1 className="text-xl font-semibold text-stone-900">We couldn&apos;t build the campaign</h1>
+              <p className="text-sm text-stone-500">Something went wrong while preparing content. You can safely try again.</p>
+            </div>
+            <div className="rounded-lg border border-rose-100 bg-rose-50/80 px-3.5 py-3 text-left">
+              <p className="text-sm text-rose-800 break-words leading-relaxed">
+                {errorMsg || "A temporary problem occurred during generation."}
+              </p>
+              <p className="text-xs text-rose-600/80 mt-2">Try again shortly, or go back and adjust your inputs.</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 justify-center pt-1">
+              <StudioButton onClick={() => retryRef.current?.()}>
+                Try again
+              </StudioButton>
+              <StudioButton variant="secondary" onClick={onBack}>
+                Back to Campaigns
+              </StudioButton>
+            </div>
+          </StudioCard>
         </div>
-        <div className="space-y-2">
-          <button onClick={() => retryRef.current?.()} className="px-6 py-2 bg-amber-700 hover:bg-amber-600 rounded font-bold transition-colors">
-            Try Again
-          </button>
-          <br />
-          <button onClick={onBack} className="text-xs text-stone-500 hover:text-stone-300 transition-colors">
-            ← Back to Campaigns
-          </button>
-        </div>
-      </div>,
+      </StudioPanel>,
+      { bare: true },
     );
   }
 
   // ── Step 1: the standard ──
   if (step === "input") {
     return shell(
-      <>
-        <div className="text-center space-y-1">
-          <h1 className="text-2xl font-bold text-amber-400">Guided Setup</h1>
-          <p className="text-stone-500 text-sm">
-            Enter a standard. The studio proposes the campaign's structure, perspective,
-            economy, and cast for you to review before generating.
-          </p>
-        </div>
+      <StudioPanel key="input">
+        <StudioHeader
+          eyebrow="Step 1 of 4"
+          title="Campaign basics"
+          description="Tell us the historical subject and the standard you're aligning to. We'll propose a structure you can review before anything is generated."
+        />
 
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-stone-400 uppercase tracking-wide">What is this campaign about? *</label>
-          <input
-            type="text"
-            value={inputs.topic}
-            onChange={e => set({ topic: e.target.value })}
-            placeholder="e.g. The Erie Canal and the opening of westward trade"
-            className="w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-sm text-stone-100 placeholder-stone-600 focus:border-amber-600 focus:outline-none"
-          />
-          <p className="text-[11px] text-stone-500">The historical subject of the campaign. This drives what gets generated — be specific.</p>
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-stone-400 uppercase tracking-wide">Standard *</label>
-          <textarea
-            value={inputs.standard}
-            onChange={e => set({ standard: e.target.value })}
-            rows={2}
-            placeholder="e.g. TEKS 5.1(A) — or paste the full standard text"
-            className="w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-sm text-stone-100 placeholder-stone-600 focus:border-amber-600 focus:outline-none resize-none"
-          />
-          <p className="text-[11px] text-stone-500">The standard you're aligning to. A bare code works now that the subject above leads.</p>
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-stone-400 uppercase tracking-wide">Grade Level</label>
-          <select
-            value={inputs.grade}
-            onChange={e => set({ grade: e.target.value })}
-            className="w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-sm text-stone-100 focus:border-amber-600 focus:outline-none"
+        <StudioCard className="space-y-5">
+          <Field
+            label="What is this campaign about?"
+            htmlFor="topic"
+            required
+            hint="The historical subject of the campaign. Be specific — this drives what gets generated."
           >
-            {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
-          </select>
-        </div>
+            <StudioInput
+              id="topic"
+              type="text"
+              value={inputs.topic}
+              onChange={e => set({ topic: e.target.value })}
+              placeholder="e.g. The Erie Canal and the opening of westward trade"
+              autoComplete="off"
+            />
+          </Field>
 
-        <div className="grid grid-cols-3 gap-3">
-          {([["Events", "length", 3, 15], ["Questions", "numQuestions", 3, 10], ["Sages", "numSages", 2, 5]] as const).map(([label, key, min, max]) => (
-            <div key={key} className="space-y-1">
-              <label className="text-xs font-bold text-stone-400 uppercase tracking-wide">{label}</label>
-              <input
-                type="number"
-                min={min}
-                max={max}
-                value={inputs[key] as number}
-                onChange={e => set({ [key]: Math.max(min, Math.min(max, +e.target.value)) } as Partial<Inputs>)}
-                className="w-full bg-stone-800 border border-stone-700 rounded px-3 py-2 text-sm text-stone-100 focus:border-amber-600 focus:outline-none"
-              />
-            </div>
-          ))}
-        </div>
+          <Field
+            label="Standard"
+            htmlFor="standard"
+            required
+            hint="The standard you're aligning to. A bare code works once the subject above leads."
+          >
+            <StudioTextarea
+              id="standard"
+              value={inputs.standard}
+              onChange={e => set({ standard: e.target.value })}
+              rows={2}
+              placeholder="e.g. TEKS 5.1(A) — or paste the full standard text"
+            />
+          </Field>
 
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-stone-400 uppercase tracking-wide">Difficulty</label>
-          <div className="flex gap-2">
-            {["low", "medium", "high"].map(d => (
-              <button
-                key={d}
-                onClick={() => set({ difficulty: d })}
-                className={`flex-1 py-2 rounded text-sm font-bold transition-colors ${
-                  inputs.difficulty === d ? "bg-amber-700 text-stone-100" : "bg-stone-800 border border-stone-700 text-stone-400 hover:border-stone-600"
-                }`}
-              >
-                {d}
-              </button>
+          <Field label="Grade level" htmlFor="grade">
+            <StudioSelect
+              id="grade"
+              value={inputs.grade}
+              onChange={e => set({ grade: e.target.value })}
+            >
+              {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
+            </StudioSelect>
+          </Field>
+
+          <div className="grid grid-cols-3 gap-3">
+            {([["Events", "length", 3, 15], ["Questions", "numQuestions", 3, 10], ["Sages", "numSages", 2, 5]] as const).map(([label, key, min, max]) => (
+              <Field key={key} label={label} htmlFor={key}>
+                <StudioInput
+                  id={key}
+                  type="number"
+                  min={min}
+                  max={max}
+                  value={inputs[key] as number}
+                  onChange={e => set({ [key]: Math.max(min, Math.min(max, +e.target.value)) } as Partial<Inputs>)}
+                />
+              </Field>
             ))}
           </div>
-        </div>
+
+          <Field label="Difficulty">
+            <SegmentedControl
+              aria-label="Difficulty"
+              value={inputs.difficulty}
+              onChange={(d) => set({ difficulty: d })}
+              options={[
+                { value: "low", label: "Low" },
+                { value: "medium", label: "Medium" },
+                { value: "high", label: "High" },
+              ]}
+            />
+          </Field>
+        </StudioCard>
 
         {/* Visual theme is chosen by the generator from the topic's era
             (core.ts era-matching rule) — no user-facing style picker. */}
 
-        {busy ? <Spinner label={busy} /> : (
-          <button
+        {busy ? (
+          <StudioSpinner label={busy} />
+        ) : (
+          <StudioButton
+            size="lg"
+            fullWidth
             onClick={proposeFrame}
             disabled={!inputs.standard.trim() || !inputs.topic.trim()}
-            className="w-full py-3 bg-amber-700 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed rounded font-bold text-lg transition-colors"
           >
-            Propose Structure →
-          </button>
+            Propose structure
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </StudioButton>
         )}
 
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex flex-col items-center gap-2 pt-1">
           {onQuickForm && (
-            <button onClick={onQuickForm} className="text-xs text-stone-500 hover:text-amber-400 transition-colors">
-              Skip the guided steps — use the quick form
-            </button>
+            <StudioButton variant="ghost" size="sm" onClick={onQuickForm}>
+              Skip guided steps — use the quick form
+            </StudioButton>
           )}
-          <button onClick={onBack} className="text-xs text-stone-500 hover:text-stone-300 transition-colors">
-            ← Back to Campaigns
-          </button>
         </div>
-      </>,
+      </StudioPanel>,
     );
   }
 
   // ── Step 2: review frame + pick perspective ──
   if (step === "frame" && frame) {
     return shell(
-      <>
-        <div className="text-center space-y-1">
-          <h1 className="text-2xl font-bold text-amber-400">Proposed Structure</h1>
-          <p className="text-stone-500 text-sm">Review the frame, then choose whose eyes the class plays through.</p>
-        </div>
+      <StudioPanel key="frame">
+        <StudioHeader
+          eyebrow="Step 2 of 4"
+          title="Proposed structure"
+          description="Review the frame, then choose whose eyes the class plays through. You can switch campaign type if the recommendation doesn't fit."
+        />
 
-        <div className="space-y-2">
-          <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {TYPE_OPTIONS.map((opt) => {
               const selected = frame.campaignType === opt.type;
               const lockedOut = frame.typeLocked && opt.type === "systems";
               const disabled = lockedOut || switchingType !== null;
               return (
-                <button
+                <SelectableCard
                   key={opt.type}
-                  onClick={() => switchType(opt.type)}
+                  selected={selected}
                   disabled={disabled}
-                  className={`text-left rounded border p-3 transition-colors ${
-                    selected
-                      ? "bg-amber-950/40 border-amber-600"
-                      : lockedOut
-                        ? "bg-stone-900 border-stone-800 opacity-40 cursor-not-allowed"
-                        : disabled
-                          ? "bg-stone-800 border-stone-700 opacity-60 cursor-wait"
-                          : "bg-stone-800 border-stone-700 hover:border-stone-600"
-                  }`}
+                  onClick={() => switchType(opt.type)}
+                  aria-label={opt.label}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className={`w-3 h-3 rounded-full border-2 flex-shrink-0 ${selected ? "border-amber-400 bg-amber-400" : "border-stone-500"}`} />
-                    <span className="text-sm font-bold text-stone-100">{opt.label}</span>
-                    {recommendedType === opt.type && <span className="text-[10px] text-emerald-400 font-bold uppercase">recommended</span>}
-                    {lockedOut && <span className="text-[10px] text-stone-500 font-bold uppercase">locked</span>}
+                  <div className="flex items-start gap-3">
+                    <RadioDot selected={selected} />
+                    <div className="min-w-0 space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-semibold text-stone-900">{opt.label}</span>
+                        {recommendedType === opt.type && <StudioBadge tone="emerald">Recommended</StudioBadge>}
+                        {lockedOut && <StudioBadge tone="neutral">Locked</StudioBadge>}
+                      </div>
+                      <p className="text-xs text-stone-500 leading-relaxed">{opt.subtitle}</p>
+                    </div>
                   </div>
-                  <p className="text-xs text-stone-400 mt-1 ml-5">{opt.subtitle}</p>
-                </button>
+                </SelectableCard>
               );
             })}
           </div>
 
           {switchingType && (
-            <p className="text-[11px] text-amber-400 text-center">
+            <p className="text-xs text-indigo-600 text-center font-medium animate-pulse">
               Re-proposing the structure as {switchingType === "systems" ? "a system" : "a person"}…
             </p>
           )}
 
           {frame.typeLocked && frame.lockReason && (
-            <p className="text-[11px] text-amber-300/90 leading-relaxed border border-amber-800/60 rounded px-2 py-1.5">
-              {frame.lockReason}
-            </p>
+            <div className="rounded-lg border border-amber-200 bg-amber-50/90 px-3.5 py-2.5">
+              <p className="text-xs text-amber-900 leading-relaxed">{frame.lockReason}</p>
+            </div>
           )}
 
           <div className="flex justify-center">
-            <Badge tone="indigo">{frame.progressionMode}</Badge>
+            <StudioBadge tone="indigo">{frame.progressionMode} progression</StudioBadge>
           </div>
         </div>
 
-        <div className="bg-stone-800 border border-stone-700 rounded p-4 space-y-2">
-          <h2 className="text-xs font-bold text-amber-300 uppercase tracking-wide">The Frame</h2>
-          <p className="text-stone-200 text-sm leading-relaxed">{frame.frame}</p>
-        </div>
+        <StudioCard>
+          <StudioCardTitle>
+            <span className="inline-flex items-center gap-1.5">
+              <BookOpen className="h-3.5 w-3.5" aria-hidden />
+              The frame
+            </span>
+          </StudioCardTitle>
+          <p className="text-sm text-stone-700 leading-relaxed">{frame.frame}</p>
+        </StudioCard>
 
-        <div className="bg-stone-800/60 border border-stone-700 rounded p-3">
-          <h2 className="text-xs font-bold text-stone-400 uppercase tracking-wide mb-1">Why this shape</h2>
-          <p className="text-stone-400 text-xs leading-relaxed">{frame.rationale}</p>
-        </div>
+        <StudioCard className="!bg-stone-50/80 !shadow-none">
+          <h2 className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Why this shape</h2>
+          <p className="text-xs text-stone-600 leading-relaxed">{frame.rationale}</p>
+        </StudioCard>
 
-        <div className="space-y-2">
-          <h2 className="text-xs font-bold text-amber-300 uppercase tracking-wide">Whose eyes? — pick the player's perspective</h2>
+        <div className="space-y-2.5">
+          <h2 className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 px-0.5">
+            Whose eyes? — pick the player&apos;s perspective
+          </h2>
           {perspectives.map((p, i) => (
-            <button
+            <SelectableCard
               key={`${p.role}-${i}`}
+              selected={perspectiveIdx === i}
               onClick={() => setPerspectiveIdx(i)}
-              className={`w-full text-left rounded border p-3 transition-colors ${
-                perspectiveIdx === i ? "bg-amber-950/40 border-amber-600" : "bg-stone-800 border-stone-700 hover:border-stone-600"
-              }`}
+              aria-label={p.role}
             >
-              <div className="flex items-center gap-2">
-                <span className={`w-3 h-3 rounded-full border-2 flex-shrink-0 ${perspectiveIdx === i ? "border-amber-400 bg-amber-400" : "border-stone-500"}`} />
-                <span className="text-sm font-bold text-stone-100">{p.role}</span>
-                {i === 0 && <span className="text-[10px] text-emerald-400 font-bold uppercase">recommended</span>}
+              <div className="flex items-start gap-3">
+                <RadioDot selected={perspectiveIdx === i} />
+                <div className="min-w-0 space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-semibold text-stone-900">{p.role}</span>
+                    {i === 0 && <StudioBadge tone="emerald">Recommended</StudioBadge>}
+                  </div>
+                  <p className="text-xs text-stone-500 leading-relaxed">{p.description}</p>
+                </div>
               </div>
-              <p className="text-xs text-stone-400 mt-1 ml-5">{p.description}</p>
-            </button>
+            </SelectableCard>
           ))}
         </div>
 
-        {busy ? <Spinner label={busy} /> : (
-          <div className="flex gap-2">
-            <button onClick={() => setStep("input")} className="px-4 py-2.5 bg-stone-800 border border-stone-700 hover:border-stone-600 rounded text-sm text-stone-300 transition-colors">
-              ← Edit standard
-            </button>
-            <button onClick={proposeEconomyAndCast} disabled={switchingType !== null} className="flex-1 py-2.5 bg-amber-700 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed rounded font-bold transition-colors">
-              Continue → propose economy & cast
-            </button>
+        {busy ? (
+          <StudioSpinner label={busy} />
+        ) : (
+          <div className="flex flex-col-reverse sm:flex-row gap-2.5">
+            <StudioButton variant="secondary" onClick={() => setStep("input")}>
+              <ArrowLeft className="h-4 w-4" aria-hidden />
+              Edit basics
+            </StudioButton>
+            <StudioButton
+              className="flex-1"
+              onClick={proposeEconomyAndCast}
+              disabled={switchingType !== null}
+            >
+              Continue — economy & cast
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </StudioButton>
           </div>
         )}
-      </>,
+      </StudioPanel>,
     );
   }
 
@@ -555,110 +653,124 @@ export default function Stage1Studio({
   if (step === "build" && frame) {
     const persp = perspectives[perspectiveIdx] ?? frame.recommendedPerspective;
     return shell(
-      <>
-        <div className="text-center space-y-1">
-          <h1 className="text-2xl font-bold text-amber-400">Review & Generate</h1>
-          <p className="text-stone-500 text-sm">These locked inputs will drive the full campaign.</p>
-        </div>
+      <StudioPanel key="build">
+        <StudioHeader
+          eyebrow="Step 3 of 4"
+          title="Review locked inputs"
+          description="These choices drive the full campaign. Confirm they look right, then review the story arc."
+        />
 
-        <div className="bg-amber-950/30 border border-amber-800 rounded p-3">
-          <h2 className="text-xs font-bold text-amber-300 uppercase tracking-wide">Playing as</h2>
-          <p className="text-sm font-bold text-stone-100 mt-0.5">{persp.role}</p>
-          <p className="text-xs text-stone-400">{persp.description}</p>
-        </div>
+        <StudioCard accent>
+          <StudioCardTitle>Playing as</StudioCardTitle>
+          <p className="text-sm font-semibold text-stone-900">{persp.role}</p>
+          <p className="text-xs text-stone-500 mt-1 leading-relaxed">{persp.description}</p>
+        </StudioCard>
 
         {economy && (
-          <div className="bg-stone-800 border border-stone-700 rounded p-4 space-y-2">
-            <h2 className="text-xs font-bold text-amber-300 uppercase tracking-wide">Economy</h2>
-            <p className="text-xs text-stone-400 italic">{economy.learningObjective}</p>
-            <div className="space-y-1.5">
+          <StudioCard className="space-y-3">
+            <StudioCardTitle>Economy</StudioCardTitle>
+            <p className="text-xs text-stone-500 italic leading-relaxed">{economy.learningObjective}</p>
+            <div className="space-y-2">
               {economy.resources.map((r) => (
-                <div key={r.name} className="border border-stone-700 rounded px-2 py-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-stone-200">{r.playerFacing}</span>
-                    <span className="text-[10px] text-stone-500 uppercase">{r.startsAt}</span>
-                  </div>
-                  <p className="text-[11px] text-stone-400 mt-0.5">{r.description}</p>
-                </div>
+                <DetailRow
+                  key={r.name}
+                  title={r.playerFacing}
+                  meta={r.startsAt}
+                  description={r.description}
+                />
               ))}
             </div>
-          </div>
+          </StudioCard>
         )}
 
         {personalEconomy && (
-          <div className="bg-stone-800 border border-stone-700 rounded p-4 space-y-2">
-            <h2 className="text-xs font-bold text-amber-300 uppercase tracking-wide">Personal Economy</h2>
-            <p className="text-xs text-stone-400 italic">{personalEconomy.premise}</p>
-            <div className="space-y-1.5">
+          <StudioCard className="space-y-3">
+            <StudioCardTitle>Personal economy</StudioCardTitle>
+            <p className="text-xs text-stone-500 italic leading-relaxed">{personalEconomy.premise}</p>
+            <div className="space-y-2">
               {personalEconomy.resources.map((r) => (
-                <div key={r.name} className="border border-stone-700 rounded px-2 py-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-stone-200">
-                      {r.playerFacing}
-                      {r.isMoney && <span className="ml-1.5 text-[9px] text-emerald-400 uppercase font-bold">money</span>}
-                    </span>
-                    <span className="text-[10px] text-stone-500 uppercase">{r.startsAt}</span>
-                  </div>
-                  <p className="text-[11px] text-stone-400 mt-0.5">{r.description}</p>
-                </div>
+                <DetailRow
+                  key={r.name}
+                  title={r.playerFacing}
+                  meta={r.startsAt}
+                  description={r.description}
+                  badge={r.isMoney ? <StudioBadge tone="emerald">Money</StudioBadge> : undefined}
+                />
               ))}
             </div>
-          </div>
+          </StudioCard>
         )}
 
         {cast && (
-          <div className="bg-stone-800 border border-stone-700 rounded p-4 space-y-2">
-            <h2 className="text-xs font-bold text-amber-300 uppercase tracking-wide">Cast ({cast.cast.length})</h2>
-            <div className="space-y-1.5">
+          <StudioCard className="space-y-3">
+            <StudioCardTitle>
+              <span className="inline-flex items-center gap-1.5">
+                <Users className="h-3.5 w-3.5" aria-hidden />
+                Cast ({cast.cast.length})
+              </span>
+            </StudioCardTitle>
+            <div className="space-y-2">
               {cast.cast.map((c, i) => (
-                <div key={`${c.name}-${i}`} className="border border-stone-700 rounded px-2 py-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-stone-200">{c.name}</span>
-                    <span className="text-[10px] text-stone-500">· {c.role}</span>
-                    {!c.realPerson && <span className="text-[9px] text-indigo-400 uppercase font-bold">representative</span>}
-                  </div>
-                  <p className="text-[11px] text-stone-400 mt-0.5">{c.significance}</p>
-                </div>
+                <DetailRow
+                  key={`${c.name}-${i}`}
+                  title={
+                    <span>
+                      {c.name}
+                      <span className="font-normal text-stone-400"> · {c.role}</span>
+                    </span>
+                  }
+                  description={c.significance}
+                  badge={!c.realPerson ? <StudioBadge tone="indigo">Representative</StudioBadge> : undefined}
+                />
               ))}
             </div>
-          </div>
+          </StudioCard>
         )}
 
         {faultLine && (
-          <div className="bg-amber-950/20 border border-amber-800 rounded p-4 space-y-2">
-            <h2 className="text-xs font-bold text-amber-300 uppercase tracking-wide">The Moral Fault Line</h2>
-            <p className="text-sm text-stone-200 leading-relaxed">{faultLine.dilemma}</p>
-            <p className="text-[11px] text-stone-400 italic leading-relaxed">{faultLine.whyNoCleanAnswer}</p>
-            <div className="border border-stone-700 rounded px-2 py-1.5">
-              <p className="text-[11px] font-bold text-stone-300">
-                Defining choice — <span className="text-amber-300">{faultLine.setter.beat}</span>
+          <StudioCard className="space-y-3 !bg-gradient-to-br !from-white !to-amber-50/50 !border-amber-200/70">
+            <StudioCardTitle className="!text-amber-700">
+              <span className="inline-flex items-center gap-1.5">
+                <Scale className="h-3.5 w-3.5" aria-hidden />
+                The moral fault line
+              </span>
+            </StudioCardTitle>
+            <p className="text-sm text-stone-800 leading-relaxed">{faultLine.dilemma}</p>
+            <p className="text-xs text-stone-500 italic leading-relaxed">{faultLine.whyNoCleanAnswer}</p>
+            <div className="rounded-lg border border-amber-100 bg-white/70 px-3 py-2.5">
+              <p className="text-xs font-semibold text-stone-700">
+                Defining choice — <span className="text-amber-800">{faultLine.setter.beat}</span>
               </p>
-              <ul className="text-[11px] text-stone-400 mt-0.5 list-disc list-inside">
+              <ul className="text-xs text-stone-500 mt-1.5 space-y-1 list-disc list-inside">
                 {faultLine.setter.options.map((o, i) => (
                   <li key={i}>{o.choiceText}</li>
                 ))}
               </ul>
             </div>
-            <p className="text-[11px] text-stone-500">
-              Persistent flag <span className="font-mono text-stone-300">{faultLine.flag.id}</span> · later scenes that remember it:{" "}
+            <p className="text-[11px] text-stone-400 leading-relaxed">
+              Persistent flag <code className="font-mono text-stone-600 bg-stone-100 px-1 py-0.5 rounded text-[10px]">{faultLine.flag.id}</code>
+              {" · "}later scenes that remember it:{" "}
               {[...new Set(faultLine.readers.map((r) => r.beat))].join(" · ")}
             </p>
-          </div>
+          </StudioCard>
         )}
 
-        <div className="flex gap-2">
-          <button onClick={() => setStep("frame")} className="px-4 py-2.5 bg-stone-800 border border-stone-700 hover:border-stone-600 rounded text-sm text-stone-300 transition-colors">
-            ← Back
-          </button>
-          <button onClick={() => setStep(storyPlan ? "plan" : "build")} disabled={!storyPlan} className="flex-1 py-2.5 bg-amber-700 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed rounded font-bold text-lg transition-colors">
-            Review the Story Arc →
-          </button>
+        <div className="flex flex-col-reverse sm:flex-row gap-2.5">
+          <StudioButton variant="secondary" onClick={() => setStep("frame")}>
+            <ArrowLeft className="h-4 w-4" aria-hidden />
+            Back
+          </StudioButton>
+          <StudioButton
+            size="lg"
+            className="flex-1"
+            onClick={() => setStep(storyPlan ? "plan" : "build")}
+            disabled={!storyPlan}
+          >
+            Review the story arc
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </StudioButton>
         </div>
-
-        <button onClick={onBack} className="block w-full text-xs text-stone-500 hover:text-stone-300 text-center transition-colors">
-          ← Back to Campaigns
-        </button>
-      </>,
+      </StudioPanel>,
     );
   }
 
