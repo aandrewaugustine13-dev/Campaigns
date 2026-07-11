@@ -1,0 +1,1165 @@
+[
+  {
+    "_comment": "Texas World Geography Studies TEKS (§113.43) for grade 9. Codes use WG.X(Y). Aligned to 2024–2025 implemented TEKS (SBOE Adopted 2022). Used by Campaigns TEKS search. This _comment object is filtered out of teacher-facing lists.",
+    "code": "_comment",
+    "gradeLevel": "9",
+    "description": "Documentation entry — not a standard.",
+    "keywords": [],
+    "category": "_meta"
+  },
+  {
+    "code": "WG.1(A)",
+    "gradeLevel": "9",
+    "description": "analyze significant physical features and environmental conditions that have influenced the past and migration patterns and have shaped the distribution of culture groups today; and",
+    "keywords": [
+      "physical features",
+      "environmental conditions",
+      "migration patterns",
+      "culture groups",
+      "settlement",
+      "geography of history",
+      "human distribution",
+      "climate influence",
+      "natural barriers",
+      "historical geography"
+    ],
+    "category": "History & Geography"
+  },
+  {
+    "code": "WG.1(B)",
+    "gradeLevel": "9",
+    "description": "trace the spatial diffusion of phenomena such as the Columbian Exchange or the diffusion of American popular culture and describe the effects on regions of contact.",
+    "keywords": [
+      "spatial diffusion",
+      "columbian exchange",
+      "popular culture",
+      "cultural diffusion",
+      "regions of contact",
+      "globalization",
+      "trade",
+      "american culture",
+      "crops",
+      "disease",
+      "culture spread"
+    ],
+    "category": "History & Geography"
+  },
+  {
+    "code": "WG.2(A)",
+    "gradeLevel": "9",
+    "description": "describe the human and physical characteristics of the same regions at different periods of time to analyze relationships between past events and current conditions; and",
+    "keywords": [
+      "human characteristics",
+      "physical characteristics",
+      "regions over time",
+      "past and present",
+      "historical change",
+      "current conditions",
+      "place identity",
+      "comparative geography"
+    ],
+    "category": "History & Geography"
+  },
+  {
+    "code": "WG.2(B)",
+    "gradeLevel": "9",
+    "description": "explain how changes in societies such as population shifts, technological advancements, and environmental policies have led to diverse uses of physical features over time such as terrace farming, dams, and polders.",
+    "keywords": [
+      "population shifts",
+      "technology",
+      "environmental policy",
+      "terrace farming",
+      "dams",
+      "polders",
+      "land use",
+      "human modification",
+      "agriculture",
+      "infrastructure"
+    ],
+    "category": "History & Geography"
+  },
+  {
+    "code": "WG.3(A)",
+    "gradeLevel": "9",
+    "description": "explain weather conditions and climate in relation to annual changes in Earth-Sun relationships;",
+    "keywords": [
+      "weather",
+      "climate",
+      "earth-sun relationships",
+      "seasons",
+      "solstice",
+      "equinox",
+      "latitude",
+      "insolation",
+      "temperature",
+      "annual cycle"
+    ],
+    "category": "Physical Geography"
+  },
+  {
+    "code": "WG.3(B)",
+    "gradeLevel": "9",
+    "description": "describe the physical processes that affect the environments of regions, including weather, tectonic forces, erosion, and soil-building processes; and",
+    "keywords": [
+      "physical processes",
+      "weather",
+      "tectonic forces",
+      "plate tectonics",
+      "erosion",
+      "weathering",
+      "soil building",
+      "deposition",
+      "regional environment"
+    ],
+    "category": "Physical Geography"
+  },
+  {
+    "code": "WG.3(C)",
+    "gradeLevel": "9",
+    "description": "describe how physical processes such as hurricanes, El Ni\u00f1o, earthquakes, and volcanoes affect the lithosphere, atmosphere, hydrosphere, and biosphere.",
+    "keywords": [
+      "hurricanes",
+      "el nino",
+      "earthquakes",
+      "volcanoes",
+      "lithosphere",
+      "atmosphere",
+      "hydrosphere",
+      "biosphere",
+      "natural hazards",
+      "earth systems"
+    ],
+    "category": "Physical Geography"
+  },
+  {
+    "code": "WG.4(A)",
+    "gradeLevel": "9",
+    "description": "explain how elevation, latitude, wind systems, ocean currents, position on a continent, and mountain barriers influence temperature, precipitation, and distribution of climate regions;",
+    "keywords": [
+      "elevation",
+      "latitude",
+      "wind systems",
+      "ocean currents",
+      "continentality",
+      "mountain barriers",
+      "orographic effect",
+      "climate regions",
+      "temperature",
+      "precipitation",
+      "rain shadow"
+    ],
+    "category": "Physical Geography"
+  },
+  {
+    "code": "WG.4(B)",
+    "gradeLevel": "9",
+    "description": "describe different landforms such as plains, mountains, and islands and the physical processes that cause their development; and",
+    "keywords": [
+      "landforms",
+      "plains",
+      "mountains",
+      "islands",
+      "plateaus",
+      "valleys",
+      "physical processes",
+      "geomorphology",
+      "tectonics",
+      "volcanism"
+    ],
+    "category": "Physical Geography"
+  },
+  {
+    "code": "WG.4(C)",
+    "gradeLevel": "9",
+    "description": "explain the influence of climate on the distribution of biomes in different regions.",
+    "keywords": [
+      "climate",
+      "biomes",
+      "ecosystems",
+      "tundra",
+      "rainforest",
+      "desert",
+      "savanna",
+      "taiga",
+      "vegetation zones",
+      "climate and life"
+    ],
+    "category": "Physical Geography"
+  },
+  {
+    "code": "WG.5(A)",
+    "gradeLevel": "9",
+    "description": "analyze how the character of a place is related to its political, economic, social, and cultural elements; and",
+    "keywords": [
+      "character of a place",
+      "political",
+      "economic",
+      "social",
+      "cultural elements",
+      "sense of place",
+      "human geography",
+      "place identity"
+    ],
+    "category": "Human Geography"
+  },
+  {
+    "code": "WG.5(B)",
+    "gradeLevel": "9",
+    "description": "interpret political, economic, social, and demographic indicators (gross domestic product per capita, life expectancy, literacy, and infant mortality) to determine the level of development and standard of living in nations using the levels as defined by the Human Development Index.",
+    "keywords": [
+      "HDI",
+      "human development index",
+      "GDP per capita",
+      "life expectancy",
+      "literacy",
+      "infant mortality",
+      "standard of living",
+      "development indicators",
+      "more developed",
+      "less developed"
+    ],
+    "category": "Human Geography"
+  },
+  {
+    "code": "WG.6(A)",
+    "gradeLevel": "9",
+    "description": "locate and describe human and physical features that influence the size and distribution of settlements; and",
+    "keywords": [
+      "settlements",
+      "site factors",
+      "situation",
+      "physical features",
+      "water access",
+      "fertile land",
+      "trade routes",
+      "distribution of cities",
+      "urban location"
+    ],
+    "category": "Human Geography"
+  },
+  {
+    "code": "WG.6(B)",
+    "gradeLevel": "9",
+    "description": "explain the processes that have caused changes in settlement patterns, including urbanization, transportation, access to and availability of resources, and economic activities.",
+    "keywords": [
+      "settlement patterns",
+      "urbanization",
+      "transportation",
+      "resources",
+      "economic activities",
+      "suburbanization",
+      "megacities",
+      "rural to urban",
+      "infrastructure"
+    ],
+    "category": "Human Geography"
+  },
+  {
+    "code": "WG.7(A)",
+    "gradeLevel": "9",
+    "description": "analyze population pyramids and use other data, graphics, and maps to describe the population characteristics of different societies and to predict future population trends;",
+    "keywords": [
+      "population pyramids",
+      "demographics",
+      "age structure",
+      "birth rate",
+      "death rate",
+      "dependency ratio",
+      "population trends",
+      "census data",
+      "population maps"
+    ],
+    "category": "Population & Migration"
+  },
+  {
+    "code": "WG.7(B)",
+    "gradeLevel": "9",
+    "description": "explain how physical geography and push and pull forces, including political, economic, social, and environmental conditions, affect the routes and flows of human migration;",
+    "keywords": [
+      "migration",
+      "push factors",
+      "pull factors",
+      "refugees",
+      "immigration",
+      "emigration",
+      "routes of migration",
+      "environmental migration",
+      "economic migrants"
+    ],
+    "category": "Population & Migration"
+  },
+  {
+    "code": "WG.7(C)",
+    "gradeLevel": "9",
+    "description": "describe trends in world population growth and distribution; and",
+    "keywords": [
+      "world population",
+      "population growth",
+      "population distribution",
+      "population density",
+      "demographic transition",
+      "overpopulation",
+      "population clusters"
+    ],
+    "category": "Population & Migration"
+  },
+  {
+    "code": "WG.7(D)",
+    "gradeLevel": "9",
+    "description": "analyze how globalization affects connectivity, standard of living, pandemics, and loss of local culture.",
+    "keywords": [
+      "globalization",
+      "connectivity",
+      "standard of living",
+      "pandemics",
+      "local culture",
+      "cultural homogenization",
+      "interdependence",
+      "global networks"
+    ],
+    "category": "Population & Migration"
+  },
+  {
+    "code": "WG.8(A)",
+    "gradeLevel": "9",
+    "description": "compare ways that humans depend on, adapt to, and modify the physical environment, including the influences of culture and technology;",
+    "keywords": [
+      "human-environment interaction",
+      "depend",
+      "adapt",
+      "modify",
+      "culture",
+      "technology",
+      "HEI",
+      "environmental modification",
+      "adaptation"
+    ],
+    "category": "Human-Environment Interaction"
+  },
+  {
+    "code": "WG.8(B)",
+    "gradeLevel": "9",
+    "description": "analyze the consequences of extreme weather and other natural disasters such as El Ni\u00f1o, floods, tsunamis, and volcanoes on people and their environment; and",
+    "keywords": [
+      "natural disasters",
+      "extreme weather",
+      "el nino",
+      "floods",
+      "tsunamis",
+      "volcanoes",
+      "hazard risk",
+      "disaster impact",
+      "human vulnerability"
+    ],
+    "category": "Human-Environment Interaction"
+  },
+  {
+    "code": "WG.8(C)",
+    "gradeLevel": "9",
+    "description": "evaluate the economic and political relationships between settlements and the environment, including sustainable development and renewable/non-renewable resources.",
+    "keywords": [
+      "sustainable development",
+      "renewable resources",
+      "non-renewable resources",
+      "settlements and environment",
+      "resource management",
+      "sustainability",
+      "fossil fuels",
+      "conservation"
+    ],
+    "category": "Human-Environment Interaction"
+  },
+  {
+    "code": "WG.9(A)",
+    "gradeLevel": "9",
+    "description": "identify physical and/or human factors such as climate, vegetation, language, trade networks, political units, river systems, and religion that constitute a region; and",
+    "keywords": [
+      "regions",
+      "physical factors",
+      "human factors",
+      "climate",
+      "vegetation",
+      "language",
+      "trade networks",
+      "political units",
+      "river systems",
+      "religion"
+    ],
+    "category": "Regions"
+  },
+  {
+    "code": "WG.9(B)",
+    "gradeLevel": "9",
+    "description": "describe different types of regions, including formal, functional, and perceptual regions.",
+    "keywords": [
+      "formal regions",
+      "functional regions",
+      "perceptual regions",
+      "vernacular regions",
+      "nodal regions",
+      "region types",
+      "geographic regions",
+      "mental maps"
+    ],
+    "category": "Regions"
+  },
+  {
+    "code": "WG.10(A)",
+    "gradeLevel": "9",
+    "description": "describe the forces that determine the distribution of goods and services in traditional, free enterprise, socialist, and communist economic systems;",
+    "keywords": [
+      "economic systems",
+      "traditional economy",
+      "free enterprise",
+      "market economy",
+      "socialist",
+      "communist",
+      "goods and services",
+      "command economy",
+      "mixed economy"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "WG.10(B)",
+    "gradeLevel": "9",
+    "description": "classify countries along the economic spectrum between free enterprise and communism;",
+    "keywords": [
+      "economic spectrum",
+      "free enterprise",
+      "communism",
+      "market vs command",
+      "economic classification",
+      "capitalism",
+      "centrally planned"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "WG.10(C)",
+    "gradeLevel": "9",
+    "description": "compare the ways people satisfy their basic needs through the production of goods and services such as subsistence agriculture versus commercial agriculture or cottage industries versus commercial industries; and",
+    "keywords": [
+      "subsistence agriculture",
+      "commercial agriculture",
+      "cottage industries",
+      "commercial industries",
+      "basic needs",
+      "production",
+      "primary sector",
+      "farming systems"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "WG.10(D)",
+    "gradeLevel": "9",
+    "description": "compare global trade patterns over time and analyze the implications of globalization, including outsourcing and free trade zones.",
+    "keywords": [
+      "global trade",
+      "trade patterns",
+      "globalization",
+      "outsourcing",
+      "free trade zones",
+      "tariffs",
+      "supply chains",
+      "international trade",
+      "imports",
+      "exports"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "WG.11(A)",
+    "gradeLevel": "9",
+    "description": "understand the connections between levels of development and economic activities (primary, secondary, tertiary, and quaternary);",
+    "keywords": [
+      "levels of development",
+      "primary activities",
+      "secondary activities",
+      "tertiary",
+      "quaternary",
+      "economic sectors",
+      "industry",
+      "services",
+      "resource extraction"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "WG.11(B)",
+    "gradeLevel": "9",
+    "description": "identify the factors affecting the location of different types of economic activities, including subsistence and commercial agriculture, manufacturing, and service industries; and",
+    "keywords": [
+      "location of industry",
+      "agriculture location",
+      "manufacturing",
+      "service industries",
+      "site factors",
+      "labor",
+      "markets",
+      "raw materials",
+      "agglomeration"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "WG.11(C)",
+    "gradeLevel": "9",
+    "description": "assess how changes in climate, resources, and infrastructure (technology, transportation, and communication) affect the location and patterns of economic activities.",
+    "keywords": [
+      "climate change economy",
+      "resources",
+      "infrastructure",
+      "technology",
+      "transportation",
+      "communication",
+      "economic patterns",
+      "shifting industries"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "WG.12(A)",
+    "gradeLevel": "9",
+    "description": "analyze how the creation, distribution, and management of key natural resources affects the location and patterns of movement of products, money, and people; and",
+    "keywords": [
+      "natural resources",
+      "resource distribution",
+      "resource management",
+      "products",
+      "capital flows",
+      "resource migration",
+      "oil",
+      "minerals",
+      "water resources"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "WG.12(B)",
+    "gradeLevel": "9",
+    "description": "evaluate the geographic and economic impact of policies related to the development, use, and scarcity of natural resources such as regulations of water.",
+    "keywords": [
+      "resource scarcity",
+      "water regulations",
+      "resource policy",
+      "resource development",
+      "conservation policy",
+      "water rights",
+      "resource conflict",
+      "environmental policy"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "WG.13(A)",
+    "gradeLevel": "9",
+    "description": "interpret maps to explain the division of land, including man-made and natural borders, into separate political units such as cities, states, or countries; and",
+    "keywords": [
+      "political maps",
+      "borders",
+      "boundaries",
+      "man-made borders",
+      "natural borders",
+      "cities",
+      "states",
+      "countries",
+      "political units",
+      "cartography"
+    ],
+    "category": "Political Geography"
+  },
+  {
+    "code": "WG.13(B)",
+    "gradeLevel": "9",
+    "description": "compare maps of voting patterns and political boundaries to make inferences about the distribution of political power.",
+    "keywords": [
+      "voting patterns",
+      "political boundaries",
+      "political power",
+      "electoral geography",
+      "gerrymandering",
+      "political maps",
+      "power distribution"
+    ],
+    "category": "Political Geography"
+  },
+  {
+    "code": "WG.14(A)",
+    "gradeLevel": "9",
+    "description": "analyze current events to infer the physical and human processes that lead to the formation of boundaries and other political divisions;",
+    "keywords": [
+      "current events",
+      "boundary formation",
+      "political divisions",
+      "border disputes",
+      "physical processes",
+      "human processes",
+      "geopolitics"
+    ],
+    "category": "Political Geography"
+  },
+  {
+    "code": "WG.14(B)",
+    "gradeLevel": "9",
+    "description": "compare how democracy, dictatorship, monarchy, republic, theocracy, and totalitarian systems operate in specific countries; and",
+    "keywords": [
+      "democracy",
+      "dictatorship",
+      "monarchy",
+      "republic",
+      "theocracy",
+      "totalitarian",
+      "government systems",
+      "comparative government",
+      "political systems"
+    ],
+    "category": "Political Geography"
+  },
+  {
+    "code": "WG.14(C)",
+    "gradeLevel": "9",
+    "description": "analyze the human and physical factors that influence control of territories and resources, conflict/war, and international relations of sovereign nations such as China, the United States, Japan, and Russia and international organizations such as the United Nations (UN) and the European Union (EU).",
+    "keywords": [
+      "territories",
+      "resources",
+      "conflict",
+      "war",
+      "international relations",
+      "sovereign nations",
+      "China",
+      "United States",
+      "Japan",
+      "Russia",
+      "United Nations",
+      "European Union",
+      "geopolitics",
+      "superpowers"
+    ],
+    "category": "Political Geography"
+  },
+  {
+    "code": "WG.15(A)",
+    "gradeLevel": "9",
+    "description": "identify and give examples of different points of view that influence the development of public policies and decision-making processes at national and international levels; and",
+    "keywords": [
+      "points of view",
+      "public policy",
+      "decision-making",
+      "national policy",
+      "international policy",
+      "stakeholders",
+      "perspectives",
+      "policy debates"
+    ],
+    "category": "Political Geography"
+  },
+  {
+    "code": "WG.15(B)",
+    "gradeLevel": "9",
+    "description": "explain how citizenship practices, public policies, and decision making may be influenced by cultural beliefs, including nationalism and patriotism.",
+    "keywords": [
+      "citizenship",
+      "public policies",
+      "cultural beliefs",
+      "nationalism",
+      "patriotism",
+      "civic identity",
+      "political culture",
+      "decision making"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "WG.16(A)",
+    "gradeLevel": "9",
+    "description": "describe distinctive cultural patterns and landscapes associated with different places in Texas, the United States, and other regions of the world and how these patterns influenced the processes of innovation and diffusion;",
+    "keywords": [
+      "cultural patterns",
+      "cultural landscapes",
+      "Texas culture",
+      "United States",
+      "world regions",
+      "innovation",
+      "diffusion",
+      "cultural landscape",
+      "place culture"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "WG.16(B)",
+    "gradeLevel": "9",
+    "description": "describe elements of culture, including language, religion, beliefs, institutions, and technologies; and",
+    "keywords": [
+      "elements of culture",
+      "language",
+      "religion",
+      "beliefs",
+      "institutions",
+      "technologies",
+      "cultural traits",
+      "customs"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "WG.16(C)",
+    "gradeLevel": "9",
+    "description": "describe life in a variety of urban and rural areas in the world to compare political, economic, social, and environmental changes.",
+    "keywords": [
+      "urban",
+      "rural",
+      "city life",
+      "village life",
+      "political change",
+      "economic change",
+      "social change",
+      "environmental change",
+      "urban rural comparison"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "WG.17(A)",
+    "gradeLevel": "9",
+    "description": "describe and compare patterns of culture such as language, religion, land use, education, and customs that make specific regions of the world distinctive;",
+    "keywords": [
+      "cultural patterns",
+      "language regions",
+      "religion",
+      "land use",
+      "education",
+      "customs",
+      "cultural regions",
+      "regional identity",
+      "distinctive regions"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "WG.17(B)",
+    "gradeLevel": "9",
+    "description": "describe central ideas and spatial distribution of major religious traditions, including Buddhism, Christianity, Hinduism, Islam, Judaism, and Sikhism;",
+    "keywords": [
+      "world religions",
+      "Buddhism",
+      "Christianity",
+      "Hinduism",
+      "Islam",
+      "Judaism",
+      "Sikhism",
+      "religious distribution",
+      "hearths",
+      "sacred spaces"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "WG.17(C)",
+    "gradeLevel": "9",
+    "description": "compare economic, political, or social opportunities in different cultures for underrepresented populations such as women and ethnic and religious minorities; and",
+    "keywords": [
+      "opportunities",
+      "underrepresented populations",
+      "women",
+      "ethnic minorities",
+      "religious minorities",
+      "equity",
+      "gender",
+      "social opportunity",
+      "political rights"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "WG.17(D)",
+    "gradeLevel": "9",
+    "description": "evaluate the experiences and contributions of diverse groups to multicultural societies.",
+    "keywords": [
+      "diverse groups",
+      "multicultural societies",
+      "contributions",
+      "cultural diversity",
+      "immigrants",
+      "pluralism",
+      "inclusion"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "WG.18(A)",
+    "gradeLevel": "9",
+    "description": "analyze cultural changes in specific regions caused by migration, war, trade, innovations, and diffusion;",
+    "keywords": [
+      "cultural change",
+      "migration",
+      "war",
+      "trade",
+      "innovations",
+      "diffusion",
+      "acculturation",
+      "assimilation",
+      "regional culture"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "WG.18(B)",
+    "gradeLevel": "9",
+    "description": "assess causes and effects of conflicts between groups of people, including modern genocides and terrorism;",
+    "keywords": [
+      "conflict",
+      "genocide",
+      "terrorism",
+      "ethnic conflict",
+      "causes of war",
+      "human rights",
+      "violence",
+      "group conflict"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "WG.18(C)",
+    "gradeLevel": "9",
+    "description": "identify examples of cultures that maintain traditional ways, including traditional economies; and",
+    "keywords": [
+      "traditional cultures",
+      "traditional economies",
+      "indigenous cultures",
+      "cultural continuity",
+      "subsistence",
+      "heritage",
+      "custom"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "WG.18(D)",
+    "gradeLevel": "9",
+    "description": "evaluate the spread of cultural traits to find examples of cultural convergence and divergence such as the spread of democratic ideas, language, foods, technology, or global sports.",
+    "keywords": [
+      "cultural convergence",
+      "cultural divergence",
+      "cultural traits",
+      "democratic ideas",
+      "language spread",
+      "foods",
+      "technology",
+      "global sports",
+      "glocalization"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "WG.19(A)",
+    "gradeLevel": "9",
+    "description": "evaluate the significance of major technological innovations in the areas of transportation and energy that have been used to modify the physical environment;",
+    "keywords": [
+      "technological innovations",
+      "transportation",
+      "energy",
+      "modify environment",
+      "railroads",
+      "highways",
+      "canals",
+      "fossil fuels",
+      "renewable energy",
+      "infrastructure"
+    ],
+    "category": "Human-Environment Interaction"
+  },
+  {
+    "code": "WG.19(B)",
+    "gradeLevel": "9",
+    "description": "analyze ways technological innovations such as air conditioning and desalinization have allowed humans to adapt to places; and",
+    "keywords": [
+      "air conditioning",
+      "desalinization",
+      "technological adaptation",
+      "human adaptation",
+      "arid climates",
+      "settlement technology",
+      "innovation"
+    ],
+    "category": "Human-Environment Interaction"
+  },
+  {
+    "code": "WG.19(C)",
+    "gradeLevel": "9",
+    "description": "analyze the environmental, economic, and social impacts of advances in technology on agriculture and natural resources.",
+    "keywords": [
+      "agricultural technology",
+      "natural resources",
+      "environmental impact",
+      "economic impact",
+      "social impact",
+      "Green Revolution",
+      "mechanization",
+      "irrigation"
+    ],
+    "category": "Human-Environment Interaction"
+  },
+  {
+    "code": "WG.20(A)",
+    "gradeLevel": "9",
+    "description": "describe the impact of new information technologies such as the Internet, Global Positioning System (GPS), or Geographic Information Systems (GIS); and",
+    "keywords": [
+      "Internet",
+      "GPS",
+      "GIS",
+      "information technology",
+      "geospatial technology",
+      "digital maps",
+      "remote sensing",
+      "spatial data"
+    ],
+    "category": "Social Studies Skills"
+  },
+  {
+    "code": "WG.20(B)",
+    "gradeLevel": "9",
+    "description": "examine the economic, environmental, and social effects of technology such as medical advancements or changing trade patterns on societies at different levels of development.",
+    "keywords": [
+      "technology effects",
+      "medical advancements",
+      "trade patterns",
+      "levels of development",
+      "economic effects",
+      "environmental effects",
+      "social effects",
+      "digital divide"
+    ],
+    "category": "Social Studies Skills"
+  },
+  {
+    "code": "WG.21(A)",
+    "gradeLevel": "9",
+    "description": "analyze and evaluate a variety of sources of geographic information such as primary and secondary sources, aerial photographs, and maps for validity, utility, credibility, bias, and accuracy;",
+    "keywords": [
+      "geographic sources",
+      "primary sources",
+      "secondary sources",
+      "aerial photographs",
+      "maps",
+      "validity",
+      "credibility",
+      "bias",
+      "accuracy",
+      "source evaluation"
+    ],
+    "category": "Social Studies Skills"
+  },
+  {
+    "code": "WG.21(B)",
+    "gradeLevel": "9",
+    "description": "identify places of contemporary geopolitical significance on a map;",
+    "keywords": [
+      "geopolitical significance",
+      "world map",
+      "hotspots",
+      "strategic locations",
+      "current events geography",
+      "key places"
+    ],
+    "category": "Social Studies Skills"
+  },
+  {
+    "code": "WG.21(C)",
+    "gradeLevel": "9",
+    "description": "create and interpret different types of maps to answer geographic questions, infer relationships, and analyze change;",
+    "keywords": [
+      "map types",
+      "thematic maps",
+      "map interpretation",
+      "geographic questions",
+      "spatial relationships",
+      "map creation",
+      "choropleth",
+      "cartograms"
+    ],
+    "category": "Social Studies Skills"
+  },
+  {
+    "code": "WG.21(D)",
+    "gradeLevel": "9",
+    "description": "analyze information by sequencing, categorizing, identifying cause-and-effect relationships, comparing, contrasting, finding the main idea, summarizing, making generalizations and predictions, drawing inferences and conclusions, and developing connections over time;",
+    "keywords": [
+      "analyze information",
+      "cause and effect",
+      "compare contrast",
+      "main idea",
+      "summarize",
+      "predictions",
+      "inferences",
+      "critical thinking",
+      "sequencing"
+    ],
+    "category": "Social Studies Skills"
+  },
+  {
+    "code": "WG.21(E)",
+    "gradeLevel": "9",
+    "description": "identify different points of view about an issue or current topic; and",
+    "keywords": [
+      "points of view",
+      "perspectives",
+      "current topics",
+      "issues",
+      "multiple viewpoints",
+      "bias"
+    ],
+    "category": "Social Studies Skills"
+  },
+  {
+    "code": "WG.21(F)",
+    "gradeLevel": "9",
+    "description": "formulate and communicate visually, orally, or in writing a claim supported by evidence and reasoning for an intended audience and purpose.",
+    "keywords": [
+      "claim",
+      "evidence",
+      "reasoning",
+      "argument",
+      "audience",
+      "purpose",
+      "communicate",
+      "geographic argument",
+      "writing"
+    ],
+    "category": "Social Studies Skills"
+  },
+  {
+    "code": "WG.22(A)",
+    "gradeLevel": "9",
+    "description": "create appropriate graphics such as maps, diagrams, tables, and graphs to communicate geographic features, distributions, and relationships;",
+    "keywords": [
+      "maps",
+      "diagrams",
+      "tables",
+      "graphs",
+      "geographic graphics",
+      "data visualization",
+      "distributions",
+      "spatial relationships"
+    ],
+    "category": "Social Studies Skills"
+  },
+  {
+    "code": "WG.22(B)",
+    "gradeLevel": "9",
+    "description": "generate summaries, generalizations, and thesis statements supported by evidence;",
+    "keywords": [
+      "summaries",
+      "generalizations",
+      "thesis statements",
+      "evidence",
+      "writing",
+      "geographic analysis"
+    ],
+    "category": "Social Studies Skills"
+  },
+  {
+    "code": "WG.22(C)",
+    "gradeLevel": "9",
+    "description": "use social studies terminology correctly;",
+    "keywords": [
+      "social studies vocabulary",
+      "geographic terminology",
+      "academic language",
+      "content vocabulary"
+    ],
+    "category": "Social Studies Skills"
+  },
+  {
+    "code": "WG.22(D)",
+    "gradeLevel": "9",
+    "description": "create original work using effective written communication skills, including proper citations and understanding and avoiding plagiarism; and",
+    "keywords": [
+      "written communication",
+      "citations",
+      "plagiarism",
+      "original work",
+      "research writing",
+      "academic integrity"
+    ],
+    "category": "Social Studies Skills"
+  },
+  {
+    "code": "WG.22(E)",
+    "gradeLevel": "9",
+    "description": "apply foundational language skills to engage in civil discourse about social studies topics, including those with multiple perspectives.",
+    "keywords": [
+      "civil discourse",
+      "discussion",
+      "multiple perspectives",
+      "speaking",
+      "listening",
+      "deliberation",
+      "respectful debate"
+    ],
+    "category": "Social Studies Skills"
+  },
+  {
+    "code": "WG.23(A)",
+    "gradeLevel": "9",
+    "description": "explain governmental and democratic processes such as voting, due process, and caucuses using simulations and models;",
+    "keywords": [
+      "democratic processes",
+      "voting",
+      "due process",
+      "caucuses",
+      "simulations",
+      "models",
+      "citizenship",
+      "government processes"
+    ],
+    "category": "Social Studies Skills"
+  },
+  {
+    "code": "WG.23(B)",
+    "gradeLevel": "9",
+    "description": "plan, organize, and complete a research project that involves asking geographic questions; acquiring, organizing, and analyzing information; answering questions; and communicating results;",
+    "keywords": [
+      "research project",
+      "geographic questions",
+      "inquiry",
+      "data analysis",
+      "communicate results",
+      "project-based learning",
+      "investigation"
+    ],
+    "category": "Social Studies Skills"
+  },
+  {
+    "code": "WG.23(C)",
+    "gradeLevel": "9",
+    "description": "use case studies and GIS to identify contemporary challenges and to answer real-world questions; and",
+    "keywords": [
+      "case studies",
+      "GIS",
+      "contemporary challenges",
+      "real-world questions",
+      "applied geography",
+      "spatial analysis",
+      "problem-based learning"
+    ],
+    "category": "Social Studies Skills"
+  },
+  {
+    "code": "WG.23(D)",
+    "gradeLevel": "9",
+    "description": "use problem-solving and decision-making processes to identify a problem, gather information, list and consider options, consider advantages and disadvantages, choose and implement a solution, and evaluate the effectiveness of the solution.",
+    "keywords": [
+      "problem-solving",
+      "decision-making",
+      "options",
+      "advantages disadvantages",
+      "solution",
+      "evaluation",
+      "geographic decision making"
+    ],
+    "category": "Social Studies Skills"
+  }
+]

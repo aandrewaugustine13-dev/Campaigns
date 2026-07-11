@@ -378,9 +378,16 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
             <div>
               <p className="text-sm font-bold text-stone-700 mb-2">Grade level</p>
               <div className="flex flex-wrap gap-2">
-                {["All", "6", "7", "8", "High School"].map((grade) => {
+                {["All", "6", "7", "8", "9", "High School"].map((grade) => {
                   const isActive = selectedGrades.includes(grade);
-                  const label = grade === "All" ? "All grades" : grade + (grade !== "High School" ? "th" : "");
+                  const label =
+                    grade === "All"
+                      ? "All grades"
+                      : grade === "High School"
+                        ? "High School"
+                        : grade === "9"
+                          ? "9th · World Geo"
+                          : `${grade}th`;
                   return (
                     <button
                       key={grade}
