@@ -247,7 +247,7 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
   // Shared left list — both pages select the same passage.
   const passageList = (
     <div className="w-72 sm:w-80 border-r border-stone-200 overflow-y-auto p-3 sm:p-4 bg-white">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-2 px-1">
+      <p className="text-[11px] font-bold uppercase tracking-wider text-stone-400 mb-2 px-1">
         Passages (click to {page === "text" ? "read" : "curate"})
       </p>
       <div className="space-y-1">
@@ -310,7 +310,7 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
               <div>
                 <div className="flex items-center gap-2 mb-0.5">
                   <BookOpen className="h-4 w-4 text-indigo-600" aria-hidden />
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-indigo-600">1 · Review text</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-indigo-600">1 · Review text</p>
                 </div>
                 <p className="text-xs text-stone-500">
                   <span className="font-medium text-stone-700">{curated.title}</span>
@@ -343,7 +343,7 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
                     {selected.ending && endingBadge(selected.endingState)}
                     <div className="text-xs text-stone-400">{selectedIdx + 1} / {displayPassages.length}</div>
                   </div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-2">Passage text (locked)</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-stone-400 mb-2">Passage text (locked)</p>
                   <div className="bg-white border border-stone-200 rounded-xl p-5 text-stone-800 text-base leading-relaxed shadow-sm whitespace-pre-line">
                     {selected.text}
                   </div>
@@ -365,7 +365,7 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
               <div>
                 <div className="flex items-center gap-2 mb-0.5">
                   <ImageIcon className="h-4 w-4 text-indigo-600" aria-hidden />
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-indigo-600">2 · Curate images</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-indigo-600">2 · Curate images</p>
                 </div>
                 <p className="text-xs text-stone-500">
                   <span className="font-medium text-stone-700">{curated.title}</span>
@@ -411,14 +411,14 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
                   </div>
 
                   {/* Read-only prose — text is locked on the image page. */}
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-2">Passage text (locked)</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-stone-400 mb-2">Passage text (locked)</p>
                   <div className="bg-white/70 border border-stone-200 rounded-xl p-4 text-stone-600 text-sm leading-relaxed whitespace-pre-line">
                     {selected.text}
                   </div>
 
                   {/* ── IMAGE MACHINERY (unchanged — only moved here) ── */}
                   <div className="mt-6">
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-2">Visual for this passage</p>
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-stone-400 mb-2">Visual for this passage</p>
 
                     {hasImage ? (
                       <div className="mb-3">

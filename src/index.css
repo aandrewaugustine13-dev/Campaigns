@@ -36,6 +36,27 @@
 .theme-body-font .text-base { font-size: 1.125rem !important; line-height: 1.7rem !important; }    /* 16 → 18 */
 .theme-body-font .text-lg   { font-size: 1.25rem !important;  line-height: 1.85rem !important; }   /* 18 → 20 */
 
+/* ═══════════════════════════════════════════════════════════════
+   STUDIO UI TYPE SCALE (teacher setup / first-person create flow)
+   Larger, heavier type so forms and review copy are easy to scan.
+   Scoped to .studio-ui (StudioShell + BranchingReview roots).
+   ═══════════════════════════════════════════════════════════════ */
+.studio-ui {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.studio-ui .text-\[10px\],
+.studio-ui .text-\[11px\] { font-size: 0.75rem !important; line-height: 1.15rem !important; font-weight: 600; }
+.studio-ui .text-xs   { font-size: 0.875rem !important; line-height: 1.35rem !important; }   /* 12 → 14 */
+.studio-ui .text-sm   { font-size: 1rem !important;     line-height: 1.55rem !important; }  /* 14 → 16 */
+.studio-ui .text-base { font-size: 1.0625rem !important; line-height: 1.65rem !important; } /* 16 → 17 */
+.studio-ui .text-lg   { font-size: 1.25rem !important;  line-height: 1.85rem !important; }  /* 18 → 20 */
+.studio-ui .text-2xl  { font-size: 1.75rem !important;  line-height: 2.15rem !important; font-weight: 700; }
+.studio-ui .text-3xl  { font-size: 2rem !important;     line-height: 2.35rem !important; font-weight: 800; }
+/* Darker secondary copy for contrast on warm off-white */
+.studio-ui .text-stone-500 { color: #57534e; } /* stone-600 */
+.studio-ui .text-stone-400 { color: #78716c; } /* stone-500 */
+
 @keyframes bgScroll {
   0% { background-position: 0 0; }
   100% { background-position: 1000px 0; }

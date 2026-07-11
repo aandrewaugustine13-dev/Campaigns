@@ -251,7 +251,7 @@ export default function CreateBranching({ onBack }: Props) {
                 <AlertCircle className="h-6 w-6 text-rose-600" aria-hidden />
               </div>
               <div className="space-y-1">
-                <h1 className="text-xl font-semibold text-stone-900">We ran into a problem</h1>
+                <h1 className="text-xl font-extrabold text-stone-900">We ran into a problem</h1>
                 <p className="text-sm text-stone-500">Something went wrong creating the story. You can safely try again.</p>
               </div>
               <div className="rounded-lg border border-rose-100 bg-rose-50/80 px-3.5 py-3 text-left">

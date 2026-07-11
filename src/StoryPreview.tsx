@@ -376,7 +376,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
                           <span className="font-mono text-indigo-600 font-medium">{t.code}</span>{" "}
                           <span className="text-stone-600">{t.description}</span>
                         </div>
-                        <span className="text-indigo-600 text-[11px] font-semibold flex-shrink-0">+ Add</span>
+                        <span className="text-indigo-600 text-[11px] font-bold flex-shrink-0">+ Add</span>
                       </button>
                     ))
                   )}
@@ -410,7 +410,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">Story breadth</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">Story breadth</span>
                 {([
                   { value: "span" as const, title: "Span", desc: "Travels across a movement, war, or long journey. Broader arc with multiple locations or phases." },
                   { value: "depth" as const, title: "Depth", desc: "Stays inside one powerful moment or short time. Rich branches in a tight frame." },
@@ -424,7 +424,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
                     <div className="flex items-start gap-3">
                       <RadioDot selected={scope === opt.value} />
                       <div>
-                        <div className="text-sm font-semibold text-stone-900">{opt.title}</div>
+                        <div className="text-sm font-bold text-stone-900">{opt.title}</div>
                         <div className="text-[12px] text-stone-500 leading-snug mt-0.5">{opt.desc}</div>
                       </div>
                     </div>
@@ -432,7 +432,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
                 ))}
               </div>
               <div className="space-y-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">Famous figure encounters</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">Famous figure encounters</span>
                 {([
                   { value: "off" as const, title: "Off (recommended for many topics)", desc: "No forced meetings. Students experience events through ordinary people. Clean for focused or lesser-known stories." },
                   { value: "high" as const, title: "High — meet the real figures", desc: "The protagonist crosses paths with marquee historical figures at turning points." },
@@ -446,7 +446,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
                     <div className="flex items-start gap-3">
                       <RadioDot selected={gumpIntensity === opt.value} />
                       <div>
-                        <div className="text-sm font-semibold text-stone-900">{opt.title}</div>
+                        <div className="text-sm font-bold text-stone-900">{opt.title}</div>
                         <div className="text-[12px] text-stone-500 leading-snug mt-0.5">{opt.desc}</div>
                       </div>
                     </div>
@@ -464,7 +464,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">Content maturity</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">Content maturity</span>
                 {([
                   { value: "mature", title: "Mature", desc: "Direct and honest about fear, violence, death, and moral complexity." },
                   { value: "moderate", title: "Moderate", desc: "Balanced honesty — difficult truths are present but softened where appropriate." },
@@ -479,7 +479,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
                     <div className="flex items-start gap-3">
                       <RadioDot selected={contentMaturity === opt.value} />
                       <div>
-                        <div className="text-sm font-semibold text-stone-900">{opt.title}</div>
+                        <div className="text-sm font-bold text-stone-900">{opt.title}</div>
                         <div className="text-[12px] text-stone-500 leading-snug mt-0.5">{opt.desc}</div>
                       </div>
                     </div>
@@ -487,7 +487,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
                 ))}
               </div>
               <div className="space-y-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">Prose register</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">Prose register</span>
                 {([
                   { value: "direct", title: "Direct", desc: "Short sentences, plain concrete words. Best for broad access and bilingual support." },
                   { value: "balanced", title: "Balanced", desc: "Mix of sentence lengths with clear but descriptive language." },
@@ -502,7 +502,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
                     <div className="flex items-start gap-3">
                       <RadioDot selected={proseRegister === opt.value} />
                       <div>
-                        <div className="text-sm font-semibold text-stone-900">{opt.title}</div>
+                        <div className="text-sm font-bold text-stone-900">{opt.title}</div>
                         <div className="text-[12px] text-stone-500 leading-snug mt-0.5">{opt.desc}</div>
                       </div>
                     </div>
@@ -605,7 +605,7 @@ export default function StoryPreviewScreen({ onBack, onApprove }: StoryPreviewSc
 
               <div>
                 <StudioCardTitle>The story will follow</StudioCardTitle>
-                <p className="text-lg font-semibold text-stone-900">{preview.protagonist}</p>
+                <p className="text-lg font-bold text-stone-900">{preview.protagonist}</p>
               </div>
 
               <div>

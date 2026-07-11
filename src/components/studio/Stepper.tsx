@@ -38,12 +38,12 @@ export function Stepper({ steps, currentIndex, className = "" }: StepperProps) {
                   <motion.div
                     layout
                     className={[
-                      "flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-colors",
+                      "flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-colors",
                       complete
                         ? "bg-indigo-600 text-white shadow-sm shadow-indigo-200"
                         : current
                           ? "bg-white text-indigo-700 ring-2 ring-indigo-600 shadow-sm"
-                          : "bg-stone-100 text-stone-400 ring-1 ring-stone-200",
+                          : "bg-stone-100 text-stone-500 ring-1 ring-stone-200",
                     ].join(" ")}
                     initial={false}
                     animate={current ? { scale: 1.05 } : { scale: 1 }}
@@ -58,9 +58,9 @@ export function Stepper({ steps, currentIndex, className = "" }: StepperProps) {
                 </div>
                 <span
                   className={[
-                    "hidden sm:block text-[11px] font-medium tracking-wide truncate max-w-[5.5rem] text-center",
-                    complete || current ? "text-stone-800" : "text-stone-400",
-                    current ? "font-semibold" : "",
+                    "hidden sm:block text-xs font-bold tracking-wide truncate max-w-[5.5rem] text-center",
+                    complete || current ? "text-stone-900" : "text-stone-500",
+                    current ? "font-extrabold" : "",
                   ].join(" ")}
                 >
                   {step.shortLabel ?? step.label}

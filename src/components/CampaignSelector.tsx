@@ -34,15 +34,15 @@ export const CampaignSelector: React.FC<CampaignSelectorProps> = ({ onSelect }) 
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[15px] font-semibold text-stone-900 tracking-tight">
+                  <span className="text-base font-bold text-stone-900 tracking-tight">
                     Create a First-Person Story
                   </span>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-indigo-700 ring-1 ring-indigo-100">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-indigo-700 ring-1 ring-indigo-100">
                     <Sparkles className="h-3 w-3" aria-hidden />
                     Product
                   </span>
                 </div>
-                <p className="mt-1 text-[12.5px] text-stone-500 leading-snug">
+                <p className="mt-1 text-sm font-medium text-stone-600 leading-snug">
                   Generate a choose-your-path history story for students
                 </p>
               </div>

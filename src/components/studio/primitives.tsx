@@ -7,21 +7,25 @@ import { motion, type HTMLMotionProps } from "framer-motion";
 import { Loader2 } from "lucide-react";
 
 // ── Shared class tokens ──────────────────────────────────────────
+// Typography is intentionally HEAVY for teacher readability: medium default
+// weight (inherited), bold headings/labels, slightly larger form text.
+// `.studio-ui` in index.css also bumps the type scale one step.
 export const studio = {
-  page: "min-h-screen bg-[#F7F6F3] text-stone-900 antialiased",
-  // System UI stack — clean productivity feel (not game Georgia serif)
-  font: "font-sans",
+  page: "studio-ui min-h-screen bg-[#F7F6F3] text-stone-900 antialiased",
+  // System UI stack + medium weight so body copy reads bold without per-node markup
+  font: "font-sans font-medium",
   card: "bg-white rounded-xl border border-stone-200/90 shadow-sm shadow-stone-200/40",
   cardHover: "hover:border-stone-300 hover:shadow-md hover:shadow-stone-200/50 transition-all duration-200",
   input:
-    "w-full rounded-lg border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 " +
+    "w-full rounded-lg border border-stone-200 bg-white px-3.5 py-3 text-base font-semibold text-stone-900 " +
+    "placeholder:text-stone-400 placeholder:font-medium " +
     "shadow-sm shadow-stone-100/80 transition-all duration-150 " +
     "hover:border-stone-300 " +
     "focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10",
-  label: "block text-[11px] font-semibold uppercase tracking-wider text-stone-500 mb-1.5",
-  help: "mt-1.5 text-[12px] leading-relaxed text-stone-500",
-  title: "text-2xl font-semibold tracking-tight text-stone-900",
-  subtitle: "text-sm text-stone-500 leading-relaxed",
+  label: "block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1.5",
+  help: "mt-1.5 text-sm font-medium leading-relaxed text-stone-600",
+  title: "text-2xl sm:text-3xl font-bold tracking-tight text-stone-900",
+  subtitle: "text-base font-medium text-stone-600 leading-relaxed",
 } as const;
 
 // ── Shell ────────────────────────────────────────────────────────
@@ -101,7 +105,7 @@ export function StudioCard({
 
 export function StudioCardTitle({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <h2 className={`text-[11px] font-semibold uppercase tracking-wider text-indigo-600 mb-2 ${className}`}>
+    <h2 className={`text-xs font-bold uppercase tracking-wider text-indigo-700 mb-2 ${className}`}>
       {children}
     </h2>
   );
@@ -169,7 +173,7 @@ export const StudioSelect = forwardRef<HTMLSelectElement, SelectHTMLAttributes<H
 type BtnVariant = "primary" | "secondary" | "ghost" | "danger";
 
 const btnBase =
-  "inline-flex items-center justify-center gap-2 rounded-lg text-sm font-semibold " +
+  "inline-flex items-center justify-center gap-2 rounded-lg text-sm font-bold " +
   "transition-all duration-150 focus:outline-none focus-visible:ring-4 " +
   "disabled:opacity-45 disabled:cursor-not-allowed disabled:pointer-events-none " +
   "active:scale-[0.98]";
@@ -179,10 +183,10 @@ const btnVariants: Record<BtnVariant, string> = {
     "bg-indigo-600 text-white shadow-sm shadow-indigo-200/80 hover:bg-indigo-500 " +
     "focus-visible:ring-indigo-500/25",
   secondary:
-    "bg-white text-stone-700 border border-stone-200 shadow-sm hover:bg-stone-50 hover:border-stone-300 " +
+    "bg-white text-stone-800 border border-stone-200 shadow-sm hover:bg-stone-50 hover:border-stone-300 " +
     "focus-visible:ring-stone-400/20",
   ghost:
-    "bg-transparent text-stone-500 hover:text-stone-800 hover:bg-stone-100/80 " +
+    "bg-transparent text-stone-600 hover:text-stone-900 hover:bg-stone-100/80 " +
     "focus-visible:ring-stone-400/15",
   danger:
     "bg-rose-600 text-white shadow-sm hover:bg-rose-500 focus-visible:ring-rose-500/25",
@@ -190,8 +194,8 @@ const btnVariants: Record<BtnVariant, string> = {
 
 const btnSizes = {
   md: "px-4 py-2.5",
-  lg: "px-5 py-3 text-[15px]",
-  sm: "px-3 py-1.5 text-xs",
+  lg: "px-5 py-3.5 text-base",
+  sm: "px-3 py-1.5 text-xs font-bold",
 };
 
 export function StudioButton({
@@ -299,7 +303,7 @@ export function StudioBadge({
   };
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ring-1 ${tones[tone]}`}
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider ring-1 ${tones[tone]}`}
     >
       {children}
     </span>
@@ -315,8 +319,8 @@ export function StudioSpinner({ label, sublabel }: { label: string; sublabel?: s
         <div className="absolute inset-0 h-12 w-12 rounded-full border-[3px] border-transparent border-t-indigo-600 animate-spin" />
       </div>
       <div className="text-center space-y-1 max-w-sm">
-        <p className="text-sm font-medium text-stone-800">{label}</p>
-        {sublabel && <p className="text-xs text-stone-500 leading-relaxed">{sublabel}</p>}
+        <p className="text-base font-bold text-stone-900">{label}</p>
+        {sublabel && <p className="text-sm font-medium text-stone-600 leading-relaxed">{sublabel}</p>}
       </div>
     </div>
   );
@@ -333,9 +337,9 @@ export function StudioHeader({
   eyebrow?: string;
 }) {
   return (
-    <div className="space-y-1.5 text-center sm:text-left">
+    <div className="space-y-2 text-center sm:text-left">
       {eyebrow && (
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-indigo-600">{eyebrow}</p>
+        <p className="text-xs font-bold uppercase tracking-wider text-indigo-700">{eyebrow}</p>
       )}
       <h1 className={studio.title}>{title}</h1>
       {description && <p className={studio.subtitle}>{description}</p>}
@@ -371,11 +375,11 @@ export function SegmentedControl<T extends string>({
             aria-checked={selected}
             onClick={() => onChange(opt.value)}
             className={[
-              "relative flex-1 rounded-md px-3 py-2 text-sm font-medium capitalize transition-all duration-150",
+              "relative flex-1 rounded-md px-3 py-2 text-sm font-bold capitalize transition-all duration-150",
               "focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/30",
               selected
                 ? "bg-white text-stone-900 shadow-sm ring-1 ring-stone-200/80"
-                : "text-stone-500 hover:text-stone-700",
+                : "text-stone-600 hover:text-stone-800",
             ].join(" ")}
           >
             {opt.label}
@@ -402,12 +406,12 @@ export function DetailRow({
     <div className="rounded-lg border border-stone-100 bg-stone-50/60 px-3 py-2.5">
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0 flex-wrap">
-          <span className="text-sm font-semibold text-stone-800">{title}</span>
+          <span className="text-sm font-bold text-stone-900">{title}</span>
           {badge}
         </div>
-        {meta && <span className="text-[10px] font-medium uppercase tracking-wide text-stone-400 shrink-0">{meta}</span>}
+        {meta && <span className="text-[11px] font-bold uppercase tracking-wide text-stone-500 shrink-0">{meta}</span>}
       </div>
-      {description && <p className="text-[12px] text-stone-500 mt-1 leading-relaxed">{description}</p>}
+      {description && <p className="text-sm font-medium text-stone-600 mt-1 leading-relaxed">{description}</p>}
     </div>
   );
 }
