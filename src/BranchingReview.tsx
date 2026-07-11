@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import type { BranchingStory, BranchingPassage } from "../generator/branchingStory";
-import { PageContainer, SectionHeader, Button, BackButton } from "./components/ui";
+import { ArrowLeft, ArrowRight, AlertTriangle, ImageIcon, BookOpen } from "lucide-react";
+import { StudioButton, StudioBadge, studio } from "./components/studio";
 
 // Client wrapper around the server-side /api/branching-images.
 // The server uses the project's real searchCommonsFileRanked (with proper
@@ -59,6 +60,13 @@ interface BranchingReviewProps {
    * text is never modified here (the graph is validated at generation time). */
   onConfirm: (curated: BranchingStory) => void;
   onBack?: () => void;
+}
+
+function endingBadge(state?: string) {
+  if (!state) return <StudioBadge tone="neutral">Ending</StudioBadge>;
+  if (state === "triumphant") return <StudioBadge tone="emerald">Triumphant</StudioBadge>;
+  if (state === "broken") return <StudioBadge tone="rose">Broken</StudioBadge>;
+  return <StudioBadge tone="neutral">Indifferent</StudioBadge>;
 }
 
 export default function BranchingReview({ story, topic, standard, notices = [], onConfirm, onBack }: BranchingReviewProps) {
@@ -238,10 +246,10 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
 
   // Shared left list — both pages select the same passage.
   const passageList = (
-    <div className="w-80 border-r border-[#3a3630] overflow-y-auto p-4 bg-[#211e1a]">
-      <SectionHeader className="text-left mb-2 px-1 tracking-[3px]">
+    <div className="w-72 sm:w-80 border-r border-stone-200 overflow-y-auto p-3 sm:p-4 bg-white">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-2 px-1">
         Passages (click to {page === "text" ? "read" : "curate"})
-      </SectionHeader>
+      </p>
       <div className="space-y-1">
         {displayPassages.map((p, i) => {
           const isSel = p.id === selected?.id;
@@ -249,23 +257,26 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
           return (
             <button
               key={p.id}
+              type="button"
               onClick={() => setSelectedId(p.id)}
-              className={`w-full text-left p-3 rounded-lg border text-sm transition-colors ${
-                isSel ? "bg-[#2a2723] border-[#c9a36b]" : "bg-[#24211d] border-[#3a3630] hover:border-[#5a5548]"
-              }`}
+              className={[
+                "w-full text-left p-3 rounded-xl border text-sm transition-all",
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/25",
+                isSel
+                  ? "bg-indigo-50/80 border-indigo-300 shadow-sm ring-1 ring-indigo-100"
+                  : "bg-stone-50/50 border-stone-150 border-stone-200 hover:border-stone-300 hover:bg-white",
+              ].join(" ")}
             >
               <div className="flex items-start gap-2">
-                <span className="font-mono text-[10px] text-[#8a7f6a] mt-0.5 shrink-0">{i + 1}</span>
+                <span className="font-mono text-[10px] text-stone-400 mt-0.5 shrink-0">{i + 1}</span>
                 <div className="min-w-0 flex-1">
-                  <div className="font-mono text-[10px] text-[#c9a36b]/80 truncate">{p.id}</div>
-                  <div className="text-[#c5b8a0] leading-snug text-xs line-clamp-2">{short}</div>
+                  <div className="font-mono text-[10px] text-indigo-600/80 truncate">{p.id}</div>
+                  <div className="text-stone-700 leading-snug text-xs line-clamp-2">{short}</div>
                   {page === "images" && p.image?.thumbUrl && (
-                    <img src={p.image.thumbUrl} alt="" className="mt-1.5 h-8 w-20 object-cover rounded border border-[#3a3630]" />
+                    <img src={p.image.thumbUrl} alt="" className="mt-1.5 h-8 w-20 object-cover rounded-md border border-stone-200" />
                   )}
                   {p.ending && (
-                    <span className={`text-[9px] px-1 rounded ${p.endingState === 'triumphant' ? 'bg-emerald-900/30 text-emerald-400' : p.endingState === 'broken' ? 'bg-red-900/30 text-red-400' : 'bg-slate-700/30 text-slate-400'}`}>
-                      · {p.endingState ? p.endingState.toUpperCase() : 'ENDING'}
-                    </span>
+                    <div className="mt-1.5">{endingBadge(p.endingState)}</div>
                   )}
                 </div>
               </div>
@@ -277,196 +288,239 @@ export default function BranchingReview({ story, topic, standard, notices = [], 
   );
 
   return (
-    <PageContainer className="p-0 items-start justify-start overflow-hidden" maxWidth="max-w-none">
-      <div className="min-h-screen text-[#c5b8a0] flex flex-col w-full" style={{ fontFamily: "'Georgia', serif" }}>
-        {/* ═══════════ PAGE 1 — TEXT REVIEW (read-for-truth) ═══════════ */}
-        {page === "text" && (
-          <>
-            {/* factGate notices live HERE — this is the truth-checking surface. */}
-            {notices.length > 0 && (
-              <div className="flex-shrink-0 bg-[#3a2f1f] border-b border-[#5c4a2a] px-4 py-2">
-                <div className="max-w-6xl mx-auto">
-                  {notices.map((n, i) => (
-                    <p key={i} className="text-xs text-[#c9a36b]">⚠️ {n} — review the history yourself before publishing.</p>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div className="flex-shrink-0 border-b border-[#3a3630] bg-[#211e1a] px-4 py-3">
-              <div className="max-w-6xl mx-auto flex items-center justify-between">
-                <div>
-                  <SectionHeader className="text-left mb-0.5 tracking-[3px]">1 · Review text</SectionHeader>
-                  <p className="text-xs text-[#8a7f6a]">{curated.title} — {curated.passages.length} passages · read every passage for truth</p>
-                </div>
-                <div className="flex gap-2">
-                  {onBack && <BackButton onClick={onBack} label="← Back to form" className="text-xs" />}
-                  <Button variant="primary" label="Continue to images →" onClick={() => setPage("images")} className="text-sm py-1.5" />
-                </div>
+    <div className={`${studio.page} ${studio.font} min-h-screen text-stone-800 flex flex-col w-full overflow-hidden`}>
+      {/* ═══════════ PAGE 1 — TEXT REVIEW (read-for-truth) ═══════════ */}
+      {page === "text" && (
+        <>
+          {/* factGate notices live HERE — this is the truth-checking surface. */}
+          {notices.length > 0 && (
+            <div className="flex-shrink-0 bg-amber-50 border-b border-amber-200 px-4 py-2.5">
+              <div className="max-w-6xl mx-auto space-y-1">
+                {notices.map((n, i) => (
+                  <p key={i} className="text-xs text-amber-900 flex items-start gap-2">
+                    <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5 text-amber-600" aria-hidden />
+                    <span>{n} — review the history yourself before publishing.</span>
+                  </p>
+                ))}
               </div>
             </div>
-            <div className="flex-1 flex overflow-hidden max-w-6xl mx-auto w-full">
-              {passageList}
-              <div className="flex-1 overflow-y-auto p-4">
-                {!selected ? (
-                  <div className="text-[#8a7f6a]">Select a passage from the list to review it.</div>
-                ) : (
-                  <div className="max-w-3xl">
-                    <div className="flex items-baseline gap-3 mb-2">
-                      <div className="text-xs font-mono text-[#8a7f6a]">{selected.id}</div>
-                      {selected.ending && (
-                        <span className={`text-xs px-1.5 py-0.5 rounded ${selected.endingState === 'triumphant' ? 'bg-emerald-900/30 text-emerald-400' : selected.endingState === 'broken' ? 'bg-red-900/30 text-red-400' : 'bg-slate-700/30 text-slate-400'}`}>
-                          {selected.endingState ? selected.endingState.toUpperCase() : 'ENDING'}
-                        </span>
-                      )}
-                      <div className="text-xs text-[#8a7f6a]">{selectedIdx + 1} / {displayPassages.length}</div>
-                    </div>
-                    <div className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase mb-1.5">Passage text (locked)</div>
-                    <p className="w-full bg-[#24211d] border border-[#3a3630] rounded-xl p-4 text-[#e8dcc8] text-base leading-relaxed font-serif min-h-[160px] whitespace-pre-line">{selected.text}</p>
-                    <div className="mt-6 text-xs text-[#8a7f6a]">Read each passage for historical truth. Text was validated at generation time and can't be edited here — when you're ready, continue to images.</div>
-                  </div>
+          )}
+          <div className="flex-shrink-0 border-b border-stone-200 bg-white/90 backdrop-blur-md px-4 py-3">
+            <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <BookOpen className="h-4 w-4 text-indigo-600" aria-hidden />
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-indigo-600">1 · Review text</p>
+                </div>
+                <p className="text-xs text-stone-500">
+                  <span className="font-medium text-stone-700">{curated.title}</span>
+                  {" — "}{curated.passages.length} passages · read every passage for truth
+                </p>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {onBack && (
+                  <StudioButton variant="secondary" size="sm" onClick={onBack}>
+                    <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+                    Back to form
+                  </StudioButton>
                 )}
+                <StudioButton size="sm" onClick={() => setPage("images")}>
+                  Continue to images
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                </StudioButton>
               </div>
             </div>
-          </>
-        )}
+          </div>
+          <div className="flex-1 flex overflow-hidden max-w-6xl mx-auto w-full min-h-0">
+            {passageList}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#F7F6F3]">
+              {!selected ? (
+                <div className="text-stone-500 text-sm">Select a passage from the list to review it.</div>
+              ) : (
+                <div className="max-w-3xl">
+                  <div className="flex items-center gap-3 mb-3 flex-wrap">
+                    <div className="text-xs font-mono text-stone-400">{selected.id}</div>
+                    {selected.ending && endingBadge(selected.endingState)}
+                    <div className="text-xs text-stone-400">{selectedIdx + 1} / {displayPassages.length}</div>
+                  </div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-2">Passage text (locked)</p>
+                  <div className="bg-white border border-stone-200 rounded-xl p-5 text-stone-800 text-base leading-relaxed shadow-sm whitespace-pre-line">
+                    {selected.text}
+                  </div>
+                  <p className="mt-5 text-xs text-stone-500 leading-relaxed">
+                    Read each passage for historical truth. Text was validated at generation time and can&apos;t be edited here — when you&apos;re ready, continue to images.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
 
-        {/* ═══════════ PAGE 2 — IMAGE CURATION (text read-only) ═══════════ */}
-        {page === "images" && (
-          <>
-            <div className="flex-shrink-0 border-b border-[#3a3630] bg-[#211e1a] px-4 py-3">
-              <div className="max-w-6xl mx-auto flex items-center justify-between">
-                <div>
-                  <SectionHeader className="text-left mb-0.5 tracking-[3px]">2 · Curate images</SectionHeader>
-                  <p className="text-xs text-[#8a7f6a]">{curated.title} — {chosenCount} of {curated.passages.length} passages with images · text is locked</p>
+      {/* ═══════════ PAGE 2 — IMAGE CURATION (text read-only) ═══════════ */}
+      {page === "images" && (
+        <>
+          <div className="flex-shrink-0 border-b border-stone-200 bg-white/90 backdrop-blur-md px-4 py-3">
+            <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <ImageIcon className="h-4 w-4 text-indigo-600" aria-hidden />
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-indigo-600">2 · Curate images</p>
                 </div>
-                <div className="flex gap-2">
-                  {chosenCount < curated.passages.length && (
-                    <Button
-                      variant="secondary"
-                      label={batchGenLoading ? `Auto-generating AI... (${batchGenProgress.done}/${batchGenProgress.total})` : "Auto-generate AI images for remaining passages"}
-                      onClick={autoGenerateAIImages}
-                      disabled={batchGenLoading}
-                      className="text-sm py-1.5"
-                    />
-                  )}
-                  <Button variant="secondary" label="← Back to text" onClick={() => setPage("text")} className="text-sm py-1.5" />
-                  <Button variant="warm" label="Save &amp; Play this version →" onClick={() => onConfirm(curated)} className="text-sm py-1.5" />
-                </div>
+                <p className="text-xs text-stone-500">
+                  <span className="font-medium text-stone-700">{curated.title}</span>
+                  {" — "}{chosenCount} of {curated.passages.length} passages with images · text is locked
+                </p>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {chosenCount < curated.passages.length && (
+                  <StudioButton
+                    variant="secondary"
+                    size="sm"
+                    onClick={autoGenerateAIImages}
+                    disabled={batchGenLoading}
+                    loading={batchGenLoading}
+                  >
+                    {batchGenLoading
+                      ? `Auto-generating… (${batchGenProgress.done}/${batchGenProgress.total})`
+                      : "Auto-generate AI for remaining"}
+                  </StudioButton>
+                )}
+                <StudioButton variant="secondary" size="sm" onClick={() => setPage("text")}>
+                  <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+                  Back to text
+                </StudioButton>
+                <StudioButton size="sm" onClick={() => onConfirm(curated)}>
+                  Save & play
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                </StudioButton>
               </div>
             </div>
-            <div className="flex-1 flex overflow-hidden max-w-6xl mx-auto w-full">
-              {passageList}
-              <div className="flex-1 overflow-y-auto p-4">
-                {!selected ? (
-                  <div className="text-[#8a7f6a]">Select a passage from the list to review it.</div>
-                ) : (
-                  <div className="max-w-3xl">
-                    <div className="flex items-baseline gap-3 mb-2">
-                      <div className="text-xs font-mono text-[#8a7f6a]">{selected.id}</div>
-                      {selected.ending && (
-                        <span className={`text-xs px-1.5 py-0.5 rounded ${selected.endingState === 'triumphant' ? 'bg-emerald-900/30 text-emerald-400' : selected.endingState === 'broken' ? 'bg-red-900/30 text-red-400' : 'bg-slate-700/30 text-slate-400'}`}>
-                          {selected.endingState ? selected.endingState.toUpperCase() : 'ENDING'}
-                        </span>
-                      )}
-                      <div className="text-xs text-[#8a7f6a]">{selectedIdx + 1} / {displayPassages.length}</div>
+          </div>
+          <div className="flex-1 flex overflow-hidden max-w-6xl mx-auto w-full min-h-0">
+            {passageList}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#F7F6F3]">
+              {!selected ? (
+                <div className="text-stone-500 text-sm">Select a passage from the list to review it.</div>
+              ) : (
+                <div className="max-w-3xl">
+                  <div className="flex items-center gap-3 mb-3 flex-wrap">
+                    <div className="text-xs font-mono text-stone-400">{selected.id}</div>
+                    {selected.ending && endingBadge(selected.endingState)}
+                    <div className="text-xs text-stone-400">{selectedIdx + 1} / {displayPassages.length}</div>
+                  </div>
+
+                  {/* Read-only prose — text is locked on the image page. */}
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-2">Passage text (locked)</p>
+                  <div className="bg-white/70 border border-stone-200 rounded-xl p-4 text-stone-600 text-sm leading-relaxed whitespace-pre-line">
+                    {selected.text}
+                  </div>
+
+                  {/* ── IMAGE MACHINERY (unchanged — only moved here) ── */}
+                  <div className="mt-6">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-2">Visual for this passage</p>
+
+                    {hasImage ? (
+                      <div className="mb-3">
+                        <img src={selected.image!.thumbUrl} alt="" className="w-full max-w-[520px] rounded-xl border border-stone-200 shadow-sm" />
+                        <div className="text-[11px] text-stone-500 mt-1.5">Selected · {selected.image!.artist || "Curated image"}</div>
+                      </div>
+                    ) : (
+                      <div className="text-xs text-stone-500 italic mb-3">No image selected for this passage. Text-only works well for many stories.</div>
+                    )}
+
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="text-[11px] text-stone-500">Historical image options</div>
+                      {loadingImages[selectedId] && <div className="text-[11px] text-indigo-600 font-medium">searching…</div>}
                     </div>
 
-                    {/* Read-only prose — text is locked on the image page. */}
-                    <div className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase mb-1.5">Passage text (locked)</div>
-                    <p className="w-full bg-[#211e1a] border border-[#3a3630] rounded-xl p-4 text-[#a69a80] text-base leading-relaxed font-serif whitespace-pre-line">{selected.text}</p>
-
-                    {/* ── IMAGE MACHINERY (unchanged — only moved here) ── */}
-                    <div className="mt-6">
-                      <div className="text-[#b89d6e] text-[10px] font-medium tracking-[3px] uppercase mb-1.5">Visual for this passage</div>
-
-                      {hasImage ? (
-                        <div className="mb-3">
-                          <img src={selected.image!.thumbUrl} alt="" className="w-full max-w-[520px] rounded-xl border border-[#3a3630] shadow" />
-                          <div className="text-[10px] text-[#8a7f6a] mt-1">Selected • {selected.image!.artist || "Curated image"}</div>
-                        </div>
-                      ) : (
-                        <div className="text-xs text-[#8a7f6a] italic mb-3">No image selected for this passage. Text-only works well for many stories.</div>
-                      )}
-
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="text-[10px] text-[#8a7f6a]">Historical image options (curated from passage + story text)</div>
-                        {loadingImages[selectedId] && <div className="text-[10px] text-[#c9a36b]">searching…</div>}
-                      </div>
-
-                      <div className="flex gap-2 overflow-x-auto pb-2">
-                        {(() => {
-                          const cands = imageCandidates[selectedId] || [];
-                          if (loadingImages[selectedId]) {
-                            return <div className="text-xs text-[#8a7f6a] italic px-2 py-1">Searching Wikimedia Commons for lithographs, engravings & period art…</div>;
-                          }
-                          if (cands.length === 0) {
-                            return (
-                              <div className="text-xs text-[#8a7f6a] px-2 py-1 leading-snug">
-                                No historical images matched this passage. Wikimedia searches rely on specific places, events, or figures from the era. <br />
-                                Try “Search again”, “Generate AI illustration”, or “No image” (the story works beautifully with text alone).
+                    <div className="flex gap-2 overflow-x-auto pb-2">
+                      {(() => {
+                        const cands = imageCandidates[selectedId] || [];
+                        if (loadingImages[selectedId]) {
+                          return <div className="text-xs text-stone-500 italic px-2 py-1">Searching Wikimedia Commons for lithographs, engravings & period art…</div>;
+                        }
+                        if (cands.length === 0) {
+                          return (
+                            <div className="text-xs text-stone-500 px-2 py-1 leading-snug max-w-md">
+                              No historical images matched this passage. Wikimedia searches rely on specific places, events, or figures from the era.{" "}
+                              Try &quot;Search again&quot;, generate an AI illustration, or keep text-only.
+                            </div>
+                          );
+                        }
+                        return cands.map((opt, idx) => {
+                          const isChosen = selected.image?.thumbUrl === opt.thumbUrl;
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => setPassageImage(selected.id, opt)}
+                              className={`shrink-0 w-36 rounded-xl overflow-hidden border text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/30 ${
+                                isChosen ? "border-indigo-400 ring-2 ring-indigo-200 scale-[1.02]" : "border-stone-200 hover:border-stone-300 shadow-sm"
+                              }`}
+                              title={opt.label}
+                            >
+                              <div className="relative">
+                                <img src={opt.thumbUrl} alt="" className="w-full h-20 object-cover block" />
+                                {opt.aiGenerated && (
+                                  <span className="absolute top-1 left-1 bg-violet-600 text-white text-[8px] px-1.5 py-0.5 rounded font-bold tracking-wide">AI</span>
+                                )}
                               </div>
-                            );
-                          }
-                          return cands.map((opt, idx) => {
-                            const isChosen = selected.image?.thumbUrl === opt.thumbUrl;
-                            return (
-                              <button
-                                key={idx}
-                                onClick={() => setPassageImage(selected.id, opt)}
-                                className={`shrink-0 w-36 rounded-xl overflow-hidden border text-left transition-all ${
-                                  isChosen ? "border-[#c9a36b] scale-[1.02]" : "border-[#3a3630] hover:border-[#5a5548]"
-                                }`}
-                                title={opt.label}
-                              >
-                                <div className="relative">
-                                  <img src={opt.thumbUrl} alt="" className="w-full h-20 object-cover block" />
-                                  {opt.aiGenerated && <span className="absolute top-1 left-1 bg-[#5c3a7a] text-white text-[8px] px-1 rounded font-bold tracking-wide">AI</span>}
-                                </div>
-                                <div className="bg-[#24211d] text-[10px] px-1.5 py-1 text-[#a69a80] truncate leading-tight">{opt.label} {isChosen && "✓"}</div>
-                              </button>
-                            );
-                          });
-                        })()}
+                              <div className="bg-white text-[10px] px-1.5 py-1.5 text-stone-600 truncate leading-tight border-t border-stone-100">
+                                {opt.label} {isChosen && "✓"}
+                              </div>
+                            </button>
+                          );
+                        });
+                      })()}
 
-                        <button
-                          onClick={() => setPassageImage(selected.id, null)}
-                          className={`shrink-0 w-24 rounded-xl border text-xs p-2 flex items-center justify-center transition-all ${
-                            !hasImage ? "border-[#c9a36b] bg-[#24211d]" : "border-[#3a3630] hover:border-[#5a5548]"
-                          }`}
-                        >
-                          No image
-                        </button>
-                      </div>
-
-                      <div className="flex gap-2 text-[10px]">
-                        <button
-                          onClick={() => {
-                            fetchedRef.current.delete(selectedId);
-                            setImageCandidates((prev) => { const c = { ...prev }; delete c[selectedId]; return c; });
-                            setImageReloadKey((k) => k + 1);
-                          }}
-                          className="text-xs text-[#8a7f6a] hover:text-[#c5b8a0] tracking-wide underline"
-                        >
-                          Search again
-                        </button>
-                        <button onClick={generateImage} disabled={genLoading} className="text-xs text-[#a68a5c] hover:text-[#c9a36b] tracking-wide underline disabled:opacity-50">
-                          {genLoading ? "✨ Generating…" : "✨ Generate AI illustration"}
-                        </button>
-                        <span className="text-[#6a6358]">• Wikimedia = real historical images (actual license shown). ✨ AI = a synthesized illustration, labeled “AI-generated” — NOT a historical source; check it for anachronisms before publishing.</span>
-                      </div>
-                      {genError && (
-                        <div className="mt-1.5 text-[10px] text-[#c9a36b] bg-[#2a241c] border border-[#5c4a2a] rounded px-2 py-1">
-                          {genError}
-                        </div>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => setPassageImage(selected.id, null)}
+                        className={`shrink-0 w-24 rounded-xl border text-xs p-2 flex items-center justify-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/30 ${
+                          !hasImage ? "border-indigo-400 bg-indigo-50 text-indigo-800 font-medium" : "border-stone-200 bg-white text-stone-600 hover:border-stone-300"
+                        }`}
+                      >
+                        No image
+                      </button>
                     </div>
+
+                    <div className="flex flex-wrap gap-3 text-[11px] mt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          fetchedRef.current.delete(selectedId);
+                          setImageCandidates((prev) => { const c = { ...prev }; delete c[selectedId]; return c; });
+                          setImageReloadKey((k) => k + 1);
+                        }}
+                        className="text-stone-500 hover:text-indigo-600 underline underline-offset-2 font-medium"
+                      >
+                        Search again
+                      </button>
+                      <button
+                        type="button"
+                        onClick={generateImage}
+                        disabled={genLoading}
+                        className="text-violet-600 hover:text-violet-700 underline underline-offset-2 font-medium disabled:opacity-50"
+                      >
+                        {genLoading ? "Generating…" : "Generate AI illustration"}
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-stone-400 mt-2 leading-relaxed max-w-xl">
+                      Wikimedia = real historical images (actual license shown). AI = a synthesized illustration, labeled &quot;AI-generated&quot; — not a historical source; check it for anachronisms before publishing.
+                    </p>
+                    {genError && (
+                      <div className="mt-2 text-[11px] text-amber-800 bg-amber-50 border border-amber-100 rounded-lg px-2.5 py-1.5">
+                        {genError}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
-          </>
-        )}
-      </div>
-    </PageContainer>
+          </div>
+        </>
+      )}
+    </div>
   );
 }

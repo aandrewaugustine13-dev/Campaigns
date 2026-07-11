@@ -3,7 +3,16 @@ import BranchingPlayer from "./BranchingPlayer";
 import BranchingReview from "./BranchingReview";
 import StoryPreviewScreen, { type PreviewApproval } from "./StoryPreview";
 import type { BranchingStory } from "../generator/branchingStory";
-import { PageContainer, MainTitle, Button, BackButton } from "./components/ui";
+import { AlertCircle, ArrowLeft, Sparkles } from "lucide-react";
+import {
+  Stepper,
+  StudioShell,
+  StudioPanel,
+  StudioCard,
+  StudioButton,
+  StudioSpinner,
+  StudioHeader,
+} from "./components/studio";
 
 interface Props {
   onBack: () => void;
@@ -18,7 +27,15 @@ interface Props {
 // click "Approve & Generate" before a single token of the full story is written.
 // (The earlier drift skipped the gate and generated immediately — that path is
 // deleted, not hidden.)
+//
+// UI: light SaaS studio shell — matches StoryPreview (the real product path).
 type Phase = "preview" | "generating" | "error" | "review" | "playing";
+
+const GEN_STEPS = [
+  { id: "inputs", label: "Inputs", shortLabel: "Inputs" },
+  { id: "preview", label: "Preview", shortLabel: "Preview" },
+  { id: "generate", label: "Generate", shortLabel: "Generate" },
+];
 
 export default function CreateBranching({ onBack }: Props) {
   const [phase, setPhase] = useState<Phase>("preview");
@@ -155,65 +172,117 @@ export default function CreateBranching({ onBack }: Props) {
   // Generating (richer feedback for long operation)
   if (phase === "generating") {
     return (
-      <PageContainer maxWidth="max-w-md">
-        <MainTitle className="text-3xl mb-4">Generating your branching story…</MainTitle>
-
-        <div className="flex justify-center my-6">
-          <div className="w-12 h-12 border-4 border-[#c9a36b]/30 border-t-[#c9a36b] rounded-full animate-spin" />
-        </div>
-
-        <div className="text-center mb-2">
-          <p className="text-[#c9a36b] text-sm font-medium tracking-wide">{genStep}</p>
-          <p className="text-[#c5b8a0] text-lg font-mono mt-1">{elapsed}s elapsed</p>
-        </div>
-
-        <div className="bg-[#211e1a] border border-[#3a3630] rounded-2xl p-4 mb-6 text-xs text-[#8a7f6a] text-center">
-          Building a real choose-your-path experience with validated branches, figure meetings, and a comprehension quiz.<br />
-          This typically takes 45–90 seconds. We validate every ending before we hand it to you.
-        </div>
-
-        {approval && (
-          <div className="text-[10px] text-[#8a7f6a] text-center mb-4">
-            Topic: <span className="text-[#c5b8a0]">{approval.topic}</span> · Standards: <span className="text-[#c5b8a0]">{approval.standard}</span>
+      <StudioShell
+        header={
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-stone-400">
+                <Sparkles className="h-3.5 w-3.5 text-indigo-500" aria-hidden />
+                First-person story
+              </span>
+              <span className="text-[11px] font-medium text-stone-400">Step 3 of 3</span>
+            </div>
+            <Stepper steps={GEN_STEPS} currentIndex={2} />
           </div>
-        )}
-
-        <Button variant="secondary" label="Cancel and edit inputs" onClick={backToPreview} />
-      </PageContainer>
+        }
+      >
+        <StudioPanel>
+          <div className="pt-4 sm:pt-8">
+            <StudioCard className="text-center !py-10 space-y-4">
+              <StudioHeader
+                title="Writing your story…"
+                description="Building a choose-your-path experience with validated branches, figure meetings, and a comprehension quiz."
+              />
+              <StudioSpinner
+                label={genStep}
+                sublabel={`${elapsed}s elapsed · typically 45–90 seconds`}
+              />
+              <div className="mx-auto max-w-xs">
+                <div className="h-1.5 rounded-full bg-stone-100 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-indigo-500/80 transition-all duration-1000 ease-out"
+                    style={{ width: `${Math.min(94, 10 + elapsed * 1.1)}%` }}
+                  />
+                </div>
+                <p className="text-[11px] text-stone-400 mt-2">
+                  We validate every ending before we hand it to you.
+                </p>
+              </div>
+              {approval && (
+                <p className="text-[11px] text-stone-500">
+                  <span className="font-medium text-stone-700">{approval.topic}</span>
+                  {" · "}
+                  {approval.standard}
+                </p>
+              )}
+              <StudioButton variant="secondary" onClick={backToPreview}>
+                <ArrowLeft className="h-4 w-4" aria-hidden />
+                Cancel and edit inputs
+              </StudioButton>
+            </StudioCard>
+          </div>
+        </StudioPanel>
+      </StudioShell>
     );
   }
 
   // Error
   if (phase === "error") {
     return (
-      <PageContainer maxWidth="max-w-md">
-        <MainTitle className="text-3xl mb-4 text-[#c25c5c]">We ran into a problem creating the story</MainTitle>
-
-        <div className="border border-[#5c2a2a] bg-[#2a1f1f] rounded-2xl p-4 text-left text-sm text-[#d88a8a] mb-6 whitespace-pre-wrap">
-          {error || "The story service could not complete the request."}
-          <div className="mt-3 text-xs opacity-80 leading-snug">
-            Common causes: temporary service hiccup, very specific topic/TEKS, or rate limiting. The preview gate protects you from wasted full generations.
+      <StudioShell
+        header={
+          <div className="flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={onBack}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-stone-500 hover:text-stone-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/30 rounded-md px-1 py-0.5 -ml-1"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+              Campaigns
+            </button>
+            <span className="text-[11px] font-medium text-stone-400">First-person story</span>
           </div>
-        </div>
-
-        <div className="space-y-3">
-          <Button
-            variant="primary"
-            label="Try Again"
-            onClick={() => approval && generateFromApproval(approval)}
-            disabled={!approval}
-          />
-          <Button
-            variant="secondary"
-            label="Edit inputs &amp; preview again"
-            onClick={backToPreview}
-          />
-        </div>
-
-        <div className="mt-6">
-          <BackButton onClick={onBack} />
-        </div>
-      </PageContainer>
+        }
+      >
+        <StudioPanel>
+          <div className="pt-4 sm:pt-8 max-w-md mx-auto">
+            <StudioCard className="text-center space-y-4 !py-10">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-50 ring-1 ring-rose-100">
+                <AlertCircle className="h-6 w-6 text-rose-600" aria-hidden />
+              </div>
+              <div className="space-y-1">
+                <h1 className="text-xl font-semibold text-stone-900">We ran into a problem</h1>
+                <p className="text-sm text-stone-500">Something went wrong creating the story. You can safely try again.</p>
+              </div>
+              <div className="rounded-lg border border-rose-100 bg-rose-50/80 px-3.5 py-3 text-left">
+                <p className="text-sm text-rose-800 break-words whitespace-pre-wrap leading-relaxed">
+                  {error || "The story service could not complete the request."}
+                </p>
+                <p className="text-xs text-rose-600/80 mt-2 leading-snug">
+                  Common causes: temporary service hiccup, very specific topic/TEKS, or rate limiting. The preview gate protects you from wasted full generations.
+                </p>
+              </div>
+              <div className="flex flex-col gap-2 pt-1">
+                <StudioButton
+                  onClick={() => approval && generateFromApproval(approval)}
+                  disabled={!approval}
+                >
+                  Try again
+                </StudioButton>
+                <StudioButton variant="secondary" onClick={backToPreview}>
+                  Edit inputs & preview again
+                </StudioButton>
+                <StudioButton variant="ghost" size="sm" onClick={onBack}>
+                  Back to Campaigns
+                </StudioButton>
+              </div>
+              {attempts > 0 && (
+                <p className="text-[11px] text-stone-400">Previous attempts: {attempts}</p>
+              )}
+            </StudioCard>
+          </div>
+        </StudioPanel>
+      </StudioShell>
     );
   }
 
