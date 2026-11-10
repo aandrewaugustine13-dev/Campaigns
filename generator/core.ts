@@ -15,6 +15,7 @@ import { storyPlanToCampaignPieces } from "./storyPlanCompile.js";
 import { applyRelationshipTracks, validateRelationshipTracks } from "./relationshipTracks.js";
 import type { FlagDecl } from "./schema.js";
 import { runFactGate, type FactGateResult } from "./factGate.js";
+import { generateCampaignChunked } from "./chunked.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -570,20 +571,15 @@ export function applyStoryPlan(
   data.storyMeaning = pieces.storyMeaning;
 }
 
-export async function generateCampaign(
+// One-shot path. CAMPAIGN_GEN_MONOLITHIC=1 restores this single 16k-token call.
+// Imagery, Stage-1 splicing, and validate() stay in generateCampaign so both
+// paths hand the same finished campaign to the fact gate.
+async function generateCampaignMonolithic(
   apiKey: string,
   inputs: GenerateInputs,
-  // Sighted-retry feedback: the prior attempt's CAMPAIGN-AUTHORED error findings
-  // ("field: message"). Absent/empty on the first attempt — when absent the user
-  // message is byte-identical to today. The wrapper passes only the fixable
-  // (validate(data)) findings; never the frozen input-spec ones.
   priorErrors?: string[],
-): Promise<GenerateResult> {
-  // A generated campaign is large and can legitimately take several minutes;
-  // the GoogleGenAI client awaits the full response in one call.
+): Promise<Record<string, unknown>> {
   const client = new GoogleGenAI({ apiKey });
-  const startTime = Date.now();
-
   const response = await client.models.generateContent({
     model: "gemini-3.5-flash",
     contents: buildUserMessage(inputs, priorErrors),
@@ -593,12 +589,16 @@ export async function generateCampaign(
       responseMimeType: "application/json",
     },
   });
+  return parseModelJson<Record<string, unknown>>(response.text ?? "");
+}
 
-  const rawText = response.text ?? "";
-
-  const elapsedSeconds = (Date.now() - startTime) / 1000;
-
-  const data = parseModelJson<Record<string, unknown>>(rawText);
+// Imagery enrichment and Stage-1 splicing. Shared so validate() always sees
+// the campaign after fault-line, relationship-track, and story-plan pieces
+// are in place.
+async function finalizeGeneratedCampaign(
+  data: Record<string, unknown>,
+  inputs: GenerateInputs,
+): Promise<void> {
   data.isPublished = false;
 
   const imageryCtx = {
@@ -641,6 +641,28 @@ export async function generateCampaign(
   // beats, leaving every existing assignment untouched. No-op when no storyPlan
   // (no pinned beats to fill) ⇒ systems-without-spine byte-identical.
   if (inputs.storyPlan) await enrichEventImages(data, imageryCtx, { restrictTo: (ev) => ev?.pinned === true });
+}
+
+export async function generateCampaign(
+  apiKey: string,
+  inputs: GenerateInputs,
+  // Sighted-retry feedback: the prior attempt's CAMPAIGN-AUTHORED error findings
+  // ("field: message"). Absent/empty on the first attempt. The wrapper passes
+  // only the fixable (validate(data)) findings; never the frozen input-spec ones.
+  // Chunked generation routes each line to the stage that owns that field.
+  priorErrors?: string[],
+): Promise<GenerateResult> {
+  const startTime = Date.now();
+  // Default is the chunked path (generator/chunked.ts). Set
+  // CAMPAIGN_GEN_MONOLITHIC=1 to restore the single 16k-token call.
+  const data = process.env.CAMPAIGN_GEN_MONOLITHIC === "1"
+    ? await generateCampaignMonolithic(apiKey, inputs, priorErrors)
+    : await generateCampaignChunked(apiKey, inputs, priorErrors);
+  // Same window as the old single call: model time only. Imagery and
+  // splicing below are not part of elapsedSeconds.
+  const elapsedSeconds = (Date.now() - startTime) / 1000;
+
+  await finalizeGeneratedCampaign(data, inputs);
 
   // NOTE: the fact gate deliberately does NOT run here. It runs in
   // generateValidatedCampaign on the ACCEPTED attempt only — running it
