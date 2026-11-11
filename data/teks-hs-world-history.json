@@ -1,0 +1,943 @@
+[
+  {
+    "_comment": "Texas Essential Knowledge and Skills, World History Studies (§113.42). Aligned to the 2022-adopted standards implemented for the 2024–2025 school year. Skills-only strands are omitted. This _comment object is filtered out of teacher-facing lists.",
+    "code": "_comment",
+    "gradeLevel": "High School",
+    "description": "Documentation entry — not a standard.",
+    "keywords": [],
+    "category": "_meta"
+  },
+  {
+    "code": "113.42(d)(1)(A)",
+    "gradeLevel": "High School",
+    "description": "identify major causes and describe the major effects of the following events from 8000 BC to 500 BC: the development of agriculture and the development of the river valley civilizations;",
+    "keywords": [
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(1)(B)",
+    "gradeLevel": "High School",
+    "description": "identify major causes and describe the major effects of the following events from 500 BC to AD 600: the development of the classical civilizations of Greece, Rome, Persia, India (Maurya and Gupta), China (Zhou, Qin, and Han), and the development of major world religions;",
+    "keywords": [
+      "classical civilizations",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(1)(C)",
+    "gradeLevel": "High School",
+    "description": "identify major causes and describe the major effects of the following important turning points in world history from 600 to 1450: the spread of major world religions and their impact on Asia, Africa, and Europe and the Mongol invasions and their impact on Europe, China, India, and Southwest Asia;",
+    "keywords": [
+      "mongol",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(1)(D)",
+    "gradeLevel": "High School",
+    "description": "identify major causes and describe the major effects of the following important turning points in world history from 1450 to 1750: the rise of the Ottoman Empire, the influence of the Ming dynasty on world trade, European exploration and the Columbian Exchange, European expansion, and the Renaissance and the Reformation;",
+    "keywords": [
+      "columbian exchange",
+      "ottoman empire",
+      "renaissance",
+      "reformation",
+      "1750",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(1)(E)",
+    "gradeLevel": "High School",
+    "description": "identify major causes and describe the major effects of the following important turning points in world history from 1750 to 1914: the Scientific Revolution, the Industrial Revolution and its impact on the development of modern economic systems, European imperialism, and the Enlightenment's impact on political revolutions; and",
+    "keywords": [
+      "industrial revolution",
+      "enlightenment",
+      "imperialism",
+      "1750",
+      "1914",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(1)(F)",
+    "gradeLevel": "High School",
+    "description": "identify major causes and describe the major effects of the following important turning points in world history from 1914 to the present: the world wars and their impact on political, economic, and social systems; communist revolutions and their impact on the Cold War; independence movements; and globalization.",
+    "keywords": [
+      "cold war",
+      "1914",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(2)(A)",
+    "gradeLevel": "High School",
+    "description": "summarize the impact of the development of farming (Neolithic Revolution) on the creation of river valley civilizations;",
+    "keywords": [
+      "neolithic",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(2)(B)",
+    "gradeLevel": "High School",
+    "description": "identify the characteristics of civilization; and",
+    "keywords": [
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(2)(C)",
+    "gradeLevel": "High School",
+    "description": "explain how major river valley civilizations influenced the development of the classical civilizations.",
+    "keywords": [
+      "classical civilizations",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(3)(A)",
+    "gradeLevel": "High School",
+    "description": "describe the major political, religious/philosophical, and cultural influences of Persia, India, China, Israel, Greece, and Rome;",
+    "keywords": [
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(3)(B)",
+    "gradeLevel": "High School",
+    "description": "explain the impact of the fall of Rome on Western Europe; and",
+    "keywords": [
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(3)(C)",
+    "gradeLevel": "High School",
+    "description": "compare the factors that led to the collapse of Rome and Han China.",
+    "keywords": [
+      "han china",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(4)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the development of Roman Catholicism and Eastern Orthodoxy as social and political factors in medieval Europe and the Byzantine Empire;",
+    "keywords": [
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(4)(B)",
+    "gradeLevel": "High School",
+    "description": "describe the major characteristics of and the factors contributing to the development of the political/social system of feudalism and the economic system of manorialism;",
+    "keywords": [
+      "manorialism",
+      "feudalism",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(4)(C)",
+    "gradeLevel": "High School",
+    "description": "explain the political, economic, and social impact of Islam on Europe, Asia, and Africa;",
+    "keywords": [
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(4)(D)",
+    "gradeLevel": "High School",
+    "description": "describe the interactions among Muslim, Christian, and Jewish societies in Europe, Asia, and North Africa;",
+    "keywords": [
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(4)(E)",
+    "gradeLevel": "High School",
+    "description": "describe the interactions between Muslim and Hindu societies in South Asia;",
+    "keywords": [
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(4)(F)",
+    "gradeLevel": "High School",
+    "description": "explain how the Crusades, the Black Death, and the Hundred Years' War contributed to the end of medieval Europe;",
+    "keywords": [
+      "black death",
+      "crusades",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(4)(G)",
+    "gradeLevel": "High School",
+    "description": "summarize the major political, economic, and cultural developments in Tang and Song China and their impact on Eastern Asia;",
+    "keywords": [
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(4)(H)",
+    "gradeLevel": "High School",
+    "description": "explain the evolution and expansion of the slave trade;",
+    "keywords": [
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(4)(I)",
+    "gradeLevel": "High School",
+    "description": "analyze how the Silk Road and the African gold-salt trade facilitated the spread of ideas and trade; and",
+    "keywords": [
+      "gold-salt trade",
+      "silk road",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(4)(J)",
+    "gradeLevel": "High School",
+    "description": "summarize the changes resulting from the Mongol invasions of Russia, China, and the Islamic world.",
+    "keywords": [
+      "mongol",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(5)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the political, intellectual, artistic, economic, and religious impact of the Renaissance; and",
+    "keywords": [
+      "renaissance",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(5)(B)",
+    "gradeLevel": "High School",
+    "description": "explain the political, intellectual, artistic, economic, and religious impact of the Reformation.",
+    "keywords": [
+      "reformation",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(6)(A)",
+    "gradeLevel": "High School",
+    "description": "compare the major political, economic, social, and cultural developments of the Maya, Inca, and Aztec civilizations and explain how prior civilizations influenced their development; and",
+    "keywords": [
+      "aztec",
+      "maya",
+      "inca",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(6)(B)",
+    "gradeLevel": "High School",
+    "description": "explain how the Inca and Aztec empires were impacted by European exploration/colonization.",
+    "keywords": [
+      "aztec",
+      "inca",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(7)(A)",
+    "gradeLevel": "High School",
+    "description": "analyze the causes of European expansion from 1450 to 1750;",
+    "keywords": [
+      "1750",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(7)(B)",
+    "gradeLevel": "High School",
+    "description": "explain the impact of the Columbian Exchange;",
+    "keywords": [
+      "columbian exchange",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(7)(C)",
+    "gradeLevel": "High School",
+    "description": "explain the impact of the Atlantic slave trade on West Africa and the Americas;",
+    "keywords": [
+      "atlantic slave trade",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(7)(D)",
+    "gradeLevel": "High School",
+    "description": "explain the impact of the Ottoman Empire on Eastern Europe and global trade;",
+    "keywords": [
+      "ottoman empire",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(7)(E)",
+    "gradeLevel": "High School",
+    "description": "explain Ming China's impact on global trade; and",
+    "keywords": [
+      "ming china",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(7)(F)",
+    "gradeLevel": "High School",
+    "description": "explain new economic factors and principles of Europe's Commercial Revolution.",
+    "keywords": [
+      "commercial revolution",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(8)(A)",
+    "gradeLevel": "High School",
+    "description": "explain how the Industrial Revolution led to political, economic, and social changes;",
+    "keywords": [
+      "industrial revolution",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(8)(B)",
+    "gradeLevel": "High School",
+    "description": "identify the major political, economic, and social motivations that influenced European imperialism;",
+    "keywords": [
+      "imperialism",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(8)(C)",
+    "gradeLevel": "High School",
+    "description": "explain the major characteristics and impact of European imperialism; and",
+    "keywords": [
+      "imperialism",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(8)(D)",
+    "gradeLevel": "High School",
+    "description": "explain the effects of free enterprise in the Industrial Revolution.",
+    "keywords": [
+      "industrial revolution",
+      "free enterprise",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(9)(A)",
+    "gradeLevel": "High School",
+    "description": "compare the causes, characteristics, and consequences of the American and French revolutions, emphasizing the role of the Enlightenment;",
+    "keywords": [
+      "french revolution",
+      "enlightenment",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(9)(B)",
+    "gradeLevel": "High School",
+    "description": "explain the impact of Napoleon Bonaparte and the Napoleonic Wars on Europe and Latin America;",
+    "keywords": [
+      "napoleon bonaparte",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(9)(C)",
+    "gradeLevel": "High School",
+    "description": "trace the influence of the American and French revolutions on Latin America, including the role of Simón Bolivar; and",
+    "keywords": [
+      "role of simón bolivar",
+      "french revolution",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(9)(D)",
+    "gradeLevel": "High School",
+    "description": "identify the influence of ideas such as separation of powers, checks and balances, liberty, equality, democracy, popular sovereignty, human rights, constitutionalism, and nationalism on political revolutions.",
+    "keywords": [
+      "separation of powers",
+      "checks and balances",
+      "liberty",
+      "equality",
+      "democracy",
+      "popular sovereignty",
+      "human rights",
+      "constitutionalism",
+      "nationalism on political revolutions",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(10)(A)",
+    "gradeLevel": "High School",
+    "description": "identify the importance of imperialism, nationalism, militarism, and the alliance system in causing World War I;",
+    "keywords": [
+      "imperialism",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(10)(B)",
+    "gradeLevel": "High School",
+    "description": "identify major characteristics of World War I, including total war, trench warfare, modern military technology, and high casualty rates;",
+    "keywords": [
+      "total war",
+      "trench warfare",
+      "modern military technology",
+      "high casualty rates",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(10)(C)",
+    "gradeLevel": "High School",
+    "description": "explain the political and economic impact of the Treaty of Versailles, including changes in boundaries and the mandate system; and",
+    "keywords": [
+      "changes in boundaries and the mandate system",
+      "treaty of versailles",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(10)(D)",
+    "gradeLevel": "High School",
+    "description": "identify the causes of the February (March) and October (November) revolutions of 1917 in Russia, their effects on the outcome of World War I, and the Bolshevik establishment of the Union of Soviet Socialist Republics.",
+    "keywords": [
+      "bolshevik",
+      "1917",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(11)(A)",
+    "gradeLevel": "High School",
+    "description": "summarize the international, political, and economic causes of the global depression; and",
+    "keywords": [
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(11)(B)",
+    "gradeLevel": "High School",
+    "description": "explain the responses of governments to the global depression such as in the United States, Germany, Great Britain, and France.",
+    "keywords": [
+      "in the united states",
+      "germany",
+      "great britain",
+      "france",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(12)(A)",
+    "gradeLevel": "High School",
+    "description": "describe the emergence and characteristics of totalitarianism;",
+    "keywords": [
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(12)(B)",
+    "gradeLevel": "High School",
+    "description": "explain the roles of various world leaders, including Benito Mussolini, Adolf Hitler, Hideki Tojo, Joseph Stalin, Franklin D. Roosevelt, and Winston Churchill, prior to and during World War II; and",
+    "keywords": [
+      "benito mussolini",
+      "adolf hitler",
+      "hideki tojo",
+      "joseph stalin",
+      "franklin d. roosevelt",
+      "winston churchill",
+      "prior to and during world war ii",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(12)(C)",
+    "gradeLevel": "High School",
+    "description": "explain the major causes and events of World War II, including the German invasions of Poland and the Soviet Union, the Holocaust, the attack on Pearl Harbor, the Normandy landings, and the dropping of the atomic bombs.",
+    "keywords": [
+      "german invasions of poland and the soviet union",
+      "holocaust",
+      "attack on pearl harbor",
+      "normandy landings",
+      "dropping of the atomic bombs",
+      "world war ii",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(13)(A)",
+    "gradeLevel": "High School",
+    "description": "summarize how the outcome of World War II contributed to the development of the Cold War;",
+    "keywords": [
+      "world war ii",
+      "cold war",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(13)(B)",
+    "gradeLevel": "High School",
+    "description": "summarize the factors that contributed to communism in China, including Mao Zedong's role in its rise;",
+    "keywords": [
+      "mao zedong's role in its rise",
+      "communism",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(13)(C)",
+    "gradeLevel": "High School",
+    "description": "identify major events of the Cold War, including the Korean War, the Vietnam War, and the arms race;",
+    "keywords": [
+      "korean war",
+      "vietnam war",
+      "arms race",
+      "cold war",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(13)(D)",
+    "gradeLevel": "High School",
+    "description": "explain the roles of modern world leaders, including Ronald Reagan, Mikhail Gorbachev, Lech Walesa, and Pope John Paul II, in the collapse of communism in Eastern Europe and the Soviet Union;",
+    "keywords": [
+      "ronald reagan",
+      "mikhail gorbachev",
+      "lech walesa",
+      "pope john paul ii",
+      "communism",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(13)(E)",
+    "gradeLevel": "High School",
+    "description": "summarize the rise of independence movements in Africa, the Middle East, and South Asia and reasons for ongoing conflicts; and",
+    "keywords": [
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(13)(F)",
+    "gradeLevel": "High School",
+    "description": "discuss factors contributing to the Arab-Israeli conflict, including the rejection of the existence of the state of Israel by the Arab League and a majority of Arab nations.",
+    "keywords": [
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(14)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the impact of geopolitical influences on the development of radical Islamic terrorism;",
+    "keywords": [
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(14)(B)",
+    "gradeLevel": "High School",
+    "description": "explain the impact of radical Islamic terrorism on global events; and",
+    "keywords": [
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(14)(C)",
+    "gradeLevel": "High School",
+    "description": "explain the U.S. response to the events surrounding September 11, 2001, and other acts of radical Islamic terrorism.",
+    "keywords": [
+      "september 11",
+      "2001",
+      "world history"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.42(d)(15)(A)",
+    "gradeLevel": "High School",
+    "description": "locate places and regions of historical significance directly related to major eras and turning points in world history;",
+    "keywords": [
+      "world history"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "113.42(d)(15)(B)",
+    "gradeLevel": "High School",
+    "description": "analyze the influence of human and physical geographic factors on major events in world history such as the development of river valley civilizations, trade in the Indian Ocean, and the opening of the Panama and Suez canals; and",
+    "keywords": [
+      "development of river valley civilizations",
+      "trade in the indian ocean",
+      "opening of the panama and suez canals",
+      "world history"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "113.42(d)(15)(C)",
+    "gradeLevel": "High School",
+    "description": "interpret maps, charts, and graphs to explain how geography has influenced people and events in the past.",
+    "keywords": [
+      "world history"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "113.42(d)(16)(A)",
+    "gradeLevel": "High School",
+    "description": "identify important changes in human life caused by the Neolithic Revolution;",
+    "keywords": [
+      "neolithic",
+      "world history"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.42(d)(16)(B)",
+    "gradeLevel": "High School",
+    "description": "summarize the role of economics in driving political changes as related to the Industrial Revolution; and",
+    "keywords": [
+      "industrial revolution",
+      "world history"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.42(d)(16)(C)",
+    "gradeLevel": "High School",
+    "description": "describe the economic impact of globalization.",
+    "keywords": [
+      "world history"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.42(d)(17)(A)",
+    "gradeLevel": "High School",
+    "description": "identify the historical origins and characteristics of the free enterprise system, including the influence of Adam Smith;",
+    "keywords": [
+      "influence of adam smith",
+      "free enterprise",
+      "world history"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.42(d)(17)(B)",
+    "gradeLevel": "High School",
+    "description": "identify the historical origins and characteristics of communism, including the influence of Karl Marx;",
+    "keywords": [
+      "influence of karl marx",
+      "communism",
+      "world history"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.42(d)(17)(C)",
+    "gradeLevel": "High School",
+    "description": "identify the historical origins and characteristics of socialism;",
+    "keywords": [
+      "socialism",
+      "world history"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.42(d)(18)(A)",
+    "gradeLevel": "High School",
+    "description": "identify the characteristics of monarchies and theocracies as forms of government in early civilizations; and",
+    "keywords": [
+      "world history"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.42(d)(18)(B)",
+    "gradeLevel": "High School",
+    "description": "identify the characteristics of the following political systems: theocracy, absolute monarchy, democracy, republic, oligarchy, limited monarchy, and totalitarianism.",
+    "keywords": [
+      "monarchy",
+      "world history"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.42(d)(19)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the development of democratic-republican government from its beginnings in Judeo-Christian legal tradition and classical Greece and Rome through the French Revolution;",
+    "keywords": [
+      "french revolution",
+      "world history"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.42(d)(19)(B)",
+    "gradeLevel": "High School",
+    "description": "identify the impact of political and legal ideas contained in the following documents: Hammurabi's Code, the Jewish Ten Commandments, Justinian's Code of Laws, Magna Carta, the English Bill of Rights, the Declaration of Independence, the U.S. Constitution, and the Declaration of the Rights of Man and of the Citizen;",
+    "keywords": [
+      "declaration of independence",
+      "u.s. constitution",
+      "bill of rights",
+      "magna carta",
+      "world history"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.42(d)(19)(C)",
+    "gradeLevel": "High School",
+    "description": "explain the political philosophies of individuals such as John Locke, Thomas Hobbes, Voltaire, Charles de Montesquieu, Jean Jacques Rousseau, Thomas Aquinas, John Calvin, and William Blackstone; and",
+    "keywords": [
+      "john locke",
+      "thomas hobbes",
+      "voltaire",
+      "charles de montesquieu",
+      "jean jacques rousseau",
+      "thomas aquinas",
+      "john calvin",
+      "william blackstone",
+      "world history"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.42(d)(20)(A)",
+    "gradeLevel": "High School",
+    "description": "describe how people have participated in supporting or changing their governments;",
+    "keywords": [
+      "world history"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.42(d)(20)(B)",
+    "gradeLevel": "High School",
+    "description": "describe the rights and responsibilities of citizens and noncitizens in civic participation throughout history; and",
+    "keywords": [
+      "civic participation",
+      "world history"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.42(d)(20)(C)",
+    "gradeLevel": "High School",
+    "description": "identify examples of key persons who were successful in shifting political thought, including William Wilberforce.",
+    "keywords": [
+      "william wilberforce",
+      "world history"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.42(d)(21)(A)",
+    "gradeLevel": "High School",
+    "description": "summarize the development of the rule of law from ancient to modern times;",
+    "keywords": [
+      "world history"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.42(d)(21)(B)",
+    "gradeLevel": "High School",
+    "description": "identify the origins of ideas regarding the right to a \"trial by a jury of your peers\" and the concepts of \"innocent until proven guilty\" and \"equality before the law\" from sources including the Judeo-Christian legal tradition and in Greece and Rome;",
+    "keywords": [
+      "judeo-christian legal tradition and in greece and rome",
+      "world history"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.42(d)(21)(C)",
+    "gradeLevel": "High School",
+    "description": "identify examples of politically motivated mass murders such as in Cambodia, China, Latin America, and the Soviet Union;",
+    "keywords": [
+      "in cambodia",
+      "china",
+      "latin america",
+      "soviet union",
+      "world history"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.42(d)(22)(A)",
+    "gradeLevel": "High School",
+    "description": "describe the historical origins and central ideas in the development of monotheism;",
+    "keywords": [
+      "world history"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "113.42(d)(22)(B)",
+    "gradeLevel": "High School",
+    "description": "describe the historical origins, central ideas, and spread of major religious and philosophical traditions, including Buddhism, Christianity, Confucianism, Hinduism, Islam, Judaism, and Sikhism; and",
+    "keywords": [
+      "buddhism",
+      "christianity",
+      "confucianism",
+      "hinduism",
+      "islam",
+      "judaism",
+      "sikhism",
+      "world history"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "113.42(d)(22)(C)",
+    "gradeLevel": "High School",
+    "description": "identify examples of religious influence on various events referenced in the major eras of world history.",
+    "keywords": [
+      "world history"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "113.42(d)(23)(A)",
+    "gradeLevel": "High School",
+    "description": "describe the changing roles of women, children, and families during major eras of world history; and",
+    "keywords": [
+      "world history"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "113.42(d)(23)(B)",
+    "gradeLevel": "High School",
+    "description": "describe the major influences of women during major eras of world history such as Elizabeth I, Queen Victoria, Mother Teresa, Indira Gandhi, Margaret Thatcher, and Golda Meir.",
+    "keywords": [
+      "queen victoria",
+      "mother teresa",
+      "indira gandhi",
+      "margaret thatcher",
+      "golda meir",
+      "world history"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "113.42(d)(24)(A)",
+    "gradeLevel": "High School",
+    "description": "summarize the fundamental ideas and institutions of Eastern civilizations that originated in China and India;",
+    "keywords": [
+      "world history"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "113.42(d)(24)(B)",
+    "gradeLevel": "High School",
+    "description": "summarize the fundamental ideas and institutions of Western civilizations that originated in Greece and Rome;",
+    "keywords": [
+      "world history"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "113.42(d)(24)(C)",
+    "gradeLevel": "High School",
+    "description": "explain how the relationship between Christianity and Humanism that began with the Renaissance influenced subsequent political developments; and",
+    "keywords": [
+      "renaissance",
+      "world history"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "113.42(d)(25)(A)",
+    "gradeLevel": "High School",
+    "description": "analyze examples of how art, architecture, literature, music, and drama reflect the history of the cultures in which they are produced; and",
+    "keywords": [
+      "world history"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "113.42(d)(25)(B)",
+    "gradeLevel": "High School",
+    "description": "describe examples of art, music, and literature that transcend the cultures in which they were created and convey universal themes.",
+    "keywords": [
+      "world history"
+    ],
+    "category": "Culture"
+  }
+]

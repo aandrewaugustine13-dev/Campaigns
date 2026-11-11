@@ -1,0 +1,457 @@
+[
+  {
+    "_comment": "Texas Essential Knowledge and Skills, Social Studies, Grade 6 (World Cultures) (§113.18). Aligned to the 2022-adopted standards implemented for the 2024–2025 school year. Skills-only strands are omitted. This _comment object is filtered out of teacher-facing lists.",
+    "code": "_comment",
+    "gradeLevel": "6",
+    "description": "Documentation entry — not a standard.",
+    "keywords": [],
+    "category": "_meta"
+  },
+  {
+    "code": "6.3(A)",
+    "gradeLevel": "6",
+    "description": "identify and explain the geographic factors responsible for patterns of population in places and regions;",
+    "keywords": [
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "6.3(B)",
+    "gradeLevel": "6",
+    "description": "explain ways in which human migration influences the character of places and regions;",
+    "keywords": [
+      "migration",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "6.4(A)",
+    "gradeLevel": "6",
+    "description": "explain the geographic factors responsible for the location of economic activities in places and regions; and",
+    "keywords": [
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "6.4(B)",
+    "gradeLevel": "6",
+    "description": "identify geographic factors such as location, physical features, transportation corridors and barriers, and distribution of natural resources that influence a society's political relationships.",
+    "keywords": [
+      "location",
+      "physical features",
+      "transportation corridors and barriers",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "6.5(A)",
+    "gradeLevel": "6",
+    "description": "describe ways people have been impacted by physical processes such as earthquakes and climate;",
+    "keywords": [
+      "earthquakes and climate",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "6.5(B)",
+    "gradeLevel": "6",
+    "description": "identify and analyze ways people have adapted to the physical environment in various places and regions; and",
+    "keywords": [
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "6.5(C)",
+    "gradeLevel": "6",
+    "description": "identify and analyze ways people have modified the physical environment such as mining, irrigation, and transportation infrastructure.",
+    "keywords": [
+      "mining",
+      "irrigation",
+      "transportation infrastructure",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "6.6(A)",
+    "gradeLevel": "6",
+    "description": "describe ways in which the factors of production (natural resources, labor, capital, and entrepreneurs) influence the economies of various contemporary societies;",
+    "keywords": [
+      "factors of production",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "6.6(B)",
+    "gradeLevel": "6",
+    "description": "identify problems that may arise when one or more of the factors of production is in relatively short supply; and",
+    "keywords": [
+      "factors of production",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "6.6(C)",
+    "gradeLevel": "6",
+    "description": "explain the impact of the distribution of resources on international trade and economic interdependence among and within societies.",
+    "keywords": [
+      "international trade",
+      "interdependence",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "6.7(A)",
+    "gradeLevel": "6",
+    "description": "compare ways in which various societies organize the production and distribution of goods and services;",
+    "keywords": [
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "6.7(B)",
+    "gradeLevel": "6",
+    "description": "compare and contrast free enterprise, socialist, and communist economies in various contemporary societies, including the benefits of the U.S. free enterprise system; and",
+    "keywords": [
+      "benefits of the u.s. free enterprise system",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "6.7(C)",
+    "gradeLevel": "6",
+    "description": "understand the importance of ethics in maintaining a functional free enterprise system.",
+    "keywords": [
+      "free enterprise",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "6.8(A)",
+    "gradeLevel": "6",
+    "description": "define and give examples of agricultural, retail, manufacturing (goods), and service industries; and",
+    "keywords": [
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "6.8(B)",
+    "gradeLevel": "6",
+    "description": "describe levels of economic development of various societies using indicators such as life expectancy, gross domestic product (GDP), GDP per capita, and literacy.",
+    "keywords": [
+      "life expectancy",
+      "gross domestic product (gdp)",
+      "gdp per capita",
+      "literacy",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "6.9(A)",
+    "gradeLevel": "6",
+    "description": "describe and compare examples of limited and unlimited governments such as constitutional (limited) and totalitarian (unlimited);",
+    "keywords": [
+      "constitutional (limited) and totalitarian (unlimited)",
+      "limited and unlimited governments",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "6.9(B)",
+    "gradeLevel": "6",
+    "description": "identify reasons for limiting the power of government; and",
+    "keywords": [
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "6.9(C)",
+    "gradeLevel": "6",
+    "description": "identify and describe examples of human rights abuses by limited or unlimited governments such as the oppression of religious, ethnic, and political groups.",
+    "keywords": [
+      "oppression of religious",
+      "ethnic",
+      "political groups",
+      "limited government",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "6.10(A)",
+    "gradeLevel": "6",
+    "description": "identify and give examples of governments with rule by one, few, or many;",
+    "keywords": [
+      "rule by one",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "6.10(B)",
+    "gradeLevel": "6",
+    "description": "compare ways in which various societies such as China, Germany, India, and Russia organize government and how they function; and",
+    "keywords": [
+      "china",
+      "germany",
+      "india",
+      "russia organize government and how they function",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "6.10(C)",
+    "gradeLevel": "6",
+    "description": "identify historical origins of democratic forms of government such as Ancient Greece.",
+    "keywords": [
+      "ancient greece",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "6.11(A)",
+    "gradeLevel": "6",
+    "description": "describe and compare roles and responsibilities of citizens in various contemporary societies, including the United States; and",
+    "keywords": [
+      "united states",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "6.11(B)",
+    "gradeLevel": "6",
+    "description": "explain how opportunities for citizens to participate in and influence the political process vary among various contemporary societies.",
+    "keywords": [
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "6.12(A)",
+    "gradeLevel": "6",
+    "description": "identify and explain the duty of civic participation in societies with representative governments; and",
+    "keywords": [
+      "representative government",
+      "civic participation",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "6.12(B)",
+    "gradeLevel": "6",
+    "description": "explain relationships among rights, responsibilities, and duties in societies with representative governments.",
+    "keywords": [
+      "representative government",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "6.13(A)",
+    "gradeLevel": "6",
+    "description": "identify and describe common traits that define cultures and culture regions;",
+    "keywords": [
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "6.13(B)",
+    "gradeLevel": "6",
+    "description": "define a multicultural society;",
+    "keywords": [
+      "multicultural",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "6.13(C)",
+    "gradeLevel": "6",
+    "description": "analyze the experiences and contributions of diverse groups to multicultural societies; and",
+    "keywords": [
+      "multicultural",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "6.14(A)",
+    "gradeLevel": "6",
+    "description": "identify institutions basic to all societies, including government, economic, educational, and religious institutions;",
+    "keywords": [
+      "government",
+      "economic",
+      "educational",
+      "religious institutions",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "6.14(B)",
+    "gradeLevel": "6",
+    "description": "compare characteristics of institutions in various contemporary societies; and",
+    "keywords": [
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "6.14(C)",
+    "gradeLevel": "6",
+    "description": "analyze the efforts and activities institutions use to sustain themselves over time.",
+    "keywords": [
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "6.15(A)",
+    "gradeLevel": "6",
+    "description": "identify and describe means of cultural diffusion such as trade, travel, and war;",
+    "keywords": [
+      "trade",
+      "travel",
+      "cultural diffusion",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "6.15(B)",
+    "gradeLevel": "6",
+    "description": "identify and describe factors that influence cultural change such as improvements in communication, transportation, and economic development;",
+    "keywords": [
+      "improvements in communication",
+      "transportation",
+      "economic development",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "6.15(C)",
+    "gradeLevel": "6",
+    "description": "analyze the impact of improved communication technology among cultures; and",
+    "keywords": [
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "6.16(A)",
+    "gradeLevel": "6",
+    "description": "explain the relationships that exist between societies and their architecture, art, music, and literature;",
+    "keywords": [
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "6.16(B)",
+    "gradeLevel": "6",
+    "description": "describe ways in which contemporary issues influence creative expressions; and",
+    "keywords": [
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "6.16(C)",
+    "gradeLevel": "6",
+    "description": "identify examples of art, music, and literature that convey universal themes such as religion, justice, and the passage of time.",
+    "keywords": [
+      "religion",
+      "justice",
+      "passage of time",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "6.17(A)",
+    "gradeLevel": "6",
+    "description": "explain the relationship among religious ideas, philosophical ideas, and cultures; and",
+    "keywords": [
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "6.17(B)",
+    "gradeLevel": "6",
+    "description": "explain the significance of religious holidays and observances such as Christmas, Easter, Ramadan, the annual hajj, Yom Kippur, Rosh Hashanah, Diwali, and Vaisakhi in various contemporary societies.",
+    "keywords": [
+      "christmas",
+      "easter",
+      "ramadan",
+      "annual hajj",
+      "yom kippur",
+      "rosh hashanah",
+      "diwali",
+      "vaisakhi in various contemporary societies",
+      "world cultures",
+      "grade 6"
+    ],
+    "category": "Culture"
+  }
+]

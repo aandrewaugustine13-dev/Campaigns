@@ -1,0 +1,574 @@
+[
+  {
+    "_comment": "Texas Essential Knowledge and Skills, United States Government (§113.44). Aligned to the 2022-adopted standards implemented for the 2024–2025 school year. Skills-only strands are omitted. This _comment object is filtered out of teacher-facing lists.",
+    "code": "_comment",
+    "gradeLevel": "High School",
+    "description": "Documentation entry — not a standard.",
+    "keywords": [],
+    "category": "_meta"
+  },
+  {
+    "code": "113.44(d)(1)(A)",
+    "gradeLevel": "High School",
+    "description": "explain major political ideas in history, including the laws of nature and nature's God, unalienable rights, divine right of kings, social contract theory, and the rights of resistance to illegitimate government;",
+    "keywords": [
+      "laws of nature and nature's god",
+      "unalienable rights",
+      "divine right of kings",
+      "social contract theory",
+      "rights of resistance to illegitimate government",
+      "us government",
+      "civics"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.44(d)(1)(B)",
+    "gradeLevel": "High School",
+    "description": "identify major intellectual, philosophical, political, and religious traditions that informed the American founding, including Judeo-Christian (especially biblical law), English common law and constitutionalism, Enlightenment, and republicanism, as they address issues of liberty, rights, and responsibilities of individuals;",
+    "keywords": [
+      "judeo-christian (especially biblical law)",
+      "english common law and constitutionalism",
+      "enlightenment",
+      "republicanism",
+      "as they address issues of liberty",
+      "rights",
+      "responsibilities of individuals",
+      "us government",
+      "civics"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.44(d)(1)(C)",
+    "gradeLevel": "High School",
+    "description": "identify the individuals whose principles of laws and government institutions informed the American founding documents, including those of Moses, William Blackstone, John Locke, and Charles de Montesquieu;",
+    "keywords": [
+      "william blackstone",
+      "john locke",
+      "charles de montesquieu",
+      "us government",
+      "civics"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.44(d)(1)(D)",
+    "gradeLevel": "High School",
+    "description": "identify the contributions of the political philosophies of the Founding Fathers, including John Adams, Alexander Hamilton, Thomas Jefferson, James Madison, John Jay, George Mason, Roger Sherman, and James Wilson, on the development of the U.S. government;",
+    "keywords": [
+      "john adams",
+      "alexander hamilton",
+      "thomas jefferson",
+      "james madison",
+      "john jay",
+      "george mason",
+      "roger sherman",
+      "james wilson",
+      "on the development of the u.s. government",
+      "founding fathers",
+      "us government",
+      "civics"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.44(d)(1)(E)",
+    "gradeLevel": "High School",
+    "description": "analyze debates and compromises that impacted the creation of the founding documents; and",
+    "keywords": [
+      "us government",
+      "civics"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.44(d)(1)(F)",
+    "gradeLevel": "High School",
+    "description": "identify significant individuals in the field of government and politics, including George Washington, Thomas Jefferson, John Marshall, Andrew Jackson, Abraham Lincoln, Theodore Roosevelt, Franklin D. Roosevelt, and Ronald Reagan.",
+    "keywords": [
+      "george washington",
+      "thomas jefferson",
+      "john marshall",
+      "andrew jackson",
+      "abraham lincoln",
+      "theodore roosevelt",
+      "franklin d. roosevelt",
+      "ronald reagan",
+      "us government",
+      "civics"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.44(d)(2)(A)",
+    "gradeLevel": "High School",
+    "description": "describe the processes used by individuals, political parties, interest groups, or the media to affect public policy; and",
+    "keywords": [
+      "us government",
+      "civics"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.44(d)(2)(B)",
+    "gradeLevel": "High School",
+    "description": "analyze the impact of political changes brought about by individuals, political parties, interest groups, or the media, past and present.",
+    "keywords": [
+      "us government",
+      "civics"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.44(d)(3)(A)",
+    "gradeLevel": "High School",
+    "description": "explain how population shifts affect voting patterns;",
+    "keywords": [
+      "us government",
+      "civics"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "113.44(d)(3)(B)",
+    "gradeLevel": "High School",
+    "description": "examine political boundaries to make inferences regarding the distribution of political power; and",
+    "keywords": [
+      "us government",
+      "civics"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "113.44(d)(3)(C)",
+    "gradeLevel": "High School",
+    "description": "explain how political districts are crafted and how they are affected by Supreme Court decisions such as Baker v. Carr.",
+    "keywords": [
+      "baker v. carr",
+      "us government",
+      "civics"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "113.44(d)(4)(A)",
+    "gradeLevel": "High School",
+    "description": "explain how government fiscal, and regulatory policies influence the economy at the local, state, and national levels;",
+    "keywords": [
+      "us government",
+      "civics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.44(d)(4)(B)",
+    "gradeLevel": "High School",
+    "description": "compare the role of government in the U.S. free enterprise system and other economic systems; and",
+    "keywords": [
+      "role of government",
+      "free enterprise",
+      "us government",
+      "civics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.44(d)(4)(C)",
+    "gradeLevel": "High School",
+    "description": "explain how government taxation, expenditures, and regulation can influence the U.S. economy and impact private enterprise.",
+    "keywords": [
+      "us government",
+      "civics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.44(d)(5)(A)",
+    "gradeLevel": "High School",
+    "description": "analyze how economic and natural resources influence U.S. foreign policy; and",
+    "keywords": [
+      "us government",
+      "civics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.44(d)(5)(B)",
+    "gradeLevel": "High School",
+    "description": "describe the roles of the executive and legislative branches in setting international trade and fiscal policies.",
+    "keywords": [
+      "international trade",
+      "us government",
+      "civics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.44(d)(6)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the importance of a written constitution;",
+    "keywords": [
+      "us government",
+      "civics"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.44(d)(6)(B)",
+    "gradeLevel": "High School",
+    "description": "explain how the federal government serves the purposes set forth in the Preamble to the U.S. Constitution;",
+    "keywords": [
+      "u.s. constitution",
+      "us government",
+      "civics"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.44(d)(6)(C)",
+    "gradeLevel": "High School",
+    "description": "analyze how the Federalist Papers such as Number 10 and Number 51 explain the principles of the American constitutional system of government;",
+    "keywords": [
+      "federalist papers",
+      "us government",
+      "civics"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.44(d)(6)(D)",
+    "gradeLevel": "High School",
+    "description": "evaluate constitutional provisions for limiting the role of government, including republicanism, checks and balances, federalism, separation of powers, popular sovereignty, and individual rights;",
+    "keywords": [
+      "republicanism",
+      "checks and balances",
+      "federalism",
+      "separation of powers",
+      "popular sovereignty",
+      "individual rights",
+      "role of government",
+      "us government",
+      "civics"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.44(d)(7)(A)",
+    "gradeLevel": "High School",
+    "description": "analyze the structure and functions of the legislative branch of government, including the bicameral structure of Congress, the role of committees, and the procedure for enacting laws;",
+    "keywords": [
+      "bicameral structure of congress",
+      "role of committees",
+      "procedure for enacting laws",
+      "us government",
+      "civics"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.44(d)(7)(B)",
+    "gradeLevel": "High School",
+    "description": "analyze the structure and functions of the executive branch of government, including the constitutional powers of the president, the growth of presidential power, and the role of the Cabinet and executive departments;",
+    "keywords": [
+      "constitutional powers of the president",
+      "growth of presidential power",
+      "role of the cabinet and executive departments",
+      "us government",
+      "civics"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.44(d)(7)(C)",
+    "gradeLevel": "High School",
+    "description": "analyze the structure and functions of the judicial branch of government, including the federal court system, types of jurisdiction, and judicial review;",
+    "keywords": [
+      "federal court system",
+      "types of jurisdiction",
+      "judicial review",
+      "us government",
+      "civics"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.44(d)(8)(A)",
+    "gradeLevel": "High School",
+    "description": "explain why the Founding Fathers created a distinctly new form of federalism and adopted a federal system of government instead of a unitary system;",
+    "keywords": [
+      "founding fathers",
+      "federal system",
+      "federalism",
+      "us government",
+      "civics"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.44(d)(8)(B)",
+    "gradeLevel": "High School",
+    "description": "categorize government powers as national, state, or shared;",
+    "keywords": [
+      "us government",
+      "civics"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.44(d)(8)(C)",
+    "gradeLevel": "High School",
+    "description": "analyze historical and contemporary conflicts over the respective roles of national and state governments; and",
+    "keywords": [
+      "us government",
+      "civics"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.44(d)(9)(A)",
+    "gradeLevel": "High School",
+    "description": "identify different methods of filling public offices, including elected and appointed offices at the local, state, and national levels;",
+    "keywords": [
+      "elected and appointed offices at the local",
+      "state",
+      "national levels",
+      "us government",
+      "civics"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.44(d)(9)(B)",
+    "gradeLevel": "High School",
+    "description": "explain the process of electing the president of the United States and analyze the Electoral College; and",
+    "keywords": [
+      "electoral college",
+      "us government",
+      "civics"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.44(d)(9)(C)",
+    "gradeLevel": "High School",
+    "description": "analyze the impact of the passage of the 17th Amendment.",
+    "keywords": [
+      "17th amendment",
+      "us government",
+      "civics"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.44(d)(10)(A)",
+    "gradeLevel": "High School",
+    "description": "analyze the functions of political parties and their role in the electoral process at local, state, and national levels; and",
+    "keywords": [
+      "us government",
+      "civics"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.44(d)(10)(B)",
+    "gradeLevel": "High School",
+    "description": "explain the two-party system and evaluate the role of third parties in the United States.",
+    "keywords": [
+      "us government",
+      "civics"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.44(d)(11)(A)",
+    "gradeLevel": "High School",
+    "description": "compare the U.S. constitutional republic to historical and contemporary forms of government such as monarchy, a classical republic, authoritarian, socialist, direct democracy, theocracy, tribal, and other republics; and",
+    "keywords": [
+      "monarchy",
+      "classical republic",
+      "authoritarian",
+      "socialist",
+      "direct democracy",
+      "theocracy",
+      "tribal",
+      "u.s. constitution",
+      "us government",
+      "civics"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.44(d)(11)(B)",
+    "gradeLevel": "High School",
+    "description": "analyze advantages and disadvantages of presidential and parliamentary systems of government.",
+    "keywords": [
+      "us government",
+      "civics"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.44(d)(12)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the roles of limited government and the rule of law in the protection of individual rights;",
+    "keywords": [
+      "limited government",
+      "us government",
+      "civics"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.44(d)(12)(B)",
+    "gradeLevel": "High School",
+    "description": "identify and define the unalienable rights;",
+    "keywords": [
+      "unalienable rights",
+      "us government",
+      "civics"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.44(d)(12)(C)",
+    "gradeLevel": "High School",
+    "description": "identify the freedoms and rights protected and secured by each amendment in the Bill of Rights;",
+    "keywords": [
+      "bill of rights",
+      "us government",
+      "civics"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.44(d)(12)(G)",
+    "gradeLevel": "High School",
+    "description": "recall the conditions that produced the 14th Amendment and describe subsequent efforts to selectively extend some of the Bill of Rights to the states through U.S. Supreme Court rulings and analyze the impact on the scope of fundamental rights and federalism.",
+    "keywords": [
+      "bill of rights",
+      "14th amendment",
+      "federalism",
+      "us government",
+      "civics"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.44(d)(13)(A)",
+    "gradeLevel": "High School",
+    "description": "describe scenarios where good citizenship may require the subordination of personal desire for the sake of the public good;",
+    "keywords": [
+      "us government",
+      "civics"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.44(d)(13)(B)",
+    "gradeLevel": "High School",
+    "description": "explain the responsibilities, duties, and obligations of citizenship such as being well informed about civic affairs, serving in the military, voting, serving on a jury, observing the laws, paying taxes, and serving the public good; and",
+    "keywords": [
+      "being well informed about civic affairs",
+      "serving in the military",
+      "voting",
+      "serving on a jury",
+      "observing the laws",
+      "paying taxes",
+      "serving the public good",
+      "us government",
+      "civics"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.44(d)(13)(C)",
+    "gradeLevel": "High School",
+    "description": "describe the voter registration process and the criteria for voting in elections.",
+    "keywords": [
+      "us government",
+      "civics"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.44(d)(14)(A)",
+    "gradeLevel": "High School",
+    "description": "analyze the effectiveness of various methods of participation in the political process at local, state, and national levels;",
+    "keywords": [
+      "us government",
+      "civics"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.44(d)(14)(B)",
+    "gradeLevel": "High School",
+    "description": "analyze historical and contemporary examples of citizen movements to bring about political change or to maintain continuity; and",
+    "keywords": [
+      "us government",
+      "civics"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.44(d)(14)(C)",
+    "gradeLevel": "High School",
+    "description": "describe the factors that influence an individual's political attitudes and actions.",
+    "keywords": [
+      "us government",
+      "civics"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.44(d)(15)(A)",
+    "gradeLevel": "High School",
+    "description": "analyze different points of view of political parties and interest groups such as the League of United Latin American Citizens (LULAC), the National Rifle Association (NRA), and the National Association for the Advancement of Colored People (NAACP) on important contemporary issues; and",
+    "keywords": [
+      "league of united latin american citizens (lulac)",
+      "national rifle association (nra)",
+      "us government",
+      "civics"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.44(d)(15)(B)",
+    "gradeLevel": "High School",
+    "description": "analyze the importance of the First Amendment rights of petition, assembly, speech, and press and the Second Amendment right to keep and bear arms.",
+    "keywords": [
+      "us government",
+      "civics"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.44(d)(16)(A)",
+    "gradeLevel": "High School",
+    "description": "evaluate a U.S. government policy or court decision that has affected a particular racial, ethnic, or religious group, including the Civil Rights Act of 1964 and the U.S. Supreme Court cases of Hernandez v. Texas and Grutter v. Bollinger; and",
+    "keywords": [
+      "civil rights",
+      "1964",
+      "us government",
+      "civics"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "113.44(d)(16)(B)",
+    "gradeLevel": "High School",
+    "description": "explain changes in American culture brought about by government policies such as voting rights, the Servicemen's Readjustment Act of 1944 (GI Bill of Rights), the Immigration and Nationality Act of 1965, the Immigration Reform and Control Act of 1986, affirmative action, and racial integration.",
+    "keywords": [
+      "voting rights",
+      "servicemen's readjustment act of 1944 (gi bill of rights)",
+      "immigration and nationality act of 1965",
+      "immigration reform and control act of 1986",
+      "affirmative action",
+      "racial integration",
+      "us government",
+      "civics"
+    ],
+    "category": "Culture"
+  }
+]

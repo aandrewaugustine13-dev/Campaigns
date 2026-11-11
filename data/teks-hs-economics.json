@@ -1,0 +1,473 @@
+[
+  {
+    "_comment": "Texas Essential Knowledge and Skills, Economics with Emphasis on the Free Enterprise System and Its Benefits (§113.31). Aligned to the 2022-adopted standards implemented for the 2024–2025 school year. Skills-only strands are omitted. This _comment object is filtered out of teacher-facing lists.",
+    "code": "_comment",
+    "gradeLevel": "High School",
+    "description": "Documentation entry — not a standard.",
+    "keywords": [],
+    "category": "_meta"
+  },
+  {
+    "code": "113.31(d)(1)(A)",
+    "gradeLevel": "High School",
+    "description": "explain why scarcity and choice are basic economic problems faced by every society;",
+    "keywords": [
+      "scarcity",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(1)(B)",
+    "gradeLevel": "High School",
+    "description": "describe how societies answer the basic economic questions: what to produce, how to produce, and for whom to produce;",
+    "keywords": [
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(1)(C)",
+    "gradeLevel": "High School",
+    "description": "describe the economic factors of production: land, labor, capital, and entrepreneurship; and",
+    "keywords": [
+      "factors of production",
+      "entrepreneurship",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(2)(A)",
+    "gradeLevel": "High School",
+    "description": "understand the effect of changes in price on the quantity demanded and quantity supplied;",
+    "keywords": [
+      "supply and demand",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(2)(B)",
+    "gradeLevel": "High School",
+    "description": "identify the non-price determinants that create changes in supply and demand, which result in a new equilibrium price; and",
+    "keywords": [
+      "supply and demand",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(2)(C)",
+    "gradeLevel": "High School",
+    "description": "interpret a supply-and-demand graph using supply-and-demand schedules.",
+    "keywords": [
+      "supply and demand",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(3)(A)",
+    "gradeLevel": "High School",
+    "description": "apply the concepts of absolute and comparative advantages;",
+    "keywords": [
+      "comparative advantage",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(3)(B)",
+    "gradeLevel": "High School",
+    "description": "compare the effects of free trade and trade barriers on economic activities, including the benefits and costs of participating in international trade; and",
+    "keywords": [
+      "benefits and costs of participating in international trade",
+      "trade barriers",
+      "free trade",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(3)(C)",
+    "gradeLevel": "High School",
+    "description": "analyze the effects of changes in exchange rates on imports and exports.",
+    "keywords": [
+      "exchange rates",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(4)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the basic characteristics of economic systems, including property rights, incentives, economic freedom, competition, and the role of government;",
+    "keywords": [
+      "property rights",
+      "incentives",
+      "economic freedom",
+      "competition",
+      "role of government",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(4)(B)",
+    "gradeLevel": "High School",
+    "description": "contrast current and historic examples of the free enterprise system, socialism, and communism using the basic characteristics of economic systems; and",
+    "keywords": [
+      "free enterprise",
+      "communism",
+      "socialism",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(4)(C)",
+    "gradeLevel": "High School",
+    "description": "analyze the contributions of various economic philosophers, including Friedrich Hayek, Milton Friedman, John Maynard Keynes, and Adam Smith, and their impact on the U.S. free enterprise system.",
+    "keywords": [
+      "friedrich hayek",
+      "milton friedman",
+      "john maynard keynes",
+      "adam smith",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(5)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the benefits of the U.S. free enterprise system, including individual freedom of consumers and producers, variety of goods, responsive prices, investment opportunities, and the creation of wealth; and",
+    "keywords": [
+      "individual freedom of consumers and producers",
+      "variety of goods",
+      "responsive prices",
+      "investment opportunities",
+      "creation of wealth",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(5)(B)",
+    "gradeLevel": "High School",
+    "description": "analyze recent changes in the basic characteristics, including private property, incentives, economic freedom, competition, and the limited role of government, of the U.S. economy.",
+    "keywords": [
+      "private property",
+      "incentives",
+      "economic freedom",
+      "competition",
+      "limited role of government",
+      "of the u.s. economy",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(6)(A)",
+    "gradeLevel": "High School",
+    "description": "analyze the costs and benefits of the purchase, use, or disposal of personal and business property; and",
+    "keywords": [
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(6)(B)",
+    "gradeLevel": "High School",
+    "description": "identify and evaluate examples of restrictions that the government places on the use of business and individual property.",
+    "keywords": [
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(7)(A)",
+    "gradeLevel": "High School",
+    "description": "interpret the roles of resource owners and firms in a circular-flow model of the economy and provide real-world examples to illustrate elements of the model; and",
+    "keywords": [
+      "circular-flow",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(7)(B)",
+    "gradeLevel": "High School",
+    "description": "explain how government actions affect the circular-flow model.",
+    "keywords": [
+      "circular-flow",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(8)(A)",
+    "gradeLevel": "High School",
+    "description": "describe characteristics and give examples of pure competition, monopolistic competition, oligopoly, and monopoly; and",
+    "keywords": [
+      "competition",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(8)(B)",
+    "gradeLevel": "High School",
+    "description": "identify regulations that apply to the establishment and operation of various types of market structures.",
+    "keywords": [
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(9)(A)",
+    "gradeLevel": "High School",
+    "description": "interpret economic data, including unemployment rate, gross domestic product, gross domestic product per capita as a measure of national wealth, and rate of inflation; and",
+    "keywords": [
+      "unemployment rate",
+      "gross domestic product",
+      "rate of inflation",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(9)(B)",
+    "gradeLevel": "High School",
+    "description": "analyze business cycles using key economic indicators.",
+    "keywords": [
+      "business cycle",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(10)(A)",
+    "gradeLevel": "High School",
+    "description": "analyze how productivity relates to growth;",
+    "keywords": [
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(10)(B)",
+    "gradeLevel": "High School",
+    "description": "analyze how technology relates to growth; and",
+    "keywords": [
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(10)(C)",
+    "gradeLevel": "High School",
+    "description": "analyze how trade relates to growth.",
+    "keywords": [
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(11)(A)",
+    "gradeLevel": "High School",
+    "description": "describe the functions of money;",
+    "keywords": [
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(11)(B)",
+    "gradeLevel": "High School",
+    "description": "describe the characteristics of money, including commodity money, fiat money, and representative money; and",
+    "keywords": [
+      "commodity money",
+      "fiat money",
+      "representative money",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(11)(C)",
+    "gradeLevel": "High School",
+    "description": "analyze the positive and negative aspects of barter, currency, and debit cards.",
+    "keywords": [
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(12)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the structure of the Federal Reserve System;",
+    "keywords": [
+      "federal reserve",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(12)(B)",
+    "gradeLevel": "High School",
+    "description": "analyze the three basic tools used to implement U.S. monetary policy, including reserve requirements, the discount rate and the federal funds rate target, and open-market operations;",
+    "keywords": [
+      "reserve requirements",
+      "discount rate and the federal funds rate target",
+      "open-market operations",
+      "monetary policy",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(12)(C)",
+    "gradeLevel": "High School",
+    "description": "explain how the actions of the Federal Reserve System affect the nation's money supply; and",
+    "keywords": [
+      "federal reserve",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(13)(A)",
+    "gradeLevel": "High School",
+    "description": "describe the role of government in the U.S. free enterprise system and the changes in that role over time; and",
+    "keywords": [
+      "role of government",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(13)(B)",
+    "gradeLevel": "High School",
+    "description": "analyze the costs and benefits of U.S. economic policies, rules, and regulations related to the economic goals of economic growth, stability, full employment, freedom, security, equity (equal opportunity versus equal outcome), and efficiency.",
+    "keywords": [
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(14)(A)",
+    "gradeLevel": "High School",
+    "description": "identify types of taxes at the local, state, and national levels and the economic importance of each;",
+    "keywords": [
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(14)(B)",
+    "gradeLevel": "High School",
+    "description": "explain the categories of revenues and expenditures in the U.S. federal budget; and",
+    "keywords": [
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(14)(C)",
+    "gradeLevel": "High School",
+    "description": "analyze the impact of fiscal policy decisions on the economy.",
+    "keywords": [
+      "fiscal policy",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(15)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the characteristics of sole proprietorships, partnerships, and corporations; and",
+    "keywords": [
+      "sole proprietorship",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(15)(B)",
+    "gradeLevel": "High School",
+    "description": "analyze the advantages and disadvantages of sole proprietorships, partnerships, and corporations.",
+    "keywords": [
+      "sole proprietorship",
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(16)(A)",
+    "gradeLevel": "High School",
+    "description": "explain the functions of financial institutions and how they affect households and businesses;",
+    "keywords": [
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(16)(B)",
+    "gradeLevel": "High School",
+    "description": "explain how the amount of savings in an economy is the basis of capital formation;",
+    "keywords": [
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.31(d)(16)(C)",
+    "gradeLevel": "High School",
+    "description": "analyze the role of interest and risk in allocating savings to its most productive use; and",
+    "keywords": [
+      "free enterprise",
+      "economics"
+    ],
+    "category": "Economics"
+  }
+]

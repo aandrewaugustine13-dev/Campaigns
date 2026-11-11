@@ -1,0 +1,1099 @@
+[
+  {
+    "_comment": "Texas Essential Knowledge and Skills, United States History Studies Since 1877 (§113.41). Aligned to the 2022-adopted standards implemented for the 2024–2025 school year. Skills-only strands are omitted. This _comment object is filtered out of teacher-facing lists.",
+    "code": "_comment",
+    "gradeLevel": "High School",
+    "description": "Documentation entry — not a standard.",
+    "keywords": [],
+    "category": "_meta"
+  },
+  {
+    "code": "113.41(d)(1)(A)",
+    "gradeLevel": "High School",
+    "description": "analyze and evaluate the text, intent, meaning, and importance of the Declaration of Independence and the U.S. Constitution, including the Bill of Rights;",
+    "keywords": [
+      "bill of rights",
+      "declaration of independence",
+      "u.s. constitution",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(1)(B)",
+    "gradeLevel": "High School",
+    "description": "analyze and evaluate the application of these founding principles to historical events in U.S. history; and",
+    "keywords": [
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(1)(C)",
+    "gradeLevel": "High School",
+    "description": "explain the meaning and historical significance of the mottos \"E Pluribus Unum\" and \"In God We Trust.\"",
+    "keywords": [
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(2)(A)",
+    "gradeLevel": "High School",
+    "description": "identify the major eras in U.S. history from 1877 to the present and describe their defining characteristics; and",
+    "keywords": [
+      "1877",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(2)(B)",
+    "gradeLevel": "High School",
+    "description": "explain the significance of the following years as turning points: 1898 (Spanish-American War), 1914-1918 (World War I), 1929 (the Great Depression begins), 1939-1945 (World War II), 1957 (Sputnik launch ignites U.S.-Soviet space race), 1968 (Martin Luther King Jr. assassination), 1969 (U.S. lands on the moon), 1991 (Cold War ends), 2001 (terrorist attacks on World Trade Center and the Pentagon), and 2008 (election of first black president, Barack Obama).",
+    "keywords": [
+      "martin luther king jr",
+      "spanish-american war",
+      "great depression",
+      "world war ii",
+      "barack obama",
+      "cold war",
+      "1898",
+      "1914",
+      "1918",
+      "1929",
+      "1939",
+      "1945",
+      "1957",
+      "1968"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(3)(A)",
+    "gradeLevel": "High School",
+    "description": "analyze political issues such as Indian policies, the growth of political machines, and civil service reform;",
+    "keywords": [
+      "indian policies",
+      "growth of political machines",
+      "civil service reform",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(3)(B)",
+    "gradeLevel": "High School",
+    "description": "analyze economic issues such as industrialization, the growth of railroads, the growth of labor unions, farm issues, the cattle industry boom, the growth of entrepreneurship, and the pros and cons of big business; and",
+    "keywords": [
+      "industrialization",
+      "growth of railroads",
+      "growth of labor unions",
+      "farm issues",
+      "cattle industry boom",
+      "growth of entrepreneurship",
+      "pros and cons of big business",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(3)(C)",
+    "gradeLevel": "High School",
+    "description": "analyze social issues affecting women, minorities, children, immigrants, and urbanization.",
+    "keywords": [
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(4)(A)",
+    "gradeLevel": "High School",
+    "description": "explain why significant events, policies, and individuals, including the Spanish-American War, U.S. expansionism, Alfred Thayer Mahan, Theodore Roosevelt, and Sanford B. Dole moved the United States into the position of a world power;",
+    "keywords": [
+      "spanish-american war",
+      "u.s. expansionism",
+      "alfred thayer mahan",
+      "theodore roosevelt",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(4)(B)",
+    "gradeLevel": "High School",
+    "description": "evaluate American expansionism, including acquisitions such as Guam, Hawaii, the Philippines, and Puerto Rico;",
+    "keywords": [
+      "acquisitions such as guam",
+      "hawaii",
+      "philippines",
+      "puerto rico",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(4)(C)",
+    "gradeLevel": "High School",
+    "description": "identify the causes of World War I and reasons for U.S. entry;",
+    "keywords": [
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(4)(D)",
+    "gradeLevel": "High School",
+    "description": "understand the contributions of the American Expeditionary Forces (AEF) led by General John J. Pershing, including the Battle of Argonne Forest;",
+    "keywords": [
+      "battle of argonne forest",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(4)(E)",
+    "gradeLevel": "High School",
+    "description": "analyze the impact of machine guns, airplanes, tanks, poison gas, and trench warfare as significant technological innovations in World War I on the Western Front; and",
+    "keywords": [
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(4)(F)",
+    "gradeLevel": "High School",
+    "description": "analyze major issues raised by U.S. involvement in World War I, including isolationism, neutrality, Woodrow Wilson's Fourteen Points, and the Treaty of Versailles.",
+    "keywords": [
+      "isolationism",
+      "neutrality",
+      "woodrow wilson's fourteen points",
+      "treaty of versailles",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(5)(A)",
+    "gradeLevel": "High School",
+    "description": "analyze the impact of Progressive Era reforms, including initiative, referendum, recall, and the passage of the 16th, 17th, 18th, and 19th amendments;",
+    "keywords": [
+      "initiative",
+      "referendum",
+      "recall",
+      "passage of the 16th, 17th, 18th, and 19th amendments",
+      "progressive era",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(5)(B)",
+    "gradeLevel": "High School",
+    "description": "evaluate the impact of muckrakers and reform leaders such as Upton Sinclair, Susan B. Anthony, Jane Addams, Ida B. Wells, and W. E. B. DuBois on American society; and",
+    "keywords": [
+      "upton sinclair",
+      "susan b. anthony",
+      "jane addams",
+      "ida b. wells",
+      "w. e. b. dubois on american society",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(5)(C)",
+    "gradeLevel": "High School",
+    "description": "analyze the impact of third parties, including the Populist and Progressive parties.",
+    "keywords": [
+      "populist and progressive parties",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(6)(A)",
+    "gradeLevel": "High School",
+    "description": "analyze causes and effects of events and social issues such as immigration, Social Darwinism, the Scopes Trial, eugenics, race relations, nativism, the Red Scare, Prohibition, and the changing role of women; and",
+    "keywords": [
+      "immigration",
+      "social darwinism",
+      "scopes trial",
+      "eugenics",
+      "race relations",
+      "nativism",
+      "red scare",
+      "prohibition",
+      "changing role of women",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(6)(B)",
+    "gradeLevel": "High School",
+    "description": "analyze the impact of significant individuals such as Henry Ford, Marcus Garvey, and Charles A. Lindbergh.",
+    "keywords": [
+      "henry ford",
+      "marcus garvey",
+      "charles a. lindbergh",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(7)(A)",
+    "gradeLevel": "High School",
+    "description": "identify reasons for U.S. involvement in World War II, including the aggression of Italian, German, and Japanese dictatorships, especially the attack on Pearl Harbor;",
+    "keywords": [
+      "aggression of italian",
+      "german",
+      "japanese dictatorships",
+      "especially the attack on pearl harbor",
+      "world war ii",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(7)(B)",
+    "gradeLevel": "High School",
+    "description": "evaluate the domestic and international leadership of Franklin D. Roosevelt and Harry Truman during World War II, including the U.S. relationship with its allies;",
+    "keywords": [
+      "u.s. relationship with its allies",
+      "franklin d. roosevelt",
+      "world war ii",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(7)(C)",
+    "gradeLevel": "High School",
+    "description": "analyze major issues of World War II, including the Holocaust, the internment of Japanese Americans as a result of Executive Order 9066, and the development of atomic weapons;",
+    "keywords": [
+      "holocaust",
+      "development of atomic weapons",
+      "executive order 9066",
+      "world war ii",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(7)(D)",
+    "gradeLevel": "High School",
+    "description": "analyze major military events of World War II, including fighting the war on multiple fronts, the Bataan Death March, the U.S. military advancement through the Pacific Islands, the Battle of Midway, the invasion of Normandy, and the liberation of concentration camps;",
+    "keywords": [
+      "fighting the war on multiple fronts",
+      "bataan death march",
+      "u.s. military advancement through the pacific islands",
+      "battle of midway",
+      "invasion of normandy",
+      "liberation of concentration camps",
+      "world war ii",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(7)(E)",
+    "gradeLevel": "High School",
+    "description": "describe the military contributions of leaders during World War II, including Dwight Eisenhower, Douglas MacArthur, and Chester W. Nimitz;",
+    "keywords": [
+      "dwight eisenhower",
+      "douglas macarthur",
+      "chester w. nimitz",
+      "world war ii",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(7)(F)",
+    "gradeLevel": "High School",
+    "description": "explain issues affecting the home front, including volunteerism, the purchase of war bonds, and Victory Gardens and opportunities and obstacles for women and ethnic minorities; and",
+    "keywords": [
+      "volunteerism",
+      "purchase of war bonds",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(7)(G)",
+    "gradeLevel": "High School",
+    "description": "explain how American patriotism inspired high levels of military enlistment and the bravery and contributions of the Tuskegee Airmen, the Flying Tigers, and the Navajo Code Talkers.",
+    "keywords": [
+      "tuskegee airmen",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(8)(A)",
+    "gradeLevel": "High School",
+    "description": "describe U.S. responses to Soviet aggression after World War II, including the Truman Doctrine, the Marshall Plan, the Berlin Airlift, the North Atlantic Treaty Organization, and John F. Kennedy's role in the Cuban Missile Crisis;",
+    "keywords": [
+      "truman doctrine",
+      "marshall plan",
+      "berlin airlift",
+      "north atlantic treaty organization",
+      "john f. kennedy's role in the cuban missile crisis",
+      "world war ii",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(8)(B)",
+    "gradeLevel": "High School",
+    "description": "describe how Cold War tensions were intensified by the House Un-American Activities Committee (HUAC), McCarthyism, the arms race, and the space race;",
+    "keywords": [
+      "mccarthyism",
+      "cold war",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(8)(C)",
+    "gradeLevel": "High School",
+    "description": "explain reasons and outcomes for U.S. involvement in the Korean War and its relationship to the containment policy;",
+    "keywords": [
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(8)(D)",
+    "gradeLevel": "High School",
+    "description": "explain reasons and outcomes for U.S. involvement in foreign countries and their relationship to the Domino Theory, including the Vietnam War;",
+    "keywords": [
+      "vietnam war",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(8)(E)",
+    "gradeLevel": "High School",
+    "description": "analyze the major events of the Vietnam War, including the escalation of forces, the Tet Offensive, Vietnamization, and the fall of Saigon; and",
+    "keywords": [
+      "escalation of forces",
+      "tet offensive",
+      "vietnamization",
+      "fall of saigon",
+      "vietnam war",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(8)(F)",
+    "gradeLevel": "High School",
+    "description": "describe the responses to the Vietnam War, including the draft, the 26th Amendment, the role of the media, the credibility gap, the silent majority, and the anti-war movement.",
+    "keywords": [
+      "draft",
+      "26th amendment",
+      "role of the media",
+      "credibility gap",
+      "silent majority",
+      "anti-war movement",
+      "vietnam war",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(9)(A)",
+    "gradeLevel": "High School",
+    "description": "trace the historical development of the civil rights movement from the late 1800s through the 21st century, including the 13th, 14th, 15th, and 19th amendments;",
+    "keywords": [
+      "13th, 14th, 15th, and 19th amendments",
+      "civil rights movement",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(9)(B)",
+    "gradeLevel": "High School",
+    "description": "explain how Jim Crow laws and the Ku Klux Klan created obstacles to civil rights for minorities such as the suppression of voting;",
+    "keywords": [
+      "suppression of voting",
+      "civil rights",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(9)(C)",
+    "gradeLevel": "High School",
+    "description": "describe the roles of political organizations that promoted African American, Chicano, American Indian, and women's civil rights;",
+    "keywords": [
+      "civil rights",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(9)(D)",
+    "gradeLevel": "High School",
+    "description": "identify the roles of significant leaders who supported various rights movements, including Martin Luther King Jr., Cesar Chavez, Dolores Huerta, Rosa Parks, and Betty Friedan;",
+    "keywords": [
+      "martin luther king jr",
+      "cesar chavez",
+      "dolores huerta",
+      "rosa parks",
+      "betty friedan",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(9)(E)",
+    "gradeLevel": "High School",
+    "description": "compare and contrast the approach taken by the Black Panthers with the nonviolent approach of Martin Luther King Jr.;",
+    "keywords": [
+      "martin luther king jr",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(9)(F)",
+    "gradeLevel": "High School",
+    "description": "discuss the impact of the writings of Martin Luther King Jr., including his \"I Have a Dream\" speech and \"Letter from Birmingham Jail\" on the civil rights movement;",
+    "keywords": [
+      "martin luther king jr",
+      "civil rights movement",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(9)(G)",
+    "gradeLevel": "High School",
+    "description": "describe presidential actions and congressional votes to address minority rights in the United States, including desegregation of the armed forces, the Civil Rights Act of 1964, and the Voting Rights Act of 1965;",
+    "keywords": [
+      "desegregation of the armed forces",
+      "civil rights act of 1964",
+      "voting rights act of 1965",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(9)(H)",
+    "gradeLevel": "High School",
+    "description": "explain how George Wallace, Orval Faubus, and the Congressional bloc of southern Democrats sought to maintain the status quo;",
+    "keywords": [
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(9)(I)",
+    "gradeLevel": "High School",
+    "description": "evaluate changes in the United States that have resulted from the civil rights movement, including increased participation of minorities in the political process; and",
+    "keywords": [
+      "increased participation of minorities in the political process",
+      "civil rights movement",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(9)(J)",
+    "gradeLevel": "High School",
+    "description": "describe how Sweatt v. Painter and Brown v. Board of Education played a role in protecting the rights of the minority during the civil rights movement.",
+    "keywords": [
+      "brown v. board of education",
+      "civil rights movement",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(10)(A)",
+    "gradeLevel": "High School",
+    "description": "describe Richard M. Nixon's leadership in the normalization of relations with China and the policy of détente;",
+    "keywords": [
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(10)(B)",
+    "gradeLevel": "High School",
+    "description": "describe Ronald Reagan's leadership in domestic and international policies, including Reagan's economic policies and Peace Through Strength;",
+    "keywords": [
+      "reagan's economic policies and peace through strength",
+      "ronald reagan",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(10)(C)",
+    "gradeLevel": "High School",
+    "description": "describe U.S. involvement in the Middle East such as support for Israel, the Camp David Accords, the Iran Hostage Crisis, Marines in Lebanon, and the Iran-Contra Affair;",
+    "keywords": [
+      "support for israel",
+      "camp david accords",
+      "iran hostage crisis",
+      "marines in lebanon",
+      "iran-contra affair",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(10)(D)",
+    "gradeLevel": "High School",
+    "description": "describe the causes and key organizations of the conservative resurgence of the 1980s such as the Heritage Foundation and the Moral Majority; and",
+    "keywords": [
+      "heritage foundation and the moral majority",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(10)(E)",
+    "gradeLevel": "High School",
+    "description": "describe significant societal issues of this time period such as the War on Drugs and the AIDS epidemic.",
+    "keywords": [
+      "war on drugs and the aids epidemic",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(11)(A)",
+    "gradeLevel": "High School",
+    "description": "describe U.S. involvement in world affairs, including the end of the Cold War, the Persian Gulf War, the events surrounding September 11, 2001, and the global War on Terror;",
+    "keywords": [
+      "end of the cold war",
+      "persian gulf war",
+      "events surrounding september 11, 2001",
+      "global war on terror",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(11)(B)",
+    "gradeLevel": "High School",
+    "description": "identify significant social and political issues such as health care, immigration, and education from different viewpoints across the political spectrum;",
+    "keywords": [
+      "health care",
+      "immigration",
+      "education from different viewpoints across the political spectrum",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(11)(C)",
+    "gradeLevel": "High School",
+    "description": "analyze the impact of third parties on the 1992 and 2000 presidential elections; and",
+    "keywords": [
+      "1992",
+      "2000",
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(11)(D)",
+    "gradeLevel": "High School",
+    "description": "identify the impact of international events, multinational corporations, government policies, and individuals on the 21st century economy.",
+    "keywords": [
+      "us history",
+      "since 1877"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "113.41(d)(12)",
+    "gradeLevel": "High School",
+    "description": "analyze the impact of physical and human geographic factors on the Klondike Gold Rush, the Panama Canal, the Dust Bowl, and the levee failure in New Orleans after Hurricane Katrina.",
+    "keywords": [
+      "dust bowl",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "113.41(d)(13)(A)",
+    "gradeLevel": "High School",
+    "description": "analyze the causes and effects of changing demographic patterns resulting from migration within the United States, including western expansion, rural to urban, the Great Migration, and the Rust Belt to the Sun Belt; and",
+    "keywords": [
+      "western expansion",
+      "rural to urban",
+      "great migration",
+      "rust belt to the sun belt",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "113.41(d)(13)(B)",
+    "gradeLevel": "High School",
+    "description": "analyze the causes and effects of changing demographic patterns resulting from immigration to the United States.",
+    "keywords": [
+      "immigration",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "113.41(d)(14)(A)",
+    "gradeLevel": "High School",
+    "description": "identify the effects of population growth and distribution on the physical environment; and",
+    "keywords": [
+      "us history",
+      "since 1877"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "113.41(d)(14)(B)",
+    "gradeLevel": "High School",
+    "description": "identify the roles of governmental entities and private citizens in managing the environment such as the establishment of the National Park System, the Environmental Protection Agency (EPA), and the Endangered Species Act.",
+    "keywords": [
+      "establishment of the national park system",
+      "environmental protection agency (epa)",
+      "endangered species act",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "113.41(d)(15)(A)",
+    "gradeLevel": "High School",
+    "description": "describe how the economic impact of the Transcontinental Railroad and the Homestead Act contributed to the close of the frontier in the late 19th century;",
+    "keywords": [
+      "transcontinental railroad",
+      "homestead act",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.41(d)(15)(B)",
+    "gradeLevel": "High School",
+    "description": "describe the changing relationship between the federal government and private business, including the growth of free enterprise, costs and benefits of laissez-faire, Sherman Antitrust Act, Interstate Commerce Act, and Pure Food and Drug Act;",
+    "keywords": [
+      "growth of free enterprise",
+      "costs and benefits of laissez-faire",
+      "sherman antitrust act",
+      "interstate commerce act",
+      "pure food and drug act",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.41(d)(15)(C)",
+    "gradeLevel": "High School",
+    "description": "explain how foreign policies affected economic issues such as the Chinese Exclusion Act of 1882, the Open Door Policy, Dollar Diplomacy, and immigration quotas; and",
+    "keywords": [
+      "chinese exclusion act of 1882",
+      "open door policy",
+      "dollar diplomacy",
+      "immigration quotas",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.41(d)(16)(A)",
+    "gradeLevel": "High School",
+    "description": "analyze causes of economic growth and prosperity in the 1920s, including Warren Harding's Return to Normalcy, reduced taxes, and increased production efficiencies;",
+    "keywords": [
+      "warren harding's return to normalcy",
+      "reduced taxes",
+      "increased production efficiencies",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.41(d)(16)(B)",
+    "gradeLevel": "High School",
+    "description": "identify the causes of the Great Depression, including the impact of tariffs on world trade, stock market speculation, bank failures, and the monetary policy of the Federal Reserve System;",
+    "keywords": [
+      "impact of tariffs on world trade",
+      "stock market speculation",
+      "bank failures",
+      "monetary policy of the federal reserve system",
+      "great depression",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.41(d)(16)(C)",
+    "gradeLevel": "High School",
+    "description": "analyze the effects of the Great Depression on the U.S. economy and society such as widespread unemployment and deportation and repatriation of people of Mexican heritage;",
+    "keywords": [
+      "great depression",
+      "unemployment",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.41(d)(16)(D)",
+    "gradeLevel": "High School",
+    "description": "compare the New Deal policies and its opponents' approaches to resolving the economic effects of the Great Depression; and",
+    "keywords": [
+      "great depression",
+      "new deal",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.41(d)(17)(A)",
+    "gradeLevel": "High School",
+    "description": "describe the economic effects of World War II on the home front such as mobilization, the end of the Great Depression, rationing, and increased opportunity for women and minority employment;",
+    "keywords": [
+      "mobilization",
+      "end of the great depression",
+      "rationing",
+      "increased opportunity for women and minority employment",
+      "world war ii",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.41(d)(17)(B)",
+    "gradeLevel": "High School",
+    "description": "identify the causes of prosperity in the 1950s, including the Baby Boom and the impact of the GI Bill (Servicemen's Readjustment Act of 1944), and the effects of prosperity in the 1950s such as increased consumption and the growth of agriculture and business;",
+    "keywords": [
+      "baby boom",
+      "gi bill",
+      "1944",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.41(d)(17)(C)",
+    "gradeLevel": "High School",
+    "description": "describe the economic impact of defense spending on the business cycle and education priorities from 1945 to the 1990s;",
+    "keywords": [
+      "business cycle",
+      "1945",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "113.41(d)(18)(A)",
+    "gradeLevel": "High School",
+    "description": "evaluate the impact of New Deal legislation on the historical roles of state and federal government;",
+    "keywords": [
+      "new deal",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.41(d)(18)(B)",
+    "gradeLevel": "High School",
+    "description": "explain constitutional issues raised by federal government policy changes during times of significant events, including World War I, the Great Depression, World War II, the 1960s, and September 11, 2001;",
+    "keywords": [
+      "great depression",
+      "world war ii",
+      "1960s",
+      "september 11, 2001",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.41(d)(18)(C)",
+    "gradeLevel": "High School",
+    "description": "describe the effects of political scandals, including Teapot Dome, Watergate, and Bill Clinton's impeachment, on the views of U.S. citizens concerning trust in the federal government and its leaders; and",
+    "keywords": [
+      "teapot dome",
+      "watergate",
+      "bill clinton's impeachment",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.41(d)(19)(A)",
+    "gradeLevel": "High School",
+    "description": "describe the impact of events such as the Gulf of Tonkin Resolution and the War Powers Act on the relationship between the legislative and executive branches of government; and",
+    "keywords": [
+      "us history",
+      "since 1877"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.41(d)(19)(B)",
+    "gradeLevel": "High School",
+    "description": "evaluate the impact of relationships among the legislative, executive, and judicial branches of government, including Franklin D. Roosevelt's attempt to increase the number of U.S. Supreme Court justices and the presidential election of 2000.",
+    "keywords": [
+      "franklin d. roosevelt",
+      "2000",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.41(d)(20)(A)",
+    "gradeLevel": "High School",
+    "description": "analyze the effects of landmark U.S. Supreme Court decisions, including Plessy v. Ferguson, Brown v. Board of Education, Hernandez v. Texas, Tinker v. Des Moines, and Wisconsin v. Yoder; and",
+    "keywords": [
+      "plessy v. ferguson",
+      "brown v. board of education",
+      "hernandez v. texas",
+      "tinker v. des moines",
+      "wisconsin v. yoder",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.41(d)(20)(B)",
+    "gradeLevel": "High School",
+    "description": "explain why landmark constitutional amendments have been proposed and ratified from 1877 to the present.",
+    "keywords": [
+      "1877",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "113.41(d)(21)(A)",
+    "gradeLevel": "High School",
+    "description": "discuss values crucial to America's success as a constitutional republic, including liberty, egalitarianism, individualism, populism, and laissez-faire; and",
+    "keywords": [
+      "liberty",
+      "egalitarianism",
+      "individualism",
+      "populism",
+      "laissez-faire",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.41(d)(21)(B)",
+    "gradeLevel": "High School",
+    "description": "describe how American values are different and unique from those of other nations.",
+    "keywords": [
+      "us history",
+      "since 1877"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.41(d)(22)(A)",
+    "gradeLevel": "High School",
+    "description": "identify and analyze methods of expanding the right to participate in the democratic process, including lobbying, non-violent protesting, litigation, and amendments to the U.S. Constitution;",
+    "keywords": [
+      "lobbying",
+      "non-violent protesting",
+      "litigation",
+      "amendments to the u.s. constitution",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.41(d)(22)(B)",
+    "gradeLevel": "High School",
+    "description": "evaluate various means of achieving equality of political rights, including the 19th, 24th, and 26th amendments and congressional acts such as the American Indian Citizenship Act of 1924;",
+    "keywords": [
+      "1924",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.41(d)(22)(C)",
+    "gradeLevel": "High School",
+    "description": "explain how participation in the democratic process reflects our national identity, patriotism, and civic responsibility; and",
+    "keywords": [
+      "us history",
+      "since 1877"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.41(d)(23)(A)",
+    "gradeLevel": "High School",
+    "description": "evaluate the contributions of significant political and social leaders in the United States such as Andrew Carnegie, Thurgood Marshall, Billy Graham, Sandra Day O'Connor, and Hillary Clinton; and",
+    "keywords": [
+      "andrew carnegie",
+      "thurgood marshall",
+      "billy graham",
+      "sandra day o'connor",
+      "hillary clinton",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.41(d)(23)(B)",
+    "gradeLevel": "High School",
+    "description": "explain the importance of Congressional Medal of Honor recipients such as Army First Lieutenant Vernon J. Baker, Army Corporal Alvin York, and Army Master Sergeant Raul \"Roy\" Perez Benavidez.",
+    "keywords": [
+      "army first lieutenant vernon j. baker",
+      "army corporal alvin york",
+      "army master sergeant raul \"roy\" perez benavidez",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "113.41(d)(24)(A)",
+    "gradeLevel": "High School",
+    "description": "describe how the characteristics of and issues in U.S. history have been reflected in various genres of art, music, film, and literature;",
+    "keywords": [
+      "us history",
+      "since 1877"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "113.41(d)(24)(B)",
+    "gradeLevel": "High School",
+    "description": "describe the impacts of cultural movements in art, music, and literature such as Tin Pan Alley, the Harlem Renaissance, the Beat Generation, rock and roll, the Chicano Mural Movement, and country and western music on American society; and",
+    "keywords": [
+      "tin pan alley",
+      "harlem renaissance",
+      "beat generation",
+      "rock and roll",
+      "chicano mural movement",
+      "country and western music on american society",
+      "us history",
+      "since 1877"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "113.41(d)(24)(C)",
+    "gradeLevel": "High School",
+    "description": "identify and analyze the global diffusion of American culture through various media.",
+    "keywords": [
+      "us history",
+      "since 1877"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "113.41(d)(25)(A)",
+    "gradeLevel": "High School",
+    "description": "explain actions taken by people to expand economic opportunities and political rights for racial, ethnic, gender, and religious groups in American society;",
+    "keywords": [
+      "us history",
+      "since 1877"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "113.41(d)(25)(B)",
+    "gradeLevel": "High School",
+    "description": "describe the Americanization movement to assimilate immigrants and American Indians into American culture;",
+    "keywords": [
+      "us history",
+      "since 1877"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "113.41(d)(25)(C)",
+    "gradeLevel": "High School",
+    "description": "explain how the contributions of people of various racial, ethnic, gender, and religious groups shape American culture; and",
+    "keywords": [
+      "us history",
+      "since 1877"
+    ],
+    "category": "Culture"
+  }
+]

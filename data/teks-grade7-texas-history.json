@@ -1,0 +1,645 @@
+[
+  {
+    "_comment": "Texas Essential Knowledge and Skills, Social Studies, Grade 7 (Texas History) (§113.19). Aligned to the 2022-adopted standards implemented for the 2024–2025 school year. Skills-only strands are omitted. This _comment object is filtered out of teacher-facing lists.",
+    "code": "_comment",
+    "gradeLevel": "7",
+    "description": "Documentation entry — not a standard.",
+    "keywords": [],
+    "category": "_meta"
+  },
+  {
+    "code": "7.2(C)",
+    "gradeLevel": "7",
+    "description": "identify important individuals, events, and issues related to European colonization of Texas, including the establishment of Catholic missions, towns, and ranches, and the contributions of individuals such as Fray Damián Massanet, Antonio Margil de Jesús, and Francisco Hidalgo;",
+    "keywords": [
+      "establishment of catholic missions",
+      "towns",
+      "ranches",
+      "contributions of individuals such as fray damián massanet",
+      "antonio margil de jesús",
+      "francisco hidalgo",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.2(D)",
+    "gradeLevel": "7",
+    "description": "identify the individuals, issues, and events related to Mexico becoming an independent nation and its impact on Texas, including Father Miguel Hidalgo, Texas involvement in the fight for independence, José Gutiérrez de Lara, the Battle of Medina, the Mexican federal Constitution of 1824, the merger of Texas and Coahuila as a state, the State Colonization Law of 1825, and slavery;",
+    "keywords": [
+      "father miguel hidalgo",
+      "texas involvement in the fight for independence",
+      "josé gutiérrez de lara",
+      "battle of medina",
+      "mexican federal constitution of 1824",
+      "merger of texas and coahuila as a state",
+      "state colonization law of 1825",
+      "slavery",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.2(E)",
+    "gradeLevel": "7",
+    "description": "identify the contributions of significant individuals, including Moses Austin, Stephen F. Austin, Erasmo Seguín, Martín De León, and Green DeWitt, during the Mexican settlement of Texas; and",
+    "keywords": [
+      "moses austin",
+      "stephen f. austin",
+      "erasmo seguín",
+      "martín de león",
+      "green dewitt",
+      "during the mexican settlement of texas",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.2(F)",
+    "gradeLevel": "7",
+    "description": "contrast Spanish, Mexican, and Anglo purposes for and methods of settlement in Texas.",
+    "keywords": [
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.3(A)",
+    "gradeLevel": "7",
+    "description": "describe the chain of events that led to the Texas Revolution, including the Fredonian Rebellion, the Mier y Terán Report, the Law of April 6, 1830, the Turtle Bayou Resolutions, and the arrest of Stephen F. Austin;",
+    "keywords": [
+      "fredonian rebellion",
+      "mier y terán report",
+      "law of april 6, 1830",
+      "turtle bayou resolutions",
+      "arrest of stephen f. austin",
+      "texas revolution",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.3(B)",
+    "gradeLevel": "7",
+    "description": "explain the roles played by significant individuals during the Texas Revolution, including George Childress, Lorenzo de Zavala, James Fannin, Sam Houston, Antonio López de Santa Anna, Juan N. Seguín, and William B. Travis; and",
+    "keywords": [
+      "george childress",
+      "lorenzo de zavala",
+      "james fannin",
+      "sam houston",
+      "antonio lópez de santa anna",
+      "juan n. seguín",
+      "william b. travis",
+      "texas revolution",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.3(C)",
+    "gradeLevel": "7",
+    "description": "explain the issues surrounding significant events of the Texas Revolution, including the Battle of Gonzales; the siege of the Alamo, William B. Travis's letter \"To the People of Texas and All Americans in the World,\" and the heroism of the diverse defenders who gave their lives there; the Constitutional Convention of 1836; Fannin's surrender at Goliad; and the Battle of San Jacinto.",
+    "keywords": [
+      "battle of gonzales",
+      "siege of the alamo",
+      "constitutional convention of 1836",
+      "fannin's surrender at goliad",
+      "battle of san jacinto",
+      "texas revolution",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.4(A)",
+    "gradeLevel": "7",
+    "description": "identify individuals, events, and issues during the administrations of Republic of Texas Presidents Houston, Lamar, and Jones such as the Texas Navy, the Texas Rangers, Jack Coffee Hays, Chief Bowles, William Goyens, Mary Maverick, José Antonio Navarro, the Córdova Rebellion, the Council House Fight, the Santa Fe Expedition, slavery, and the roles of racial and ethnic groups;",
+    "keywords": [
+      "texas navy",
+      "texas rangers",
+      "jack coffee hays",
+      "chief bowles",
+      "william goyens",
+      "mary maverick",
+      "josé antonio navarro",
+      "córdova rebellion",
+      "council house fight",
+      "santa fe expedition",
+      "slavery",
+      "roles of racial and ethnic groups",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.4(B)",
+    "gradeLevel": "7",
+    "description": "analyze the causes of and events leading to Texas annexation such as security and public debt; and",
+    "keywords": [
+      "security and public debt",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.4(C)",
+    "gradeLevel": "7",
+    "description": "identify individuals, events, and issues during early Texas statehood, including the U.S.-Mexican War, the Treaty of Guadalupe-Hidalgo, slavery, and the Compromise of 1850.",
+    "keywords": [
+      "u.s.-mexican war",
+      "treaty of guadalupe-hidalgo",
+      "slavery",
+      "compromise of 1850",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.5(A)",
+    "gradeLevel": "7",
+    "description": "explain the central role the expansion of slavery played in the involvement of Texas in the Civil War;",
+    "keywords": [
+      "civil war",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.5(B)",
+    "gradeLevel": "7",
+    "description": "identify significant events concerning Texas and the Civil War such as the Battle of Galveston, the Battle of Sabine Pass, and the Battle of Palmito Ranch; and",
+    "keywords": [
+      "battle of galveston",
+      "battle of sabine pass",
+      "battle of palmito ranch",
+      "civil war",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.5(C)",
+    "gradeLevel": "7",
+    "description": "explain the political, economic, and social effects of the Civil War and Reconstruction in Texas.",
+    "keywords": [
+      "reconstruction",
+      "civil war",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.6(A)",
+    "gradeLevel": "7",
+    "description": "identify significant individuals, events, and issues, including the factors leading to the expansion of the Texas frontier, the effects of westward expansion on American Indians, the buffalo soldiers, and Quanah Parker;",
+    "keywords": [
+      "factors leading to the expansion of the texas frontier",
+      "effects of westward expansion on american indians",
+      "buffalo soldiers",
+      "quanah parker",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.6(B)",
+    "gradeLevel": "7",
+    "description": "identify significant individuals, events, and issues, including the development of the cattle industry from its Spanish beginnings and the cowboy way of life;",
+    "keywords": [
+      "cattle industry",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.6(C)",
+    "gradeLevel": "7",
+    "description": "identify significant individuals, events, and issues, including the effects of the growth of railroads and the contributions of James Hogg; and",
+    "keywords": [
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.6(D)",
+    "gradeLevel": "7",
+    "description": "explain the political, economic, and social impact of the agricultural industry and the development of West Texas resulting from the close of the frontier.",
+    "keywords": [
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.7(A)",
+    "gradeLevel": "7",
+    "description": "explain how the oil industry led to the industrialization of Texas;",
+    "keywords": [
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.7(B)",
+    "gradeLevel": "7",
+    "description": "define and trace the impact of \"boom-and-bust\" cycles of leading Texas industries throughout the 20th and early 21st centuries such as farming, oil and gas production, cotton, ranching, real estate, banking, and computer technology;",
+    "keywords": [
+      "farming",
+      "oil and gas production",
+      "cotton",
+      "ranching",
+      "real estate",
+      "banking",
+      "computer technology",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.7(C)",
+    "gradeLevel": "7",
+    "description": "describe and compare the impact of reform movements in Texas in the 19th and 20th centuries such as progressivism, populism, women's suffrage, agrarianism, labor reform, and the conservative movement of the late 20th century;",
+    "keywords": [
+      "progressivism",
+      "populism",
+      "women's suffrage",
+      "agrarianism",
+      "labor reform",
+      "conservative movement of the late 20th century",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.7(D)",
+    "gradeLevel": "7",
+    "description": "describe and compare the civil rights and equal rights movements of various groups in Texas in the 20th century and identify key leaders in these movements such as James L. Farmer Jr., Hector P. Garcia, Oveta Culp Hobby, Lyndon B. Johnson, the League of United Latin American Citizens (LULAC), Jane McCallum, and Lulu Belle Madison White; and",
+    "keywords": [
+      "james l. farmer jr",
+      "hector p. garcia",
+      "oveta culp hobby",
+      "lyndon b. johnson",
+      "league of united latin american citizens (lulac)",
+      "jane mccallum",
+      "lulu belle madison white",
+      "civil rights",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.7(E)",
+    "gradeLevel": "7",
+    "description": "analyze the political, economic, and social impact of World War I, the Great Depression, World War II, and significant issues in the latter half of the 20th and early 21st centuries such as political and economic controversies, immigration, and migration on the history of Texas.",
+    "keywords": [
+      "political and economic controversies",
+      "immigration",
+      "migration on the history of texas",
+      "great depression",
+      "world war ii",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "History"
+  },
+  {
+    "code": "7.8(A)",
+    "gradeLevel": "7",
+    "description": "locate and compare the Mountains and Basins, Great Plains, North Central Plains, and Coastal Plains regions;",
+    "keywords": [
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "7.8(B)",
+    "gradeLevel": "7",
+    "description": "locate and compare places of importance in Texas in terms of physical and human characteristics such as major cities, waterways, natural and historic landmarks, political and cultural regions, and local points of interest; and",
+    "keywords": [
+      "major cities",
+      "waterways",
+      "natural and historic landmarks",
+      "political and cultural regions",
+      "local points of interest",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "7.8(C)",
+    "gradeLevel": "7",
+    "description": "analyze the effects of physical and human factors such as climate, weather, landforms, irrigation, transportation, and communication on major events in Texas.",
+    "keywords": [
+      "climate",
+      "weather",
+      "landforms",
+      "irrigation",
+      "transportation",
+      "communication on major events in texas",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "7.9(A)",
+    "gradeLevel": "7",
+    "description": "identify ways in which Texans have adapted to and modified the environment and explain the positive and negative consequences of the modifications; and",
+    "keywords": [
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "7.9(B)",
+    "gradeLevel": "7",
+    "description": "explain ways in which geographic factors such as the Galveston Hurricane of 1900, the Dust Bowl, limited water resources, and alternative energy sources have affected the political, economic, and social development of Texas.",
+    "keywords": [
+      "galveston hurricane of 1900",
+      "dust bowl",
+      "limited water resources",
+      "alternative energy sources have affected the political",
+      "economic",
+      "social development of texas",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "7.10(A)",
+    "gradeLevel": "7",
+    "description": "identify why immigrant groups came to Texas and where they settled;",
+    "keywords": [
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "7.10(B)",
+    "gradeLevel": "7",
+    "description": "describe how immigration and migration to Texas have influenced Texas;",
+    "keywords": [
+      "immigration",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "7.10(C)",
+    "gradeLevel": "7",
+    "description": "describe the structure of the population of Texas using demographic concepts such as growth rate and age distribution; and",
+    "keywords": [
+      "growth rate and age distribution",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Geography"
+  },
+  {
+    "code": "7.11(A)",
+    "gradeLevel": "7",
+    "description": "explain economic factors and the development of major industries that led to the urbanization of Texas such as transportation, oil and gas, and manufacturing; and",
+    "keywords": [
+      "transportation",
+      "oil and gas",
+      "manufacturing",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "7.11(B)",
+    "gradeLevel": "7",
+    "description": "explain the changes in the types of jobs and occupations that have resulted from the urbanization of Texas.",
+    "keywords": [
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "7.12(A)",
+    "gradeLevel": "7",
+    "description": "explain the impact of national and international markets on the production of goods and services in Texas, including agriculture and oil and gas;",
+    "keywords": [
+      "agriculture and oil and gas",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "7.12(B)",
+    "gradeLevel": "7",
+    "description": "explain the impact of economic concepts within the free enterprise system such as supply and demand, profit, and world competition on the economy of Texas; and",
+    "keywords": [
+      "supply and demand",
+      "profit",
+      "world competition on the economy of texas",
+      "free enterprise",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "7.12(C)",
+    "gradeLevel": "7",
+    "description": "analyze the impact of significant industries in Texas such as aerospace, medical, and computer technologies on local, national, and international markets.",
+    "keywords": [
+      "aerospace",
+      "medical",
+      "computer technologies on local",
+      "international markets",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Economics"
+  },
+  {
+    "code": "7.13(A)",
+    "gradeLevel": "7",
+    "description": "identify how the Texas Constitution reflects the principles of limited government, republicanism, checks and balances, federalism, separation of powers, popular sovereignty, and individual rights; and",
+    "keywords": [
+      "separation of powers",
+      "checks and balances",
+      "popular sovereignty",
+      "limited government",
+      "federalism",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "7.13(B)",
+    "gradeLevel": "7",
+    "description": "compare the principles and concepts of the Texas Constitution to the U.S. Constitution, including the Texas and U.S. Bill of Rights.",
+    "keywords": [
+      "texas and u.s. bill of rights",
+      "u.s. constitution",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "7.14(A)",
+    "gradeLevel": "7",
+    "description": "describe the structure and functions of government at municipal, county, and state levels; and",
+    "keywords": [
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "7.14(B)",
+    "gradeLevel": "7",
+    "description": "identify major sources of revenue for state and local governments such as property taxes, sales taxes, bonds, and fees.",
+    "keywords": [
+      "property taxes",
+      "sales taxes",
+      "bonds",
+      "fees",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Government"
+  },
+  {
+    "code": "7.15(A)",
+    "gradeLevel": "7",
+    "description": "explain rights of Texas citizens; and",
+    "keywords": [
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "7.15(B)",
+    "gradeLevel": "7",
+    "description": "explain civic responsibilities of Texas citizens and the importance of civic participation.",
+    "keywords": [
+      "civic participation",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "7.16(A)",
+    "gradeLevel": "7",
+    "description": "identify different points of view of political parties and interest groups on important Texas issues, past and present; and",
+    "keywords": [
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "7.16(B)",
+    "gradeLevel": "7",
+    "description": "describe the importance of free speech and press in a democratic society.",
+    "keywords": [
+      "free speech",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "7.17(A)",
+    "gradeLevel": "7",
+    "description": "identify the leadership qualities of elected and appointed leaders of Texas, past and present, including Texans who have been president of the United States; and",
+    "keywords": [
+      "texans who have been president of the united states",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "7.17(B)",
+    "gradeLevel": "7",
+    "description": "identify the contributions of Texas leaders such as Lawrence Sullivan \"Sul\" Ross, John Nance Garner (\"Cactus Jack\"), James A. Baker III, Henry B. González, Kay Bailey Hutchison, Barbara Jordan, Raymond L. Telles, Sam Rayburn, and Raul A. Gonzalez Jr.",
+    "keywords": [
+      "lawrence sullivan \"sul\" ross",
+      "john nance garner (\"cactus jack\")",
+      "james a. baker iii",
+      "henry b. gonzález",
+      "kay bailey hutchison",
+      "barbara jordan",
+      "raymond l. telles",
+      "sam rayburn",
+      "raul a. gonzalez jr",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Citizenship"
+  },
+  {
+    "code": "7.18(A)",
+    "gradeLevel": "7",
+    "description": "explain how the diversity of Texas is reflected in a variety of cultural activities and celebrations;",
+    "keywords": [
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "7.18(B)",
+    "gradeLevel": "7",
+    "description": "describe how people from various racial, ethnic, and religious groups attempt to maintain their cultural heritage while adapting to the larger Texas culture;",
+    "keywords": [
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Culture"
+  },
+  {
+    "code": "7.18(C)",
+    "gradeLevel": "7",
+    "description": "identify examples of Spanish influence and the influence of other cultures on Texas such as place names, vocabulary, religion, architecture, food, and the arts; and",
+    "keywords": [
+      "place names",
+      "vocabulary",
+      "religion",
+      "architecture",
+      "food",
+      "arts",
+      "texas history",
+      "grade 7"
+    ],
+    "category": "Culture"
+  }
+]

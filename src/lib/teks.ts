@@ -1,5 +1,13 @@
 import historyData from "../../data/teks-history.json";
 import worldGeoData from "../../data/teks-world-geography.json";
+import grade5Data from "../../data/teks-grade5-us-history.json";
+import grade6Data from "../../data/teks-grade6-world-cultures.json";
+import grade7Data from "../../data/teks-grade7-texas-history.json";
+import grade8Data from "../../data/teks-grade8-us-history.json";
+import hsUsHistoryData from "../../data/teks-hs-us-history.json";
+import hsWorldHistoryData from "../../data/teks-hs-world-history.json";
+import hsGovernmentData from "../../data/teks-hs-us-government.json";
+import hsEconomicsData from "../../data/teks-hs-economics.json";
 
 export interface TEKSStandard {
   code: string;
@@ -18,12 +26,23 @@ function isRealStandard(s: TEKSStandard): boolean {
 
 /**
  * All searchable TEKS available in the app:
- * - History / social studies bank (grades 6–8 + high school samples)
+ * - History bank kept where the wording already matches the 2022 standards
+ * - Grade 5 (§113.16), fuller grades 6–8 (§113.18–§113.20)
+ * - High school U.S. History (§113.41), World History (§113.42),
+ *   U.S. Government (§113.44), and Economics (§113.31)
  * - World Geography Studies (§113.43) for grade 9
  */
 export const teksStandards: TEKSStandard[] = [
   ...(historyData as TEKSStandard[]),
   ...(worldGeoData as TEKSStandard[]),
+  ...(grade5Data as TEKSStandard[]),
+  ...(grade6Data as TEKSStandard[]),
+  ...(grade7Data as TEKSStandard[]),
+  ...(grade8Data as TEKSStandard[]),
+  ...(hsUsHistoryData as TEKSStandard[]),
+  ...(hsWorldHistoryData as TEKSStandard[]),
+  ...(hsGovernmentData as TEKSStandard[]),
+  ...(hsEconomicsData as TEKSStandard[]),
 ].filter(isRealStandard);
 
 /**
