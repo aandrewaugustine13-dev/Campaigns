@@ -21,6 +21,7 @@ export interface Outcome {
   effects: Resources;
   result: string;
   earlyEnd?: boolean;
+  historicalInsight?: string;
 }
 
 export interface Choice {
@@ -29,6 +30,7 @@ export interface Choice {
   result?: string;
   outcomes?: Outcome[];
   earlyEnd?: boolean;
+  historicalInsight?: string;
 }
 
 export interface PushAttempt {

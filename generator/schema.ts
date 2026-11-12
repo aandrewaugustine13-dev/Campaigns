@@ -105,6 +105,9 @@ export interface Outcome {
   effects: Resources;
   result: string;
   earlyEnd?: boolean;
+  // Why this result lines up with or violates the historical record / TEKS
+  // concept. One sentence, 140 characters. Optional: absent on older campaigns.
+  historicalInsight?: string;
 }
 
 export interface Choice {
@@ -127,6 +130,9 @@ export interface Choice {
   // by storyPlanCompile. Optional & additive: absent ⇒ byte-identical (systems
   // choices never carry it, and the assembler simply skips a missing fragment).
   endingFragment?: string;
+  // Flat-choice twin of Outcome.historicalInsight. Set when the choice has
+  // effects+result and no outcomes array. Optional & additive.
+  historicalInsight?: string;
 }
 
 export interface PushAttempt {

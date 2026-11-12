@@ -64,6 +64,20 @@ export interface SageSkeleton {
   threshold: number;
 }
 
+/**
+ * Shared sensory and narrative facts from Stage 1. Every parallel Stage 2
+ * batch receives the same three, so nodes written at the same time still
+ * sound like one journey. Skeleton-only: assembleCampaign does not copy it.
+ */
+export interface ContinuityAnchors {
+  /** A named historical person, their role, and one personality trait. */
+  companionOrAdversary: string;
+  /** One concrete era-specific object or document the protagonist carries. */
+  signatureItemOrDocument: string;
+  /** One persistent sensory, weather, or setting detail of this era and place. */
+  environmentalMotif: string;
+}
+
 export interface LockedResource {
   key: string;
   name: string;
@@ -112,6 +126,7 @@ export interface CampaignSkeleton {
   teachableFacts: string[];
   historicalContext: string;
   storyMeaning?: string;
+  continuityAnchors: ContinuityAnchors;
 }
 
 export interface CampaignClosers {
@@ -388,7 +403,9 @@ function resourceKeyList(skeleton: CampaignSkeleton): string[] {
 
 function constraintBrief(inputs: GenerateInputs, skeleton?: CampaignSkeleton): string {
   const lines: string[] = [];
-  if (inputs.playerRole) lines.push(`PLAYER ROLE (every sentence is from this point of view; the player IS this role): ${inputs.playerRole}`);
+  if (inputs.playerRole && !(inputs.povAvoid && inputs.povAvoid.trim())) {
+    lines.push(`PLAYER ROLE (every sentence is from this point of view; the player IS this role): ${inputs.playerRole}`);
+  }
   if (skeleton?.progressionMode) lines.push(`progressionMode: ${skeleton.progressionMode}`);
   if (skeleton) {
     const keys = resourceKeyList(skeleton);
@@ -410,6 +427,17 @@ function constraintBrief(inputs: GenerateInputs, skeleton?: CampaignSkeleton): s
     lines.push("Do not author storyMeaning; the plan's ending is applied in code.");
   }
   return lines.join("\n");
+}
+
+function continuityBlock(skeleton: CampaignSkeleton): string {
+  const anchors = skeleton.continuityAnchors;
+  if (!anchors) return "";
+  return [
+    "CONTINUITY ANCHORS (the same three are given to every parallel batch — weave at least one into this node's passage or a choice consequence):",
+    `- companionOrAdversary: ${anchors.companionOrAdversary}`,
+    `- signatureItemOrDocument: ${anchors.signatureItemOrDocument}`,
+    `- environmentalMotif: ${anchors.environmentalMotif}`,
+  ].join("\n");
 }
 
 function relationshipBlock(inputs: GenerateInputs): string {
@@ -594,6 +622,38 @@ function normalizeSageSkeletons(raw: unknown, inputs: GenerateInputs): SageSkele
   return sized;
 }
 
+function clipSentence(value: string, max: number): string {
+  const text = value.replace(/\s+/g, " ").trim();
+  if (text.length <= max) return text;
+  return `${text.slice(0, max - 1).trimEnd()}…`;
+}
+
+/** Keep a model's anchors when they are real sentences. Otherwise fill a short fallback so a missing object does not fail the stage. */
+function normalizeContinuityAnchors(raw: unknown, title: string, historicalContext: string): ContinuityAnchors {
+  const obj = raw && typeof raw === "object" && !Array.isArray(raw) ? raw as Record<string, unknown> : {};
+  const name = title.trim() || "this campaign";
+  const place = clipSentence(historicalContext, 80);
+  const text = (key: keyof ContinuityAnchors, fallback: string) => {
+    const value = obj[key];
+    if (typeof value === "string" && value.trim()) return clipSentence(value, 240);
+    return fallback;
+  };
+  return {
+    companionOrAdversary: text(
+      "companionOrAdversary",
+      `A named local with a sharp temper keeps crossing the protagonist's path through ${name}.`,
+    ),
+    signatureItemOrDocument: text(
+      "signatureItemOrDocument",
+      `The protagonist carries one worn, era-specific paper from ${name}.`,
+    ),
+    environmentalMotif: text(
+      "environmentalMotif",
+      place || `The same weather and ground keep returning through ${name}.`,
+    ),
+  };
+}
+
 export function normalizeSkeleton(raw: unknown, inputs: GenerateInputs): CampaignSkeleton {
   const obj = unwrapObject(raw);
   for (const key of ["id", "title", "subtitle", "introBody", "trailFeedOpener", "historicalContext"]) {
@@ -660,6 +720,14 @@ export function normalizeSkeleton(raw: unknown, inputs: GenerateInputs): Campaig
   if (!(skeleton.primaryResourceKey in skeleton.initialResources)) {
     throw new Error(`primaryResourceKey "${skeleton.primaryResourceKey}" is not in initialResources`);
   }
+  skeleton.continuityAnchors = normalizeContinuityAnchors(
+    obj.continuityAnchors,
+    skeleton.title,
+    skeleton.historicalContext,
+  );
+  if (inputs.lockedTheme && (THEMES as readonly string[]).includes(inputs.lockedTheme)) {
+    skeleton.theme = inputs.lockedTheme;
+  }
   return skeleton;
 }
 
@@ -682,7 +750,17 @@ function pairById<T>(
   });
 }
 
-function lockEvent(sk: EventSkeleton, raw: unknown): GameEvent {
+const INSIGHT_MAX = 140;
+
+function trimInsight(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const text = value.replace(/\s+/g, " ").trim();
+  if (!text) return undefined;
+  if (text.length <= INSIGHT_MAX) return text;
+  return `${text.slice(0, INSIGHT_MAX - 1).trimEnd()}…`;
+}
+
+export function lockEvent(sk: EventSkeleton, raw: unknown): GameEvent {
   const ev = (raw && typeof raw === "object" ? { ...(raw as GameEvent) } : {}) as GameEvent;
   ev.id = sk.id;
   ev.phase_min = sk.phase_min;
@@ -692,6 +770,16 @@ function lockEvent(sk: EventSkeleton, raw: unknown): GameEvent {
   if (typeof ev.weight !== "number" || !(ev.weight > 0)) ev.weight = 5;
   if (sk.pinned) ev.pinned = true;
   else delete ev.pinned;
+  for (const choice of ev.choices ?? []) {
+    const own = trimInsight(choice.historicalInsight);
+    if (own) choice.historicalInsight = own;
+    else delete choice.historicalInsight;
+    for (const outcome of choice.outcomes ?? []) {
+      const line = trimInsight(outcome.historicalInsight);
+      if (line) outcome.historicalInsight = line;
+      else delete outcome.historicalInsight;
+    }
+  }
   return ev;
 }
 
@@ -721,15 +809,32 @@ const SKELETON_SYSTEM = [
   "sageSkeletons carry only id, name, title, threshold (0–100, spaced across the run).",
   "teachableFacts are the concrete specifics later stages will teach and quiz: each one states the exact name, number, date, law, or FULL enumerated list. One fact per exam question.",
   "historicalContext is the real outcome in a short paragraph. storyMeaning, only when no narrative spine was supplied, is one short paragraph on what the history added up to — significance and irony, not a verdict on the player.",
+  "continuityAnchors is required. It is one object with three one-sentence strings:",
+  "companionOrAdversary — a named historical person, their specific role, and one personality trait, who can recur beside the protagonist;",
+  "signatureItemOrDocument — one concrete era-specific physical object or document the protagonist carries;",
+  "environmentalMotif — one persistent sensory, weather, or setting detail tied to this era and this geography.",
+  "If the user message says RE-ROLL POV (KEEP TEKS), keep the standard, the grade, and the theme, and choose a different protagonist than the person, class, and post it names.",
+  "If the user message names a LOCKED THEME, that theme string is mandatory.",
 ].join("\n");
 
 function skeletonUser(inputs: GenerateInputs, errors: string[]): string {
   const locked = lockedResourceSpecs(inputs);
   const factCount = inputs.faultLine ? Math.min(16, Math.max(inputs.numQuestions, 12)) : Math.max(inputs.numQuestions, 0);
+  const reroll = typeof inputs.povAvoid === "string" && inputs.povAvoid.trim().length > 0;
   const lines = [
     "LOCKED CONSTRAINTS (ground truth):",
     inputs.frame ? `FRAME (controlling structure):\n${inputs.frame}` : "FRAME: none supplied. This is a journey unless the topic clearly is not one.",
-    inputs.playerRole ? `PLAYER ROLE:\n${inputs.playerRole}` : "",
+    !reroll && inputs.playerRole ? `PLAYER ROLE:\n${inputs.playerRole}` : "",
+    inputs.lockedTheme ? `LOCKED THEME: theme must be "${inputs.lockedTheme}". Do not choose a different theme.` : "",
+    reroll
+      ? [
+          "RE-ROLL POV (KEEP TEKS):",
+          "Keep this TEKS standard, this grade, and the theme. Do not change them.",
+          `Do NOT reuse this previous micro-perspective, social class, or geographic post:\n${inputs.povAvoid?.trim()}`,
+          "Choose a markedly different historical person: a different job, class, and vantage. A front-line sapper becomes a telegraph operator or a diplomatic courier, not a renamed version of the same post.",
+          "Write the title, subtitle, intro, and event skeletons from that new pair of eyes.",
+        ].join("\n")
+      : "",
     locked
       ? `ECONOMY KEYS are already chosen. Use these keys and no others:\n${locked.map((r) => `- "${r.key}" player-facing "${r.playerFacing}"${r.isMoney ? " (money — never primaryResourceKey)" : ""}${r.primary ? " (PRIMARY — set primaryResourceKey to this)" : ""}`).join("\n")}`
       : "No locked economy. Invent 2–4 camelCase resource keys that are the real stakes of this topic.",
@@ -767,6 +872,8 @@ const EVENT_SYSTEM = [
   BREVITY,
   MORAL_TAGS,
   "A standard event has choices. Each choice has either flat effects plus result, OR an outcomes array of { weight, effects, result }, never both. weights are positive integers.",
+  "When a choice lines up with or violates the historical reality or the TEKS concept, set historicalInsight to ONE sentence of at most 140 characters saying why. Put it on the outcome, or on the flat choice when there is no outcomes array. Omit it on a purely mechanical choice.",
+  "CONTINUITY: the user message lists continuityAnchors shared with every other batch. Weave at least one anchor naturally into each event's passage or a choice consequence. Do not label it as a motif. The companion, the carried object, and the weather should make these parallel nodes read as one journey.",
   "A push_luck event has leaveText and attempts: { id, buttonText, successText, failureText, riskChance (0–1, rising), rewards, penalties }. No choices on a push_luck event.",
   "Every multi-option event's choices must have a felt consequence. A bare result string is not one.",
   IMAGE_QUERY,
@@ -782,6 +889,7 @@ function eventUser(
 ): string {
   return [
     constraintBrief(inputs, skeleton),
+    continuityBlock(skeleton),
     economyChoiceBlock(inputs),
     relationshipBlock(inputs),
     referenceBlock(inputs),
@@ -1044,6 +1152,410 @@ export function assembleCampaign(
   return data;
 }
 
+// ── Difficulty normalizer ───────────────────────────────────────
+// Parallel event batches pick resource deltas independently, so a campaign
+// can come back unwinnable or riskless. This is a seeded resource walk, not
+// the player loop: no pace drain, no trivia, no Math.random. It only scales
+// negative choice deltas on non-terminal beats.
+
+const DIFFICULTY_RANDOM_RUNS = 200;
+const DIFFICULTY_SKILLED_RUNS = 50;
+const DIFFICULTY_SKILL = 0.55;
+const DIFFICULTY_SEED = 0xC0FFEE;
+
+interface SimEffects { [key: string]: number }
+interface SimOutcome { weight: number; effects?: SimEffects; earlyEnd?: boolean }
+interface SimChoice { effects?: SimEffects; outcomes?: SimOutcome[]; earlyEnd?: boolean }
+interface SimEvent {
+  id: string;
+  phase_min: number;
+  phase_max: number;
+  weight: number;
+  type?: string;
+  choices?: SimChoice[];
+}
+
+function finiteNum(value: unknown, fallback = 0): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function readEffects(raw: unknown): SimEffects | undefined {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  const effects: SimEffects = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof value === "number" && Number.isFinite(value)) effects[key] = value;
+  }
+  return effects;
+}
+
+function readSimEvents(raw: unknown): SimEvent[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((item, index) => {
+    const ev = item && typeof item === "object" ? item as Record<string, unknown> : {};
+    const choices = Array.isArray(ev.choices)
+      ? ev.choices.map((choice) => {
+          const ch = choice && typeof choice === "object" ? choice as Record<string, unknown> : {};
+          const outcomes = Array.isArray(ch.outcomes)
+            ? ch.outcomes.map((outcome) => {
+                const o = outcome && typeof outcome === "object" ? outcome as Record<string, unknown> : {};
+                return {
+                  weight: typeof o.weight === "number" && Number.isFinite(o.weight) ? o.weight : 1,
+                  effects: readEffects(o.effects),
+                  earlyEnd: o.earlyEnd === true,
+                };
+              })
+            : undefined;
+          return { effects: readEffects(ch.effects), outcomes, earlyEnd: ch.earlyEnd === true };
+        })
+      : undefined;
+    return {
+      id: typeof ev.id === "string" && ev.id ? ev.id : `event_${index + 1}`,
+      phase_min: finiteNum(ev.phase_min),
+      phase_max: finiteNum(ev.phase_max, 1),
+      weight: finiteNum(ev.weight, 1) || 1,
+      type: typeof ev.type === "string" ? ev.type : "standard",
+      choices,
+    };
+  });
+}
+
+function terminalEventIds(events: SimEvent[]): Set<string> {
+  const ids = new Set<string>();
+  let last: SimEvent | undefined;
+  for (const ev of events) {
+    if (ev.phase_min >= 0.85) ids.add(ev.id);
+    if (!last || ev.phase_min >= last.phase_min) last = ev;
+  }
+  if (last) ids.add(last.id);
+  return ids;
+}
+
+function effectSum(effects?: SimEffects): number {
+  if (!effects) return 0;
+  let sum = 0;
+  for (const value of Object.values(effects)) sum += value;
+  return sum;
+}
+
+function hasNegative(effects?: SimEffects): boolean {
+  if (!effects) return false;
+  return Object.values(effects).some((value) => value < 0);
+}
+
+function hasScalablePenalty(events: SimEvent[], terminal: Set<string>): boolean {
+  for (const ev of events) {
+    if (terminal.has(ev.id)) continue;
+    for (const choice of ev.choices ?? []) {
+      if (choice.earlyEnd) continue;
+      if (hasNegative(choice.effects)) return true;
+      for (const outcome of choice.outcomes ?? []) {
+        if (!outcome.earlyEnd && hasNegative(outcome.effects)) return true;
+      }
+    }
+  }
+  return false;
+}
+
+/** mulberry32. One generator per measurement so the rate does not depend on call order. */
+function mulberry32(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (state + 0x6D2B79F5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function weightedIndex(rng: () => number, weights: number[]): number {
+  let total = 0;
+  for (const weight of weights) if (weight > 0) total += weight;
+  if (!(total > 0)) return 0;
+  let roll = rng() * total;
+  for (let i = 0; i < weights.length; i++) {
+    if (weights[i] > 0) roll -= weights[i];
+    if (roll <= 0) return i;
+  }
+  return weights.length - 1;
+}
+
+function tiltWeights(favs: number[], base: number[], skill: number): number[] {
+  const min = Math.min(...favs);
+  const span = (Math.max(...favs) - min) || 1;
+  return favs.map((fav, i) => {
+    const norm = (fav - min) / span;
+    const factor = 1 + skill * (norm - 0.5) * 2;
+    return Math.max(0.05, (base[i] > 0 ? base[i] : 1) * factor);
+  });
+}
+
+function choiceFavorability(choice: SimChoice): number {
+  if (choice.outcomes && choice.outcomes.length > 0) {
+    let weight = 0;
+    let sum = 0;
+    for (const outcome of choice.outcomes) {
+      const w = outcome.weight > 0 ? outcome.weight : 1;
+      weight += w;
+      sum += w * effectSum(outcome.effects);
+    }
+    return weight ? sum / weight : 0;
+  }
+  return effectSum(choice.effects);
+}
+
+interface PackedSim {
+  turns: number;
+  pools: number[][];
+  eventWeight: number[];
+  terminal: Uint8Array;
+  choiceCount: number[];
+  outcomeCount: number[][];
+  outcomeWeight: number[][][];
+  skilledOutcomeWeight: number[][][];
+  skilledChoiceWeight: number[][];
+  choiceEarly: boolean[][];
+  outcomeEarly: boolean[][][];
+  deltas: number[][][][];
+  initial: Float64Array;
+  caps: Float64Array;
+  morale: number;
+  lowIndexes: number[];
+  keys: number;
+}
+
+function packSim(
+  events: SimEvent[],
+  terminal: Set<string>,
+  initial: Record<string, number>,
+  caps: Record<string, number>,
+  primary: string,
+  turns: number,
+): PackedSim {
+  const keys = Object.keys(initial);
+  const indexOf = new Map(keys.map((key, index) => [key, index]));
+  const rowFor = (effects?: SimEffects): number[] => {
+    const row = new Array<number>(keys.length).fill(0);
+    if (!effects) return row;
+    for (const [key, value] of Object.entries(effects)) {
+      const index = indexOf.get(key);
+      if (index !== undefined) row[index] = value;
+    }
+    return row;
+  };
+  const outcomeCount: number[][] = [];
+  const outcomeWeight: number[][][] = [];
+  const skilledOutcomeWeight: number[][][] = [];
+  const skilledChoiceWeight: number[][] = [];
+  const choiceEarly: boolean[][] = [];
+  const outcomeEarly: boolean[][][] = [];
+  const deltas: number[][][][] = [];
+  const choiceCount: number[] = [];
+  const eventWeight: number[] = [];
+  const term = new Uint8Array(events.length);
+  events.forEach((ev, ei) => {
+    if (terminal.has(ev.id)) term[ei] = 1;
+    eventWeight.push(ev.weight > 0 ? ev.weight : 1);
+    const choices = ev.choices ?? [];
+    choiceCount.push(choices.length);
+    const counts: number[] = [];
+    const weights: number[][] = [];
+    const skilledWeights: number[][] = [];
+    const early: boolean[] = [];
+    const outcomeEnds: boolean[][] = [];
+    const rows: number[][][] = [];
+    const favs: number[] = [];
+    for (const choice of choices) {
+      early.push(choice.earlyEnd === true);
+      favs.push(choiceFavorability(choice));
+      if (choice.outcomes && choice.outcomes.length > 0) {
+        counts.push(choice.outcomes.length);
+        weights.push(choice.outcomes.map((outcome) => outcome.weight));
+        skilledWeights.push(tiltWeights(
+          choice.outcomes.map((outcome) => effectSum(outcome.effects)),
+          choice.outcomes.map((outcome) => outcome.weight),
+          DIFFICULTY_SKILL,
+        ));
+        outcomeEnds.push(choice.outcomes.map((outcome) => outcome.earlyEnd === true));
+        rows.push(choice.outcomes.map((outcome) => rowFor(outcome.effects)));
+      } else {
+        counts.push(1);
+        weights.push([1]);
+        skilledWeights.push([1]);
+        outcomeEnds.push([false]);
+        rows.push([rowFor(choice.effects)]);
+      }
+    }
+    outcomeCount.push(counts);
+    outcomeWeight.push(weights);
+    skilledOutcomeWeight.push(skilledWeights);
+    skilledChoiceWeight.push(choices.length > 1 ? tiltWeights(favs, choices.map(() => 1), DIFFICULTY_SKILL) : []);
+    choiceEarly.push(early);
+    outcomeEarly.push(outcomeEnds);
+    deltas.push(rows);
+  });
+  const pools: number[][] = [];
+  for (let turn = 0; turn < turns; turn++) {
+    const progress = turns <= 1 ? 0.5 : turn / (turns - 1);
+    const pool: number[] = [];
+    for (let i = 0; i < events.length; i++) {
+      const ev = events[i];
+      if (ev.type === "push_luck" || !(ev.choices && ev.choices.length)) continue;
+      if (progress >= ev.phase_min && progress <= ev.phase_max) pool.push(i);
+    }
+    pools.push(pool);
+  }
+  const initArr = new Float64Array(keys.length);
+  const capArr = new Float64Array(keys.length);
+  const lowIndexes: number[] = [];
+  keys.forEach((key, index) => {
+    initArr[index] = initial[key];
+    capArr[index] = caps[key] ?? 100;
+    if (key !== primary && capArr[index] > 10) lowIndexes.push(index);
+  });
+  return {
+    turns, pools, eventWeight, terminal: term, choiceCount,
+    outcomeCount, outcomeWeight, skilledOutcomeWeight, skilledChoiceWeight,
+    choiceEarly, outcomeEarly, deltas, initial: initArr, caps: capArr,
+    morale: indexOf.get("morale") ?? -1, lowIndexes, keys: keys.length,
+  };
+}
+
+function packedDead(sim: PackedSim, buf: Float64Array): boolean {
+  if (sim.morale >= 0 && buf[sim.morale] <= 0) return true;
+  let low = 0;
+  for (let i = 0; i < sim.lowIndexes.length; i++) if (buf[sim.lowIndexes[i]] <= 0) low++;
+  return low >= 2;
+}
+
+function playPacked(sim: PackedSim, scalar: number, skilled: boolean, rng: () => number, buf: Float64Array): boolean {
+  buf.set(sim.initial);
+  for (let turn = 0; turn < sim.turns; turn++) {
+    const pool = sim.pools[turn];
+    const poolSize = pool.length;
+    if (poolSize === 0) continue;
+    let ev = pool[0];
+    if (poolSize > 1) {
+      let total = 0;
+      for (let i = 0; i < poolSize; i++) total += sim.eventWeight[pool[i]];
+      let roll = rng() * (total > 0 ? total : 1);
+      ev = pool[poolSize - 1];
+      for (let i = 0; i < poolSize; i++) {
+        roll -= sim.eventWeight[pool[i]];
+        if (roll <= 0) { ev = pool[i]; break; }
+      }
+    }
+    const choiceCount = sim.choiceCount[ev];
+    if (choiceCount === 0) continue;
+    const ci = choiceCount === 1 ? 0
+      : skilled ? weightedIndex(rng, sim.skilledChoiceWeight[ev])
+      : Math.floor(rng() * choiceCount);
+    const outcomeCount = sim.outcomeCount[ev][ci];
+    const oi = outcomeCount <= 1 ? 0
+      : weightedIndex(rng, skilled ? sim.skilledOutcomeWeight[ev][ci] : sim.outcomeWeight[ev][ci]);
+    const scale = sim.terminal[ev] === 0 && !sim.choiceEarly[ev][ci] && !sim.outcomeEarly[ev][ci][oi];
+    const delta = sim.deltas[ev][ci][oi];
+    for (let k = 0; k < sim.keys; k++) {
+      let d = delta[k];
+      if (d === 0) continue;
+      if (scale && d < 0) d = Math.round(d * scalar);
+      let next = buf[k] + d;
+      const cap = sim.caps[k];
+      if (next < 0) next = 0;
+      else if (next > cap) next = cap;
+      buf[k] = next;
+    }
+    if (packedDead(sim, buf)) return false;
+    if (sim.choiceEarly[ev][ci] || sim.outcomeEarly[ev][ci][oi]) return true;
+  }
+  return !packedDead(sim, buf);
+}
+
+function survivalRate(sim: PackedSim, runs: number, seed: number, scalar: number, skilled: boolean): number {
+  const rng = mulberry32(seed);
+  const buf = new Float64Array(sim.keys);
+  let lived = 0;
+  for (let i = 0; i < runs; i++) if (playPacked(sim, scalar, skilled, rng, buf)) lived++;
+  return runs > 0 ? lived / runs : 1;
+}
+
+function scaleEffectsObject(raw: unknown, scalar: number): void {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return;
+  const effects = raw as Record<string, unknown>;
+  for (const [key, value] of Object.entries(effects)) {
+    if (typeof value === "number" && value < 0) effects[key] = Math.round(value * scalar);
+  }
+}
+
+function applyDifficultyScalar(campaign: Record<string, unknown>, scalar: number, terminal: Set<string>): void {
+  if (!Array.isArray(campaign.events)) return;
+  for (const item of campaign.events) {
+    if (!item || typeof item !== "object") continue;
+    const ev = item as Record<string, unknown>;
+    const id = typeof ev.id === "string" ? ev.id : "";
+    if (terminal.has(id) || !Array.isArray(ev.choices)) continue;
+    for (const choice of ev.choices) {
+      if (!choice || typeof choice !== "object") continue;
+      const ch = choice as Record<string, unknown>;
+      if (ch.earlyEnd === true) continue;
+      scaleEffectsObject(ch.effects, scalar);
+      if (!Array.isArray(ch.outcomes)) continue;
+      for (const outcome of ch.outcomes) {
+        if (!outcome || typeof outcome !== "object") continue;
+        const o = outcome as Record<string, unknown>;
+        if (o.earlyEnd === true) continue;
+        scaleEffectsObject(o.effects, scalar);
+      }
+    }
+  }
+}
+
+/**
+ * Pull a systems campaign's random survival into 55–70% by scaling negative
+ * choice deltas. Too deadly (under 35%) shrinks those penalties. Too easy
+ * (over 85%) grows them. Closing beats, earlyEnd choices, positive deltas,
+ * and flag writes are left alone. No model call.
+ */
+export function normalizeCampaignDifficulty(campaign: Record<string, unknown>): void {
+  if (Array.isArray(campaign.flags) && campaign.flags.length > 0) return;
+  const events = readSimEvents(campaign.events);
+  if (events.length === 0) return;
+  const initial = readEffects(campaign.initialResources) ?? {};
+  const capSource = readEffects(campaign.resourceCaps) ?? {};
+  const caps: Record<string, number> = {};
+  for (const key of Object.keys(initial)) caps[key] = capSource[key] ?? 100;
+  const primary = typeof campaign.primaryResourceKey === "string" ? campaign.primaryResourceKey : "";
+  const terminal = terminalEventIds(events);
+  const turns = Math.max(4, Math.min(24, Math.round(finiteNum(campaign.totalDays, 1) / Math.max(1, finiteNum(campaign.daysPerTurn, 1)))));
+  const sim = packSim(events, terminal, initial, caps, primary, turns);
+
+  const pre = survivalRate(sim, DIFFICULTY_RANDOM_RUNS, DIFFICULTY_SEED, 1, false);
+  const preSkilled = survivalRate(sim, DIFFICULTY_SKILLED_RUNS, DIFFICULTY_SEED + 1, 1, true);
+  let scalar = 1;
+  if ((pre < 0.35 || pre > 0.85) && hasScalablePenalty(events, terminal)) {
+    const tooHard = pre < 0.35;
+    let lo = tooHard ? 0.15 : 1;
+    let hi = tooHard ? 1 : 3;
+    let best = tooHard ? 0.55 : 1.5;
+    let bestDist = Infinity;
+    for (let i = 0; i < 8; i++) {
+      const mid = (lo + hi) / 2;
+      const rate = survivalRate(sim, DIFFICULTY_RANDOM_RUNS, DIFFICULTY_SEED, mid, false);
+      const dist = Math.abs(rate - 0.625);
+      if (dist < bestDist) { bestDist = dist; best = mid; }
+      if (rate >= 0.55 && rate <= 0.70) { best = mid; break; }
+      if (rate < 0.625) hi = mid;
+      else lo = mid;
+    }
+    scalar = best;
+    if (scalar !== 1) applyDifficultyScalar(campaign, scalar, terminal);
+  }
+  const post = scalar === 1 ? pre : survivalRate(sim, DIFFICULTY_RANDOM_RUNS, DIFFICULTY_SEED, scalar, false);
+  const postSkilled = scalar === 1 ? preSkilled : survivalRate(sim, DIFFICULTY_SKILLED_RUNS, DIFFICULTY_SEED + 1, scalar, true);
+  console.log(
+    `[difficulty] random survival ${(pre * 100).toFixed(0)}% → ${(post * 100).toFixed(0)}% (high-competence ${(preSkilled * 100).toFixed(0)}% → ${(postSkilled * 100).toFixed(0)}%), scalar ${scalar.toFixed(2)}`,
+  );
+}
+
 /**
  * Chunked replacement for the single generateContent call.
  *
@@ -1085,5 +1597,8 @@ export async function generateCampaignChunked(
   const closers = await generateClosers(apiKey, skeleton, events, trivia, inputs, routed.closers, sages);
   console.log(`[generate] chunked closers ${((Date.now() - closerStarted) / 1000).toFixed(1)}s`);
 
-  return assembleCampaign(skeleton, events, sages, trivia, closers);
+  const campaign = assembleCampaign(skeleton, events, sages, trivia, closers);
+  // Character runs end on the clock, not a resource death. Leave their deltas alone.
+  if (!inputs.personalEconomy && !inputs.faultLine) normalizeCampaignDifficulty(campaign);
+  return campaign;
 }

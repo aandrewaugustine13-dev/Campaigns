@@ -38,12 +38,15 @@ export default function StoryPlanReview({
   onConfirm,
   onBack,
   onRegenerate,
+  onRerollPov,
   busy = false,
   regenerating = false,
 }: {
   plan: NarrativePlan;
   onConfirm: (plan: NarrativePlan) => void;
   onBack?: () => void;
+  /** Generate again for the same TEKS, grade, and plan, with a new protagonist. */
+  onRerollPov?: () => void;
   // Re-propose the whole plan from the model — the honest path when the plan has
   // a CONTENT error (a malformed field) that toggling beats can't fix.
   onRegenerate?: () => void;
@@ -176,15 +179,27 @@ export default function StoryPlanReview({
           <span className="text-xs text-stone-500 text-center sm:text-left">
             {status.includedCount} of {status.total} beats included
           </span>
-          <StudioButton
-            size="lg"
-            onClick={() => onConfirm(edited)}
-            disabled={!status.canConfirm || busy}
-            loading={busy}
-          >
-            {busy ? "Generating…" : "Build campaign"}
-            {!busy && <ArrowRight className="h-4 w-4" aria-hidden />}
-          </StudioButton>
+          <div className="flex flex-col-reverse sm:flex-row gap-2">
+            {onRerollPov && (
+              <button
+                type="button"
+                onClick={onRerollPov}
+                disabled={!status.canConfirm || busy}
+                className="theme-btn-action theme-border border rounded px-4 py-2.5 text-sm font-bold disabled:opacity-40"
+              >
+                Re-Roll POV (Keep TEKS)
+              </button>
+            )}
+            <StudioButton
+              size="lg"
+              onClick={() => onConfirm(edited)}
+              disabled={!status.canConfirm || busy}
+              loading={busy}
+            >
+              {busy ? "Generating…" : "Build campaign"}
+              {!busy && <ArrowRight className="h-4 w-4" aria-hidden />}
+            </StudioButton>
+          </div>
         </div>
       </StudioPanel>
     </StudioShell>

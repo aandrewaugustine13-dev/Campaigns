@@ -58,8 +58,8 @@ import { CHISHOLM_FINAL_EXAM } from "./campaigns/chisholm/finalExam";
 // ═══════════════════════════════════════════════════════════════
 
 interface Resources { [key: string]: number; }
-interface Outcome { weight: number; effects: Resources; result: string; earlyEnd?: boolean; }
-interface Choice { text: string; effects?: Resources; result?: string; outcomes?: Outcome[]; earlyEnd?: boolean; }
+interface Outcome { weight: number; effects: Resources; result: string; earlyEnd?: boolean; historicalInsight?: string; }
+interface Choice { text: string; effects?: Resources; result?: string; outcomes?: Outcome[]; earlyEnd?: boolean; historicalInsight?: string; }
 interface PushAttempt { id: string; buttonText: string; successText: string; failureText: string; riskChance: number; rewards: Resources; penalties: Resources; }
 interface SageAdvice { name: string; role: string; line: string; }
 interface GameEvent { 
@@ -114,6 +114,8 @@ interface GameState {
   sagesMet: string[];
   trailFeed: string[];
   hardPaceStreak: number;
+  /** Set only when competence actually tilted a multi-outcome roll. */
+  competenceReadout: string;
 }
 
 
@@ -331,8 +333,9 @@ function shouldGateTrivia(eventId: string, turn: number){
   if (!danger) return false;
   return (eventId.length + turn) % 2 === 0;
 }
-function resolveChoice(ch:Choice, comp = 0, readiness = 0.5):{effects?:Resources;result?:string;earlyEnd?:boolean}{
-  if(ch.outcomes)return biasedPick(ch.outcomes, comp, readiness);return{effects:ch.effects,result:ch.result,earlyEnd:ch.earlyEnd};
+function resolveChoice(ch:Choice, comp = 0, readiness = 0.5):{effects?:Resources;result?:string;earlyEnd?:boolean;historicalInsight?:string}{
+  if(ch.outcomes)return biasedPick(ch.outcomes, comp, readiness);
+  return{effects:ch.effects,result:ch.result,earlyEnd:ch.earlyEnd,historicalInsight:ch.historicalInsight};
 }
 function pickEvent(day:number,td:number,used:Set<string>,evts:GameEvent[]):GameEvent|null{
   const p=day/td;const el=evts.filter(e=>p>=e.phase_min&&p<=e.phase_max&&!used.has(e.id));
@@ -360,7 +363,7 @@ const TRADE_LABELS: Record<string, string> = {
   cash: "cash", supplies: "provisions", horses: "horses", spareParts: "spare parts",
   ammo: "ammo", herd: "cattle", crew: "crew", morale: "morale", wagonCondition: "wagon",
 };
-const makeInit=():GameState=>({day:1,turn:0,resources:{...INIT_R},phase:"intro",pace:"normal",distance:0,currentEvent:null,resultText:"",decisions:[],gameOver:false,survived:false,earlySale:false,outfit:{...DEFAULT_OUTFIT},historicalKnowledge:0,knowledgeLog:[],triviaCounter:0,currentTrivia:null,usedTriviaIds:new Set(),triviaStreak:0,insight:1,objectives:[],routeState:{currentNodeId:"start"},routeTag:"SAFE",riskHintsOn:false,pendingChoiceIndex:null,pendingEventQuestion:null,objectiveNotice:"",sageIndex:0,currentSage:null,sagesMet:[],trailFeed:[ChisholmCampaign.trailFeedOpener],hardPaceStreak:0});
+const makeInit=():GameState=>({day:1,turn:0,resources:{...INIT_R},phase:"intro",pace:"normal",distance:0,currentEvent:null,resultText:"",decisions:[],gameOver:false,survived:false,earlySale:false,outfit:{...DEFAULT_OUTFIT},historicalKnowledge:0,knowledgeLog:[],triviaCounter:0,currentTrivia:null,usedTriviaIds:new Set(),triviaStreak:0,insight:1,objectives:[],routeState:{currentNodeId:"start"},routeTag:"SAFE",riskHintsOn:false,pendingChoiceIndex:null,pendingEventQuestion:null,objectiveNotice:"",sageIndex:0,currentSage:null,sagesMet:[],trailFeed:[ChisholmCampaign.trailFeedOpener],hardPaceStreak:0,competenceReadout:""});
 
 // ═══════════════════════════════════════════════════════════════
 // APP
@@ -480,6 +483,7 @@ export default function App(){
           s.resources.wagonCondition = clampR("wagonCondition", s.resources.wagonCondition + 12);
           s.resources.supplies = clampR("supplies", s.resources.supplies - 4);
           s.resultText = "Wagon axle strain forced a field repair. You burned one spare-part crate and lost time.";
+          s.competenceReadout = "";
           s.phase = "result";
         } else {
           s.resources.wagonCondition = clampR("wagonCondition", s.resources.wagonCondition - 20);
@@ -493,6 +497,7 @@ export default function App(){
           } else {
             s.resultText = "No spare parts. The wagon limps onward, badly damaged, with food and medical stores spilling out.";
           }
+          s.competenceReadout = "";
           s.phase = "result";
         }
       }
@@ -594,6 +599,12 @@ export default function App(){
       const comp=competenceFactor(s.historicalKnowledge,s.triviaStreak);
       const readiness=readinessOf(s.resources);
       const choice=s.currentEvent!.choices![ci];const outcome=resolveChoice(choice,comp,readiness);
+      const skill=Math.min(comp+(readiness-0.5)*0.4,0.85);
+      const biased=!!choice.outcomes&&choice.outcomes.length>1&&comp>0&&skill>0;
+      const insight=outcome.historicalInsight||choice.historicalInsight;
+      s.competenceReadout=biased
+        ?(insight?`Historical Competence +${Math.round(comp*100)}%: ${insight}`:`Historical Competence +${Math.round(comp*100)}%`)
+        :"";
       {
         const ev=s.currentEvent!;
         const fact=Array.isArray(ev.trivia)&&ev.trivia.length?`Did you know? ${ev.trivia[0]}`:"";
@@ -675,7 +686,7 @@ export default function App(){
 
   const continueGame=useCallback(()=>{
     setState(prev=>{
-      const s:GameState={...prev,currentEvent:null,resultText:"",objectiveNotice:""};
+      const s:GameState={...prev,currentEvent:null,resultText:"",competenceReadout:"",objectiveNotice:""};
       if(s.resources.crew<=2||s.resources.herd<=100||s.resources.horses<=5)return{...s,phase:"end"as const,gameOver:true,survived:false};
       if(s.distance>=TOTAL_DISTANCE||s.earlySale)return{...s,phase:"end"as const,gameOver:true,survived:true};
       s.phase="sailing";return s;
@@ -748,7 +759,7 @@ export default function App(){
       else if(roll<accidentCeil){s.resources.horses=Math.max(0,s.resources.horses-1);result="Horse stepped in a prairie dog hole at a gallop. Had to put the animal down.";}
       else{s.resources.crew=Math.max(0,s.resources.crew-1);result="A hunter caught a rattlesnake bite reaching through brush.";}
       s.decisions.push({event:"Hunting",choice:"Went hunting",day:s.day,detail:result});
-      s.resultText=result;s.phase="result";return s;
+      s.resultText=result;s.competenceReadout="";s.phase="result";return s;
     });
   },[]);
 
@@ -763,7 +774,7 @@ export default function App(){
       else if(roll<80){s.resources.supplies=clampR("supplies",s.resources.supplies+3);result="Rabbits and a few birds in the snares — a small, steady haul.";}
       else{s.resources.supplies=clampR("supplies",s.resources.supplies+6);result="A good night for the traps. Enough small game to stretch the larder.";}
       s.decisions.push({event:"Trapping",choice:"Set snares for small game",day:s.day,detail:result});
-      s.resultText=result;s.phase="result";return s;
+      s.resultText=result;s.competenceReadout="";s.phase="result";return s;
     });
   },[]);
 
@@ -778,6 +789,7 @@ export default function App(){
       const note = `${offer.label} at ${townName}.`;
       s.decisions.push({ event: `Trade — ${townName}`, choice: offer.label, day: s.day, detail: note });
       s.resultText = note;
+      s.competenceReadout = "";
       s.phase = "result";
       return s;
     });
@@ -792,6 +804,7 @@ export default function App(){
       s.resources.spareParts = clampR("spareParts", s.resources.spareParts + 1);
       s.decisions.push({ event: "Town Stop", choice: "Paid for blacksmith wagon repair", day: s.day, detail: "You paid steep town rates for blacksmith work and one spare-part crate." });
       s.resultText = "You paid steep town rates for blacksmith work and one spare-part crate.";
+      s.competenceReadout = "";
       s.trailFeed = [...(s.trailFeed || []), "Blacksmith repairs finished by lantern light. The wagon sounds steadier."].slice(-18);
       s.phase = "result";
       return s;
@@ -807,6 +820,7 @@ export default function App(){
       s.resources.morale = clampR("morale", s.resources.morale + 4);
       s.decisions.push({ event: "Town Stop", choice: "Hired replacement hand", day: s.day, detail: "You hired a replacement hand at inflated trail-town wages." });
       s.resultText = "You hired a replacement hand at inflated trail-town wages.";
+      s.competenceReadout = "";
       s.trailFeed = [...(s.trailFeed || []), "A new hand joined at town. Camp duty and night watch improved."].slice(-18);
       s.phase = "result";
       return s;
@@ -822,6 +836,7 @@ export default function App(){
       s.resources.morale = clampR("morale", s.resources.morale + 3);
       s.decisions.push({ event: "Town Stop", choice: "Bought provisions and medicine", day: s.day, detail: "You bought costly trail provisions, enough to steady the camp for now." });
       s.resultText = "You bought costly trail provisions, enough to steady the camp for now.";
+      s.competenceReadout = "";
       s.trailFeed = [...(s.trailFeed || []), "Fresh provisions reached camp. Meals should hold for several more days."].slice(-18);
       s.phase = "result";
       return s;
@@ -1271,6 +1286,11 @@ export default function App(){
           )}
           {state.phase==="result"&&(
             <div className="space-y-3">
+              {state.competenceReadout && (
+                <p className="theme-bg-card-inner theme-border theme-text-accent theme-body-font border rounded px-3 py-2 text-sm" role="status">
+                  {state.competenceReadout}
+                </p>
+              )}
               <div className="border border-[#3a3630] rounded p-3 bg-[#211e1a]">
                 <p className="text-[#a69a80] text-sm leading-relaxed">{state.resultText}</p>
               </div>

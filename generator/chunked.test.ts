@@ -8,7 +8,9 @@ import {
   assembleCampaign,
   assignFactsToBatches,
   EVENT_BATCH_SIZE,
+  lockEvent,
   lockedResourceSpecs,
+  normalizeCampaignDifficulty,
   normalizeSkeleton,
   routePriorErrors,
   splitEventBatches,
@@ -145,13 +147,22 @@ console.log("\n=== chunked generator: structure ===\n");
     teachableFacts: ["The canal opened in 1825.", ""],
     historicalContext: "The canal opened and paid for itself.",
     storyMeaning: "Should be kept when no plan is locked.",
-  }, baseInputs);
+    theme: "frontier-leather",
+  }, { ...baseInputs, lockedTheme: "broadsheet-sepia" });
   check("project mode clears the fake trail", skeleton.progressionMode === "project" && skeleton.totalDistance === 0 && skeleton.paces?.length === 0 && skeleton.trailPath.length === 0);
   check("project route still has a terminal node", skeleton.route.some((n) => n.id === "start") && skeleton.route.some((n) => n.edges.length === 0));
   check("event skeletons sort by phase", skeleton.eventSkeletons.map((e) => e.id).join(",") === "early,mid,late");
   check("sage count is filled out to numSages", skeleton.sageSkeletons.length === 2 && skeleton.sageSkeletons[0].name === "DeWitt Clinton");
   check("blank teachable facts are dropped", skeleton.teachableFacts.length === 1);
   check("story meaning survives when no plan is locked", skeleton.storyMeaning === "Should be kept when no plan is locked.");
+  check("locked theme replaces the skeleton's theme", skeleton.theme === "broadsheet-sepia");
+  check(
+    "missing continuity anchors fall back to non-empty sentences",
+    !!skeleton.continuityAnchors?.companionOrAdversary &&
+      !!skeleton.continuityAnchors.signatureItemOrDocument &&
+      !!skeleton.continuityAnchors.environmentalMotif &&
+      skeleton.continuityAnchors.companionOrAdversary.includes("The Ditch"),
+  );
 
   const events = [
     { id: "late", phase_min: 0, phase_max: 1, title: "Later", text: "b", weight: 5, type: "standard", choices: [] },
@@ -163,7 +174,55 @@ console.log("\n=== chunked generator: structure ===\n");
     reviewSummary: "recap",
   });
   check("assembly restores journey order", (data.events as GameEvent[]).map((e) => e.id).join(",") === "early,mid,late");
-  check("assembly omits skeleton-only fields", !("eventSkeletons" in data) && !("teachableFacts" in data) && data.reviewSummary === "recap");
+  check("assembly omits skeleton-only fields", !("eventSkeletons" in data) && !("teachableFacts" in data) && !("continuityAnchors" in data) && data.reviewSummary === "recap");
+}
+
+{
+  const kept = normalizeSkeleton({
+    id: "erie",
+    title: "The Ditch",
+    subtitle: "Albany to Buffalo",
+    introBody: "You are the commission.",
+    trailFeedOpener: "The first shovel breaks ground.",
+    progressionMode: "project",
+    totalDays: 2920,
+    daysPerTurn: 90,
+    totalDistance: 0,
+    distanceUnit: "",
+    initialResources: { funding: 40 },
+    resourceCaps: { funding: 100 },
+    resourceLabels: { funding: "Funding" },
+    primaryResourceKey: "funding",
+    primaryResourceStart: 40,
+    revenuePerUnit: 1,
+    route: [{ id: "start", title: "Albany", description: "", edges: [] }],
+    trailPath: [],
+    trailStops: [],
+    mapImage: "",
+    outfitConfig: { budget: 100, baseCrew: 1, baseHorses: 0, baseSupplies: 1, costs: {}, wageCosts: {}, wageMorale: {}, herdOptions: [] },
+    pixelColors: { coat: "#000" },
+    pixelFaces: {},
+    paces: [],
+    eventSkeletons: [
+      { id: "early", phase_min: 0.1, phase_max: 0.3, title: "Early", type: "standard" },
+      { id: "mid", phase_min: 0.4, phase_max: 0.5, title: "Mid", type: "standard" },
+      { id: "late", phase_min: 0.6, phase_max: 0.8, title: "Later", type: "standard" },
+    ],
+    sageSkeletons: [{ id: "clinton", name: "DeWitt Clinton", title: "Governor", threshold: 10 }],
+    teachableFacts: ["The canal opened in 1825."],
+    historicalContext: "The canal opened and paid for itself.",
+    continuityAnchors: {
+      companionOrAdversary: "DeWitt Clinton, the canal's political champion, is impatient and exacting.",
+      signatureItemOrDocument: "A folded 1817 surveyor's chain-tally, ink-stained and soft at the creases.",
+      environmentalMotif: "Mosquitoes and standing ditch-water hang over the towpath at dusk.",
+    },
+  }, baseInputs);
+  check(
+    "provided continuity anchors survive normalize",
+    kept.continuityAnchors.companionOrAdversary.startsWith("DeWitt Clinton") &&
+      kept.continuityAnchors.signatureItemOrDocument.includes("surveyor") &&
+      kept.continuityAnchors.environmentalMotif.includes("Mosquitoes"),
+  );
 }
 
 {
@@ -185,6 +244,138 @@ console.log("\n=== chunked generator: structure ===\n");
     threw = err instanceof Error && err.message.includes("expected 3");
   }
   check("wrong event-skeleton count is rejected", threw);
+}
+
+{
+  const sk = { id: "e1", phase_min: 0.2, phase_max: 0.4, title: "Ridge", type: "standard" as const };
+  const long = "x".repeat(180);
+  const ev = lockEvent(sk, {
+    choices: [
+      { text: "Scout the ridge", historicalInsight: `  ${long}  `, outcomes: [{ weight: 1, effects: { morale: 1 }, result: "You see the ford.", historicalInsight: "  You used high-ground reconnaissance before crossing.  " }] },
+      { text: "Rush", historicalInsight: "   ", effects: { morale: -1 }, result: "You ride blind." },
+    ],
+  });
+  const insight = ev.choices?.[0].outcomes?.[0].historicalInsight ?? "";
+  check("historical insight is trimmed to 140 characters", (ev.choices?.[0].historicalInsight?.length ?? 999) <= 140 && insight === "You used high-ground reconnaissance before crossing.");
+  check("blank historical insight is dropped", ev.choices?.[1].historicalInsight === undefined);
+}
+
+function shell(events: unknown[], resources: Record<string, number>, extra: Record<string, unknown> = {}) {
+  return {
+    initialResources: resources,
+    resourceCaps: Object.fromEntries(Object.keys(resources).map((key) => [key, 100])),
+    primaryResourceKey: "gold",
+    totalDays: 8,
+    daysPerTurn: 1,
+    events,
+    ...extra,
+  };
+}
+
+function withLogs(run: () => void): string[] {
+  const logs: string[] = [];
+  const orig = console.log;
+  console.log = (...args: unknown[]) => {
+    logs.push(args.map((arg) => String(arg)).join(" "));
+  };
+  try { run(); } finally { console.log = orig; }
+  return logs;
+}
+
+function rateAfter(line: string): number {
+  const match = line.match(/→\s*(\d+)%/);
+  return match ? Number(match[1]) : -1;
+}
+
+{
+  const campaign = shell([
+    {
+      id: "road", phase_min: 0, phase_max: 0.8, weight: 5, type: "standard",
+      choices: [{
+        text: "Take the ridge",
+        flagWrites: { family: -2 },
+        outcomes: [
+          { weight: 1, effects: { morale: -20, supplies: -20 }, result: "The ridge collapses." },
+          { weight: 1, effects: { morale: -2, supplies: -2, renown: 4 }, result: "You read the ground." },
+          { weight: 0, effects: { supplies: -25 }, result: "You turn back.", earlyEnd: true },
+        ],
+      }],
+    },
+    {
+      id: "close", phase_min: 0.9, phase_max: 1, weight: 5, type: "standard",
+      choices: [{ text: "Finish", effects: { morale: -9 }, result: "The last mile." }],
+    },
+  ], { morale: 50, supplies: 50, gold: 80, renown: 10 });
+  const logs = withLogs(() => normalizeCampaignDifficulty(campaign));
+  const line = logs.find((entry) => entry.startsWith("[difficulty]")) ?? "";
+  const road = (campaign.events as { id: string; choices: { flagWrites: { family: number }; outcomes: { effects: Record<string, number>; earlyEnd?: boolean }[] }[] }[])[0];
+  const close = (campaign.events as { id: string; choices: { effects: Record<string, number> }[] }[])[1];
+  const post = rateAfter(line);
+  check("punishing campaign logs a survival line", line.includes("random survival") && line.includes("high-competence"));
+  check("punishing campaign lands in the 55–70 survival window", post >= 55 && post <= 70, line);
+  check("negative deltas were eased", road.choices[0].outcomes[0].effects.morale > -20 && road.choices[0].outcomes[0].effects.morale < 0);
+  check("positive deltas stay put", road.choices[0].outcomes[1].effects.renown === 4);
+  check("earlyEnd penalties stay put", road.choices[0].outcomes[2].effects.supplies === -25);
+  check("flag writes stay put", road.choices[0].flagWrites.family === -2);
+  check("closing event penalties stay put", close.choices[0].effects.morale === -9);
+}
+
+{
+  const campaign = shell([
+    {
+      id: "road", phase_min: 0, phase_max: 0.8, weight: 5, type: "standard",
+      choices: [{ text: "Stroll", effects: { morale: -1, supplies: -1, renown: 3 }, result: "Quiet." }],
+    },
+    {
+      id: "close", phase_min: 0.9, phase_max: 1, weight: 5, type: "standard",
+      choices: [{ text: "Finish", effects: { morale: -4 }, result: "Done." }],
+    },
+  ], { morale: 90, supplies: 90, gold: 80, renown: 10 });
+  const logs = withLogs(() => normalizeCampaignDifficulty(campaign));
+  const line = logs.find((entry) => entry.startsWith("[difficulty]")) ?? "";
+  const road = (campaign.events as { choices: { effects: Record<string, number> }[] }[])[0];
+  const close = (campaign.events as { choices: { effects: Record<string, number> }[] }[])[1];
+  check("cakewalk logs a harsher scalar", /scalar [1-9]/.test(line) && !line.includes("scalar 1.00"), line);
+  check("cakewalk negatives grow", road.choices[0].effects.morale <= -2 && road.choices[0].effects.supplies <= -2);
+  check("cakewalk positives stay put", road.choices[0].effects.renown === 3);
+  check("cakewalk closing penalty stays put", close.choices[0].effects.morale === -4);
+}
+
+{
+  const campaign = shell([
+    {
+      id: "road", phase_min: 0, phase_max: 0.8, weight: 5, type: "standard",
+      choices: [{ text: "Spend", effects: { morale: -20 }, result: "Hard." }],
+    },
+  ], { morale: 30, supplies: 30, gold: 40 }, { flags: [{ id: "oath" }] });
+  withLogs(() => normalizeCampaignDifficulty(campaign));
+  const morale = (campaign.events as { choices: { effects: { morale: number } }[] }[])[0].choices[0].effects.morale;
+  check("character-mode flags skip the scaler", morale === -20);
+}
+
+{
+  const campaign = shell(
+    Array.from({ length: 8 }, (_, i) => ({
+      id: `e${i}`,
+      phase_min: i / 8,
+      phase_max: (i + 1) / 8,
+      weight: 5,
+      type: "standard",
+      choices: [{
+        text: "Press",
+        outcomes: [
+          { weight: 1, effects: { morale: -12, supplies: -8 }, result: "Bad." },
+          { weight: 1, effects: { morale: -1 }, result: "Ok." },
+        ],
+      }],
+    })),
+    { morale: 40, supplies: 40, gold: 70 },
+  );
+  withLogs(() => normalizeCampaignDifficulty(JSON.parse(JSON.stringify(campaign))));
+  const started = performance.now();
+  withLogs(() => normalizeCampaignDifficulty(campaign));
+  const elapsed = performance.now() - started;
+  check("difficulty normalizer stays under 10ms", elapsed < 10, `${elapsed.toFixed(2)}ms`);
 }
 
 console.log(`\n=== ${failed === 0 ? "PASS" : "FAIL"} ===\n`);

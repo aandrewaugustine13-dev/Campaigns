@@ -107,7 +107,7 @@ export default function Stage1Studio({
   onBack,
   onQuickForm,
 }: {
-  onPlay: (data: CampaignData) => void;
+  onPlay: (data: CampaignData, request: Record<string, unknown>) => void;
   onBack: () => void;
   onQuickForm?: () => void;
 }) {
@@ -287,14 +287,15 @@ export default function Stage1Studio({
   // ── Step 3 → lock everything (incl. the reviewed story plan) and generate ──
   // `plan` is the teacher-confirmed narrative plan from the review step (its
   // included beats become pinned events; its meaning becomes storyMeaning).
-  const generate = async (plan: NarrativePlan | null = storyPlan) => {
+  const generate = async (plan: NarrativePlan | null = storyPlan, reroll = false) => {
     if (!frame) return;
     const persp = perspectives[perspectiveIdx] ?? frame.recommendedPerspective;
+    const playerRole = `${persp.role} — ${persp.description}`;
     setStep("generating");
     setElapsed(0);
     timerRef.current = setInterval(() => setElapsed(t => t + 1), 1000);
     try {
-      const payload = {
+      const payload: Record<string, unknown> = {
         topic: inputs.topic.trim() || persp.role,
         standard: inputs.standard,
         grade: inputs.grade,
@@ -304,7 +305,6 @@ export default function Stage1Studio({
         difficulty: inputs.difficulty,
         // Locked Stage-1 constraints — core.ts treats these as ground truth.
         frame: frame.frame,
-        playerRole: `${persp.role} — ${persp.description}`,
         cast: cast?.cast,
         economy: economy ?? undefined,
         // Character campaigns: the small personal economy (money + 1–2) in
@@ -316,12 +316,19 @@ export default function Stage1Studio({
         // beats into pinned events and sets storyMeaning.
         storyPlan: plan ?? undefined,
       };
+      // A re-roll must not re-lock the previous playerRole or the skeleton
+      // cannot change vantage. TEKS, grade, frame, and economy stay.
+      if (reroll) {
+        payload.povAvoid = playerRole;
+      } else {
+        payload.playerRole = playerRole;
+      }
       const result = await generateCampaignJob(payload);
       if (timerRef.current) clearInterval(timerRef.current);
-      onPlay(result.data as CampaignData);
+      onPlay(result.data as CampaignData, payload);
     } catch (e) {
       if (timerRef.current) clearInterval(timerRef.current);
-      fail(() => generate(plan), e);
+      fail(() => generate(plan, reroll), e);
     }
   };
 
@@ -782,6 +789,7 @@ export default function Stage1Studio({
       <StoryPlanReview
         plan={storyPlan}
         onConfirm={(edited) => { setStoryPlan(edited); generate(edited); }}
+        onRerollPov={() => generate(storyPlan, true)}
         onBack={() => setStep("build")}
         onRegenerate={regenPlan}
         regenerating={planBusy}

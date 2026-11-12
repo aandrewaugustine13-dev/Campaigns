@@ -62,6 +62,13 @@ export interface GenerateInputs {
   // own presence: absent ⇒ generation is byte-for-byte identical to today.
   storyPlan?: NarrativePlan;
   referenceFacts?: string[];
+  // Chunked skeleton only. A previous protagonist, social class, or geographic
+  // post the next Stage-1 pass must not reuse. Absent ⇒ the skeleton prompt
+  // is unchanged. Not read by the monolithic user-message builder.
+  povAvoid?: string;
+  // Chunked skeleton only. Theme id from the previous campaign. When set, the
+  // skeleton is forced to that theme so a re-roll keeps the teacher's look.
+  lockedTheme?: string;
 }
 
 export interface GenerateResult {

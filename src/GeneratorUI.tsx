@@ -33,6 +33,29 @@ const GRADES = ["4th grade", "5th grade", "6th grade", "7th grade", "8th grade"]
 // back out — for validation/debugging (the generated output never touches the
 // repo otherwise, and lives only in memory). Survives reloads.
 const LAST_CAMPAIGN_KEY = "lastGeneratedCampaign";
+const REROLL_KEY = "lastGenerateRequest";
+
+interface RerollMemory {
+  base: Record<string, unknown>;
+  playerRole?: string;
+}
+
+function campaignVantage(data: CampaignData | null): string {
+  if (!data) return "";
+  return [data.title, data.subtitle, data.introBody]
+    .filter((part) => typeof part === "string" && part.trim())
+    .join(" — ")
+    .slice(0, 600);
+}
+
+function stripReroll(payload: Record<string, unknown>): RerollMemory {
+  const playerRole = typeof payload.playerRole === "string" ? payload.playerRole : undefined;
+  const base = { ...payload };
+  delete base.povAvoid;
+  delete base.lockedTheme;
+  delete base.playerRole;
+  return { base, playerRole };
+}
 
 function persistLastCampaign(data: CampaignData) {
   try { localStorage.setItem(LAST_CAMPAIGN_KEY, JSON.stringify(data)); } catch { /* quota/availability — non-fatal */ }
@@ -56,9 +79,11 @@ export default function GeneratorUI({ onBack }: { onBack: () => void }) {
   const [mode, setMode] = useState<Mode>("guided");
   const [form, setForm] = useState<FormState>(DEFAULTS);
   const [campaignData, setCampaignData] = useState<CampaignData | null>(null);
+  const [rerollMemory, setRerollMemory] = useState<RerollMemory | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastPayloadRef = useRef<Record<string, unknown> | null>(null);
 
   useEffect(() => {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
@@ -71,6 +96,8 @@ export default function GeneratorUI({ onBack }: { onBack: () => void }) {
     try {
       const raw = localStorage.getItem(LAST_CAMPAIGN_KEY);
       if (raw) setCampaignData(JSON.parse(raw) as CampaignData);
+      const saved = sessionStorage.getItem(REROLL_KEY);
+      if (saved) setRerollMemory(JSON.parse(saved) as RerollMemory);
     } catch { /* corrupt/absent — ignore */ }
     // run once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -84,15 +111,20 @@ export default function GeneratorUI({ onBack }: { onBack: () => void }) {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
   };
 
-  const handleGenerate = async () => {
-    if (!form.topic.trim() || !form.standard.trim()) return;
+  const rememberRequest = (payload: Record<string, unknown>) => {
+    const memory = stripReroll(payload);
+    setRerollMemory(memory);
+    try { sessionStorage.setItem(REROLL_KEY, JSON.stringify(memory)); } catch { /* quota — non-fatal */ }
+  };
 
+  const runJob = async (payload: Record<string, unknown>) => {
+    lastPayloadRef.current = payload;
     setPhase("generating");
     setErrorMsg("");
     startTimer();
 
     try {
-      const result = await generateCampaignJob(form);
+      const result = await generateCampaignJob(payload);
 
       stopTimer();
 
@@ -104,14 +136,47 @@ export default function GeneratorUI({ onBack }: { onBack: () => void }) {
         console.warn("Validation errors:", errors);
       }
 
-      setCampaignData(result.data as CampaignData);
-      persistLastCampaign(result.data as CampaignData);
+      const data = result.data as CampaignData;
+      setCampaignData(data);
+      persistLastCampaign(data);
+      rememberRequest(payload);
       setPhase("playing");
     } catch (e) {
       stopTimer();
       setErrorMsg(e instanceof Error ? e.message : String(e));
       setPhase("error");
     }
+  };
+
+  const handleGenerate = () => {
+    if (!form.topic.trim() || !form.standard.trim()) return;
+    void runJob({ ...form });
+  };
+
+  // Quick form: the fields on screen stay locked, including the TEKS line.
+  // The previous campaign's protagonist and theme are the constraints.
+  const rerollQuick = () => {
+    if (!form.topic.trim() || !form.standard.trim() || !campaignData) return;
+    const payload: Record<string, unknown> = { ...form };
+    const avoid = campaignVantage(campaignData);
+    if (avoid) payload.povAvoid = avoid;
+    if (campaignData.theme) payload.lockedTheme = campaignData.theme;
+    void runJob(payload);
+  };
+
+  // Teacher preview: replay the exact guided or quick request, minus the
+  // locked player role, so Stage 1 can pick a different vantage.
+  const rerollPreview = () => {
+    if (!campaignData) return;
+    const payload: Record<string, unknown> = rerollMemory ? { ...rerollMemory.base } : { ...form };
+    delete payload.playerRole;
+    const topic = String(payload.topic ?? "").trim();
+    const standard = String(payload.standard ?? "").trim();
+    if (!topic || !standard) return;
+    const avoid = [rerollMemory?.playerRole, campaignVantage(campaignData)].filter(Boolean).join("\n");
+    if (avoid) payload.povAvoid = avoid;
+    if (campaignData.theme) payload.lockedTheme = campaignData.theme;
+    void runJob(payload);
   };
 
   const backToForm = () => {
@@ -121,7 +186,7 @@ export default function GeneratorUI({ onBack }: { onBack: () => void }) {
 
   // ── Playing ──
   if (phase === "playing" && campaignData) {
-    return <GeneratedCampaign data={campaignData} onBack={backToForm} />;
+    return <GeneratedCampaign data={campaignData} onBack={backToForm} onRerollPov={rerollPreview} />;
   }
 
   // ── Guided (Stage 1) flow — the default. Manages its own steps and
@@ -129,7 +194,12 @@ export default function GeneratorUI({ onBack }: { onBack: () => void }) {
   if (mode === "guided" && phase === "form") {
     return (
       <Stage1Studio
-        onPlay={(data) => { setCampaignData(data); persistLastCampaign(data); setPhase("playing"); }}
+        onPlay={(data, request) => {
+          setCampaignData(data);
+          persistLastCampaign(data);
+          rememberRequest(request);
+          setPhase("playing");
+        }}
         onBack={onBack}
         onQuickForm={() => setMode("quick")}
       />
@@ -177,7 +247,7 @@ export default function GeneratorUI({ onBack }: { onBack: () => void }) {
             <p className="text-red-300/70 text-xs mt-2">Try again in a moment, broaden the topic or standard, or check your connection.</p>
           </div>
           <div className="space-y-2">
-            <button onClick={handleGenerate} className="px-6 py-2 bg-amber-700 hover:bg-amber-600 rounded font-bold transition-colors">
+            <button onClick={() => { if (lastPayloadRef.current) void runJob(lastPayloadRef.current); else handleGenerate(); }} className="px-6 py-2 bg-amber-700 hover:bg-amber-600 rounded font-bold transition-colors">
               Try Again
             </button>
             <br />
@@ -313,6 +383,16 @@ export default function GeneratorUI({ onBack }: { onBack: () => void }) {
           >
             Generate Campaign
           </button>
+          {campaignData && (
+            <button
+              type="button"
+              onClick={rerollQuick}
+              disabled={!canGenerate}
+              className="theme-btn-action theme-border border w-full py-2.5 rounded font-bold text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Re-Roll POV (Keep TEKS)
+            </button>
+          )}
 
           {/* Play / dump the last generated campaign if available */}
           {campaignData && (

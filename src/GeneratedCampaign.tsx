@@ -552,8 +552,8 @@ function computeGenericTradeOffers(
 // ═════════════════════════════════════════════════════════════════
 
 interface Resources { [key: string]: number }
-interface Outcome { weight: number; effects: Resources; result: string; earlyEnd?: boolean }
-interface Choice { text: string; effects?: Resources; flagWrites?: FlagWrites; result?: string; outcomes?: Outcome[]; earlyEnd?: boolean; moralTag?: "principled" | "self-serving" | "obvious" }
+interface Outcome { weight: number; effects: Resources; result: string; earlyEnd?: boolean; historicalInsight?: string }
+interface Choice { text: string; effects?: Resources; flagWrites?: FlagWrites; result?: string; outcomes?: Outcome[]; earlyEnd?: boolean; moralTag?: "principled" | "self-serving" | "obvious"; historicalInsight?: string }
 
 // Per-choice moral signal -> a delta on the SEPARATE GameState.moralTally
 // accumulator (never a flag, so isCharacterMode is untouched). Stage 1: the
@@ -669,6 +669,8 @@ interface GameState {
   skipNextPhase: GameState["phase"] | null;
   skipPaused: boolean;
   skipBeatIndex: number;
+  /** Set only when historical knowledge actually tilted a multi-outcome roll. */
+  competenceReadout: string;
 }
 
 // ═════════════════════════════════════════════════════════════════
@@ -725,9 +727,38 @@ function shouldGateTrivia(eventId: string, turn: number) {
   return (eventId.length + turn) % 4 === 0;
 }
 
-function resolveChoice(ch: Choice): { effects?: Resources; result?: string; earlyEnd?: boolean } {
-  if (ch.outcomes) return weightedPick(ch.outcomes);
-  return { effects: ch.effects, result: ch.result, earlyEnd: ch.earlyEnd };
+// Same competence curve as the Chisholm engine (knowledge + streak, cap 0.6).
+// Favorability here is the sum of this campaign's own resource deltas, not
+// the trail's herd/crew keys. comp <= 0 leaves the original weighted pick.
+function competenceFactor(historicalKnowledge: number, streak: number): number {
+  const k = Math.min(historicalKnowledge / 30, 1);
+  const s = Math.min(streak * 0.03, 0.15);
+  return Math.min(k * 0.5 + s, 0.6);
+}
+
+function outcomeFavorability(o: Outcome): number {
+  let sum = 0;
+  for (const v of Object.values(o.effects || {})) if (typeof v === "number") sum += v;
+  return sum;
+}
+
+function biasedPick(outcomes: Outcome[], comp: number): Outcome {
+  if (outcomes.length <= 1 || comp <= 0) return weightedPick(outcomes);
+  const skill = Math.min(comp, 0.85);
+  const favs = outcomes.map(outcomeFavorability);
+  const min = Math.min(...favs);
+  const span = (Math.max(...favs) - min) || 1;
+  const adjusted = outcomes.map((o, i) => {
+    const norm = (favs[i] - min) / span;
+    const factor = 1 + skill * (norm - 0.5) * 2;
+    return { ...o, weight: Math.max(0.05, (o.weight || 1) * factor) };
+  });
+  return weightedPick(adjusted);
+}
+
+function resolveChoice(ch: Choice, comp = 0): { effects?: Resources; result?: string; earlyEnd?: boolean; historicalInsight?: string } {
+  if (ch.outcomes) return biasedPick(ch.outcomes, comp);
+  return { effects: ch.effects, result: ch.result, earlyEnd: ch.earlyEnd, historicalInsight: ch.historicalInsight };
 }
 
 function getAchievements(state: GameState, data: CampaignData): string[] {
@@ -749,7 +780,7 @@ function getAchievements(state: GameState, data: CampaignData): string[] {
 // MAIN COMPONENT
 // ═════════════════════════════════════════════════════════════════
 
-export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: () => void; data?: CampaignData }) {
+export default function GeneratedCampaign({ onBack, data: dataProp, onRerollPov }: { onBack: () => void; data?: CampaignData; onRerollPov?: () => void }) {
   const data = dataProp ?? (defaultCampaignJson as unknown as CampaignData);
 
   const ALLOWED_THEMES = new Set([
@@ -801,6 +832,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
     inventoryOpen: false,
     lastEventWasReader: false,
     skipBeat: null, skipNextPhase: null, skipPaused: false, skipBeatIndex: 0,
+    competenceReadout: "",
   }), [data]);
 
   const [state, setState] = useState<GameState>(makeInit);
@@ -1137,6 +1169,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       const note = `${offer.label} at ${townName}.`;
       s.decisions.push({ event: `Trade — ${townName}`, choice: offer.label, day: s.day, detail: note });
       s.resultText = note;
+      s.competenceReadout = "";
       s.phase = "result";
       return s;
     });
@@ -1148,7 +1181,13 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       if (!prev.currentEvent?.choices) return prev;
       const s: GameState = { ...prev, resources: { ...prev.resources }, decisions: [...prev.decisions], choiceMemory: [...prev.choiceMemory] };
       const choice = s.currentEvent!.choices![ci];
-      const outcome = resolveChoice(choice);
+      const comp = competenceFactor(s.historicalKnowledge, s.triviaStreak);
+      const outcome = resolveChoice(choice, comp);
+      const biased = !!choice.outcomes && choice.outcomes.length > 1 && comp > 0;
+      const insight = outcome.historicalInsight || choice.historicalInsight;
+      s.competenceReadout = biased
+        ? (insight ? `Historical Competence +${Math.round(comp * 100)}%: ${insight}` : `Historical Competence +${Math.round(comp * 100)}%`)
+        : "";
       // CHOICE-MEMORY (Product 2): record WHICH option at WHICH pinned decision
       // beat, in arc order. The rule (pinned decision beat only; resolution and
       // pool events skipped) lives in the pure pinnedChoiceEntry helper so it is
@@ -1268,7 +1307,7 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
 
   const continueGame = useCallback(() => {
     setState(prev => {
-      const s: GameState = { ...prev, currentEvent: null, resultText: "", objectiveNotice: "" };
+      const s: GameState = { ...prev, currentEvent: null, resultText: "", competenceReadout: "", objectiveNotice: "" };
       // Check fail — systems-only (see advanceTurn: character mode has no
       // resource-death; the run ends by reaching the time/arc goal).
       if (!isCharacterMode(data)) {
@@ -1697,6 +1736,11 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
 
           <div className="text-center pb-4 space-y-2">
             <button onClick={() => { setState(makeInit()); setExamTaken(false); setExamCorrect(0); setExamTotal(0); setExamPct(0); setRetakeUsed(false); setRetaking(false); setVerdictAck(false); setStoryMeaningAck(false); setLeftTownId(null); }} className="px-5 py-2 theme-btn-action font-bold rounded transition-colors">Run It Again</button>
+            {onRerollPov && (
+              <button type="button" onClick={onRerollPov} className="block mx-auto mt-2 px-5 py-2 theme-btn-action theme-border border font-bold rounded transition-colors">
+                Re-Roll POV (Keep TEKS)
+              </button>
+            )}
             <br /><button onClick={backToMenu} className="text-xs theme-text-muted opacity-90 hover:opacity-100 transition-opacity">&larr; Back to Campaigns</button>
           </div>
         </div>
@@ -1748,6 +1792,13 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
       <div className="flex-1 flex flex-col overflow-hidden min-w-0 xl:px-4 2xl:px-8">
         <div className={`flex-shrink-0 ${themeConfig.hud}`}>
           <div className="max-w-xl xl:max-w-2xl mx-auto flex flex-col">
+            {onRerollPov && (
+              <div className="flex justify-end px-3 pt-2">
+                <button type="button" onClick={onRerollPov} className="theme-btn-action theme-border border rounded px-3 py-1 text-xs font-bold">
+                  Re-Roll POV (Keep TEKS)
+                </button>
+              </div>
+            )}
             <GenericParallax progress={progress} pace={state.pace} title={data.title} />
             {/* Context/Flavor Card at the top */}
             {/* No opacity on this wrapper: it dims the TEXT below AA, not
@@ -1988,6 +2039,11 @@ export default function GeneratedCampaign({ onBack, data: dataProp }: { onBack: 
 
             {state.phase === "result" && (
               <div className="space-y-3">
+                {state.competenceReadout && (
+                  <p className="theme-bg-card-inner theme-border theme-text-accent theme-body-font border rounded px-3 py-2 text-sm" role="status">
+                    {state.competenceReadout}
+                  </p>
+                )}
                 <div className={`border ${themeConfig.card} rounded p-3`}>
                   {/* Event outcome prose — body reading, full ink. */}
                   <p className="theme-text text-sm leading-relaxed">{state.resultText}</p>
