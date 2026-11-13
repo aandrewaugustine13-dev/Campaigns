@@ -204,6 +204,24 @@ function causalLinkHolds(events: { reads?: string[]; choices?: { mutates: { trac
     ) && skeleton.eventSkeletons.filter((event) => event.type === "push_luck").every((event) => event.choices === undefined),
   );
   check("a later event reads a track an earlier choice mutates", causalLinkHolds(skeleton.eventSkeletons));
+  const earlyTags = new Set((skeleton.eventSkeletons[0].choices ?? []).map((choice) => choice.consequenceTag));
+  const lastBeat = skeleton.eventSkeletons[skeleton.eventSkeletons.length - 1];
+  check(
+    "choices carry a short tradeoff and a consequence tag",
+    skeleton.eventSkeletons.filter((event) => event.type === "standard").every((event) =>
+      (event.choices ?? []).every((choice) =>
+        choice.tradeOff.split(" ").length > 0 &&
+        choice.tradeOff.split(" ").length <= 25 &&
+        /^[A-Z][A-Z0-9_]*$/.test(choice.consequenceTag),
+      ),
+    ),
+  );
+  check("opening event has no incoming context", skeleton.eventSkeletons[0].incomingContext === undefined);
+  check(
+    "a later arrival names an early consequence tag",
+    (lastBeat.incomingContext ?? []).some((entry) => earlyTags.has(entry.tag)) &&
+      new Set((lastBeat.incomingContext ?? []).map((entry) => entry.context)).size === (lastBeat.incomingContext ?? []).length,
+  );
 
   const events = [
     { id: "late", phase_min: 0, phase_max: 1, title: "Later", text: "b", weight: 5, type: "standard", choices: [] },
@@ -316,8 +334,18 @@ function causalLinkHolds(events: { reads?: string[]; choices?: { mutates: { trac
         id: "early", phase_min: 0.1, phase_max: 0.3, title: "Early", type: "standard",
         reads: ["factionTrust"],
         choices: [
-          { id: "fundIt", mutates: [{ track: "factionTrust", delta: 2 }, { track: "nope", delta: 1 }] },
-          { id: "hold", mutates: [{ track: "keyDecision", tag: "withheld" }, { track: "factionTrust", delta: 9 }] },
+          {
+            id: "fundIt",
+            tradeOff: Array.from({ length: 30 }, (_, i) => `w${i + 1}`).join(" "),
+            consequenceTag: "secured_appropriation",
+            mutates: [{ track: "factionTrust", delta: 2 }, { track: "nope", delta: 1 }],
+          },
+          {
+            id: "hold",
+            tradeOff: "Keeps the appropriation but loses the digging season.",
+            consequenceTag: "Held The Line",
+            mutates: [{ track: "keyDecision", tag: "withheld" }, { track: "factionTrust", delta: 9 }],
+          },
         ],
       },
       {
@@ -325,7 +353,14 @@ function causalLinkHolds(events: { reads?: string[]; choices?: { mutates: { trac
         reads: ["factionTrust", "missing"],
         choices: [{ id: "dig", mutates: [{ track: "factionTrust", delta: 1 }] }],
       },
-      { id: "late", phase_min: 0.6, phase_max: 0.8, title: "Later", type: "standard", reads: [], choices: [] },
+      {
+        id: "late", phase_min: 0.6, phase_max: 0.8, title: "Later", type: "standard", reads: [], choices: [],
+        incomingContext: [
+          { tag: "secured_appropriation", context: "The vote passed and the horses are already spent." },
+          { tag: "HELD_THE_LINE", context: "The vote passed and the horses are already spent." },
+          { tag: "NOT_A_REAL_TAG", context: "This tag was never chosen." },
+        ],
+      },
     ],
     sageSkeletons: [{ id: "clinton", name: "DeWitt Clinton", title: "Governor", threshold: 10 }],
     teachableFacts: ["The canal opened in 1825."],
@@ -363,18 +398,99 @@ function causalLinkHolds(events: { reads?: string[]; choices?: { mutates: { trac
     "an empty later read is filled from an earlier mutation",
     (late.reads ?? []).includes("factionTrust") && late.choices?.length === 2 && causalLinkHolds(causal.eventSkeletons),
   );
+  check(
+    "tradeoffs and consequence tags survive in short form",
+    early.choices?.[0].consequenceTag === "SECURED_APPROPRIATION" &&
+      early.choices[0].tradeOff.split(" ").length === 25 &&
+      early.choices[0].tradeOff.endsWith("w25") &&
+      early.choices[1].consequenceTag === "HELD_THE_LINE" &&
+      early.choices[1].tradeOff === "Keeps the appropriation but loses the digging season.",
+  );
+  const lateContexts = late.incomingContext ?? [];
+  check(
+    "reconverging arrivals stay distinct and drop unknown tags",
+    early.incomingContext === undefined &&
+      mid.incomingContext?.map((entry) => entry.tag).join(",") === "SECURED_APPROPRIATION,HELD_THE_LINE" &&
+      lateContexts.map((entry) => entry.tag).includes("SECURED_APPROPRIATION") &&
+      lateContexts.map((entry) => entry.tag).includes("HELD_THE_LINE") &&
+      !lateContexts.some((entry) => entry.tag === "NOT_A_REAL_TAG") &&
+      new Set(lateContexts.map((entry) => entry.context)).size === lateContexts.length &&
+      lateContexts.some((entry) => entry.context === "The vote passed and the horses are already spent."),
+  );
   const locked = lockEvent(early, {
     reads: ["factionTrust"],
     campaignState: { tracks: [] },
+    incomingContext: late.incomingContext,
     choices: [
-      { text: "Fund the cut", effects: { funding: -1 }, result: "You spend political credit.", mutates: [{ track: "factionTrust", delta: 2 }] },
+      { text: "Fund the cut", effects: { funding: -1 }, result: "You spend political credit.", mutates: [{ track: "factionTrust", delta: 2 }], tradeOff: "A gain but a cost.", consequenceTag: "SECURED_APPROPRIATION" },
       { text: "Hold the money", effects: { funding: 1 }, result: "You keep the appropriation." },
     ],
   });
-  const firstChoice = locked.choices?.[0] as { id?: string; mutates?: unknown } | undefined;
+  const firstChoice = locked.choices?.[0] as { id?: string; mutates?: unknown; tradeOff?: unknown; consequenceTag?: unknown } | undefined;
   check(
     "locked events keep stub ids and drop the writer plan",
-    firstChoice?.id === "fundIt" && firstChoice.mutates === undefined && !("reads" in locked) && !("campaignState" in locked),
+    firstChoice?.id === "fundIt" &&
+      firstChoice.mutates === undefined &&
+      firstChoice.tradeOff === undefined &&
+      firstChoice.consequenceTag === undefined &&
+      !("reads" in locked) &&
+      !("campaignState" in locked) &&
+      !("incomingContext" in locked),
+  );
+}
+
+{
+  const beats = [0.1, 0.3, 0.55, 0.8].map((phase, index) => ({
+    id: `beat${index + 1}`,
+    phase_min: phase,
+    phase_max: Math.min(1, phase + 0.15),
+    title: `Beat ${index + 1}`,
+    type: "standard" as const,
+  }));
+  const chained = normalizeSkeleton({
+    id: "erie",
+    title: "The Ditch",
+    subtitle: "Albany to Buffalo",
+    introBody: "You are the commission.",
+    trailFeedOpener: "The first shovel breaks ground.",
+    progressionMode: "project",
+    totalDays: 2920,
+    daysPerTurn: 90,
+    totalDistance: 0,
+    distanceUnit: "",
+    initialResources: { funding: 40 },
+    resourceCaps: { funding: 100 },
+    resourceLabels: { funding: "Funding" },
+    primaryResourceKey: "funding",
+    primaryResourceStart: 40,
+    revenuePerUnit: 1,
+    route: [{ id: "start", title: "Albany", description: "", edges: [] }],
+    trailPath: [],
+    trailStops: [],
+    mapImage: "",
+    outfitConfig: { budget: 100, baseCrew: 1, baseHorses: 0, baseSupplies: 1, costs: {}, wageCosts: {}, wageMorale: {}, herdOptions: [] },
+    pixelColors: { coat: "#000" },
+    pixelFaces: {},
+    paces: [],
+    eventSkeletons: beats,
+    sageSkeletons: [],
+    teachableFacts: ["The canal opened in 1825."],
+    historicalContext: "The canal opened and paid for itself.",
+  }, { ...baseInputs, length: 4, numSages: 0 });
+  const firstTags = new Set((chained.eventSkeletons[0].choices ?? []).map((choice) => choice.consequenceTag));
+  const thirdTags = new Set((chained.eventSkeletons[1].choices ?? []).map((choice) => choice.consequenceTag));
+  const node3 = chained.eventSkeletons[2];
+  const node4 = chained.eventSkeletons[3];
+  check("opening beat has no incoming context", chained.eventSkeletons[0].incomingContext === undefined);
+  check(
+    "the beat before node 4 follows the previous choice",
+    (node3.incomingContext ?? []).length > 0 &&
+      (node3.incomingContext ?? []).every((entry) => thirdTags.has(entry.tag)),
+  );
+  check(
+    "node 4 reads a consequence tag from the first beat",
+    (node4.incomingContext ?? []).some((entry) => firstTags.has(entry.tag)) &&
+      new Set((node4.incomingContext ?? []).map((entry) => entry.context)).size === (node4.incomingContext ?? []).length,
   );
 }
 

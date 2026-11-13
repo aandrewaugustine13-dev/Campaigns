@@ -50,8 +50,11 @@ import type {
 /** Events per parallel fill call. Four to six is the useful range; five balances prose size against call count. */
 export const EVENT_BATCH_SIZE = 5;
 
-/** Output budget for the architect call. The causal plan is still structure, not prose. */
-const SKELETON_MAX_TOKENS = 5000;
+/**
+ * Output budget for the architect call. The plan is structure plus short
+ * tradeoffs and arrival lines, not event prose.
+ */
+const SKELETON_MAX_TOKENS = 6000;
 
 /**
  * Thinking tokens on the architect call only. A Pro thinking model can spend
@@ -73,6 +76,21 @@ export interface StateMutation {
 export interface ChoiceSkeleton {
   id: string;
   mutates: StateMutation[];
+  /** One line, about 25 words, naming both a gain and a cost. */
+  tradeOff: string;
+  /** Ripple name. CONSTANT_CASE. Not a runtime flag. */
+  consequenceTag: string;
+}
+
+/**
+ * One way a later beat can be reached. A reconverging node has one entry per
+ * prior consequenceTag, and the contexts must not say the same thing.
+ */
+export interface IncomingContext {
+  /** An earlier choice's consequenceTag. */
+  tag: string;
+  /** At most ~40 words. How this arrival has already shifted the situation. */
+  context: string;
 }
 
 export interface EventSkeleton {
@@ -88,6 +106,11 @@ export interface EventSkeleton {
   reads?: string[];
   /** Exactly two stubs on a standard event. Absent on push_luck. */
   choices?: ChoiceSkeleton[];
+  /**
+   * Distinct arrivals when more than one prior choice can lead here.
+   * Omitted on the opening event. Skeleton-only, like reads.
+   */
+  incomingContext?: IncomingContext[];
 }
 
 /** A mutable flag or numeric track. Ids are camelCase. There is no description. */
@@ -511,13 +534,16 @@ function causalBlock(skeleton: CampaignSkeleton): string {
   ));
   const chain = skeleton.eventSkeletons.map((ev) => {
     const reads = ev.reads?.length ? `reads ${ev.reads.join(", ")}` : "reads nothing";
+    const arrivals = ev.incomingContext?.length
+      ? ev.incomingContext.map((entry) => `${entry.tag}: ${entry.context}`).join(" | ")
+      : "none";
     if (ev.type === "push_luck" || !ev.choices?.length) {
-      return `- ${ev.id} (${ev.title}, push_luck): ${reads}; no choice stubs`;
+      return `- ${ev.id} (${ev.title}, push_luck): ${reads}; arrivals ${arrivals}; no choice stubs`;
     }
     const stubs = ev.choices
-      .map((choice) => `${choice.id} [${choice.mutates.map(formatMutation).join(", ") || "no mutation"}]`)
+      .map((choice) => `${choice.id} [${choice.consequenceTag}; ${choice.tradeOff}; ${choice.mutates.map(formatMutation).join(", ") || "no mutation"}]`)
       .join("; ");
-    return `- ${ev.id} (${ev.title}): ${reads}; choices ${stubs}`;
+    return `- ${ev.id} (${ev.title}): ${reads}; arrivals ${arrivals}; choices ${stubs}`;
   });
   return [
     "CAUSAL STATE (Stage 1 plan — every parallel batch sees the full chain, because later nodes are written at the same time and cannot see the player's actual choice):",
@@ -538,9 +564,56 @@ function causalSummary(skeleton: CampaignSkeleton): string {
   const beats = skeleton.eventSkeletons.map((ev) => {
     const reads = ev.reads?.length ? `reads ${ev.reads.join("+")}` : "reads nothing";
     const mutations = [...new Set((ev.choices ?? []).flatMap((choice) => choice.mutates.map(formatMutation)))];
-    return `${ev.title}: ${reads}${mutations.length ? `; may set ${mutations.join(", ")}` : ""}`;
+    const tags = (ev.choices ?? []).map((choice) => choice.consequenceTag).join("/");
+    return `${ev.title}: ${reads}${tags ? `; tags ${tags}` : ""}${mutations.length ? `; may set ${mutations.join(", ")}` : ""}`;
   }).join(" | ");
-  return `CAUSAL PLAN (do not contradict it, and do not name these tracks as meters or scores): ${trackLine}. ${beats}`;
+  const earlyTags = skeleton.eventSkeletons
+    .slice(0, 2)
+    .flatMap((ev) => ev.choices ?? [])
+    .map((choice) => choice.consequenceTag);
+  const ripple = earlyTags.length ? ` Early ripples later beats must still show: ${earlyTags.join(", ")}. Do not print those tags as codes.` : "";
+  return `CAUSAL PLAN (do not contradict it, and do not name these tracks as meters or scores): ${trackLine}. ${beats}.${ripple}`;
+}
+
+/**
+ * Per-batch rendering instructions. The causal chain is already shared.
+ * This block names only the arrivals and tradeoffs this worker must write.
+ */
+function consequenceLedger(skeleton: CampaignSkeleton, batch: EventSkeleton[]): string {
+  const byTag = new Map<string, { title: string; tradeOff: string }>();
+  for (const ev of skeleton.eventSkeletons) {
+    for (const choice of ev.choices ?? []) {
+      byTag.set(choice.consequenceTag, { title: ev.title, tradeOff: choice.tradeOff });
+    }
+  }
+  const lines = [
+    "CONSEQUENCE LEDGER (render this; the causal work is already decided):",
+    "The first one or two sentences of each node must show the fallout of the prior decision, the cost already paid or the advantage already gained, before the next dilemma begins.",
+    "When a node lists more than one incomingContext, those arrivals stay different. Do not merge them into one neutral scene that would fit every prior choice.",
+    "Weave the TEKS concept into the consequence itself. Show why that historical approach succeeded or failed in practice. Do not pause the scene to lecture.",
+    "Each choice result must show that stub's tradeOff: both the gain and the cost. Do not print a consequenceTag as a code, a meter, or a flag.",
+  ];
+  for (const ev of batch) {
+    const entries = ev.incomingContext ?? [];
+    if (entries.length === 0) {
+      lines.push(`- ${ev.id} (${ev.title}): opening node. No prior fallout. Each choice still has a real gain and a real cost.`);
+      continue;
+    }
+    lines.push(`- ${ev.id} (${ev.title}) arrivals:`);
+    for (const entry of entries) {
+      const source = byTag.get(entry.tag);
+      const from = source ? `from "${source.title}" (${source.tradeOff})` : "from an earlier choice";
+      lines.push(`  - ${entry.tag} ${from}: ${entry.context}`);
+    }
+  }
+  const stubs = batch.flatMap((ev) => (ev.choices ?? []).map((choice) => ({ eventId: ev.id, choice })));
+  if (stubs.length > 0) {
+    lines.push("Choice tradeoffs to render in the result:");
+    for (const { eventId, choice } of stubs) {
+      lines.push(`  - ${eventId} ${choice.id} [${choice.consequenceTag}]: ${choice.tradeOff}`);
+    }
+  }
+  return lines.join("\n");
 }
 
 function relationshipBlock(inputs: GenerateInputs): string {
@@ -768,6 +841,36 @@ function readMutations(raw: unknown, tracks: CampaignStateTrack[]): StateMutatio
   return mutations;
 }
 
+const TRADE_OFF_WORDS = 25;
+const CONTEXT_WORDS = 40;
+const TAG_MAX = 48;
+const MAX_ARRIVALS = 4;
+const TRADE_OFF_FALLBACK = [
+  "Secures an immediate gain but spends a resource later beats still need.",
+  "Preserves that resource but loses the faster historical opening.",
+];
+
+function clipWords(value: string, maxWords: number): string {
+  const words = value.replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+  if (words.length <= maxWords) return words.join(" ");
+  return words.slice(0, maxWords).join(" ");
+}
+
+function normalizeConsequenceTag(value: unknown, fallback: string): string {
+  const source = typeof value === "string" && value.trim() ? value : fallback;
+  const broken = source
+    .trim()
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+    .replace(/[\s-]+/g, "_")
+    .replace(/[^A-Za-z0-9_]/g, "")
+    .replace(/_+/g, "_")
+    .replace(/^_|_$/g, "");
+  let tag = broken.toUpperCase();
+  if (!/^[A-Z]/.test(tag)) tag = `CHOICE_${tag}`.replace(/^CHOICE_$/, "");
+  tag = tag.slice(0, TAG_MAX).replace(/_$/g, "");
+  return /^[A-Z][A-Z0-9_]{0,47}$/.test(tag) ? tag : "UNSTATED_CONSEQUENCE";
+}
+
 function parseChoiceStubs(raw: unknown, tracks: CampaignStateTrack[]): ChoiceSkeleton[] {
   if (!Array.isArray(raw)) return [];
   const stubs: ChoiceSkeleton[] = [];
@@ -778,9 +881,35 @@ function parseChoiceStubs(raw: unknown, tracks: CampaignStateTrack[]): ChoiceSke
     stubs.push({
       id: CHOICE_ID.test(id) ? id : "",
       mutates: readMutations(obj.mutates, tracks),
+      tradeOff: typeof obj.tradeOff === "string" ? obj.tradeOff : "",
+      consequenceTag: typeof obj.consequenceTag === "string" ? obj.consequenceTag : "",
     });
   }
   return stubs;
+}
+
+function readIncoming(raw: unknown): IncomingContext[] {
+  const items = typeof raw === "string" ? [raw] : Array.isArray(raw) ? raw : [];
+  const entries: IncomingContext[] = [];
+  for (const item of items) {
+    if (entries.length >= MAX_ARRIVALS) break;
+    if (typeof item === "string") {
+      const context = clipWords(item, CONTEXT_WORDS);
+      if (context) entries.push({ tag: "", context });
+      continue;
+    }
+    if (!item || typeof item !== "object") continue;
+    const obj = item as Record<string, unknown>;
+    const contextRaw = obj.context ?? obj.incomingContext ?? obj.text;
+    const context = typeof contextRaw === "string" ? clipWords(contextRaw, CONTEXT_WORDS) : "";
+    if (!context) continue;
+    const tagRaw = obj.tag ?? obj.consequenceTag ?? obj.fromTag;
+    entries.push({
+      tag: typeof tagRaw === "string" && tagRaw.trim() ? normalizeConsequenceTag(tagRaw, "") : "",
+      context,
+    });
+  }
+  return entries;
 }
 
 function fallbackMutation(tracks: CampaignStateTrack[], index: number): StateMutation[] {
@@ -791,7 +920,7 @@ function fallbackMutation(tracks: CampaignStateTrack[], index: number): StateMut
 
 function completeChoiceStubs(existing: ChoiceSkeleton[] | undefined, tracks: CampaignStateTrack[]): ChoiceSkeleton[] {
   const stubs = (existing ?? []).slice(0, 2);
-  while (stubs.length < 2) stubs.push({ id: "", mutates: [] });
+  while (stubs.length < 2) stubs.push({ id: "", mutates: [], tradeOff: "", consequenceTag: "" });
   const seen = new Set<string>();
   return stubs.map((stub, index) => {
     let id = stub.id;
@@ -801,7 +930,98 @@ function completeChoiceStubs(existing: ChoiceSkeleton[] | undefined, tracks: Cam
     return {
       id,
       mutates: stub.mutates.length > 0 ? stub.mutates : fallbackMutation(tracks, index),
+      tradeOff: stub.tradeOff,
+      consequenceTag: stub.consequenceTag,
     };
+  });
+}
+
+function stampChoiceLedger(list: EventSkeleton[]): void {
+  const seen = new Set<string>();
+  for (const ev of list) {
+    ev.choices?.forEach((choice, index) => {
+      const tradeOff = clipWords(choice.tradeOff, TRADE_OFF_WORDS);
+      choice.tradeOff = tradeOff || TRADE_OFF_FALLBACK[index % TRADE_OFF_FALLBACK.length];
+      let tag = normalizeConsequenceTag(choice.consequenceTag, choice.id);
+      let unique = tag;
+      let n = 2;
+      while (seen.has(unique)) {
+        const suffix = `_${n}`;
+        unique = `${tag.slice(0, TAG_MAX - suffix.length)}${suffix}`;
+        n += 1;
+      }
+      seen.add(unique);
+      choice.consequenceTag = unique;
+    });
+  }
+}
+
+function distinguishContext(context: string, tag: string, used: Set<string>): string {
+  if (!used.has(context)) return context;
+  const prose = tag.toLowerCase().replace(/_/g, " ");
+  let next = clipWords(`The ${prose} arrival keeps its own loss.`, CONTEXT_WORDS);
+  let n = 2;
+  while (used.has(next)) {
+    next = clipWords(`The ${prose} arrival keeps its own loss ${n}.`, CONTEXT_WORDS);
+    n += 1;
+  }
+  return next;
+}
+
+/** Immediate next beats stay split, and a later beat still names an early tag. */
+function ensureIncomingContexts(list: EventSkeleton[]): void {
+  const supplied = list.map((ev) => {
+    const byTag = new Map<string, string>();
+    for (const entry of ev.incomingContext ?? []) {
+      if (!entry.tag || !entry.context || byTag.has(entry.tag)) continue;
+      byTag.set(entry.tag, entry.context);
+    }
+    return byTag;
+  });
+  list.forEach((ev, index) => {
+    if (index === 0) {
+      delete ev.incomingContext;
+      return;
+    }
+    const prior: { tag: string; tradeOff: string; eventIndex: number }[] = [];
+    for (let i = 0; i < index; i++) {
+      for (const choice of list[i].choices ?? []) {
+        prior.push({ tag: choice.consequenceTag, tradeOff: choice.tradeOff, eventIndex: i });
+      }
+    }
+    const known = new Set(prior.map((choice) => choice.tag));
+    for (const tag of [...supplied[index].keys()]) {
+      if (!known.has(tag)) supplied[index].delete(tag);
+    }
+    const lastIndex = prior.length > 0 ? prior[prior.length - 1].eventIndex : -1;
+    const immediate = prior.filter((choice) => choice.eventIndex === lastIndex);
+    const early = prior.filter((choice) => choice.eventIndex <= 1);
+    const delayedTarget = list.length >= 4 ? index >= 3 : index === list.length - 1;
+    const wanted: typeof prior = [];
+    const pushUnique = (choices: typeof prior) => {
+      for (const choice of choices) {
+        if (wanted.length >= MAX_ARRIVALS) return;
+        if (wanted.some((item) => item.tag === choice.tag)) continue;
+        wanted.push(choice);
+      }
+    };
+    if (delayedTarget) pushUnique(early);
+    pushUnique(immediate);
+    pushUnique(prior.filter((choice) => supplied[index].has(choice.tag)));
+    if (wanted.length === 0) {
+      delete ev.incomingContext;
+      return;
+    }
+    const used = new Set<string>();
+    ev.incomingContext = wanted.map((choice) => {
+      const context = distinguishContext(
+        supplied[index].get(choice.tag) || clipWords(choice.tradeOff, CONTEXT_WORDS),
+        choice.tag,
+        used,
+      );
+      used.add(context);
+      return { tag: choice.tag, context };
+    });
   });
 }
 
@@ -840,6 +1060,7 @@ function normalizeEventSkeletons(raw: unknown, inputs: GenerateInputs, state: Ca
       type,
       reads: readTrackIds(e.reads, known),
       choices: parseChoiceStubs(e.choices, state.tracks),
+      incomingContext: readIncoming(e.incomingContext),
     };
     if (e.pinned === true) sk.pinned = true;
     return sk;
@@ -867,6 +1088,8 @@ function normalizeEventSkeletons(raw: unknown, inputs: GenerateInputs, state: Ca
     else ev.choices = completeChoiceStubs(ev.choices, state.tracks);
   });
   enforceCausalReads(list);
+  stampChoiceLedger(list);
+  ensureIncomingContexts(list);
   return list;
 }
 
@@ -1056,11 +1279,14 @@ export function lockEvent(sk: EventSkeleton, raw: unknown): GameEvent {
   else delete ev.pinned;
   delete (ev as { reads?: unknown }).reads;
   delete (ev as { campaignState?: unknown }).campaignState;
+  delete (ev as { incomingContext?: unknown }).incomingContext;
   ev.choices?.forEach((choice, i) => {
     const stub = sk.type === "standard" ? sk.choices?.[i] : undefined;
-    const loose = choice as { id?: string; mutates?: unknown };
+    const loose = choice as { id?: string; mutates?: unknown; tradeOff?: unknown; consequenceTag?: unknown };
     if (stub) loose.id = stub.id;
     delete loose.mutates;
+    delete loose.tradeOff;
+    delete loose.consequenceTag;
   });
   for (const choice of ev.choices ?? []) {
     const own = trimInsight(choice.historicalInsight);
@@ -1098,9 +1324,15 @@ const SKELETON_SYSTEM = [
   "pixelColors and pixelFaces are placeholders, not real sprites. outfitConfig.costs are what THIS endeavor actually packed, not generic trail goods.",
   "Do NOT output a flags field. campaignState is a plan for the writers, not a runtime flags array. Do NOT write the fault-line dilemma or any pinned story-plan beat; those are spliced in later.",
   "campaignState is required. It is { tracks } with 2 or 3 tracks and no prose. A track is { id, kind: \"number\" or \"tag\", start }, and number tracks also have min and max. Number ranges stay inside -3..3. A tag start is one short token with no spaces. ids are camelCase.",
-  "eventSkeletons carry id, phase_min, phase_max, title, type (\"standard\" or \"push_luck\"), pinned (false for pool beats), reads, and, for standard events, exactly two choice stubs { id, mutates }. No choice prose. push_luck has reads and no choices. Most types are standard; include 1 or 2 push_luck. Phases are 0–1 and cover the journey.",
+  "eventSkeletons carry id, phase_min, phase_max, title, type (\"standard\" or \"push_luck\"), pinned (false for pool beats), reads, incomingContext, and, for standard events, exactly two choice stubs { id, mutates, tradeOff, consequenceTag }. No button text and no results. push_luck has reads and incomingContext when a prior choice can lead there, and no choices. Most types are standard; include 1 or 2 push_luck. Phases are 0–1 and cover the journey.",
   "mutates entries are { track, delta } on number tracks or { track, tag } on tag tracks. delta is an integer from -2 to 2. tag is one short token.",
+  "tradeOff is one line of at most 25 words and states both a gain and a cost. consequenceTag is a short CONSTANT_CASE ripple name, such as IGNORED_INTELLIGENCE_WARNING or DIVERTED_CONVOY_ROUTE. Tags are unique. A consequenceTag is not a runtime flag.",
+  "incomingContext is omitted on the earliest event. On every later event it is an array of { tag, context }. context is at most 40 words. It names which prior consequenceTag led here and how the resources, relationships, or situation have already shifted. One entry per arrival. Two entries must not share the same context.",
   "The earliest event reads nothing. Every later event's reads lists track ids whose earlier mutations must change this beat's stakes, options, or outcome. At least one later event reads a track an earlier choice mutates.",
+  "HISTORICAL DILEMMA: every decision pits two competing historical pressures against each other, such as speed against security, loyalty against preservation, or short-term survival against the mission. Do not write a correct answer beside a foolish one. One option may be the worse historical bet, and it must still carry a real cost or a lost opportunity.",
+  "NO INSTANT FUNNEL: do not collapse diverging choices into the next node as if both arrivals were the same. When branches meet again on a historical milestone, that event's incomingContext has a distinct entry for each arrival, with different advantages, losses, or relationships.",
+  "DELAYED CAUSAL PAYOFF: at least one choice in the first two events carries a consequenceTag that an event at position 4 or later names in incomingContext. That later beat's stakes or options must change because of that tag.",
+  "Continuity anchors, locked resource keys, and campaignState stay beside this ledger.",
   "sageSkeletons carry only id, name, title, threshold (0–100, spaced across the run).",
   "teachableFacts are the concrete specifics later stages will teach and quiz: each one states the exact name, number, date, law, or FULL enumerated list. One fact per exam question.",
   "historicalContext is the real outcome in a short paragraph. storyMeaning, only when no narrative spine was supplied, is one short paragraph on what the history added up to — significance and irony, not a verdict on the player.",
@@ -1178,7 +1410,9 @@ const EVENT_SYSTEM = [
   "A standard event has choices. Each choice has either flat effects plus result, OR an outcomes array of { weight, effects, result }, never both. weights are positive integers.",
   "When a choice lines up with or violates the historical reality or the TEKS concept, set historicalInsight to ONE sentence of at most 140 characters saying why. Put it on the outcome, or on the flat choice when there is no outcomes array. Omit it on a purely mechanical choice.",
   "CONTINUITY: the user message lists continuityAnchors shared with every other batch. Weave at least one anchor naturally into each event's passage or a choice consequence. Do not label it as a motif. The companion, the carried object, and the weather should make these parallel nodes read as one journey.",
-  "CAUSAL STATE: the user message lists campaignState and the full planned chain of reads and mutations, shared with every parallel batch. Write exactly one player-facing choice per stub, in the same order and with the same id. The result or the effects must show that stub's mutations in the scene. If the skeleton lists reads, this beat's passage and stakes must change because of those earlier mutations. Do not mention track ids as variables, scores, or meters. Do not output a flags array.",
+  "CAUSAL STATE: the user message lists campaignState and the full planned chain of reads and mutations, shared with every parallel batch. Write exactly one player-facing choice per stub, in the same order and with the same id. The result or the effects must show that stub's mutations and its tradeOff, both the gain and the cost. If the skeleton lists reads, this beat's passage and stakes must change because of those earlier mutations. Do not mention track ids, consequenceTags, or meters. Do not output a flags array.",
+  "FALLOUT: the user message lists each node's incomingContext. The first one or two sentences must show the cost already paid or the advantage already gained before the next dilemma. Do not open on a neutral reset. When more than one arrival is listed, the scene and the options must keep those losses, supplies, or relationships different.",
+  "Teach the standard inside the consequence. Show why the historical approach succeeded or failed in practice. Do not add a lecture sentence.",
   "A push_luck event has leaveText and attempts: { id, buttonText, successText, failureText, riskChance (0–1, rising), rewards, penalties }. No choices on a push_luck event.",
   "Every multi-option event's choices must have a felt consequence. A bare result string is not one.",
   IMAGE_QUERY,
@@ -1196,6 +1430,7 @@ function eventUser(
     constraintBrief(inputs, skeleton),
     continuityBlock(skeleton),
     causalBlock(skeleton),
+    consequenceLedger(skeleton, batch),
     economyChoiceBlock(inputs),
     relationshipBlock(inputs),
     referenceBlock(inputs),
