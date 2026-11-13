@@ -15,6 +15,12 @@
 // re-reads the schema or the example campaign. Stage-1 artifacts (frame, cast,
 // economy, fault line, story plan, reference facts) are still ground truth.
 //
+// Model routing lives in models.ts. The skeleton call uses the architect
+// model. Event batches, sages, and trivia use the writer model inside one
+// Promise.all, then closers use the writer model. campaignState is a compact
+// causal plan on the skeleton (tracks, choice mutations, later reads). It is
+// injected into those prompts and is not copied onto the campaign.
+//
 // validate() and the fact gate stay in core.ts. They run after imagery
 // enrichment and fault-line / story-plan splicing, which is the existing
 // order. Running them on the unspliced shell would reject a campaign the
@@ -26,6 +32,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { parseModelJson } from "./json.js";
 import type { GenerateInputs } from "./core.js";
+import { ARCHITECT_MODEL, NODE_WRITER_MODEL } from "./models.js";
 import type { EconomyResource } from "./economy.js";
 import type { PersonalResource } from "./personalEconomy.js";
 import type {
@@ -40,10 +47,33 @@ import type {
   Verdict,
 } from "./schema.js";
 
-const MODEL = "gemini-3.5-flash";
-
 /** Events per parallel fill call. Four to six is the useful range; five balances prose size against call count. */
 export const EVENT_BATCH_SIZE = 5;
+
+/** Output budget for the architect call. The causal plan is still structure, not prose. */
+const SKELETON_MAX_TOKENS = 5000;
+
+/**
+ * Thinking tokens on the architect call only. A Pro thinking model can spend
+ * the whole output budget before it emits JSON. Writer calls leave thinking
+ * at the SDK default, which is what the Flash path already runs.
+ */
+const ARCHITECT_THINKING_BUDGET = 1024;
+
+/** One planned write. Number tracks use delta. Tag tracks use tag. No prose. */
+export interface StateMutation {
+  track: string;
+  /** Integer from -2 to 2. Set only for number tracks. */
+  delta?: number;
+  /** Short slug. Set only for tag tracks. */
+  tag?: string;
+}
+
+/** Compact choice stub. Player-facing text is written later, in parallel. */
+export interface ChoiceSkeleton {
+  id: string;
+  mutates: StateMutation[];
+}
 
 export interface EventSkeleton {
   id: string;
@@ -54,6 +84,28 @@ export interface EventSkeleton {
   type: "standard" | "push_luck";
   /** Pool beats leave this unset. A true pin is guaranteed to fire. */
   pinned?: boolean;
+  /** Track ids whose earlier mutations must change this beat. Empty on the first event. */
+  reads?: string[];
+  /** Exactly two stubs on a standard event. Absent on push_luck. */
+  choices?: ChoiceSkeleton[];
+}
+
+/** A mutable flag or numeric track. Ids are camelCase. There is no description. */
+export interface CampaignStateTrack {
+  id: string;
+  kind: "number" | "tag";
+  start: number | string;
+  /** Number tracks only. The range stays inside -3..3. */
+  min?: number;
+  max?: number;
+}
+
+/**
+ * Writer plan for consequential branching. Not a runtime flags array: a
+ * non-empty flags field would make the player treat the run as character mode.
+ */
+export interface CampaignState {
+  tracks: CampaignStateTrack[];
 }
 
 export interface SageSkeleton {
@@ -126,6 +178,8 @@ export interface CampaignSkeleton {
   teachableFacts: string[];
   historicalContext: string;
   storyMeaning?: string;
+  /** Compact causal plan. Skeleton-only, same as continuityAnchors. */
+  campaignState: CampaignState;
   continuityAnchors: ContinuityAnchors;
 }
 
@@ -440,6 +494,55 @@ function continuityBlock(skeleton: CampaignSkeleton): string {
   ].join("\n");
 }
 
+function formatMutation(mutation: StateMutation): string {
+  if (mutation.tag !== undefined) return `${mutation.track}=${mutation.tag}`;
+  const delta = mutation.delta ?? 0;
+  return `${mutation.track}${delta >= 0 ? "+" : ""}${delta}`;
+}
+
+/** Full planned chain. Every parallel event batch sees every other beat's reads and mutations. */
+function causalBlock(skeleton: CampaignSkeleton): string {
+  const tracks = skeleton.campaignState?.tracks ?? [];
+  if (tracks.length === 0) return "";
+  const trackLines = tracks.map((track) => (
+    track.kind === "number"
+      ? `- ${track.id}: number, starts ${track.start}, range ${track.min}..${track.max}`
+      : `- ${track.id}: tag, starts ${track.start}`
+  ));
+  const chain = skeleton.eventSkeletons.map((ev) => {
+    const reads = ev.reads?.length ? `reads ${ev.reads.join(", ")}` : "reads nothing";
+    if (ev.type === "push_luck" || !ev.choices?.length) {
+      return `- ${ev.id} (${ev.title}, push_luck): ${reads}; no choice stubs`;
+    }
+    const stubs = ev.choices
+      .map((choice) => `${choice.id} [${choice.mutates.map(formatMutation).join(", ") || "no mutation"}]`)
+      .join("; ");
+    return `- ${ev.id} (${ev.title}): ${reads}; choices ${stubs}`;
+  });
+  return [
+    "CAUSAL STATE (Stage 1 plan — every parallel batch sees the full chain, because later nodes are written at the same time and cannot see the player's actual choice):",
+    ...trackLines,
+    ...chain,
+    "Write exactly one player-facing choice per stub, in that order, with the same id. The result or the effects must show that stub's mutations in the scene.",
+    "Do not mention track ids as game variables, scores, or meters.",
+    "If this event lists reads, the passage and the stakes must reflect those tracks after the earlier mutations. An early choice has to visibly change what this beat costs or offers.",
+    "Do not invent a flags array. A push_luck event has attempts, not choices.",
+  ].join("\n");
+}
+
+/** Short form for sages, trivia, and closers, which do not write the choice stubs. */
+function causalSummary(skeleton: CampaignSkeleton): string {
+  const tracks = skeleton.campaignState?.tracks ?? [];
+  if (tracks.length === 0) return "";
+  const trackLine = tracks.map((track) => `${track.id} (${track.kind}, starts ${track.start})`).join(", ");
+  const beats = skeleton.eventSkeletons.map((ev) => {
+    const reads = ev.reads?.length ? `reads ${ev.reads.join("+")}` : "reads nothing";
+    const mutations = [...new Set((ev.choices ?? []).flatMap((choice) => choice.mutates.map(formatMutation)))];
+    return `${ev.title}: ${reads}${mutations.length ? `; may set ${mutations.join(", ")}` : ""}`;
+  }).join(" | ");
+  return `CAUSAL PLAN (do not contradict it, and do not name these tracks as meters or scores): ${trackLine}. ${beats}`;
+}
+
 function relationshipBlock(inputs: GenerateInputs): string {
   if (!inputs.faultLine) return "";
   return [
@@ -469,15 +572,23 @@ function economyChoiceBlock(inputs: GenerateInputs): string {
   return "Every choice in a multi-option event must have a felt consequence: effects, outcomes, or earlyEnd. Effects may use only the locked resource keys.";
 }
 
-async function generateJson(apiKey: string, system: string, user: string, maxOutputTokens: number): Promise<unknown> {
+async function generateJson(
+  apiKey: string,
+  model: string,
+  system: string,
+  user: string,
+  maxOutputTokens: number,
+  thinkingBudget?: number,
+): Promise<unknown> {
   const client = new GoogleGenAI({ apiKey });
   const response = await client.models.generateContent({
-    model: MODEL,
+    model,
     contents: user,
     config: {
       systemInstruction: system,
       maxOutputTokens,
       responseMimeType: "application/json",
+      ...(thinkingBudget !== undefined ? { thinkingConfig: { thinkingBudget } } : {}),
     },
   });
   return parseModelJson(response.text ?? "");
@@ -486,13 +597,15 @@ async function generateJson(apiKey: string, system: string, user: string, maxOut
 /** One repair retry when the response is not usable JSON or fails the stage's shape check. */
 async function callStage<T>(
   apiKey: string,
+  model: string,
   system: string,
   buildUser: (errors: string[]) => string,
   maxOutputTokens: number,
   priorErrors: string[] | undefined,
   parse: (raw: unknown) => T,
+  thinkingBudget?: number,
 ): Promise<T> {
-  const run = async (errors: string[]) => parse(await generateJson(apiKey, system, buildUser(errors), maxOutputTokens));
+  const run = async (errors: string[]) => parse(await generateJson(apiKey, model, system, buildUser(errors), maxOutputTokens, thinkingBudget));
   try {
     return await run(priorErrors ?? []);
   } catch (err) {
@@ -552,8 +665,167 @@ function uniqueIds(items: { id: string }[], prefix: string): void {
   });
 }
 
-function normalizeEventSkeletons(raw: unknown, inputs: GenerateInputs): EventSkeleton[] {
+const TRACK_ID = /^[a-z][a-zA-Z0-9]{0,24}$/;
+const CHOICE_ID = /^[a-zA-Z][a-zA-Z0-9_]{0,31}$/;
+const MAX_TRACKS = 4;
+
+function clampInt(value: number, lo: number, hi: number): number {
+  const rounded = Math.round(value);
+  if (rounded < lo) return lo;
+  if (rounded > hi) return hi;
+  return rounded;
+}
+
+/** A tag is one token. A sentence is prose, so it does not survive. */
+function tagToken(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  if (!trimmed || /\s/.test(trimmed)) return undefined;
+  const token = trimmed.toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (!/^[a-z][a-z0-9]{0,23}$/.test(token)) return undefined;
+  return token;
+}
+
+function fallbackCampaignState(): CampaignState {
+  return {
+    tracks: [
+      { id: "stakePressure", kind: "number", start: 0, min: -2, max: 2 },
+      { id: "decisionTag", kind: "tag", start: "unset" },
+    ],
+  };
+}
+
+function readTrack(raw: unknown): CampaignStateTrack | undefined {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  const obj = raw as Record<string, unknown>;
+  const id = typeof obj.id === "string" ? obj.id.trim() : "";
+  if (!TRACK_ID.test(id)) return undefined;
+  if (obj.kind === "tag") {
+    return { id, kind: "tag", start: tagToken(obj.start) ?? "unset" };
+  }
+  if (obj.kind !== "number") return undefined;
+  let min = clampInt(asNumber(obj.min) ?? -3, -3, 3);
+  let max = clampInt(asNumber(obj.max) ?? 3, -3, 3);
+  if (min > max) [min, max] = [max, min];
+  if (min === max) {
+    if (min > -3) min -= 1;
+    else max += 1;
+  }
+  return {
+    id,
+    kind: "number",
+    start: clampInt(asNumber(obj.start) ?? 0, min, max),
+    min,
+    max,
+  };
+}
+
+/** Lenient, like continuity anchors: a missing object must not fail the stage or the existing fixtures. */
+function normalizeCampaignState(raw: unknown): CampaignState {
+  const obj = raw && typeof raw === "object" && !Array.isArray(raw) ? raw as Record<string, unknown> : {};
+  const source = Array.isArray(obj.tracks) ? obj.tracks : [];
+  const tracks: CampaignStateTrack[] = [];
+  const seen = new Set<string>();
+  for (const item of source) {
+    if (tracks.length >= MAX_TRACKS) break;
+    const track = readTrack(item);
+    if (!track || seen.has(track.id)) continue;
+    seen.add(track.id);
+    tracks.push(track);
+  }
+  return tracks.length > 0 ? { tracks } : fallbackCampaignState();
+}
+
+function readTrackIds(raw: unknown, known: Set<string>): string[] {
+  if (!Array.isArray(raw)) return [];
+  const ids: string[] = [];
+  for (const item of raw) {
+    if (typeof item !== "string" || !known.has(item) || ids.includes(item)) continue;
+    ids.push(item);
+  }
+  return ids;
+}
+
+function readMutations(raw: unknown, tracks: CampaignStateTrack[]): StateMutation[] {
+  if (!Array.isArray(raw)) return [];
+  const byId = new Map(tracks.map((track) => [track.id, track]));
+  const mutations: StateMutation[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const obj = item as Record<string, unknown>;
+    const track = typeof obj.track === "string" ? byId.get(obj.track) : undefined;
+    if (!track) continue;
+    if (track.kind === "number") {
+      const delta = asNumber(obj.delta);
+      if (delta === undefined) continue;
+      mutations.push({ track: track.id, delta: clampInt(delta, -2, 2) });
+    } else {
+      const tag = tagToken(obj.tag);
+      if (!tag) continue;
+      mutations.push({ track: track.id, tag });
+    }
+  }
+  return mutations;
+}
+
+function parseChoiceStubs(raw: unknown, tracks: CampaignStateTrack[]): ChoiceSkeleton[] {
+  if (!Array.isArray(raw)) return [];
+  const stubs: ChoiceSkeleton[] = [];
+  for (const item of raw) {
+    if (stubs.length >= 2) break;
+    const obj = item && typeof item === "object" ? item as Record<string, unknown> : {};
+    const id = typeof obj.id === "string" ? obj.id.trim() : "";
+    stubs.push({
+      id: CHOICE_ID.test(id) ? id : "",
+      mutates: readMutations(obj.mutates, tracks),
+    });
+  }
+  return stubs;
+}
+
+function fallbackMutation(tracks: CampaignStateTrack[], index: number): StateMutation[] {
+  const numberTrack = tracks.find((track) => track.kind === "number");
+  if (numberTrack) return [{ track: numberTrack.id, delta: index === 0 ? 1 : -1 }];
+  return [{ track: tracks[0].id, tag: index === 0 ? "committed" : "withheld" }];
+}
+
+function completeChoiceStubs(existing: ChoiceSkeleton[] | undefined, tracks: CampaignStateTrack[]): ChoiceSkeleton[] {
+  const stubs = (existing ?? []).slice(0, 2);
+  while (stubs.length < 2) stubs.push({ id: "", mutates: [] });
+  const seen = new Set<string>();
+  return stubs.map((stub, index) => {
+    let id = stub.id;
+    if (!id || seen.has(id)) id = index === 0 ? "choiceA" : "choiceB";
+    while (seen.has(id)) id = `${id}_${index + 1}`;
+    seen.add(id);
+    return {
+      id,
+      mutates: stub.mutates.length > 0 ? stub.mutates : fallbackMutation(tracks, index),
+    };
+  });
+}
+
+/** Later beats must name a track an earlier choice already writes. */
+function enforceCausalReads(list: EventSkeleton[]): void {
+  const mutated = new Set<string>();
+  for (let i = 0; i < list.length; i++) {
+    const ev = list[i];
+    if (i > 0 && mutated.size > 0) {
+      const reads = ev.reads ?? [];
+      if (!reads.some((id) => mutated.has(id))) {
+        const prior = [...mutated][0];
+        ev.reads = [prior, ...reads.filter((id) => id !== prior)];
+      }
+    }
+    for (const choice of ev.choices ?? []) {
+      for (const mutation of choice.mutates) mutated.add(mutation.track);
+    }
+  }
+}
+
+function normalizeEventSkeletons(raw: unknown, inputs: GenerateInputs, state: CampaignState): EventSkeleton[] {
   if (!Array.isArray(raw) || raw.length === 0) throw new Error("skeleton emitted no event skeletons");
+  const known = new Set(state.tracks.map((track) => track.id));
   const list: EventSkeleton[] = raw.map((item, i) => {
     const e = (item && typeof item === "object" ? item : {}) as Record<string, unknown>;
     let phaseMin = clamp01(asNumber(e.phase_min) ?? i / raw.length);
@@ -566,6 +838,8 @@ function normalizeEventSkeletons(raw: unknown, inputs: GenerateInputs): EventSke
       phase_max: phaseMax,
       title: typeof e.title === "string" && e.title.trim() ? e.title.trim() : `Event ${i + 1}`,
       type,
+      reads: readTrackIds(e.reads, known),
+      choices: parseChoiceStubs(e.choices, state.tracks),
     };
     if (e.pinned === true) sk.pinned = true;
     return sk;
@@ -585,6 +859,14 @@ function normalizeEventSkeletons(raw: unknown, inputs: GenerateInputs): EventSke
     }
     list.sort((a, b) => a.phase_min - b.phase_min || a.title.localeCompare(b.title));
   }
+  const firstTrack = state.tracks[0].id;
+  list.forEach((ev, index) => {
+    if (index === 0) ev.reads = [];
+    else if (!ev.reads?.length) ev.reads = [firstTrack];
+    if (ev.type === "push_luck") delete ev.choices;
+    else ev.choices = completeChoiceStubs(ev.choices, state.tracks);
+  });
+  enforceCausalReads(list);
   return list;
 }
 
@@ -676,7 +958,9 @@ export function normalizeSkeleton(raw: unknown, inputs: GenerateInputs): Campaig
   if (!skeleton.initialResources || typeof skeleton.initialResources !== "object" || Array.isArray(skeleton.initialResources)) {
     throw new Error("skeleton missing initialResources");
   }
-  skeleton.eventSkeletons = normalizeEventSkeletons(obj.eventSkeletons ?? obj.events, inputs);
+  delete (skeleton as { flags?: unknown }).flags;
+  skeleton.campaignState = normalizeCampaignState(obj.campaignState);
+  skeleton.eventSkeletons = normalizeEventSkeletons(obj.eventSkeletons ?? obj.events, inputs, skeleton.campaignState);
   skeleton.sageSkeletons = normalizeSageSkeletons(obj.sageSkeletons ?? obj.sages, inputs);
   const facts = obj.teachableFacts;
   skeleton.teachableFacts = Array.isArray(facts) ? facts.filter((f): f is string => typeof f === "string" && f.trim().length > 0) : [];
@@ -770,6 +1054,14 @@ export function lockEvent(sk: EventSkeleton, raw: unknown): GameEvent {
   if (typeof ev.weight !== "number" || !(ev.weight > 0)) ev.weight = 5;
   if (sk.pinned) ev.pinned = true;
   else delete ev.pinned;
+  delete (ev as { reads?: unknown }).reads;
+  delete (ev as { campaignState?: unknown }).campaignState;
+  ev.choices?.forEach((choice, i) => {
+    const stub = sk.type === "standard" ? sk.choices?.[i] : undefined;
+    const loose = choice as { id?: string; mutates?: unknown };
+    if (stub) loose.id = stub.id;
+    delete loose.mutates;
+  });
   for (const choice of ev.choices ?? []) {
     const own = trimInsight(choice.historicalInsight);
     if (own) choice.historicalInsight = own;
@@ -795,7 +1087,7 @@ function lockSage(sk: SageSkeleton, raw: unknown): SageEncounterData {
 
 const SKELETON_SYSTEM = [
   OUTPUT_ONLY,
-  "You lock the STRUCTURE of one historically authentic educational campaign. Do not write event choices, sage questions, trivia, a verdict, or a review summary.",
+  "You lock the STRUCTURE of one historically authentic educational campaign. Do not write event prose, sage questions, trivia, a verdict, or a review summary. Choice stubs are an id plus state mutations only — no button text and no results.",
   "If the user message contains LOCKED CONSTRAINTS, they are ground truth and override any Oregon Trail / journey habit. A frame that is not a journey is a project: no fake miles, trail forks, or supply trek.",
   BREVITY,
   "Resource keys in initialResources, resourceCaps, resourceLabels, pace fx, and primaryResourceKey must be the same camelCase identifiers. primaryResourceKey must be one of those keys.",
@@ -804,8 +1096,11 @@ const SKELETON_SYSTEM = [
   "Project campaigns set progressionMode to \"project\", totalDistance 0, distanceUnit \"\", paces [], trailPath [], trailStops [], outfitConfig.herdOptions [], and a route that is a single terminal start node. totalDays and daysPerTurn stay real and positive in both modes.",
   `theme, if set, is one of: ${THEMES.join(", ")}. Use the narrowest era match. imageStyleKeyword is ONE medium word (lithograph, engraving, painting, photograph, woodcut, illumination, daguerreotype).`,
   "pixelColors and pixelFaces are placeholders, not real sprites. outfitConfig.costs are what THIS endeavor actually packed, not generic trail goods.",
-  "Do NOT output a flags field. Do NOT write the fault-line dilemma or any pinned story-plan beat; those are spliced in later.",
-  "eventSkeletons carry only id, phase_min, phase_max, title, type (\"standard\" or \"push_luck\"), and pinned (false for pool beats). Most types are standard; include 1 or 2 push_luck. Phases are 0–1 and cover the journey.",
+  "Do NOT output a flags field. campaignState is a plan for the writers, not a runtime flags array. Do NOT write the fault-line dilemma or any pinned story-plan beat; those are spliced in later.",
+  "campaignState is required. It is { tracks } with 2 or 3 tracks and no prose. A track is { id, kind: \"number\" or \"tag\", start }, and number tracks also have min and max. Number ranges stay inside -3..3. A tag start is one short token with no spaces. ids are camelCase.",
+  "eventSkeletons carry id, phase_min, phase_max, title, type (\"standard\" or \"push_luck\"), pinned (false for pool beats), reads, and, for standard events, exactly two choice stubs { id, mutates }. No choice prose. push_luck has reads and no choices. Most types are standard; include 1 or 2 push_luck. Phases are 0–1 and cover the journey.",
+  "mutates entries are { track, delta } on number tracks or { track, tag } on tag tracks. delta is an integer from -2 to 2. tag is one short token.",
+  "The earliest event reads nothing. Every later event's reads lists track ids whose earlier mutations must change this beat's stakes, options, or outcome. At least one later event reads a track an earlier choice mutates.",
   "sageSkeletons carry only id, name, title, threshold (0–100, spaced across the run).",
   "teachableFacts are the concrete specifics later stages will teach and quiz: each one states the exact name, number, date, law, or FULL enumerated list. One fact per exam question.",
   "historicalContext is the real outcome in a short paragraph. storyMeaning, only when no narrative spine was supplied, is one short paragraph on what the history added up to — significance and irony, not a verdict on the player.",
@@ -863,7 +1158,16 @@ export async function generateSkeleton(
   inputs: GenerateInputs,
   priorErrors?: string[],
 ): Promise<CampaignSkeleton> {
-  return callStage(apiKey, SKELETON_SYSTEM, (errors) => skeletonUser(inputs, errors), 4000, priorErrors, (raw) => normalizeSkeleton(raw, inputs));
+  return callStage(
+    apiKey,
+    ARCHITECT_MODEL,
+    SKELETON_SYSTEM,
+    (errors) => skeletonUser(inputs, errors),
+    SKELETON_MAX_TOKENS,
+    priorErrors,
+    (raw) => normalizeSkeleton(raw, inputs),
+    ARCHITECT_THINKING_BUDGET,
+  );
 }
 
 const EVENT_SYSTEM = [
@@ -874,6 +1178,7 @@ const EVENT_SYSTEM = [
   "A standard event has choices. Each choice has either flat effects plus result, OR an outcomes array of { weight, effects, result }, never both. weights are positive integers.",
   "When a choice lines up with or violates the historical reality or the TEKS concept, set historicalInsight to ONE sentence of at most 140 characters saying why. Put it on the outcome, or on the flat choice when there is no outcomes array. Omit it on a purely mechanical choice.",
   "CONTINUITY: the user message lists continuityAnchors shared with every other batch. Weave at least one anchor naturally into each event's passage or a choice consequence. Do not label it as a motif. The companion, the carried object, and the weather should make these parallel nodes read as one journey.",
+  "CAUSAL STATE: the user message lists campaignState and the full planned chain of reads and mutations, shared with every parallel batch. Write exactly one player-facing choice per stub, in the same order and with the same id. The result or the effects must show that stub's mutations in the scene. If the skeleton lists reads, this beat's passage and stakes must change because of those earlier mutations. Do not mention track ids as variables, scores, or meters. Do not output a flags array.",
   "A push_luck event has leaveText and attempts: { id, buttonText, successText, failureText, riskChance (0–1, rising), rewards, penalties }. No choices on a push_luck event.",
   "Every multi-option event's choices must have a felt consequence. A bare result string is not one.",
   IMAGE_QUERY,
@@ -890,6 +1195,7 @@ function eventUser(
   return [
     constraintBrief(inputs, skeleton),
     continuityBlock(skeleton),
+    causalBlock(skeleton),
     economyChoiceBlock(inputs),
     relationshipBlock(inputs),
     referenceBlock(inputs),
@@ -915,6 +1221,7 @@ export async function generateEventBatch(
   if (batch.length === 0) return [];
   return callStage(
     apiKey,
+    NODE_WRITER_MODEL,
     EVENT_SYSTEM,
     (errors) => eventUser(skeleton, batch, inputs, errors, assignedFacts),
     6000,
@@ -932,11 +1239,14 @@ const SAGE_SYSTEM = [
   "The correct answer must be taught by the bio, the advice, or the explanation. reward.correct and reward.wrong use ONLY the locked resource keys. knowledgeCorrect and knowledgeWrong are small integers.",
   "portrait is the string \"placeholder.png\". threshold is a progress percent.",
   "Difficulty scales rigor, not fairness. Never test a fact the encounter itself does not teach.",
+  "The user message includes continuity anchors and a causal plan. The encounter may refer to the companion, the carried object, or the weather, and it must not contradict the planned stakes. Do not name tracks as meters.",
 ].join("\n");
 
 function sageUser(skeleton: CampaignSkeleton, inputs: GenerateInputs, errors: string[]): string {
   return [
     constraintBrief(inputs, skeleton),
+    continuityBlock(skeleton),
+    causalSummary(skeleton),
     referenceBlock(inputs),
     readingLevelSpec(inputs.grade),
     `Standard: ${inputs.standard}`,
@@ -958,6 +1268,7 @@ export async function generateSages(
   if (skeleton.sageSkeletons.length === 0) return [];
   return callStage(
     apiKey,
+    NODE_WRITER_MODEL,
     SAGE_SYSTEM,
     (errors) => sageUser(skeleton, inputs, errors),
     3000,
@@ -973,12 +1284,15 @@ const TRIVIA_SYSTEM = [
   "Each item is { id, question, choices (3 or 4 short lines), correctIndex, fact }. fact is 1-3 sentences that teach the answer in plain words.",
   "The correct choice must contain the exact tested specific: the full list, the name, the number, the date, or the law. A paraphrase that drops an item is wrong.",
   "Ask only what the supplied facts and historical context teach. Difficulty scales rigor, not trickiness. Ids are unique.",
+  "The user message includes a causal plan and continuity anchors. Questions must not contradict them. Do not name tracks as meters.",
 ].join("\n");
 
 function triviaUser(skeleton: CampaignSkeleton, inputs: GenerateInputs, count: number, errors: string[]): string {
   const facts = skeleton.teachableFacts.slice(0, Math.max(count, skeleton.teachableFacts.length));
   return [
     constraintBrief(inputs, skeleton),
+    continuityBlock(skeleton),
+    causalSummary(skeleton),
     referenceBlock(inputs),
     readingLevelSpec(inputs.grade),
     `Standard: ${inputs.standard}`,
@@ -1002,6 +1316,7 @@ export async function generateTrivia(
   if (count <= 0) return [];
   return callStage(
     apiKey,
+    NODE_WRITER_MODEL,
     TRIVIA_SYSTEM,
     (errors) => triviaUser(skeleton, inputs, count, errors),
     3000,
@@ -1037,6 +1352,7 @@ const CLOSER_SYSTEM = [
   "Spend the word budget on the tested facts plus just enough connective tissue to stay a recap. Cut flavor before you cut a tested specific.",
   "Tone here is clear and age-appropriate, not the verdict's gravitas.",
   "Before you finish, point at the phrase in the summary that answers each question. If you cannot, the answer is missing — revise before output.",
+  "The user message includes the causal plan and the continuity anchors. The verdict may weigh what those planned stakes cost, without naming tracks as scores or meters, and without contradicting the anchors.",
 ].join("\n");
 
 function examLines(trivia: EventGateQuestion[], sages: SageEncounterData[] | undefined): string {
@@ -1065,6 +1381,8 @@ function closerUser(
   const beatLines = events.map((e) => `- ${e.title}: ${typeof e.text === "string" ? e.text : ""}`).join("\n");
   return [
     constraintBrief(inputs, skeleton),
+    continuityBlock(skeleton),
+    causalSummary(skeleton),
     referenceBlock(inputs),
     readingLevelSpec(inputs.grade),
     `Historical outcome: ${skeleton.historicalContext}`,
@@ -1087,6 +1405,7 @@ export async function generateClosers(
 ): Promise<CampaignClosers> {
   return callStage(
     apiKey,
+    NODE_WRITER_MODEL,
     CLOSER_SYSTEM,
     (errors) => closerUser(skeleton, events, trivia, inputs, errors, sages),
     2500,
@@ -1572,6 +1891,7 @@ export async function generateCampaignChunked(
   priorErrors?: string[],
 ): Promise<Record<string, unknown>> {
   const routed = routePriorErrors(priorErrors);
+  console.log(`[generate] models architect=${ARCHITECT_MODEL} writer=${NODE_WRITER_MODEL}`);
   const skeletonStarted = Date.now();
   const skeleton = await generateSkeleton(apiKey, inputs, routed.skeleton);
   const batches = splitEventBatches(skeleton.eventSkeletons, EVENT_BATCH_SIZE);

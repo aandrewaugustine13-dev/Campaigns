@@ -3,6 +3,7 @@
 //   npx tsx generator/chunked.test.ts
 import type { GameEvent } from "./schema.js";
 import type { GenerateInputs } from "./core.js";
+import { ARCHITECT_MODEL, NODE_WRITER_MODEL } from "./models.js";
 import {
   applyLockedResources,
   assembleCampaign,
@@ -36,6 +37,27 @@ const baseInputs: GenerateInputs = {
 };
 
 console.log("\n=== chunked generator: structure ===\n");
+
+{
+  check("architect and writer models are set", ARCHITECT_MODEL.trim().length > 0 && NODE_WRITER_MODEL.trim().length > 0);
+  if (!process.env.CAMPAIGN_ARCHITECT_MODEL && !process.env.CAMPAIGN_NODE_WRITER_MODEL) {
+    check("architect default is the repo Pro-class model", ARCHITECT_MODEL === "gemini-3.1-pro-preview");
+    check("writer default is the repo Flash model", NODE_WRITER_MODEL === "gemini-3.5-flash");
+    check("architect and writer defaults differ", ARCHITECT_MODEL !== NODE_WRITER_MODEL);
+  }
+}
+
+function causalLinkHolds(events: { reads?: string[]; choices?: { mutates: { track: string }[] }[] }[]): boolean {
+  const mutated = new Set<string>();
+  for (let i = 0; i < events.length; i++) {
+    const reads = events[i].reads ?? [];
+    if (i > 0 && mutated.size > 0 && !reads.some((id) => mutated.has(id))) return false;
+    for (const choice of events[i].choices ?? []) {
+      for (const mutation of choice.mutates) mutated.add(mutation.track);
+    }
+  }
+  return mutated.size > 0;
+}
 
 {
   const used = new Set<string>();
@@ -163,6 +185,25 @@ console.log("\n=== chunked generator: structure ===\n");
       !!skeleton.continuityAnchors.environmentalMotif &&
       skeleton.continuityAnchors.companionOrAdversary.includes("The Ditch"),
   );
+  check(
+    "missing campaign state falls back to compact tracks",
+    skeleton.campaignState.tracks.length >= 2 &&
+      skeleton.campaignState.tracks.length <= 4 &&
+      skeleton.campaignState.tracks.some((track) => track.kind === "number" && track.id === "stakePressure") &&
+      skeleton.campaignState.tracks.some((track) => track.kind === "tag" && track.id === "decisionTag"),
+  );
+  check("earliest event reads nothing", (skeleton.eventSkeletons[0].reads ?? []).length === 0);
+  check(
+    "later events declare reads",
+    skeleton.eventSkeletons.slice(1).every((event) => (event.reads?.length ?? 0) > 0),
+  );
+  check(
+    "standard events get two mutation stubs and push_luck gets none",
+    skeleton.eventSkeletons.filter((event) => event.type === "standard").every((event) =>
+      event.choices?.length === 2 && event.choices.every((choice) => choice.mutates.length > 0),
+    ) && skeleton.eventSkeletons.filter((event) => event.type === "push_luck").every((event) => event.choices === undefined),
+  );
+  check("a later event reads a track an earlier choice mutates", causalLinkHolds(skeleton.eventSkeletons));
 
   const events = [
     { id: "late", phase_min: 0, phase_max: 1, title: "Later", text: "b", weight: 5, type: "standard", choices: [] },
@@ -174,7 +215,15 @@ console.log("\n=== chunked generator: structure ===\n");
     reviewSummary: "recap",
   });
   check("assembly restores journey order", (data.events as GameEvent[]).map((e) => e.id).join(",") === "early,mid,late");
-  check("assembly omits skeleton-only fields", !("eventSkeletons" in data) && !("teachableFacts" in data) && !("continuityAnchors" in data) && data.reviewSummary === "recap");
+  check(
+    "assembly omits skeleton-only fields",
+    !("eventSkeletons" in data) &&
+      !("teachableFacts" in data) &&
+      !("continuityAnchors" in data) &&
+      !("campaignState" in data) &&
+      !("flags" in data) &&
+      data.reviewSummary === "recap",
+  );
 }
 
 {
@@ -222,6 +271,110 @@ console.log("\n=== chunked generator: structure ===\n");
     kept.continuityAnchors.companionOrAdversary.startsWith("DeWitt Clinton") &&
       kept.continuityAnchors.signatureItemOrDocument.includes("surveyor") &&
       kept.continuityAnchors.environmentalMotif.includes("Mosquitoes"),
+  );
+}
+
+{
+  const causal = normalizeSkeleton({
+    id: "erie",
+    title: "The Ditch",
+    subtitle: "Albany to Buffalo",
+    introBody: "You are the commission.",
+    trailFeedOpener: "The first shovel breaks ground.",
+    progressionMode: "project",
+    totalDays: 2920,
+    daysPerTurn: 90,
+    totalDistance: 0,
+    distanceUnit: "",
+    initialResources: { funding: 40 },
+    resourceCaps: { funding: 100 },
+    resourceLabels: { funding: "Funding" },
+    primaryResourceKey: "funding",
+    primaryResourceStart: 40,
+    revenuePerUnit: 1,
+    route: [{ id: "start", title: "Albany", description: "", edges: [] }],
+    trailPath: [],
+    trailStops: [],
+    mapImage: "",
+    outfitConfig: { budget: 100, baseCrew: 1, baseHorses: 0, baseSupplies: 1, costs: {}, wageCosts: {}, wageMorale: {}, herdOptions: [] },
+    pixelColors: { coat: "#000" },
+    pixelFaces: {},
+    paces: [],
+    flags: [{ id: "family", type: "number" }],
+    campaignState: {
+      tracks: [
+        { id: "factionTrust", kind: "number", start: 1, min: -3, max: 3 },
+        { id: "Bad Id!", kind: "number", start: 0 },
+        { id: "keyDecision", kind: "tag", start: "open" },
+        { id: "note", kind: "tag", start: "the canal pays" },
+        { id: "rippleFlag", kind: "number", start: 0, min: -8, max: 9 },
+        { id: "extraTwo", kind: "tag", start: "dropped" },
+      ],
+    },
+    eventSkeletons: [
+      {
+        id: "early", phase_min: 0.1, phase_max: 0.3, title: "Early", type: "standard",
+        reads: ["factionTrust"],
+        choices: [
+          { id: "fundIt", mutates: [{ track: "factionTrust", delta: 2 }, { track: "nope", delta: 1 }] },
+          { id: "hold", mutates: [{ track: "keyDecision", tag: "withheld" }, { track: "factionTrust", delta: 9 }] },
+        ],
+      },
+      {
+        id: "mid", phase_min: 0.4, phase_max: 0.5, title: "Mid", type: "push_luck",
+        reads: ["factionTrust", "missing"],
+        choices: [{ id: "dig", mutates: [{ track: "factionTrust", delta: 1 }] }],
+      },
+      { id: "late", phase_min: 0.6, phase_max: 0.8, title: "Later", type: "standard", reads: [], choices: [] },
+    ],
+    sageSkeletons: [{ id: "clinton", name: "DeWitt Clinton", title: "Governor", threshold: 10 }],
+    teachableFacts: ["The canal opened in 1825."],
+    historicalContext: "The canal opened and paid for itself.",
+  }, baseInputs);
+  const trust = causal.campaignState.tracks.find((track) => track.id === "factionTrust");
+  const ripple = causal.campaignState.tracks.find((track) => track.id === "rippleFlag");
+  const note = causal.campaignState.tracks.find((track) => track.id === "note");
+  const early = causal.eventSkeletons[0];
+  const mid = causal.eventSkeletons[1];
+  const late = causal.eventSkeletons[2];
+  const hold = early.choices?.[1].mutates ?? [];
+  check(
+    "provided tracks survive and prose or invalid ids are dropped",
+    causal.campaignState.tracks.map((track) => track.id).join(",") === "factionTrust,keyDecision,note,rippleFlag" &&
+      trust?.kind === "number" && trust.start === 1 &&
+      note?.start === "unset" &&
+      ripple?.min === -3 && ripple.max === 3 &&
+      !("flags" in causal),
+  );
+  check("earliest reads are cleared even when the model set them", (early.reads ?? []).length === 0);
+  check(
+    "choice mutations keep known tracks and clamp deltas",
+    early.choices?.[0].id === "fundIt" &&
+      early.choices[0].mutates.length === 1 &&
+      early.choices[0].mutates[0].delta === 2 &&
+      hold.some((mutation) => mutation.track === "keyDecision" && mutation.tag === "withheld") &&
+      hold.some((mutation) => mutation.track === "factionTrust" && mutation.delta === 2),
+  );
+  check(
+    "push_luck keeps reads and drops choice stubs",
+    mid.type === "push_luck" && mid.choices === undefined && mid.reads?.join(",") === "factionTrust",
+  );
+  check(
+    "an empty later read is filled from an earlier mutation",
+    (late.reads ?? []).includes("factionTrust") && late.choices?.length === 2 && causalLinkHolds(causal.eventSkeletons),
+  );
+  const locked = lockEvent(early, {
+    reads: ["factionTrust"],
+    campaignState: { tracks: [] },
+    choices: [
+      { text: "Fund the cut", effects: { funding: -1 }, result: "You spend political credit.", mutates: [{ track: "factionTrust", delta: 2 }] },
+      { text: "Hold the money", effects: { funding: 1 }, result: "You keep the appropriation." },
+    ],
+  });
+  const firstChoice = locked.choices?.[0] as { id?: string; mutates?: unknown } | undefined;
+  check(
+    "locked events keep stub ids and drop the writer plan",
+    firstChoice?.id === "fundIt" && firstChoice.mutates === undefined && !("reads" in locked) && !("campaignState" in locked),
   );
 }
 
