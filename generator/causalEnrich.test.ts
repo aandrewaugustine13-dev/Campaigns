@@ -6,8 +6,11 @@ import { narrativePlanToCampaign, type NarrativeIdentity } from "./narrativeCamp
 import {
   applyCausalEnrichment,
   applyNarrativeEnrichment,
+  auditChoiceWeight,
   contextsAreNearDuplicate,
+  ensureChoiceWeight,
   repairCausalNodes,
+  type CausalLaterRead,
   type CausalNodeView,
   type CausalSkeletonView,
 } from "./causalEnrich.js";
@@ -74,6 +77,17 @@ check(
         { tag: "OLD_TAG_2", context: "The appropriation passed and the horses are already spent on the ditch." },
       ],
     }],
+    laterReads: [
+      {
+        tag: "SECURED_APPROPRIATION",
+        nodeId: "later",
+        changes: "options",
+        resource: "inventedGold",
+        gate: { choiceId: "a", effect: "raise_cost", note: "The spent horses make this crossing cost the last team." },
+      },
+      { tag: "NO_SUCH", nodeId: "later", changes: "stakes" },
+      { tag: "SECURED_APPROPRIATION", nodeId: "early", changes: "resources" },
+    ],
   }, {
     resources: ["funding"],
     tracks: [{ id: "factionTrust", kind: "number" }],
@@ -87,6 +101,12 @@ check(
       audit.inventedKeys.includes("inventedGold") && audit.flagKeysTouched.includes("family") && audit.droppedFlags,
   );
   check("a locked resource key is not turned into a state mutation", !fund?.mutates.some((mutation) => mutation.track === "funding"));
+  const reads = skeleton.laterReads ?? [];
+  check(
+    "backward and unknown reads are dropped",
+    reads.every((read) => read.tag !== "NO_SUCH" && read.nodeId !== "early") &&
+      reads.some((read) => read.tag === "SECURED_APPROPRIATION" && read.nodeId === "later" && read.gate?.choiceId === "a" && read.gate.effect === "raise_cost"),
+  );
   check(
     "near-duplicate arrivals on one node are split",
     audit.nearDuplicateNodes.includes("later") &&
@@ -117,6 +137,37 @@ check(
   check("node 4 cites a first-node tag", laterArrivals.some((entry) => early.has(entry.tag)));
   check("repair leaves no early tag uncited", repaired.unreferencedEarlyTags.length === 0);
   check("the opening node has no arrival", nodes[0]?.incomingContext === undefined);
+  check(
+    "repair gives non-final choices weight before the end",
+    repaired.weight.ok && repaired.laterReads.some((read) => read.nodeId !== "beat4"),
+  );
+}
+
+{
+  const nodes: CausalNodeView[] = [0, 1, 2, 3].map((index) => ({
+    id: `node${index + 1}`,
+    choices: [
+      { id: `a${index}`, mutates: [], tradeOff: "Gains time but spends the supply.", consequenceTag: `TAG_${index}_A` },
+      { id: `b${index}`, mutates: [], tradeOff: "Saves the supply but loses the season.", consequenceTag: `TAG_${index}_B` },
+    ],
+  }));
+  const onlyFinal: CausalLaterRead[] = nodes.slice(0, 3).flatMap((node) => (
+    (node.choices ?? []).map((choice) => ({
+      tag: choice.consequenceTag,
+      nodeId: "node4",
+      changes: "stakes" as const,
+    }))
+  ));
+  const before = auditChoiceWeight(nodes, onlyFinal);
+  check(
+    "weight that lands only on the final node fails the mid-game rule",
+    before.meetsPersistentDivergence && before.weightLandsBeforeTheEnd === false && before.ok === false,
+  );
+  const fixed = ensureChoiceWeight(nodes, onlyFinal);
+  const earlyRead = fixed.laterReads.find((read) => read.tag === "TAG_0_A");
+  const earlyIndex = nodes.findIndex((node) => node.id === earlyRead?.nodeId);
+  check("cleanup lands an early tag at least two nodes later", earlyIndex >= 2);
+  check("cleanup does not leave every read on the final node", fixed.audit.weightLandsBeforeTheEnd && fixed.audit.ratio >= 0.6 && fixed.audit.ok);
 }
 
 {
@@ -175,7 +226,11 @@ check(
     (plan.beats[3].incomingContext ?? []).some((entry) => entry.tag && early.has(entry.tag)) &&
       audit.unreferencedEarlyTags.length === 0,
   );
-  check("assembly still does not copy the causal ledger onto events", compiled !== undefined && !("incomingContext" in (compiled ?? {})) && !("consequenceTag" in (compiled?.choices?.[0] ?? {})));
+  check("assembly still does not copy the causal ledger onto events", compiled !== undefined && !("incomingContext" in (compiled ?? {})) && !("consequenceTag" in (compiled?.choices?.[0] ?? {})) && !("laterReads" in (compiled ?? {})));
+  check(
+    "narrative choices carry weight before the last beat",
+    audit.weight.ok && (plan.laterReads ?? []).some((read) => read.nodeId !== "beat_peace"),
+  );
 }
 
 if (failed > 0) {

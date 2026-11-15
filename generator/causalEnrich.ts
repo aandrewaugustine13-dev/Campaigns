@@ -1,10 +1,12 @@
 /**
- * Second-pass causal enrichment.
+ * Pass 2 — causal enrichment.
  *
  * Pass 1 writes the spine: the systems skeleton, or the narrative plan.
  * This pass rewrites only the short causal metadata (tradeoffs, consequence
- * tags, arrival lines, and — on the narrative path — ending fragments).
- * It is one architect call. It does not sit inside the parallel Stage 2 fan-out.
+ * tags, arrival lines, the later-read map, option gates, and — on the
+ * narrative path — ending fragments). It is one architect call. It does not
+ * sit inside the parallel Stage 2 fan-out. Pass 3 renders prose. Pass 4
+ * cleanup reuses the pure checks below, then the existing closers and fact gate.
  *
  * The pure helpers below are what the cleanup uses when the model omits a
  * link, repeats an arrival, or names a resource or flag that was not locked.
@@ -14,13 +16,17 @@ import { parseModelJson } from "./json.js";
 import { ARCHITECT_MODEL } from "./models.js";
 import type { NarrativePlan, PlanBeatChoice } from "./storyPlan.js";
 
-const ENRICH_MAX_TOKENS = 3000;
+const ENRICH_MAX_TOKENS = 4096;
 const ENRICH_THINKING_BUDGET = 1024;
 const TRADE_OFF_WORDS = 25;
 const CONTEXT_WORDS = 40;
 const FRAGMENT_WORDS = 40;
+const GATE_NOTE_WORDS = 16;
 const TAG_MAX = 48;
 const NEAR_DUPLICATE = 0.6;
+/** Share of non-final choices that a later node must actually consume. */
+export const PERSISTENT_DIVERGENCE = 0.6;
+const LATER_READ_CAP = 48;
 
 const TRADE_OFF_FALLBACK = [
   "Secures an immediate gain but spends a resource later beats still need.",
@@ -44,6 +50,41 @@ export interface CausalArrival {
   context: string;
 }
 
+export type CausalChange = "options" | "stakes" | "resources";
+export type GateEffect = "hide" | "raise_cost" | "alter";
+
+/** How one prior tag changes a specific later option. Note is at most 16 words. */
+export interface CausalOptionGate {
+  choiceId: string;
+  effect: GateEffect;
+  note: string;
+}
+
+/**
+ * One cell of the later-read map: a future node consumes this tag and the
+ * consumption changes options, stakes, or resources. Compact on purpose.
+ */
+export interface CausalLaterRead {
+  tag: string;
+  nodeId: string;
+  changes: CausalChange;
+  gate?: CausalOptionGate;
+}
+
+/** Whether non-final choices are consumed before the campaign ends. */
+export interface ChoiceWeightAudit {
+  weightedChoices: number;
+  nonFinalChoices: number;
+  /** weightedChoices / nonFinalChoices, or 1 when there is nothing to weigh. */
+  ratio: number;
+  meetsPersistentDivergence: boolean;
+  /** False when every read lands on the final node and a mid node exists. */
+  weightLandsBeforeTheEnd: boolean;
+  /** Early tags with a node two steps later that never cites them there. */
+  earlyTagsWithoutDelay: string[];
+  ok: boolean;
+}
+
 /** What the enrichment model is allowed to name. Anything else is dropped. */
 export interface CausalAllowList {
   resources: readonly string[];
@@ -62,6 +103,10 @@ export interface CausalAudit {
   unreferencedEarlyTags: string[];
   /** Node ids whose arrival lines were too alike and were split. */
   nearDuplicateNodes: string[];
+  /** The later-read map after cleanup. */
+  laterReads: CausalLaterRead[];
+  /** Whether choices carry weight before the final node. */
+  weight: ChoiceWeightAudit;
 }
 
 export interface CausalChoiceView {
@@ -80,12 +125,14 @@ export interface CausalNodeView {
 export interface CausalSkeletonView {
   initialResources: Record<string, number>;
   eventSkeletons: CausalNodeView[];
+  /** Which later node consumes each tag. Skeleton-only. */
+  laterReads?: CausalLaterRead[];
 }
 
 const ENRICHMENT_RULES = [
   "You add WEIGHT to a story that already exists. You do not rewrite the story.",
   "Output ONLY one JSON object. No markdown, no event prose, no scene text.",
-  "Change only causal metadata: tradeOff, consequenceTag, incomingContext, and on a narrative plan the endingFragment.",
+  "Change only causal metadata: tradeOff, consequenceTag, incomingContext, laterReads, and on a narrative plan the endingFragment.",
   "Do not change ids, order, phases, titles, scenes, choice text, stakes, resources, flags, or continuity anchors.",
   "tradeOff is at most 25 words and states both a gain and a cost.",
   "consequenceTag is a unique CONSTANT_CASE name, such as IGNORED_INTELLIGENCE_WARNING or DIVERTED_CONVOY_ROUTE. It is not a runtime flag.",
@@ -94,7 +141,11 @@ const ENRICHMENT_RULES = [
   "HISTORICAL DILEMMA: every decision pits two competing historical pressures against each other, such as speed against security, loyalty against preservation, or short-term survival against the mission. Do not write a correct answer beside a foolish one. One option may be the worse historical bet, and it must still carry a real cost or a lost opportunity.",
   "NO INSTANT FUNNEL: do not collapse diverging choices into the next node as if both arrivals were the same. When branches meet again, incomingContext has a distinct entry for each arrival.",
   "DELAYED CAUSAL PAYOFF: at least one choice in the first two nodes carries a consequenceTag that a node at position 4 or later names in incomingContext. That later beat's stakes must change because of that tag.",
-  "Mutations may name only the state-track ids you are given. Do not invent resource keys or flag ids.",
+  "PERSISTENT DIVERGENCE: at least 60% of choices that are not on the final node must appear in laterReads. Each of those reads changes options, stakes, or available resources. A tag that only colors the final scene does not count.",
+  "MID-GAME PAYOFF: a choice from the first two nodes must be consumed at least two nodes later whenever a node that far exists. The final node cannot be the only place weight lands. Put at least one read on a node before the end.",
+  "laterReads maps a consequenceTag to the future node that consumes it: { tag, nodeId, changes }. changes is options, stakes, or resources. nodeId is a later node, never the node that authored the tag.",
+  "When changes is options, add gate: { choiceId, effect, note }. effect is hide, raise_cost, or alter. note is at most 16 words and states what the prior tag does to that later option. hide means the option is already foreclosed. raise_cost means a steeper loss of a locked resource. alter means the option's terms change. choiceId must exist on that later node.",
+  "Mutations and gates may name only the state-track ids and locked resource keys you are given. Do not invent resource keys or flag ids.",
 ].join("\n");
 
 export const CAUSAL_ENRICHMENT_SYSTEM = ENRICHMENT_RULES;
@@ -188,6 +239,274 @@ export function unreferencedEarlyTags(nodes: readonly CausalNodeView[]): string[
   return [...early].filter((tag) => !cited.has(tag));
 }
 
+interface ChoiceSite {
+  tag: string;
+  nodeIndex: number;
+  choiceId: string;
+}
+
+function choiceSites(nodes: readonly CausalNodeView[]): ChoiceSite[] {
+  const sites: ChoiceSite[] = [];
+  nodes.forEach((node, nodeIndex) => {
+    node.choices?.forEach((choice) => {
+      if (choice.consequenceTag) sites.push({ tag: choice.consequenceTag, nodeIndex, choiceId: choice.id });
+    });
+  });
+  return sites;
+}
+
+function nodeIndexOf(nodes: readonly CausalNodeView[]): Map<string, number> {
+  return new Map(nodes.map((node, index) => [node.id, index]));
+}
+
+function emptyWeight(): ChoiceWeightAudit {
+  return {
+    weightedChoices: 0,
+    nonFinalChoices: 0,
+    ratio: 1,
+    meetsPersistentDivergence: true,
+    weightLandsBeforeTheEnd: true,
+    earlyTagsWithoutDelay: [],
+    ok: true,
+  };
+}
+
+/**
+ * Choices have weight before the end when enough non-final tags are consumed
+ * by a later node, an early tag still matters two nodes later, and the final
+ * node is not the only consumer.
+ */
+export function auditChoiceWeight(nodes: readonly CausalNodeView[], reads: readonly CausalLaterRead[]): ChoiceWeightAudit {
+  const last = nodes.length - 1;
+  const indexOf = nodeIndexOf(nodes);
+  const sites = choiceSites(nodes);
+  const nonFinal = sites.filter((site) => site.nodeIndex < last);
+  const readAt = (read: CausalLaterRead) => indexOf.get(read.nodeId);
+  const covers = (tag: string, pred: (index: number) => boolean) => reads.some((read) => {
+    if (read.tag !== tag) return false;
+    const index = readAt(read);
+    return index !== undefined && pred(index);
+  });
+  const weightedChoices = nonFinal.filter((site) => covers(site.tag, (index) => index > site.nodeIndex)).length;
+  const ratio = nonFinal.length === 0 ? 1 : weightedChoices / nonFinal.length;
+  const earlyEnd = nodes.length >= 4 ? 2 : 1;
+  const earlyTagsWithoutDelay = sites
+    .filter((site) => site.nodeIndex < earlyEnd && site.nodeIndex + 2 <= last)
+    .filter((site) => !covers(site.tag, (index) => index >= site.nodeIndex + 2))
+    .map((site) => site.tag);
+  const weightLandsBeforeTheEnd = nodes.length < 3
+    || nonFinal.length === 0
+    || reads.some((read) => {
+      const index = readAt(read);
+      return index !== undefined && index < last;
+    });
+  const meetsPersistentDivergence = ratio + 1e-9 >= PERSISTENT_DIVERGENCE;
+  return {
+    weightedChoices,
+    nonFinalChoices: nonFinal.length,
+    ratio,
+    meetsPersistentDivergence,
+    weightLandsBeforeTheEnd,
+    earlyTagsWithoutDelay,
+    ok: meetsPersistentDivergence && weightLandsBeforeTheEnd && earlyTagsWithoutDelay.length === 0,
+  };
+}
+
+function readChange(value: unknown): CausalChange | undefined {
+  if (typeof value !== "string") return undefined;
+  const token = value.trim().toLowerCase().replace(/[\s-]+/g, "_");
+  if (token === "options" || token === "option" || token === "choices" || token === "choice") return "options";
+  if (token === "stakes" || token === "stake" || token === "situation") return "stakes";
+  if (token === "resources" || token === "resource") return "resources";
+  return undefined;
+}
+
+function readGateEffect(value: unknown): GateEffect | undefined {
+  if (typeof value !== "string") return undefined;
+  const token = value.trim().toLowerCase().replace(/[\s-]+/g, "_");
+  if (token === "hide" || token === "hidden" || token === "foreclose" || token === "foreclosed") return "hide";
+  if (token === "raise_cost" || token === "raise" || token === "cost") return "raise_cost";
+  if (token === "alter" || token === "change" || token === "changed") return "alter";
+  return undefined;
+}
+
+function noteResourceKey(name: string, allow: CausalAllowList | undefined, invented: Set<string>, touchedFlags: Set<string>): void {
+  if (!name) return;
+  if (!allow) {
+    invented.add(name);
+    return;
+  }
+  if (allow.flags.includes(name)) touchedFlags.add(name);
+  else if (!allow.resources.includes(name) && !allow.tracks.some((track) => track.id === name)) invented.add(name);
+}
+
+function readGate(raw: unknown, invented: Set<string>, touchedFlags: Set<string>, allow?: CausalAllowList): CausalOptionGate | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const obj = raw as Record<string, unknown>;
+  const choiceId = typeof obj.choiceId === "string" ? obj.choiceId.trim() : typeof obj.id === "string" ? obj.id.trim() : "";
+  const effect = readGateEffect(obj.effect);
+  const note = typeof obj.note === "string" ? clipWords(obj.note, GATE_NOTE_WORDS) : "";
+  if (typeof obj.resource === "string") noteResourceKey(obj.resource, allow, invented, touchedFlags);
+  if (!choiceId || !effect || !note) return undefined;
+  return { choiceId, effect, note };
+}
+
+/** Pull laterReads out of a patch. Unknown shapes are ignored. Keys are audited, not stored. */
+function parseLaterReads(raw: unknown, invented: Set<string>, touchedFlags: Set<string>, allow?: CausalAllowList): CausalLaterRead[] {
+  const root = asObject(raw);
+  const reads: CausalLaterRead[] = [];
+  const take = (item: unknown, tagHint?: string) => {
+    if (!item || typeof item !== "object") return;
+    const obj = item as Record<string, unknown>;
+    if (typeof obj.resource === "string") noteResourceKey(obj.resource, allow, invented, touchedFlags);
+    const tagRaw = typeof obj.tag === "string" && obj.tag.trim() ? obj.tag : tagHint;
+    const nodeId = typeof obj.nodeId === "string" ? obj.nodeId.trim() : typeof obj.eventId === "string" ? obj.eventId.trim() : typeof obj.beatId === "string" ? obj.beatId.trim() : "";
+    const changes = readChange(obj.changes);
+    if (!tagRaw || !nodeId || !changes) return;
+    const gate = readGate(obj.gate, invented, touchedFlags, allow);
+    reads.push({
+      tag: normalizeConsequenceTag(tagRaw, ""),
+      nodeId,
+      changes,
+      ...(gate ? { gate } : {}),
+    });
+  };
+  const lists = [root.laterReads, root.reads];
+  for (const list of lists) {
+    if (!Array.isArray(list)) continue;
+    for (const item of list) take(item);
+  }
+  if (Array.isArray(root.choices)) {
+    for (const choice of root.choices) {
+      if (!choice || typeof choice !== "object") continue;
+      const row = choice as Record<string, unknown>;
+      const tagHint = typeof row.consequenceTag === "string" ? row.consequenceTag : undefined;
+      if (Array.isArray(row.consumedBy)) for (const item of row.consumedBy) take(item, tagHint);
+    }
+  }
+  return reads;
+}
+
+function fallbackGateNote(tag: string): string {
+  const prose = tag.toLowerCase().replace(/_/g, " ");
+  return clipWords(`After ${prose}, this option costs more or no longer works the same way.`, GATE_NOTE_WORDS);
+}
+
+function sanitizeLaterReads(nodes: readonly CausalNodeView[], reads: readonly CausalLaterRead[]): CausalLaterRead[] {
+  const sites = new Map(choiceSites(nodes).map((site) => [site.tag, site]));
+  const indexOf = nodeIndexOf(nodes);
+  const kept: CausalLaterRead[] = [];
+  const seen = new Set<string>();
+  for (const read of reads) {
+    const source = sites.get(read.tag);
+    const target = indexOf.get(read.nodeId);
+    if (!source || target === undefined || target <= source.nodeIndex) continue;
+    const key = `${read.tag}|${read.nodeId}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const targetNode = nodes[target];
+    let gate = read.gate;
+    if (gate && !targetNode?.choices?.some((choice) => choice.id === gate?.choiceId)) gate = undefined;
+    if (read.changes === "options" && !gate) {
+      const choice = targetNode?.choices?.[0];
+      if (choice) gate = { choiceId: choice.id, effect: "raise_cost", note: fallbackGateNote(read.tag) };
+    }
+    kept.push({ tag: read.tag, nodeId: read.nodeId, changes: gate ? read.changes : read.changes === "options" && !targetNode?.choices?.length ? "stakes" : read.changes, ...(gate ? { gate } : {}) });
+  }
+  return kept;
+}
+
+function consumerIndex(length: number, sourceIndex: number, wantDelay: boolean, wantMid: boolean): number | undefined {
+  const last = length - 1;
+  const later: number[] = [];
+  for (let index = sourceIndex + 1; index <= last; index += 1) later.push(index);
+  if (later.length === 0) return undefined;
+  let pool = later;
+  if (wantDelay) {
+    const delayed = later.filter((index) => index >= sourceIndex + 2);
+    if (delayed.length > 0) pool = delayed;
+  }
+  if (wantMid) {
+    const mid = pool.filter((index) => index < last);
+    if (mid.length > 0) pool = mid;
+  }
+  return pool[0];
+}
+
+function pushRead(nodes: readonly CausalNodeView[], reads: CausalLaterRead[], seen: Set<string>, tag: string, target: number, prefer: CausalChange): void {
+  if (reads.length >= LATER_READ_CAP) return;
+  const node = nodes[target];
+  if (!node) return;
+  const key = `${tag}|${node.id}`;
+  if (seen.has(key)) return;
+  const choice = node.choices?.[0];
+  const changes: CausalChange = !choice && prefer === "options" ? "stakes" : prefer;
+  const gate = changes === "options" && choice
+    ? { choiceId: choice.id, effect: "raise_cost" as const, note: fallbackGateNote(tag) }
+    : undefined;
+  seen.add(key);
+  reads.push({ tag, nodeId: node.id, changes, ...(gate ? { gate } : {}) });
+}
+
+/**
+ * Fill the later-read map until the weight check passes, or until no legal
+ * consumer remains. Does not rewrite scenes, ids, or resources.
+ */
+export function ensureChoiceWeight(nodes: readonly CausalNodeView[], reads: readonly CausalLaterRead[]): { laterReads: CausalLaterRead[]; audit: ChoiceWeightAudit } {
+  const kept = sanitizeLaterReads(nodes, reads);
+  const seen = new Set(kept.map((read) => `${read.tag}|${read.nodeId}`));
+  const last = nodes.length - 1;
+  const earlyEnd = nodes.length >= 4 ? 2 : 1;
+  const indexOf = nodeIndexOf(nodes);
+  const sites = choiceSites(nodes);
+  const cycle: CausalChange[] = ["options", "stakes", "resources"];
+  let cursor = kept.length;
+
+  const covers = (tag: string, pred: (index: number) => boolean) => kept.some((read) => {
+    if (read.tag !== tag) return false;
+    const index = indexOf.get(read.nodeId);
+    return index !== undefined && pred(index);
+  });
+
+  for (const site of sites) {
+    if (site.nodeIndex >= earlyEnd || site.nodeIndex + 2 > last) continue;
+    if (covers(site.tag, (index) => index >= site.nodeIndex + 2)) continue;
+    const target = consumerIndex(nodes.length, site.nodeIndex, true, true);
+    if (target === undefined) continue;
+    pushRead(nodes, kept, seen, site.tag, target, cycle[cursor % cycle.length]);
+    cursor += 1;
+  }
+
+  if (nodes.length >= 3 && !kept.some((read) => {
+    const index = indexOf.get(read.nodeId);
+    return index !== undefined && index < last;
+  })) {
+    const site = sites.find((item) => item.nodeIndex < last && consumerIndex(nodes.length, item.nodeIndex, false, true) !== undefined);
+    const target = site ? consumerIndex(nodes.length, site.nodeIndex, false, true) : undefined;
+    if (site && target !== undefined) {
+      pushRead(nodes, kept, seen, site.tag, target, "stakes");
+    }
+  }
+
+  const nonFinal = sites.filter((site) => site.nodeIndex < last);
+  let guard = 0;
+  while (guard < nonFinal.length && kept.length < LATER_READ_CAP) {
+    const audit = auditChoiceWeight(nodes, kept);
+    if (audit.meetsPersistentDivergence) break;
+    const site = nonFinal.find((item) => !covers(item.tag, (index) => index > item.nodeIndex));
+    if (!site) break;
+    const target = consumerIndex(nodes.length, site.nodeIndex, true, true);
+    if (target === undefined) break;
+    const before = kept.length;
+    pushRead(nodes, kept, seen, site.tag, target, cycle[cursor % cycle.length]);
+    cursor += 1;
+    if (kept.length === before) break;
+    guard += 1;
+  }
+
+  return { laterReads: kept, audit: auditChoiceWeight(nodes, kept) };
+}
+
 function asObject(raw: unknown): Record<string, unknown> {
   return raw && typeof raw === "object" && !Array.isArray(raw) ? raw as Record<string, unknown> : {};
 }
@@ -265,7 +584,15 @@ function acceptMutation(
 }
 
 function emptyAudit(): CausalAudit {
-  return { inventedKeys: [], flagKeysTouched: [], droppedFlags: false, unreferencedEarlyTags: [], nearDuplicateNodes: [] };
+  return {
+    inventedKeys: [],
+    flagKeysTouched: [],
+    droppedFlags: false,
+    unreferencedEarlyTags: [],
+    nearDuplicateNodes: [],
+    laterReads: [],
+    weight: emptyWeight(),
+  };
 }
 
 /**
@@ -307,9 +634,13 @@ export function applyCausalEnrichment(skeleton: CausalSkeletonView, patch: unkno
     if (separateNearDuplicateContexts(node.incomingContext)) audit.nearDuplicateNodes.push(node.id);
   }
 
+  const weighted = ensureChoiceWeight(skeleton.eventSkeletons, parseLaterReads(patch, invented, touchedFlags, allow));
+  skeleton.laterReads = weighted.laterReads;
   audit.inventedKeys = [...invented];
   audit.flagKeysTouched = [...touchedFlags];
   audit.unreferencedEarlyTags = unreferencedEarlyTags(skeleton.eventSkeletons);
+  audit.laterReads = weighted.laterReads;
+  audit.weight = weighted.audit;
   return audit;
 }
 
@@ -337,7 +668,7 @@ function stampNodeTags(nodes: CausalNodeView[]): void {
  * Fill missing tags and make sure a later node cites an early one.
  * Used after a narrative patch, and safe to run when the model returned nothing.
  */
-export function repairCausalNodes(nodes: CausalNodeView[]): CausalAudit {
+export function repairCausalNodes(nodes: CausalNodeView[], existingReads: readonly CausalLaterRead[] = []): CausalAudit {
   const audit = emptyAudit();
   stampNodeTags(nodes);
   const priorChoices = () => {
@@ -383,7 +714,10 @@ export function repairCausalNodes(nodes: CausalNodeView[]): CausalAudit {
     }));
     if (separateNearDuplicateContexts(node.incomingContext)) audit.nearDuplicateNodes.push(node.id);
   });
+  const weighted = ensureChoiceWeight(nodes, existingReads);
   audit.unreferencedEarlyTags = unreferencedEarlyTags(nodes);
+  audit.laterReads = weighted.laterReads;
+  audit.weight = weighted.audit;
   return audit;
 }
 
@@ -451,7 +785,8 @@ export function applyNarrativeEnrichment(plan: NarrativePlan, patch: unknown): C
     })),
     incomingContext: beat.incomingContext ? beat.incomingContext.map((entry) => ({ ...entry })) : undefined,
   }));
-  const repaired = repairCausalNodes(nodes);
+  const draftReads = parseLaterReads(patch, invented, new Set());
+  const repaired = repairCausalNodes(nodes, draftReads);
   beats.forEach((beat, index) => {
     const node = nodes[index];
     beat.choices?.forEach((choice, choiceIndex) => {
@@ -466,12 +801,16 @@ export function applyNarrativeEnrichment(plan: NarrativePlan, patch: unknown): C
     if (node.incomingContext?.length) beat.incomingContext = node.incomingContext;
     else delete beat.incomingContext;
   });
+  if (repaired.laterReads.length > 0) plan.laterReads = repaired.laterReads;
+  else delete plan.laterReads;
   // A narrative plan has no resource map at enrichment time. Any mutation key
   // the model emitted is outside the locked set (the compiler maps stake later).
   audit.inventedKeys = [...invented];
   audit.droppedFlags = audit.droppedFlags || repaired.droppedFlags;
   audit.unreferencedEarlyTags = repaired.unreferencedEarlyTags;
   audit.nearDuplicateNodes = repaired.nearDuplicateNodes;
+  audit.laterReads = repaired.laterReads;
+  audit.weight = repaired.weight;
   return audit;
 }
 
@@ -504,7 +843,7 @@ function systemsUser(skeleton: CausalSkeletonView & {
     skeleton.historicalContext ? `History: ${clipWords(skeleton.historicalContext, 80)}` : "",
     skeleton.teachableFacts?.length ? `Facts: ${skeleton.teachableFacts.slice(0, 6).join(" | ")}` : "",
     JSON.stringify({ events }),
-    'Output { "choices": [ { "eventId", "choiceId", "tradeOff", "consequenceTag", "mutates" } ], "arrivals": [ { "eventId", "incomingContext": [ { "tag", "context" } ] } ] }.',
+    'Output { "choices": [ { "eventId", "choiceId", "tradeOff", "consequenceTag", "mutates" } ], "arrivals": [ { "eventId", "incomingContext": [ { "tag", "context" } ] } ], "laterReads": [ { "tag", "nodeId", "changes", "gate": { "choiceId", "effect", "note" } } ] }.',
   ].filter(Boolean).join("\n\n");
 }
 
@@ -515,6 +854,7 @@ function narrativeUser(plan: NarrativePlan, topic: string, standard: string): st
     title: beat.title,
     choices: (beat.choices ?? []).map((choice, index) => ({
       choiceIndex: index,
+      choiceId: `${beat.id}_${index + 1}`,
       text: choice.text,
       result: choice.result,
       stake: choice.stake,
@@ -532,7 +872,8 @@ function narrativeUser(plan: NarrativePlan, topic: string, standard: string): st
     JSON.stringify({ beats }),
     "On every decision choice set tradeOff, consequenceTag, and a stronger endingFragment: one past-tense sentence that names the gain and the cost and can be read aloud in the ending.",
     "On every beat after the first, set incomingContext. A beat at position 4 or later must cite a tag from the first two decision beats.",
-    'Output { "choices": [ { "beatId", "choiceIndex", "tradeOff", "consequenceTag", "endingFragment" } ], "arrivals": [ { "beatId", "incomingContext": [ { "tag", "context" } ] } ] }.',
+    "laterReads must send at least 60% of non-final choices to a later beat. A choice from the first two beats must be read at least two beats later. At least one read lands before the final beat. changes is options, stakes, or resources. A gate choiceId is the choiceId shown above.",
+    'Output { "choices": [ { "beatId", "choiceIndex", "tradeOff", "consequenceTag", "endingFragment" } ], "arrivals": [ { "beatId", "incomingContext": [ { "tag", "context" } ] } ], "laterReads": [ { "tag", "nodeId", "changes", "gate": { "choiceId", "effect", "note" } } ] }.',
   ].join("\n\n");
 }
 

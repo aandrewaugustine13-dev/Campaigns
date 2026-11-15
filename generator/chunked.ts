@@ -5,13 +5,15 @@
 // all of the wall-clock time was that single completion. This module splits
 // the same campaign into small JSON calls:
 //
-//   1. generateSkeleton     — structure only (ids, phases, resources, route).
-//   2. causal enrichment    — one architect call that rewrites tradeoffs,
-//      consequence tags, and incoming arrivals. No event prose.
-//   3. generateEventBatch   — full events, ~5 beats at a time, in parallel,
-//      alongside generateSages and generateTrivia.
-//   4. generateClosers      — verdict + reviewSummary, after the events and
-//      the exam exist, so the recap can embed the real answers.
+//   Pass 1 — generateSkeleton. Coherent arc, locked resources, continuity
+//      anchors, and light choice stubs. No event prose.
+//   Pass 2 — enrichCampaignSkeleton. One architect call. Rewrites only the
+//      causal layer: tradeoffs, tags, arrivals, the later-read map, and
+//      option gates.
+//   Pass 3 — generateEventBatch, in parallel with sages and trivia.
+//   Pass 4 — weight cleanup runs at the end of Pass 2 so Pass 3 renders the
+//      repaired map. Closers run after Pass 3. The fact gate stays in
+//      generateValidatedCampaign.
 //
 // Parallel fill is the speedup: several short calls overlap, and none of them
 // re-reads the schema or the example campaign. Stage-1 artifacts (frame, cast,
@@ -37,10 +39,12 @@ import type { GenerateInputs } from "./core.js";
 import { ARCHITECT_MODEL, NODE_WRITER_MODEL } from "./models.js";
 import {
   enrichCampaignSkeleton,
+  ensureChoiceWeight,
   separateNearDuplicateContexts,
   unreferencedEarlyTags,
   type CausalAllowList,
   type CausalAudit,
+  type CausalLaterRead,
 } from "./causalEnrich.js";
 import type { EconomyResource } from "./economy.js";
 import type { PersonalResource } from "./personalEconomy.js";
@@ -213,6 +217,11 @@ export interface CampaignSkeleton {
   /** Compact causal plan. Skeleton-only, same as continuityAnchors. */
   campaignState: CampaignState;
   continuityAnchors: ContinuityAnchors;
+  /**
+   * Which later node consumes each non-final consequence tag, and whether
+   * that read changes options, stakes, or resources. Skeleton-only.
+   */
+  laterReads?: CausalLaterRead[];
 }
 
 export interface CampaignClosers {
@@ -601,7 +610,24 @@ function consequenceLedger(skeleton: CampaignSkeleton, batch: EventSkeleton[]): 
     "When a node lists more than one incomingContext, those arrivals stay different. Do not merge them into one neutral scene that would fit every prior choice.",
     "Weave the TEKS concept into the consequence itself. Show why that historical approach succeeded or failed in practice. Do not pause the scene to lecture.",
     "Each choice result must show that stub's tradeOff: both the gain and the cost. Do not print a consequenceTag as a code, a meter, or a flag.",
+    "A later read must be visible in this node. Do not save every consequence for the final scene.",
   ];
+  const batchIds = new Set(batch.map((ev) => ev.id));
+  const laterReads = skeleton.laterReads ?? [];
+  const outbound = laterReads.filter((read) => (
+    !batchIds.has(read.nodeId) && batch.some((ev) => (ev.choices ?? []).some((choice) => choice.consequenceTag === read.tag))
+  ));
+  const inbound = laterReads.filter((read) => batchIds.has(read.nodeId));
+  if (outbound.length > 0 || inbound.length > 0) {
+    lines.push("LATER READS for this batch:");
+    for (const read of outbound) {
+      lines.push(`- ${read.tag} changes ${read.changes} at ${read.nodeId}. Write the cost so it is still unpaid.`);
+    }
+    for (const read of inbound) {
+      const gate = read.gate ? ` Gate ${read.gate.choiceId} ${read.gate.effect}: ${read.gate.note}` : "";
+      lines.push(`- ${read.nodeId} consumes ${read.tag} and changes ${read.changes}.${gate}`);
+    }
+  }
   for (const ev of batch) {
     const entries = ev.incomingContext ?? [];
     if (entries.length === 0) {
@@ -1116,16 +1142,19 @@ function causalAllowList(skeleton: CampaignSkeleton, inputs: GenerateInputs): Ca
 }
 
 /** Re-stamp tags and arrivals after enrichment, then record anything still broken. */
-function finalizeCausalLedger(skeleton: CampaignSkeleton): Pick<CausalAudit, "nearDuplicateNodes" | "unreferencedEarlyTags"> {
+function finalizeCausalLedger(skeleton: CampaignSkeleton): Pick<CausalAudit, "nearDuplicateNodes" | "unreferencedEarlyTags" | "weight"> {
   stampChoiceLedger(skeleton.eventSkeletons);
   ensureIncomingContexts(skeleton.eventSkeletons);
   const nearDuplicateNodes: string[] = [];
   for (const ev of skeleton.eventSkeletons) {
     if (ev.incomingContext && separateNearDuplicateContexts(ev.incomingContext)) nearDuplicateNodes.push(ev.id);
   }
+  const weighted = ensureChoiceWeight(skeleton.eventSkeletons, skeleton.laterReads ?? []);
+  skeleton.laterReads = weighted.laterReads;
   return {
     nearDuplicateNodes,
     unreferencedEarlyTags: unreferencedEarlyTags(skeleton.eventSkeletons),
+    weight: weighted.audit,
   };
 }
 
@@ -1316,13 +1345,16 @@ export function lockEvent(sk: EventSkeleton, raw: unknown): GameEvent {
   delete (ev as { reads?: unknown }).reads;
   delete (ev as { campaignState?: unknown }).campaignState;
   delete (ev as { incomingContext?: unknown }).incomingContext;
+  delete (ev as { laterReads?: unknown }).laterReads;
+  delete (ev as { optionGates?: unknown }).optionGates;
   ev.choices?.forEach((choice, i) => {
     const stub = sk.type === "standard" ? sk.choices?.[i] : undefined;
-    const loose = choice as { id?: string; mutates?: unknown; tradeOff?: unknown; consequenceTag?: unknown };
+    const loose = choice as { id?: string; mutates?: unknown; tradeOff?: unknown; consequenceTag?: unknown; consumedBy?: unknown };
     if (stub) loose.id = stub.id;
     delete loose.mutates;
     delete loose.tradeOff;
     delete loose.consequenceTag;
+    delete loose.consumedBy;
   });
   for (const choice of ev.choices ?? []) {
     const own = trimInsight(choice.historicalInsight);
@@ -1448,6 +1480,7 @@ const EVENT_SYSTEM = [
   "CONTINUITY: the user message lists continuityAnchors shared with every other batch. Weave at least one anchor naturally into each event's passage or a choice consequence. Do not label it as a motif. The companion, the carried object, and the weather should make these parallel nodes read as one journey.",
   "CAUSAL STATE: the user message lists campaignState and the full planned chain of reads and mutations, shared with every parallel batch. Write exactly one player-facing choice per stub, in the same order and with the same id. The result or the effects must show that stub's mutations and its tradeOff, both the gain and the cost. If the skeleton lists reads, this beat's passage and stakes must change because of those earlier mutations. Do not mention track ids, consequenceTags, or meters. Do not output a flags array.",
   "FALLOUT: the user message lists each node's incomingContext. The first one or two sentences must show the cost already paid or the advantage already gained before the next dilemma. Do not open on a neutral reset. When more than one arrival is listed, the scene and the options must keep those losses, supplies, or relationships different.",
+  "GATES: the user message lists option gates for this node. A hide gate means that option is still present and its result shows it is already foreclosed by the prior decision. A raise_cost gate means a steeper loss of a locked resource. An alter gate means the option's terms have changed. Do not drop a stub. Do not invent a resource key or a flags array.",
   "Teach the standard inside the consequence. Show why the historical approach succeeded or failed in practice. Do not add a lecture sentence.",
   "A push_luck event has leaveText and attempts: { id, buttonText, successText, failureText, riskChance (0–1, rising), rewards, penalties }. No choices on a push_luck event.",
   "Every multi-option event's choices must have a felt consequence. A bare result string is not one.",
@@ -2146,25 +2179,18 @@ export function normalizeCampaignDifficulty(campaign: Record<string, unknown>): 
   );
 }
 
+/** Pass 1. The historical spine, locked resources, and continuity anchors. */
+function pass1Spine(apiKey: string, inputs: GenerateInputs, errors: string[]): Promise<CampaignSkeleton> {
+  return generateSkeleton(apiKey, inputs, errors);
+}
+
 /**
- * Chunked replacement for the single generateContent call.
- *
- * Skeleton first, so later calls share one set of resource keys and beat ids.
- * Event batches of EVENT_BATCH_SIZE run concurrently with the sage and trivia
- * calls — that overlap is why this is faster than one 16k-token completion.
- * Closers run last, with the real exam answers in hand. The returned object
- * is the campaign shell; generateCampaign still enriches images, splices
- * Stage-1 fault-line and story-plan pieces, and runs validate().
+ * Pass 2, then the causal half of Pass 4. One architect call rewrites the
+ * causal layer. Cleanup then repairs unreferenced tags, near-duplicate
+ * arrivals, invented keys, and choices that would only matter at the end.
+ * Pass 3 renders this repaired skeleton. A failed model call keeps Pass 1.
  */
-export async function generateCampaignChunked(
-  apiKey: string,
-  inputs: GenerateInputs,
-  priorErrors?: string[],
-): Promise<Record<string, unknown>> {
-  const routed = routePriorErrors(priorErrors);
-  console.log(`[generate] models architect=${ARCHITECT_MODEL} writer=${NODE_WRITER_MODEL}`);
-  const skeletonStarted = Date.now();
-  const skeleton = await generateSkeleton(apiKey, inputs, routed.skeleton);
+async function pass2CausalEnrichment(apiKey: string, skeleton: CampaignSkeleton, inputs: GenerateInputs): Promise<CausalAudit> {
   const enrichStarted = Date.now();
   let enrichAudit: CausalAudit = {
     inventedKeys: [],
@@ -2172,26 +2198,43 @@ export async function generateCampaignChunked(
     droppedFlags: false,
     unreferencedEarlyTags: [],
     nearDuplicateNodes: [],
+    laterReads: [],
+    weight: {
+      weightedChoices: 0,
+      nonFinalChoices: 0,
+      ratio: 1,
+      meetsPersistentDivergence: true,
+      weightLandsBeforeTheEnd: true,
+      earlyTagsWithoutDelay: [],
+      ok: true,
+    },
   };
   try {
     enrichAudit = await enrichCampaignSkeleton(apiKey, skeleton, causalAllowList(skeleton, inputs));
   } catch (err) {
     console.warn(
-      "[generate] causal enrichment failed; keeping the skeleton ledger:",
+      "[generate] pass 2 causal enrichment failed; keeping the spine ledger:",
       err instanceof Error ? err.message : err,
     );
   }
   const repair = finalizeCausalLedger(skeleton);
+  const weightPct = Math.round(repair.weight.ratio * 100);
   console.log(
-    `[generate] causal enrichment ${((Date.now() - enrichStarted) / 1000).toFixed(1)}s — invented keys ${enrichAudit.inventedKeys.length}, flag writes dropped ${enrichAudit.flagKeysTouched.length}${enrichAudit.droppedFlags ? ", flags array dropped" : ""}, near-duplicates ${repair.nearDuplicateNodes.length}, unreferenced early tags ${repair.unreferencedEarlyTags.length}`,
+    `[generate] pass 2 causal enrichment ${((Date.now() - enrichStarted) / 1000).toFixed(1)}s — invented keys ${enrichAudit.inventedKeys.length}, flag writes dropped ${enrichAudit.flagKeysTouched.length}${enrichAudit.droppedFlags ? ", flags array dropped" : ""}, near-duplicates ${repair.nearDuplicateNodes.length}, unreferenced early tags ${repair.unreferencedEarlyTags.length}, choice weight ${weightPct}%${repair.weight.ok ? "" : " (short of the mid-game bar)"}`,
   );
+  return { ...enrichAudit, ...repair, laterReads: skeleton.laterReads ?? [] };
+}
+
+/** Pass 3. Event prose, sages, and trivia stay one parallel fan-out. */
+async function pass3ParallelRender(
+  apiKey: string,
+  skeleton: CampaignSkeleton,
+  inputs: GenerateInputs,
+  routed: RoutedErrors,
+): Promise<{ events: GameEvent[]; sages: SageEncounterData[]; trivia: EventGateQuestion[] }> {
   const batches = splitEventBatches(skeleton.eventSkeletons, EVENT_BATCH_SIZE);
   const factGroups = assignFactsToBatches(batches.length, skeleton.teachableFacts);
-  console.log(
-    `[generate] chunked skeleton ${((Date.now() - skeletonStarted) / 1000).toFixed(1)}s — ${skeleton.eventSkeletons.length} events in ${batches.length} batches`,
-  );
-
-  const fillStarted = Date.now();
+  const started = Date.now();
   const [eventGroups, sages, trivia] = await Promise.all([
     Promise.all(batches.map((batch, i) =>
       generateEventBatch(apiKey, skeleton, batch, inputs, routed.events, factGroups[i]),
@@ -2201,12 +2244,52 @@ export async function generateCampaignChunked(
   ]);
   const events = eventGroups.flat();
   console.log(
-    `[generate] chunked fill ${((Date.now() - fillStarted) / 1000).toFixed(1)}s — ${events.length} events, ${sages.length} sages, ${trivia.length} trivia`,
+    `[generate] pass 3 parallel fill ${((Date.now() - started) / 1000).toFixed(1)}s — ${events.length} events in ${batches.length} batches, ${sages.length} sages, ${trivia.length} trivia`,
+  );
+  return { events, sages, trivia };
+}
+
+/** Pass 4 prose half. Closers see the rendered events. The fact gate stays in core. */
+function pass4Closers(
+  apiKey: string,
+  skeleton: CampaignSkeleton,
+  events: GameEvent[],
+  trivia: EventGateQuestion[],
+  inputs: GenerateInputs,
+  errors: string[],
+  sages: SageEncounterData[],
+): Promise<CampaignClosers> {
+  return generateClosers(apiKey, skeleton, events, trivia, inputs, errors, sages);
+}
+
+/**
+ * Chunked replacement for the single generateContent call.
+ *
+ * Pass 1 locks the spine. Pass 2 adds the causal layer. Pass 3 fills prose
+ * in parallel. Pass 4 cleans the ledger before that fill, then writes closers
+ * after it. generateCampaign still enriches images, splices Stage-1 fault-line
+ * and story-plan pieces, and runs validate(). The fact gate stays on the
+ * accepted attempt inside generateValidatedCampaign.
+ */
+export async function generateCampaignChunked(
+  apiKey: string,
+  inputs: GenerateInputs,
+  priorErrors?: string[],
+): Promise<Record<string, unknown>> {
+  const routed = routePriorErrors(priorErrors);
+  console.log(`[generate] models architect=${ARCHITECT_MODEL} writer=${NODE_WRITER_MODEL}`);
+  const skeletonStarted = Date.now();
+  const skeleton = await pass1Spine(apiKey, inputs, routed.skeleton);
+  await pass2CausalEnrichment(apiKey, skeleton, inputs);
+  const batches = splitEventBatches(skeleton.eventSkeletons, EVENT_BATCH_SIZE);
+  console.log(
+    `[generate] pass 1 spine ${((Date.now() - skeletonStarted) / 1000).toFixed(1)}s — ${skeleton.eventSkeletons.length} events in ${batches.length} batches`,
   );
 
+  const { events, sages, trivia } = await pass3ParallelRender(apiKey, skeleton, inputs, routed);
   const closerStarted = Date.now();
-  const closers = await generateClosers(apiKey, skeleton, events, trivia, inputs, routed.closers, sages);
-  console.log(`[generate] chunked closers ${((Date.now() - closerStarted) / 1000).toFixed(1)}s`);
+  const closers = await pass4Closers(apiKey, skeleton, events, trivia, inputs, routed.closers, sages);
+  console.log(`[generate] pass 4 closers ${((Date.now() - closerStarted) / 1000).toFixed(1)}s`);
 
   const campaign = assembleCampaign(skeleton, events, sages, trivia, closers);
   // Character runs end on the clock, not a resource death. Leave their deltas alone.

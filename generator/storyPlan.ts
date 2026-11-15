@@ -135,6 +135,17 @@ export interface NarrativePlan {
   imageStyleKeyword?: string;
   /** The ordered major beats. */
   beats: PlanBeat[];
+  /**
+   * Causal enrichment only. Which later beat consumes a non-final choice, and
+   * whether that read changes options, stakes, or resources. The compiler does
+   * not copy it. Optional: a plan without it still validates and still compiles.
+   */
+  laterReads?: {
+    tag: string;
+    nodeId: string;
+    changes: "options" | "stakes" | "resources";
+    gate?: { choiceId: string; effect: "hide" | "raise_cost" | "alter"; note: string };
+  }[];
 }
 
 // ── Validation (mirrors generator/faultline.ts discipline) ────────

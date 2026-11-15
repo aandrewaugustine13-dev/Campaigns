@@ -14,9 +14,10 @@
 //
 //   narrativePlanToCampaign(plan, identity)  — PURE. plan → CampaignData. No
 //                 model call, no network, no SDK. Fully unit-testable.
-//   generateNarrativeCampaign(apiKey, inputs) — author the plan, run one causal
-//                 enrichment pass over that plan, then assemble. Assembly stays
-//                 a pure function of the enriched plan.
+//   generateNarrativeCampaign(apiKey, inputs) — Pass 1 authors the plan, Pass 2
+//                 enriches the causal layer (tags, arrivals, later reads,
+//                 ending fragments), then assembly stays a pure function of
+//                 that plan. There is no parallel prose pass on this product.
 //
 // WHY SPINE-ONLY (no pool): the random pool is the systems-game DNA — it drops
 // disconnected vignettes (and push-luck) BETWEEN the arc beats and is the source
@@ -212,21 +213,22 @@ export async function generateNarrativeCampaign(
     requireEndingFragments: true,
   });
 
-  // One enrichment call, after the spine and before assembly. It may strengthen
-  // tradeoffs, consequence tags, arrival lines, and ending fragments. Scene,
-  // stake, and role stay as the first pass wrote them. A failed call keeps the
-  // authored plan, so assembly is still deterministic.
+  // Pass 2. One enrichment call, after the spine and before assembly. It may
+  // strengthen tradeoffs, consequence tags, arrival lines, later reads, and
+  // ending fragments. Scene, stake, and role stay as Pass 1 wrote them. A
+  // failed call keeps the authored plan, so assembly is still deterministic.
   let plan = authored;
   try {
     const { enrichNarrativePlan } = await import("./causalEnrich.js");
     const enrichStarted = Date.now();
     const audit = await enrichNarrativePlan(apiKey, plan, inputs.topic, inputs.standard);
+    const weightPct = Math.round(audit.weight.ratio * 100);
     console.log(
-      `[narrative] causal enrichment ${((Date.now() - enrichStarted) / 1000).toFixed(1)}s — invented keys ${audit.inventedKeys.length}, near-duplicates ${audit.nearDuplicateNodes.length}, unreferenced early tags ${audit.unreferencedEarlyTags.length}`,
+      `[narrative] pass 2 causal enrichment ${((Date.now() - enrichStarted) / 1000).toFixed(1)}s — invented keys ${audit.inventedKeys.length}, near-duplicates ${audit.nearDuplicateNodes.length}, unreferenced early tags ${audit.unreferencedEarlyTags.length}, choice weight ${weightPct}%${audit.weight.ok ? "" : " (short of the mid-game bar)"}`,
     );
   } catch (err) {
     console.warn(
-      "[narrative] causal enrichment failed; assembling the authored plan:",
+      "[narrative] pass 2 causal enrichment failed; assembling the authored plan:",
       err instanceof Error ? err.message : err,
     );
   }
