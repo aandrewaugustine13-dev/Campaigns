@@ -33,6 +33,7 @@
     "test:quiz-gate": "vitest run src/narrativeQuizGate.test.tsx",
     "test:choice-memory-engine": "vitest run src/choiceMemory.engine.test.tsx",
     "test:ending-dom": "vitest run src/narrativeEnding.dom.test.tsx",
+    "test:montgomery": "npx tsx generator/montgomery.test.ts",
     "test:branching-player": "vitest run src/branchingPlayer.test.tsx",
     "test:branching-gen": "vitest run src/branchingStoryGen.test.ts",
     "test:review": "vitest run src/storyPlanReview.test.tsx",
