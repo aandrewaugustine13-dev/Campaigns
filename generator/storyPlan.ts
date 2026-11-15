@@ -72,6 +72,16 @@ export interface PlanBeatChoice {
    * decision-beat choice when `requireEndingFragments` is set (the narrative
    * product). */
   endingFragment?: string;
+  /**
+   * Causal enrichment only. One line, about 25 words, naming both a gain and
+   * a cost. Optional: a plan without it still validates and still compiles.
+   */
+  tradeOff?: string;
+  /**
+   * Causal enrichment only. CONSTANT_CASE ripple name. Not a runtime flag.
+   * Optional, same as tradeOff.
+   */
+  consequenceTag?: string;
 }
 
 export interface PlanBeat {
@@ -92,6 +102,12 @@ export interface PlanBeat {
    * OMITTED on a resolution beat, which is the aftermath/meaning-landing where
    * WITNESSING is dramatically correct (the compiler makes it a "Go on." beat). */
   choices?: PlanBeatChoice[];
+  /**
+   * Causal enrichment only. One entry per prior consequenceTag when more than
+   * one earlier choice can lead here. The compiler does not copy it; the
+   * ending fragments carry the player-visible difference. Optional.
+   */
+  incomingContext?: { tag: string; context: string }[];
   /** A 2–4 word Wikimedia Commons file-search query for THIS beat's visual,
    * grounded in its CONCRETE place + year (a named, depictable subject — a
    * battle/place/person/event — never an abstraction or a verb). The compiler

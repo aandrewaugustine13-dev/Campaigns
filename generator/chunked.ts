@@ -6,9 +6,11 @@
 // the same campaign into small JSON calls:
 //
 //   1. generateSkeleton     — structure only (ids, phases, resources, route).
-//   2. generateEventBatch   — full events, ~5 beats at a time, in parallel,
+//   2. causal enrichment    — one architect call that rewrites tradeoffs,
+//      consequence tags, and incoming arrivals. No event prose.
+//   3. generateEventBatch   — full events, ~5 beats at a time, in parallel,
 //      alongside generateSages and generateTrivia.
-//   3. generateClosers      — verdict + reviewSummary, after the events and
+//   4. generateClosers      — verdict + reviewSummary, after the events and
 //      the exam exist, so the recap can embed the real answers.
 //
 // Parallel fill is the speedup: several short calls overlap, and none of them
@@ -33,6 +35,13 @@ import { GoogleGenAI } from "@google/genai";
 import { parseModelJson } from "./json.js";
 import type { GenerateInputs } from "./core.js";
 import { ARCHITECT_MODEL, NODE_WRITER_MODEL } from "./models.js";
+import {
+  enrichCampaignSkeleton,
+  separateNearDuplicateContexts,
+  unreferencedEarlyTags,
+  type CausalAllowList,
+  type CausalAudit,
+} from "./causalEnrich.js";
 import type { EconomyResource } from "./economy.js";
 import type { PersonalResource } from "./personalEconomy.js";
 import type {
@@ -587,7 +596,7 @@ function consequenceLedger(skeleton: CampaignSkeleton, batch: EventSkeleton[]): 
     }
   }
   const lines = [
-    "CONSEQUENCE LEDGER (render this; the causal work is already decided):",
+    "CONSEQUENCE LEDGER (the enrichment pass already decided this; render it):",
     "The first one or two sentences of each node must show the fallout of the prior decision, the cost already paid or the advantage already gained, before the next dilemma begins.",
     "When a node lists more than one incomingContext, those arrivals stay different. Do not merge them into one neutral scene that would fit every prior choice.",
     "Weave the TEKS concept into the consequence itself. Show why that historical approach succeeded or failed in practice. Do not pause the scene to lecture.",
@@ -1090,7 +1099,34 @@ function normalizeEventSkeletons(raw: unknown, inputs: GenerateInputs, state: Ca
   enforceCausalReads(list);
   stampChoiceLedger(list);
   ensureIncomingContexts(list);
+  for (const ev of list) {
+    if (ev.incomingContext) separateNearDuplicateContexts(ev.incomingContext);
+  }
   return list;
+}
+
+function causalAllowList(skeleton: CampaignSkeleton, inputs: GenerateInputs): CausalAllowList {
+  const flags = ["family", "community"];
+  if (inputs.faultLine?.flag.id) flags.push(inputs.faultLine.flag.id);
+  return {
+    resources: Object.keys(skeleton.initialResources ?? {}),
+    tracks: skeleton.campaignState.tracks.map((track) => ({ id: track.id, kind: track.kind })),
+    flags,
+  };
+}
+
+/** Re-stamp tags and arrivals after enrichment, then record anything still broken. */
+function finalizeCausalLedger(skeleton: CampaignSkeleton): Pick<CausalAudit, "nearDuplicateNodes" | "unreferencedEarlyTags"> {
+  stampChoiceLedger(skeleton.eventSkeletons);
+  ensureIncomingContexts(skeleton.eventSkeletons);
+  const nearDuplicateNodes: string[] = [];
+  for (const ev of skeleton.eventSkeletons) {
+    if (ev.incomingContext && separateNearDuplicateContexts(ev.incomingContext)) nearDuplicateNodes.push(ev.id);
+  }
+  return {
+    nearDuplicateNodes,
+    unreferencedEarlyTags: unreferencedEarlyTags(skeleton.eventSkeletons),
+  };
 }
 
 function normalizeSageSkeletons(raw: unknown, inputs: GenerateInputs): SageSkeleton[] {
@@ -2129,6 +2165,26 @@ export async function generateCampaignChunked(
   console.log(`[generate] models architect=${ARCHITECT_MODEL} writer=${NODE_WRITER_MODEL}`);
   const skeletonStarted = Date.now();
   const skeleton = await generateSkeleton(apiKey, inputs, routed.skeleton);
+  const enrichStarted = Date.now();
+  let enrichAudit: CausalAudit = {
+    inventedKeys: [],
+    flagKeysTouched: [],
+    droppedFlags: false,
+    unreferencedEarlyTags: [],
+    nearDuplicateNodes: [],
+  };
+  try {
+    enrichAudit = await enrichCampaignSkeleton(apiKey, skeleton, causalAllowList(skeleton, inputs));
+  } catch (err) {
+    console.warn(
+      "[generate] causal enrichment failed; keeping the skeleton ledger:",
+      err instanceof Error ? err.message : err,
+    );
+  }
+  const repair = finalizeCausalLedger(skeleton);
+  console.log(
+    `[generate] causal enrichment ${((Date.now() - enrichStarted) / 1000).toFixed(1)}s — invented keys ${enrichAudit.inventedKeys.length}, flag writes dropped ${enrichAudit.flagKeysTouched.length}${enrichAudit.droppedFlags ? ", flags array dropped" : ""}, near-duplicates ${repair.nearDuplicateNodes.length}, unreferenced early tags ${repair.unreferencedEarlyTags.length}`,
+  );
   const batches = splitEventBatches(skeleton.eventSkeletons, EVENT_BATCH_SIZE);
   const factGroups = assignFactsToBatches(batches.length, skeleton.teachableFacts);
   console.log(

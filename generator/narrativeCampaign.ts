@@ -14,9 +14,9 @@
 //
 //   narrativePlanToCampaign(plan, identity)  — PURE. plan → CampaignData. No
 //                 model call, no network, no SDK. Fully unit-testable.
-//   generateNarrativeCampaign(apiKey, inputs) — thin async wrapper: author the
-//                 plan (generateStoryPlan, the one proven model stage) then
-//                 assemble. The only model call is the spine generation.
+//   generateNarrativeCampaign(apiKey, inputs) — author the plan, run one causal
+//                 enrichment pass over that plan, then assemble. Assembly stays
+//                 a pure function of the enriched plan.
 //
 // WHY SPINE-ONLY (no pool): the random pool is the systems-game DNA — it drops
 // disconnected vignettes (and push-luck) BETWEEN the arc beats and is the source
@@ -203,7 +203,7 @@ export async function generateNarrativeCampaign(
 ): Promise<GenerateNarrativeResult> {
   // Lazy import keeps the SDK out of any pure consumer that only needs the assembler.
   const { generateStoryPlan } = await import("./storyPlanGen.js");
-  const { data: plan } = await generateStoryPlan(inputs.standard, apiKey, {
+  const { data: authored } = await generateStoryPlan(inputs.standard, apiKey, {
     topic: inputs.topic,
     perspective: inputs.perspective,
     campaignType: "character",
@@ -211,6 +211,25 @@ export async function generateNarrativeCampaign(
     // plan must author an endingFragment per decision-beat choice.
     requireEndingFragments: true,
   });
+
+  // One enrichment call, after the spine and before assembly. It may strengthen
+  // tradeoffs, consequence tags, arrival lines, and ending fragments. Scene,
+  // stake, and role stay as the first pass wrote them. A failed call keeps the
+  // authored plan, so assembly is still deterministic.
+  let plan = authored;
+  try {
+    const { enrichNarrativePlan } = await import("./causalEnrich.js");
+    const enrichStarted = Date.now();
+    const audit = await enrichNarrativePlan(apiKey, plan, inputs.topic, inputs.standard);
+    console.log(
+      `[narrative] causal enrichment ${((Date.now() - enrichStarted) / 1000).toFixed(1)}s — invented keys ${audit.inventedKeys.length}, near-duplicates ${audit.nearDuplicateNodes.length}, unreferenced early tags ${audit.unreferencedEarlyTags.length}`,
+    );
+  } catch (err) {
+    console.warn(
+      "[narrative] causal enrichment failed; assembling the authored plan:",
+      err instanceof Error ? err.message : err,
+    );
+  }
 
   // Separate, beats-grounded quiz stage (Option A). Isolated from the plan call
   // above, so a bad quiz never re-rolls the proven spine/ending.
