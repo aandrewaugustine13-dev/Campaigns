@@ -16,6 +16,20 @@ import {
   type MontgomeryBlueprint,
   type MontgomeryNode,
 } from "./montgomery.js";
+import {
+  CHAPTER_REASONING_EFFORT,
+  CHAPTER_TEMPERATURE,
+  MONTGOMERY_CHAPTER_SYSTEM,
+  MONTGOMERY_GROK_MODEL,
+  MONTGOMERY_TIMEOUT_MS,
+  MontgomeryRateLimitError,
+  blueprintGrokCall,
+  chapterGrokCall,
+  grokResponsesBody,
+  isRateLimitError,
+  resolveMontgomeryApiKey,
+  retryOnRateLimit,
+} from "./montgomeryGen.js";
 
 let failed = 0;
 const check = (label: string, ok: boolean, detail = "") => {
@@ -159,6 +173,131 @@ console.log("\n=== montgomery topology ===\n");
       (host?.choices ?? []).some((item) => item.targetNodeId === warpId(2)),
   );
   check("a full local branch still validates after repair", findings.every((item) => item.level !== "error"), findings.filter((item) => item.level === "error").map((item) => item.message).join("; "));
+}
+
+console.log("\n=== montgomery grok client ===\n");
+
+{
+  const body = grokResponsesBody(blueprintGrokCall({ topic: "War of 1812", gradeLevel: "8", standard: "8.B" }));
+  const bottlenecks = (body.text.format.schema.properties as { bottlenecks?: { minItems?: number } }).bottlenecks;
+  check(
+    "blueprint call is grok-4.7 with high reasoning and temperature 0.7",
+    body.model === MONTGOMERY_GROK_MODEL &&
+      body.model === "grok-4.7" &&
+      body.temperature === 0.7 &&
+      body.reasoning.effort === "high" &&
+      body.text.format.type === "json_schema" &&
+      body.text.format.strict === true &&
+      body.text.format.name === "montgomery_blueprint" &&
+      bottlenecks?.minItems === 4,
+  );
+  const chapterBody = grokResponsesBody(chapterGrokCall(blueprint(), 4));
+  const nodes = (chapterBody.text.format.schema.properties as {
+    nodes?: { minItems?: number; items?: { properties?: { id?: { enum?: string[] } } } };
+  }).nodes;
+  const ids = nodes?.items?.properties?.id?.enum ?? [];
+  check(
+    "chapter call is grok-4.7 with medium reasoning and temperature 0.8",
+    chapterBody.model === "grok-4.7" &&
+      chapterBody.temperature === CHAPTER_TEMPERATURE &&
+      chapterBody.reasoning.effort === CHAPTER_REASONING_EFFORT &&
+      chapterBody.text.format.strict === true &&
+      chapterBody.text.format.name === "montgomery_chapter_4",
+  );
+  check(
+    "chapter schema locks the diamond ids, including the climax",
+    nodes?.minItems === 13 && ids.includes("ch4_bottleneck") && ids.includes("climax_red") && ids.includes("ch4_end_yellow"),
+  );
+  check("request timeout is at least 180 seconds", MONTGOMERY_TIMEOUT_MS >= 180_000);
+  check("chapter 2 still names the next bottleneck sink", chapterGrokCall(blueprint(), 2).user.includes("ch3_bottleneck"));
+  check(
+    "chapter prompt focuses on texture, prunes, and bridgeText",
+    MONTGOMERY_CHAPTER_SYSTEM.includes("Historical texture") &&
+      MONTGOMERY_CHAPTER_SYSTEM.includes("bridgeText") &&
+      MONTGOMERY_CHAPTER_SYSTEM.includes("Red and yellow prunes") &&
+      MONTGOMERY_CHAPTER_SYSTEM.includes("No markdown fences") &&
+      MONTGOMERY_CHAPTER_SYSTEM.includes("No commentary"),
+  );
+  check(
+    "chapter prompt drops the flash-model reminders",
+    !MONTGOMERY_CHAPTER_SYSTEM.includes("whether you chose") &&
+      !MONTGOMERY_CHAPTER_SYSTEM.includes("if you feel worried") &&
+      !MONTGOMERY_CHAPTER_SYSTEM.includes("Use only the ids"),
+  );
+  const nodeSchema = nodes?.items as { additionalProperties?: boolean; properties?: { choices?: { items?: { additionalProperties?: boolean } } } } | undefined;
+  check(
+    "schemas refuse extra keys",
+    body.text.format.schema.additionalProperties === false &&
+      nodeSchema?.additionalProperties === false &&
+      nodeSchema?.properties?.choices?.items?.additionalProperties === false,
+  );
+}
+
+{
+  const previous = process.env.XAI_API_KEY;
+  process.env.XAI_API_KEY = "xai-test-key";
+  check("XAI_API_KEY is used instead of a passed key", resolveMontgomeryApiKey("AIza-not-for-xai") === "xai-test-key");
+  delete process.env.XAI_API_KEY;
+  check("a passed key is used only when XAI_API_KEY is unset", resolveMontgomeryApiKey("xai-explicit") === "xai-explicit");
+  if (previous === undefined) delete process.env.XAI_API_KEY;
+  else process.env.XAI_API_KEY = previous;
+}
+
+{
+  const delays: number[] = [];
+  let calls = 0;
+  const result = await retryOnRateLimit(async () => {
+    calls += 1;
+    if (calls < 3) throw new MontgomeryRateLimitError("429");
+    return "diamond";
+  }, { sleep: async (ms) => { delays.push(ms); } });
+  check("a 429 retries twice, then returns the chapter", result === "diamond" && calls === 3 && delays.join(",") === "1000,2000");
+}
+
+{
+  const delays: number[] = [];
+  let calls = 0;
+  let message = "";
+  try {
+    await retryOnRateLimit(async () => {
+      calls += 1;
+      throw new MontgomeryRateLimitError("still limited");
+    }, { sleep: async (ms) => { delays.push(ms); } });
+  } catch (err) {
+    message = err instanceof Error ? err.message : "";
+  }
+  check("a 429 gives up after two retries", calls === 3 && delays.join(",") === "1000,2000" && message === "still limited");
+}
+
+{
+  let calls = 0;
+  let slept = 0;
+  let message = "";
+  try {
+    await retryOnRateLimit(async () => {
+      calls += 1;
+      const err = new Error("schema rejected") as Error & { status?: number };
+      err.status = 400;
+      throw err;
+    }, { sleep: async () => { slept += 1; } });
+  } catch (err) {
+    message = err instanceof Error ? err.message : "";
+  }
+  check("a non-429 chapter error is not retried", calls === 1 && slept === 0 && message === "schema rejected" && !isRateLimitError(new Error("schema rejected")));
+}
+
+{
+  let calls = 0;
+  const value = await retryOnRateLimit(async () => {
+    calls += 1;
+    if (calls === 1) {
+      const err = new Error("rate") as Error & { status: number };
+      err.status = 429;
+      throw err;
+    }
+    return "ok";
+  }, { sleep: async () => {} });
+  check("a status 429 error is treated as a rate limit", value === "ok" && calls === 2);
 }
 
 if (failed > 0) {
